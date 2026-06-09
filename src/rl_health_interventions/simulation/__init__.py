@@ -11,10 +11,6 @@ logger = logging.getLogger(__name__)
 REGISTRY: dict[str, Type[ResponseModel]] = {}
 
 
-def register(cls: Type[ResponseModel]) -> None:
-    REGISTRY[cls.__name__] = cls
-
-
 def make(name: str) -> ResponseModel:
     if name not in REGISTRY:
         raise KeyError(f"Unknown response model: {name}. Known: {list(REGISTRY)}")

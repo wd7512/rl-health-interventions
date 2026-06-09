@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+from typing import Any
+
 from rl_health_interventions.agents._base import Agent
 
 
 class ThompsonSamplingAgent(Agent):
-    def select_action(self, state: object) -> int:
+    def select_action(self, state: Any) -> int:
         return 0
 
     def update(
-        self, state: object, action: int, reward: float, next_state: object
+        self, state: Any, action: int, reward: float, next_state: Any
     ) -> None:
         pass
 

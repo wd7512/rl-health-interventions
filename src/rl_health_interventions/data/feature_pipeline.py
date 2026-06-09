@@ -9,6 +9,7 @@ class FeaturePipeline:
 
     @classmethod
     def from_config(cls, config: dict[str, Any] | None = None) -> FeaturePipeline:
+        # Stub: config is accepted but ignored. Real implementation in subphase 1A.
         return cls()
 
 

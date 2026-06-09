@@ -11,10 +11,6 @@ logger = logging.getLogger(__name__)
 REGISTRY: dict[str, Type[Agent]] = {}
 
 
-def register(cls: Type[Agent]) -> None:
-    REGISTRY[cls.__name__] = cls
-
-
 def make(name: str) -> Agent:
     if name not in REGISTRY:
         raise KeyError(f"Unknown agent: {name}. Known: {list(REGISTRY)}")

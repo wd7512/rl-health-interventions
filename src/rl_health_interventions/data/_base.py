@@ -23,7 +23,7 @@ class DataConfig(BaseModel):
     _KNOWN_ENV_VARS: ClassVar[list[str]] = ["RL_HEALTH_DATA_PATH", "DATA_PATH"]
 
     def resolved_path(self) -> str:
-        if self.base_path is not None:
+        if self.base_path:
             return os.path.join(self.base_path, self.file_path)
         for var in self._KNOWN_ENV_VARS:
             value = os.environ.get(var)

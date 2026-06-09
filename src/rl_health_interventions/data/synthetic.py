@@ -10,10 +10,13 @@ class SyntheticDataGenerator:
     def generate(self, n_users: int = 0, n_timesteps: int = 0) -> Dataset:
         import numpy as np
 
+        rng = np.random.default_rng(self.seed)
         return Dataset(
-            user_ids=np.array([], dtype=np.int64),
+            user_ids=np.arange(n_users, dtype=np.int64),
             timestamps=np.empty((n_users, n_timesteps), dtype=np.int64),
-            features={},
+            features={
+                "steps": rng.normal(8000, 2000, size=(n_users, n_timesteps)).astype(np.int64),
+            },
             metadata={
                 "seed": self.seed,
                 "n_users": n_users,
