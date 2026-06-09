@@ -1,5 +1,5 @@
 name: extrasensory
-source_url: http://extrasensory.ucsd.edu/
+source_url: https://extrasensory.ucsd.edu/
 license: public
 file_format: csv
 expected_columns:

@@ -291,7 +291,7 @@ fly), WISDM, and ExtraSensory. All are open-access with no application required.
 ### WISDM (Wireless Sensor Data Mining)
 
 - Kwapisz et al. (2011), ACM SIGKDD Explorations
-- UCI ML repo: https://www.cis.fordham.edu/wisdm/dataset.php
+- UCI ML repo URL: https://www.cis.fordham.edu/wisdm/dataset.php (Fordham University, Kwapisz's home institution — historically listed under UCI ML)
 - 36 users, 6 activities (walking, jogging, stairs, sitting, standing, lying)
 - Phone accelerometer, 20 Hz, ~1 GB
 - Open access — no application needed

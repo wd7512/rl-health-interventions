@@ -201,7 +201,7 @@ Required fields:
 - `name` — short identifier for the dataset
 - `source_url` — where the raw file can be obtained
 - `license` — license type (e.g. `public`, `cc-by-4.0`)
-- `file_format` — `csv` or `parquet`
+- `file_format` — `csv`, `parquet`, or `generated` (the last for on-the-fly synthetic data)
 - `expected_columns` — map of column name → dtype
 - `user_id_column` — column to use as user identifier
 - `timestamp_column` — column to use as timestamp
