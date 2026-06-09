@@ -1,0 +1,42 @@
+name: extrasensory
+source_url: https://extrasensory.ucsd.edu/
+license: public
+file_format: csv
+expected_columns:
+  user_id: string
+  timestamp: datetime
+  activity: string
+  accelerometer_x: float
+  accelerometer_y: float
+  accelerometer_z: float
+  gyroscope_x: float
+  gyroscope_y: float
+  gyroscope_z: float
+  compass_x: float
+  compass_y: float
+  compass_z: float
+  audio_level: float
+  location_lat: float
+  location_lon: float
+  mood: string
+  social_context: string
+  phone_usage: string
+user_id_column: user_id
+timestamp_column: timestamp
+feature_columns:
+  - accelerometer_x
+  - accelerometer_y
+  - accelerometer_z
+  - gyroscope_x
+  - gyroscope_y
+  - gyroscope_z
+  - compass_x
+  - compass_y
+  - compass_z
+  - audio_level
+  - location_lat
+  - location_lon
+  - mood
+  - social_context
+  - phone_usage
+target_column: activity

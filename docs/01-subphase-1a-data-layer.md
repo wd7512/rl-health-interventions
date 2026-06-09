@@ -280,3 +280,32 @@ Related 1A tests:
   raises with a message naming the offending column.
 - `tests/integration/data/test_synthetic_fallback.py` — 3 ingest failures
   triggers synthetic with the run seed.
+
+---
+
+## Public Datasets for Pipeline Testing
+
+Phase 1 testing relies on three dataset categories: synthetic (generated on the
+fly), WISDM, and ExtraSensory. All are open-access with no application required.
+
+### WISDM (Wireless Sensor Data Mining)
+
+- Kwapisz et al. (2011), ACM SIGKDD Explorations
+- UCI ML repo URL: https://www.cis.fordham.edu/wisdm/dataset.php (Fordham University, Kwapisz's home institution — historically listed under UCI ML)
+- 36 users, 6 activities (walking, jogging, stairs, sitting, standing, lying)
+- Phone accelerometer, 20 Hz, ~1 GB
+- Open access — no application needed
+- Use: pipeline testing, label validation, synthetic distribution seeding
+
+### ExtraSensory Dataset
+
+- Vaizman et al. (2017), UbiComp
+- http://extrasensory.ucsd.edu/
+- 60 users, ~7 days each
+- Phone sensors: accelerometer, gyroscope, compass, audio, location
+- Labels: activity, mood, social context, phone usage
+- Open access, ~6 GB
+- Use: feature pipeline validation, multi-sensor ingestion testing
+
+Phase 1 uses synthetic + WISDM/ExtraSensory for testing. HeartSteps V1/V2 data
+comes in Phase 2 once data access requests are approved (see #16).
