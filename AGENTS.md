@@ -22,7 +22,7 @@ Config-driven simulation framework for testing RL-driven health interventions on
 - Use `logging` (stdlib) for all output — never `print()`. Configure via `logging.basicConfig()` in entry points.
 - Config is JSON (Python stdlib). Do not add PyYAML unless explicitly requested.
 - Every PR must have an associated issue. No orphan PRs.
-- Squash merge only. Never merge commits or rebase.
+- Squash merge only. Never use merge commits or manual rebases.
 
 ## Contributing
 

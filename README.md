@@ -14,7 +14,7 @@ Swapnil's team plugs in their datasets, specifies the MDP and hypotheses via JSO
 
 ```bash
 uv sync --dev
-uv run pytest
+uv run rl-health-interventions
 ```
 
 ## Development
