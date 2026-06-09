@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import numpy as np
+
 from rl_health_interventions.data.dataset import Dataset
 
 
@@ -8,8 +10,6 @@ class SyntheticDataGenerator:
         self.seed = seed
 
     def generate(self, n_users: int = 0, n_timesteps: int = 0) -> Dataset:
-        import numpy as np
-
         rng = np.random.default_rng(self.seed)
         return Dataset(
             user_ids=np.arange(n_users, dtype=np.int64),

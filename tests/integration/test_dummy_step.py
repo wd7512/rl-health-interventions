@@ -1,28 +1,32 @@
 from __future__ import annotations
 
-import logging
-
 from rl_health_interventions.transitions import make as make_transition
 from rl_health_interventions.rewards import make as make_reward
 from rl_health_interventions.agents import make as make_agent
 from rl_health_interventions.simulation import make as make_response_model
 from rl_health_interventions.data import make as make_dataset
 
-logger = logging.getLogger(__name__)
-
 
 def test_layer2_component_compatibility() -> None:
+    """All registered components can be instantiated via the factory."""
     transition = make_transition("RuleBasedTransition")
     reward = make_reward("CompoundReward")
     agent = make_agent("ThompsonSamplingAgent")
     response = make_response_model("RuleBasedResponse")
     dataset = make_dataset("SyntheticDataGenerator")
 
-    assert transition is not None
-    assert reward is not None
-    assert agent is not None
-    assert response is not None
-    assert dataset is not None
+    # Verify correct types (not just non-None)
+    from rl_health_interventions.transitions._base import TransitionModel
+    from rl_health_interventions.rewards._base import RewardHandler
+    from rl_health_interventions.agents._base import Agent
+    from rl_health_interventions.simulation._base import ResponseModel
+    from rl_health_interventions.data.synthetic import SyntheticDataGenerator
+
+    assert isinstance(transition, TransitionModel)
+    assert isinstance(reward, RewardHandler)
+    assert isinstance(agent, Agent)
+    assert isinstance(response, ResponseModel)
+    assert isinstance(dataset, SyntheticDataGenerator)
 
 
 def test_layer2_unknown_component_fails() -> None:
@@ -51,9 +55,8 @@ def test_layer3_dummy_step() -> None:
     agent.update(dummy_state, action, 0.0, dummy_state)
     next_state = transition.transition(dummy_state, action, None)
     rew, done = reward.reward(dummy_state, action, None)
-    response.response(dummy_state, action, None)
-
-    assert isinstance(action, int)
+    resp = response.response(dummy_state, action, None)
+    assert isinstance(resp, float)
     assert isinstance(rew, float)
     assert isinstance(done, bool)
     assert next_state is dummy_state
