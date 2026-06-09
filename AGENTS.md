@@ -1,6 +1,6 @@
 # Agent Instructions
 
-This is a generic Python project template using `uv`, `ruff`, `ty`, and `pytest`.
+Config-driven simulation framework for testing RL-driven health interventions on wearable device data.
 
 ## Commands
 
@@ -20,11 +20,16 @@ This is a generic Python project template using `uv`, `ruff`, `ty`, and `pytest`
 - Do not add runtime dependencies unless they are required by package behavior.
 - Prefer clear, boring Python over clever abstractions.
 - Use `logging` (stdlib) for all output — never `print()`. Configure via `logging.basicConfig()` in entry points.
+- Config is JSON (Python stdlib). Do not add PyYAML unless explicitly requested.
+- Every PR must have an associated issue. No orphan PRs.
+- Squash merge only. Never merge commits or rebase.
 
-## Optional Agent Support
+## Contributing
 
-- `opencode.json` configures project-local OpenCode behavior.
-- `.opencode/agents/` contains reusable OpenCode agents.
-- `.opencode/skills/` contains reusable workflow skills for AI-assisted development.
-- `.opencode/plugins/write-size-guard.ts` prevents oversized generated writes.
-- `.opencode/plugins-available/` contains optional telemetry plugins that can be copied into `.opencode/plugins/` when desired.
+See `CONTRIBUTING.md` for workflow details.
+
+## Project Context
+
+- **Stakeholders:** William Dennis (builder), Mengyan Zhang (Bristol data), Swapnil Mishra (NUS/MLGH)
+- **MLGH group:** Bayesian epidemiologists. Primary: R, Stan, NumPyro, Jupyter. Python for DL (VAEs, GPs). No existing RL/LLM code.
+- **Framework spec:** See spec document in Obsidian vault.
