@@ -83,7 +83,6 @@ def test_dataset_validate_happy_path() -> None:
 
 def test_dataset_validate_mismatched_timestamps() -> None:
     import numpy as np
-    import pytest
 
     from rl_health_interventions.data.dataset import Dataset
 
@@ -99,7 +98,6 @@ def test_dataset_validate_mismatched_timestamps() -> None:
 
 def test_dataset_validate_mismatched_features() -> None:
     import numpy as np
-    import pytest
 
     from rl_health_interventions.data.dataset import Dataset
 
@@ -128,7 +126,6 @@ def test_dataset_validate_empty_arrays() -> None:
 
 
 def test_data_config_empty_file_path_rejected() -> None:
-    import pytest
     from pydantic import ValidationError
 
     from rl_health_interventions.data._base import DataConfig
@@ -142,7 +139,6 @@ def test_data_config_empty_file_path_rejected() -> None:
 
 
 def test_data_config_invalid_file_format_rejected() -> None:
-    import pytest
     from pydantic import ValidationError
 
     from rl_health_interventions.data._base import DataConfig

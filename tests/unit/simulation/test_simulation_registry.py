@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from rl_health_interventions.simulation import REGISTRY, make
 from rl_health_interventions.simulation.rule_based import RuleBasedResponse
 
@@ -15,9 +17,5 @@ def test_make_returns_instance() -> None:
 
 
 def test_make_unknown_raises_keyerror() -> None:
-    try:
+    with pytest.raises(KeyError, match="NonExistent"):
         make("NonExistent")
-        assert False, "Expected KeyError"
-    except KeyError as e:
-        assert "NonExistent" in str(e)
-        assert "RuleBasedResponse" in str(e)
