@@ -23,7 +23,7 @@ The framework is the platform. The 5 gaps from the literature review are experim
 
 Software-oriented deliverables:
 
-1. A working CLI: `uv run rl-health --config experiment.yml` that trains agents and produces a results table
+1. A working CLI: `uv run rl-health-interventions --config experiment.yml` that trains agents and produces a results table
 2. Config schema documented with an example for the proposed MDP (google doc)
 3. A README that lets Swapnil clone, `uv sync`, and run the same experiment
 4. Config schema is stable across 2+ different dataset schemas and 2+ MDP designs (stretch)
@@ -121,7 +121,7 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 ## Literature Review Reference
 
-Full review at `docs/literature-review/`.
+Full review at `C:\Obsidian_Vaults\main\10 Research\Bristol x NUS RL\Literature Review\05 Master Literature Review.md`.
 
 5 major gaps identified (experiments *on* the framework, not *in* it):
 1. No LLM simulation validated for wearable health data
