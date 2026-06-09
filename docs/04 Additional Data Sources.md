@@ -385,17 +385,17 @@ Pre-built synthetic RL environments designed specifically for offline RL algorit
 
 ## Gap Analysis: All Dataset Categories
 
-| Need | Population (All of Us / UKB) | Trial (HeartSteps V1/V2) | Open Benchmark (WISDM, ExtraSensory, PAMAP2) | Open Wearable (NHANES, MMASH, TILES) |
-|---|---|---|---|---|
-| Step count distributions | ✅ Large N | ⚠️ Small N | ✅ Activity-specific | ✅ NHANES 14.7K |
-| Heart rate | ✅ All of Us | ❌ | ❌ | ✅ MMASH (beat-to-beat) |
-| Sleep | ✅ | ⚠️ V2 only | ❌ | ✅ MMASH, TILES |
-| Intervention response | ❌ | ✅ | ❌ | ✅ TILES |
-| Engagement over time | ❌ | ✅ | ❌ | ✅ TILES (12 months) |
-| RL action selection data | ❌ | ✅ V2 | ❌ | ❌ |
-| Immediate availability | ❌ (4-8 week apps) | ⚠️ (data sharing) | ✅ (download now) | ✅ NHANES, MMASH (now) |
-| Longitudinal (months+) | ✅ (years) | ✅ (42-90 days) | ❌ (days) | ✅ TILES (12 mo), GLOBEM (4 yr) |
-| Sensor variety | ✅ Fitbit | ✅ Fitbit | ✅ Phone + IMU | ✅ Mixed (Fitbit, ActiGraph, Polar) |
+| Need | Population (All of Us / UKB) | Trial (HeartSteps V1/V2) | Open Benchmark (WISDM, ExtraSensory, PAMAP2) | Open Wearable (NHANES, MMASH, TILES) | Cardio Trial (MyHeartCounts) | Wearable Camera / EMA (LiveWell, LifeSnaps) |
+|---|---|---|---|---|---|---|
+| Step count distributions | ✅ Large N | ⚠️ Small N | ✅ Activity-specific | ✅ NHANES 14.7K | ✅ Apple Watch | ✅ LiveWell (cam), LifeSnaps (Fitbit) |
+| Heart rate | ✅ All of Us | ❌ | ❌ | ✅ MMASH (beat-to-beat) | ✅ Apple Watch (continuous) | ✅ LiveWell (Fitbit+cam) |
+| Sleep | ✅ | ⚠️ V2 only | ❌ | ✅ MMASH, TILES | ✅ Apple Watch | ✅ LifeSnaps (Fitbit) |
+| Intervention response | ❌ | ✅ | ❌ | ✅ TILES | ⚠️ Custom (non-PA prompts) | ⚠️ LiveWell (eating cues) |
+| Engagement over time | ❌ | ✅ | ❌ | ✅ TILES (12 months) | ✅ 7-day studies | ✅ LifeSnaps (4 weeks × 4 phases) |
+| RL action selection data | ❌ | ✅ V2 | ❌ | ❌ | ❌ | ❌ |
+| Immediate availability | ❌ (4-8 week apps) | ⚠️ (data sharing) | ✅ (download now) | ✅ NHANES, MMASH (now) | ⚠️ (Stanford DUA) | ✅ LiveWell (Alshurafa lab), LifeSnaps (4TU open) |
+| Longitudinal (months+) | ✅ (years) | ✅ (42-90 days) | ❌ (days) | ✅ TILES (12 mo), GLOBEM (4 yr) | ❌ (7 days) | ⚠️ LiveWell (4 mo), LifeSnaps (4 wk) |
+| Sensor variety | ✅ Fitbit | ✅ Fitbit | ✅ Phone + IMU | ✅ Mixed (Fitbit, ActiGraph, Polar) | ✅ Apple Watch | ✅ LiveWell (cam+Fitbit), LifeSnaps (Fitbit+phone) |
 
 ---
 
