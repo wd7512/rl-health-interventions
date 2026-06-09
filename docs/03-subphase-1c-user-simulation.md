@@ -50,6 +50,16 @@ class ResponseModel(ABC):
 
 ✅ **COMPLETE** — see [`docs/03 Data Sources.md`](03%20Data%20Sources.md) for the full feasibility study.
 
+### Additional: JITAI Trial Datasets
+
+See [`docs/04 Additional Data Sources.md`](04%20Additional%20Data%20Sources.md) for a survey of HeartSteps V1/V2 and other accessible benchmarks. Key findings for 1C:
+
+- **HeartSteps V1** (42 days, ~50 participants) — the best available source of *action → response* mappings. Real engagement decay curves for burden calibration.
+- **HeartSteps V2** (90 days, ~97 participants) — RL-in-the-loop data with Thompson Sampling. Provides non-stationary engagement patterns over 3 months.
+- **WISDM / ExtraSensory** — publicly available today. Use to validate the data pipeline on real sensor data.
+
+**Recommendation:** Start HeartSteps data access requests early (weeks to months). Use WISDM/ExtraSensory for pipeline testing in the meantime.
+
 | Dataset | Source | Size | Access |
 |---------|--------|------|--------|
 | All of Us Fitbit | Nature Medicine 2026 | 59K participants, 14 years | Researcher workbench (cloud-only) |
