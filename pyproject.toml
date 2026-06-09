@@ -1,7 +1,7 @@
 [project]
-name = "python-template"
+name = "rl-health-interventions"
 version = "0.1.0"
-description = "A minimal Python project template with uv, ruff, pytest, and optional agent support."
+description = "Simulation framework for testing RL-driven health interventions on wearable device data."
 readme = "README.md"
 authors = [
     { name = "William Dennis", email = "wwdennis.home@gmail.com" }
@@ -22,6 +22,9 @@ target-version = "py311"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[project.scripts]
+rl-health-interventions = "rl_health_interventions.__main__:main"
 
 [build-system]
 requires = ["uv_build>=0.9.17,<0.10.0"]
