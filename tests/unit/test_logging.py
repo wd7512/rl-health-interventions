@@ -46,14 +46,20 @@ def test_json_formatter_with_extra_fields() -> None:
 def test_json_formatter_with_exc_info() -> None:
     formatter = JsonFormatter()
     record = logging.LogRecord(
-        name="test", level=logging.ERROR, pathname="", lineno=0,
-        msg="something broke", args=(), exc_info=None,
+        name="test",
+        level=logging.ERROR,
+        pathname="",
+        lineno=0,
+        msg="something broke",
+        args=(),
+        exc_info=None,
     )
     # Simulate an exception info tuple
     try:
         raise ValueError("test error")
     except ValueError:
         import sys
+
         record.exc_info = sys.exc_info()
         record.exc_text = "ValueError: test error"
 
