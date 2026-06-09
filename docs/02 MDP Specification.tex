@@ -18,7 +18,69 @@
 
 \maketitle
 
-\section{Overview}
+\section{High-Level Framework Design}
+
+The \texttt{rl-health-interventions} framework simulates a wearable-device
+physical activity intervention as a Markov Decision Process. Researchers
+configure the data schema, environment dynamics, user behaviour, and agents
+entirely through YAML config files --- no source code changes required.
+
+\subsection{Architecture}
+
+The framework is organised into five subphases, each delivering a pluggable
+component:
+
+\begin{enumerate}
+    \item \textbf{Data Layer (1A):} Ingests CSV/Parquet files via Polars lazy
+    scans, applies config-driven feature engineering, and materialises a
+    numpy-backed \texttt{Dataset}. Provides a \texttt{StateView} bridge for
+    the simulation loop.
+    \item \textbf{MDP Environment (1B):} Exposes a clean
+    \texttt{step(state, action) $\rightarrow$ (next\_state, reward, done)} API.
+    Pluggable \texttt{TransitionModel} and \texttt{RewardHandler} components
+    are selected from a registry by config string.
+    \item \textbf{User Simulation (1C):} Rule-based behavioural archetypes
+    (goal-driven, social responder, resistant, stable maintainer) with
+    backlash and fatigue mechanisms. A \texttt{ResponseModel} maps
+    $(state, action, profile)$ to a next state.
+    \item \textbf{Agent Library (1D):} Common \texttt{Agent} ABC with
+    \texttt{select\_action(state) $\rightarrow$ int} and
+    \texttt{update(...)}. Thompson Sampling is the MVP gate; deep RL
+    agents (DQN, PPO, CQL, IQL) are stretch.
+    \item \textbf{Experiment Runner (1E):} Wires all components via a single
+    \texttt{ExperimentFactory.build(config)}. Runs multi-trial, multi-agent
+    experiments with config snapshot reproducibility.
+\end{enumerate}
+
+\subsection{Component Registration}
+
+Each pluggable family (transitions, rewards, agents, response models) is a flat
+package with a \texttt{\_base.py} ABC and a \texttt{REGISTRY} dict in its
+\texttt{\_\_init\_\_.py}. Adding a new component requires one file, one registry
+entry, and a config string reference --- no framework code changes.
+
+\subsection{Dependency Graph}
+
+Tracks A (1A) and B (1B) run in parallel. Track C (Dataset Exploration)
+runs alongside both. After 1A, 1B, and exploration complete, tracks merge at
+1C (user simulation) and 1D (agent library, which only needs the 1B interface).
+The final track is 1E (experiment runner), which depends on 1C and 1D.
+
+\subsection{Validation}
+
+The factory applies three layers of validation before the main experiment loop:
+(1) Pydantic schema parsing rejects malformed configs at load time; (2) component
+compatibility checks verify registry keys and cross-references; (3) a single
+dummy \texttt{step()} catches wiring errors and shape mismatches.
+
+\subsection{Test Organisation}
+
+Tests mirror the component module structure (\texttt{tests/unit/transitions/},
+\texttt{tests/unit/rewards/}, etc.), not subphase numbers. Every ABC method has
+at least one test. Integration and end-to-end tests cover factory wiring and the
+full experiment pipeline.
+
+\section{MDP Specification}
 
 This document specifies the Markov Decision Process (MDP) for the first iteration
 of the \texttt{rl-health-interventions} simulation framework. It formalises the
