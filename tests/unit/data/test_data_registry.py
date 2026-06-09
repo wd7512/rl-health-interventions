@@ -145,13 +145,16 @@ def test_data_config_invalid_file_format_rejected() -> None:
 
     # Build dict and validate, bypassing type checker
     from pydantic import TypeAdapter
+
     adapter = TypeAdapter(DataConfig)
     with pytest.raises(ValidationError):
-        adapter.validate_python({
-            "file_path": "data.tsv",
-            "file_format": "tsv",
-            "column_mapping": {},
-        })
+        adapter.validate_python(
+            {
+                "file_path": "data.tsv",
+                "file_format": "tsv",
+                "column_mapping": {},
+            }
+        )
 
 
 def test_data_config_base_path_empty_string_falls_through(monkeypatch) -> None:
@@ -187,6 +190,7 @@ def test_synthetic_generator_seed_determinism() -> None:
     ds1 = gen1.generate(n_users=5, n_timesteps=3)
     ds2 = gen2.generate(n_users=5, n_timesteps=3)
     import numpy as np
+
     np.testing.assert_array_equal(ds1.user_ids, ds2.user_ids)
     np.testing.assert_array_equal(ds1.features["steps"], ds2.features["steps"])
 

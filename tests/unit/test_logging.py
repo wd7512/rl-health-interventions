@@ -12,8 +12,13 @@ from rl_health_interventions.logging import JsonFormatter, setup_file_handler
 def test_json_formatter_produces_valid_json() -> None:
     formatter = JsonFormatter()
     record = logging.LogRecord(
-        name="test", level=logging.INFO, pathname="", lineno=0,
-        msg="hello world", args=(), exc_info=None,
+        name="test",
+        level=logging.INFO,
+        pathname="",
+        lineno=0,
+        msg="hello world",
+        args=(),
+        exc_info=None,
     )
     output = formatter.format(record)
     parsed = json.loads(output)
@@ -25,8 +30,13 @@ def test_json_formatter_produces_valid_json() -> None:
 def test_json_formatter_with_extra_fields() -> None:
     formatter = JsonFormatter()
     record = logging.LogRecord(
-        name="test", level=logging.WARNING, pathname="", lineno=0,
-        msg="episode %d done", args=(42,), exc_info=None,
+        name="test",
+        level=logging.WARNING,
+        pathname="",
+        lineno=0,
+        msg="episode %d done",
+        args=(42,),
+        exc_info=None,
     )
     output = formatter.format(record)
     parsed = json.loads(output)

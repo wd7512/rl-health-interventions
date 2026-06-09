@@ -9,9 +9,7 @@ class ThompsonSamplingAgent(Agent):
     def select_action(self, state: Any) -> int:
         return 0
 
-    def update(
-        self, state: Any, action: int, reward: float, next_state: Any
-    ) -> None:
+    def update(self, state: Any, action: int, reward: float, next_state: Any) -> None:
         pass
 
 

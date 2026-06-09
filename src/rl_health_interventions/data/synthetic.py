@@ -15,7 +15,9 @@ class SyntheticDataGenerator:
             user_ids=np.arange(n_users, dtype=np.int64),
             timestamps=np.empty((n_users, n_timesteps), dtype=np.int64),
             features={
-                "steps": rng.normal(8000, 2000, size=(n_users, n_timesteps)).astype(np.int64),
+                "steps": rng.normal(8000, 2000, size=(n_users, n_timesteps)).astype(
+                    np.int64
+                ),
             },
             metadata={
                 "seed": self.seed,
