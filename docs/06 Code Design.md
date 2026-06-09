@@ -27,6 +27,13 @@ simulation/                ← pluggable user response models
     _base.py               ← ResponseModel ABC
     rule_based.py          ← RuleBasedResponse
     __init__.py            ← imports + REGISTRY dict
+data/                      ← data layer
+    _base.py               ← IngestPipeline ABC
+    feature_pipeline.py    ← Config-driven feature engineering on Polars
+    polars_reader.py       ← Reads CSV/Parquet via Polars lazy API
+    dataset.py             ← Dataset (numpy arrays, for sim loop)
+    synthetic.py           ← SyntheticDataGenerator
+    __init__.py            ← imports + REGISTRY dict
 ```
 
 Rules:
@@ -45,7 +52,54 @@ Rules:
 
 ---
 
-## Factory
+## Data Pipeline
+
+### Design
+
+```
+Raw files (CSV, Parquet, ...)      ← researcher provides these
+    ↓
+Polars LazyFrame scan               ← config-driven schema mapping
+    ↓
+FeaturePipeline.from_config(config) ← config-driven transforms (agg, window, diff, etc.)
+    ↓  (Polars lazy graph, materialised once)
+numpy arrays                         ← materialised for sim loop
+    ↓
+Dataset (user × time index)          ← random access for StateView slices
+```
+
+Polars owns the feature engineering stage. Its lazy API maps 1:1 to the
+config-driven spec — grouping, rolling windows, expressions. The framework
+builds a `pl.LazyFrame` from the config and materialises it once. The result
+is converted to numpy arrays for the simulation loop, which needs fast random
+access by user and time rather than query capability.
+
+After materialisation, the simulation depends only on numpy — no Polars
+dependency in the hot path.
+
+### Why Polars (not Pandas, not SQL)
+
+| Need | Why Polars wins |
+|------|----------------|
+| Config-driven expressions | Lazy API lets us build computation graphs from config without executing until materialise |
+| Groupby + window aggs | `.group_by_dynamic()`, `.rolling()` match wearable data structure (per-user time series) |
+| File format support | CSV, Parquet, IPC natively |
+| Memory efficiency | Streaming, zero-copy, arrow-backed |
+| Dependency weight | ~30MB — worth it for what it saves us building |
+
+### Dataset
+
+```python
+@dataclass
+class Dataset:
+    user_ids: np.ndarray          # shape (n_users,)
+    timestamps: np.ndarray         # shape (n_users, n_timesteps)
+    features: dict[str, np.ndarray]  # shape (n_users, n_timesteps) each
+    metadata: dict[str, Any]       # config snapshot, column mappings, etc.
+```
+
+Materialised from a Polars lazy pipeline. The sim loop indexes into these
+arrays to build `StateView` objects. No DataFrame operations in the hot path.
 
 A single factory that takes the full `ExperimentConfig` and returns a ready-to-run
 experiment:
@@ -171,6 +225,7 @@ Minimal. The strict dependencies for Phase 1:
 
 - **Pydantic** — config validation
 - **numpy** — numerical operations (standard for RL)
+- **polars** — config-driven feature engineering, lazy streaming, file I/O
 - **pytest** — dev dependency
 
 No Gymnasium. No SB3. No PyTorch (Phase 2 for deep agents).

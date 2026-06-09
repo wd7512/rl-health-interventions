@@ -27,21 +27,40 @@
 
 ---
 
+## Tech Notes
+
+- **Ingest:** Polars lazy scan (`pl.scan_csv`, `pl.scan_parquet`). Config-driven column mapping applied before materialisation.
+- **Feature engineering:** `FeaturePipeline.from_config(config)` builds a `pl.LazyFrame` computation graph (groupby, rolling windows, expressions). Materialised once to numpy arrays.
+- **Simulation data:** `Dataset` is numpy-backed for fast random access. No DataFrame operations in the hot path.
+
 ## Key Interfaces
 
-### `ConfigSchema`
+### `DataConfig`
 ```python
 class DataConfig(BaseModel):
+    file_path: str
+    file_format: Literal["csv", "parquet"]
     column_mapping: dict[str, str]  # e.g. {"STEPS": "steps", "HR": "heart_rate"}
     feature_engineering: list[FeatureSpec]
 ```
 
+### `FeaturePipeline`
+```python
+class FeaturePipeline:
+    @staticmethod
+    def from_config(config: DataConfig) -> FeaturePipeline
+
+    def transform(self, raw: pl.LazyFrame) -> pl.LazyFrame
+```
+
 ### `Dataset`
 ```python
+@dataclass
 class Dataset:
-    users: list[UserID]
-    timestamps: pd.DatetimeIndex
-    features: dict[str, np.ndarray]  # semantic field → array
+    user_ids: np.ndarray
+    timestamps: np.ndarray
+    features: dict[str, np.ndarray]
+    metadata: dict[str, Any]
 ```
 
 ### `SyntheticDataGenerator`
