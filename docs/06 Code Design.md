@@ -188,8 +188,8 @@ After parsing, the factory checks that the requested components are compatible:
 
 ```python
 def _validate_compatibility(self, config: ExperimentConfig) -> None:
-    if config.mdp.reward.type not in rewards.REGISTRY:
-        raise ConfigError(f"Unknown reward type: {config.mdp.reward.type}")
+    if config.mdp_config.reward.type not in rewards.REGISTRY:
+        raise ConfigError(f"Unknown reward type: {config.mdp_config.reward.type}")
 ```
 
 Cross-component checks ensure references are valid (e.g. reward function
