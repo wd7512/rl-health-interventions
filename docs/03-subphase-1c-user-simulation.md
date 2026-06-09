@@ -48,22 +48,24 @@ class ResponseModel(ABC):
 
 ## Dataset Exploration
 
-Investigating two public datasets for future simulator calibration:
+✅ **COMPLETE** — see [`docs/03 Data Sources.md`](03%20Data%20Sources.md) for the full feasibility study.
 
 | Dataset | Source | Size | Access |
 |---------|--------|------|--------|
-| All of Us Fitbit | Nature Medicine 2026 | 59K participants, 14 years | Researcher workbench |
-| UK Biobank Accelerometer | npj Digital Medicine 2024 | 100K participants, 7 days each | Application required |
+| All of Us Fitbit | Nature Medicine 2026 | 59K participants, 14 years | Researcher workbench (cloud-only) |
+| UK Biobank Accelerometer | npj Digital Medicine 2024 | 100K participants, 7 days each | Application required (4-8 weeks) |
 
-Exploration report should cover:
-- Feature availability (steps, HR, sleep, etc.)
-- Population diversity
-- Licensing / access barriers
-- Feasibility of extracting behavioural response patterns
+**Conclusion:** Both datasets require institutional applications. Phase 1 uses synthetic data generators parameterised from published statistics. Real data integration is Phase 2.
+
+**Key findings:**
+- Between both datasets, most wearable MDP variables are covered (steps, HR, sleep, sedentary, time_of_day)
+- Gaps are state variables (goal_progress, burden) — these are simulated, not from data
+- Body measures need EHR linkage (All of Us has 46% linked)
+- UK Biobank has two data levels: daily summaries and raw 100Hz accelerometer — treat separately
 
 ---
 
 ## Blocking Risks
 
-- **Real data may not arrive:** Without real data calibration, the simulation remains synthetic-only. Gate only requires the *report*, not confirmed access.
+- **Real data timeline:** Both datasets require 4-8 week institutional applications. Phase 1 is designed around synthetic data — this is now the confirmed approach, not a fallback.
 - **Archetype validity:** The 4 archetypes are theoretical. No guarantee they match real user behaviour. Document this as an explicit assumption.
