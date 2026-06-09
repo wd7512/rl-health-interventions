@@ -65,3 +65,36 @@ class Agent(ABC):
 - **Thompson Sampling simplicity:** For the MVP, this is a well-understood algorithm. Low risk.
 - **State space dimensionality:** If the state space is large, TS may need dimensionality reduction or feature selection. Config should allow specifying which state variables the agent uses.
 - **Minimising dependencies:** TS can be implemented with numpy only. No external RL lib needed.
+
+---
+
+## Logging & Error Handling
+
+See canonical setup in [`06 Code Design.md`](06%20Code%20Design.md#logging--error-handling-canonical).
+
+Subphase-specific concerns for 1D (agent library):
+
+- **Training convergence warnings:** If an agent's running mean reward
+  decreases for 50 consecutive episodes, log WARNING with the agent id
+  and current mean. Indicates a bug (e.g., wrong sign on reward) or a
+  non-stationarity the agent can't handle.
+- **Numerical instability:** Any NaN or Inf in agent parameters (posterior
+  for TS, weights for neural agents) is logged at ERROR and the agent is
+  reset to its prior. Never let NaN propagate into the next action.
+- **Posterior diagnostics (TS):** Every 100 episodes, log INFO with the
+  posterior mean and variance for the top 5 action arms. Useful for
+  diagnosing under- or over-exploration.
+- **Policy distribution (epsilon-greedy):** Every 100 episodes, log INFO
+  with the action selection distribution (counts per action id). Should
+  approach the optimal distribution as training progresses.
+- **Update failures:** If `Agent.update()` raises, log ERROR with the
+  offending `(state, action, reward, next_state)` and skip the update.
+  One bad update must not crash the training loop.
+
+Related 1D tests:
+- `tests/unit/agents/test_ts_convergence.py` — posterior concentrates on
+  the optimal arm after enough updates.
+- `tests/unit/agents/test_nan_reset.py` — NaN in posterior triggers reset
+  to prior.
+- `tests/unit/agents/test_update_failure_isolation.py` — update raising
+  is caught, next update proceeds.

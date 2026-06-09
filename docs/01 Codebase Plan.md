@@ -149,6 +149,22 @@ Two datasets evaluated for simulator training. Full study: [`docs/03 Data Source
 
 **Supplementary finding:** HeartSteps V1/V2 micro-randomized trials contain the only available *intervention response* data. These are smaller (50–100 participants) but directly calibrate the user simulation (1C). See [`docs/04 Additional Data Sources.md`](04%20Additional%20Data%20Sources.md).
 
+## Logging & Error Handling
+
+See canonical setup in [`06 Code Design.md`](06%20Code%20Design.md#logging--error-handling-canonical).
+
+Project-wide observability concerns:
+
+- The codebase plan defines six subphase logger namespaces under
+  `rl_health_interventions.{data,transitions,rewards,agents,simulation,experiment}`.
+  The runner namespace is the parent.
+- Phase 1 ships with stdlib `logging` only; no `structlog` or other third-party
+  logging dependency.
+- All CLI flags (`--verbose`, `--quiet`, `--log-file`) are exposed on the
+  experiment runner entry point only — not on individual subphase CLIs.
+- Per-episode exception isolation is a top-level framework requirement, not
+  per-subphase.
+
 ## Literature Review Reference
 
 Full review at `C:\Obsidian_Vaults\main\10 Research\Bristol x NUS RL\Literature Review\05 Master Literature Review.md`.

@@ -60,3 +60,36 @@ class TransitionModel(ABC):
 
 - **MDP confirmation pending:** If Swapnil wants significant changes to the MDP structure, the environment interface may need rework. Mitigation: design the config schema around the google doc MDP and flag that deviations are config changes, not code changes.
 - **Gymnasium dependency:** Not needed yet. Keep it minimal.
+
+---
+
+## Logging & Error Handling
+
+See canonical setup in [`06 Code Design.md`](06%20Code%20Design.md#logging--error-handling-canonical).
+
+Subphase-specific concerns for 1B (MDP environment):
+
+- **DEBUG events (per step):** state hash, action id, reward value, next_state
+  hash, done flag. Disabled by default — enable with `--verbose` for debugging
+  a single episode, not for production runs.
+- **INFO events:** "Episode N started (seed=S)" at episode boundary; "Episode
+  N ended at step T with total reward R" at termination.
+- **Invalid action handling:** `Environment.step()` validates the action
+  against the registered action space. Out-of-range actions are logged at
+  WARNING with the offending value and rejected (return current state, zero
+  reward, `done=False`). Never raise on invalid action in a long-running
+  experiment.
+- **Transition model failures:** If a `TransitionModel.transition()` raises,
+  the episode is caught at the runner level, logged at ERROR, and counted
+  as a failed episode. The MDP itself does not catch.
+- **Step counter overflow:** Episodes are typically bounded (e.g., 365 steps
+  for 1 year of daily decisions). The environment must log a WARNING if the
+  step count exceeds 2× the configured max — indicates a buggy policy loop.
+
+Related 1B tests:
+- `tests/unit/transitions/test_invalid_action.py` — out-of-range action
+  returns current state without raising.
+- `tests/integration/test_dummy_step.py` — full build + step + reset
+  succeeds, all 5 dimensions of state evolve correctly.
+- `tests/unit/transitions/test_step_overflow_warning.py` — exceeding
+  2× max steps emits WARNING.

@@ -66,3 +66,19 @@
 - **MDP confirmation:** Awaiting Swapnil sign-off on MDP spec. If he wants major changes, 1B interface may need rework.
 - **Overlap tracking:** Parallel tracks need explicit integration points at 1C and 1E.
 - **Test organization:** Unit tests organised by component module (transitions/, rewards/, etc.). Gate coverage measured by module, not by test directory structure.
+
+---
+
+## Observability
+
+The framework's observability contract is defined in
+[`06 Code Design.md`](06%20Code%20Design.md#logging--error-handling-canonical).
+Each subphase doc specifies what's unique to that subphase; the runner
+implementation owns the CLI flags, per-episode exception isolation, the
+progress heartbeat, and the structured trace emission.
+
+Phase 1 ships with stdlib `logging` only — no third-party logging
+dependency. Adding `structlog` is a future consideration (deferred to
+Phase 2 once we know whether the JSON formatter on top of stdlib logging
+is sufficient).
+
