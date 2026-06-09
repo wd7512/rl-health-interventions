@@ -43,7 +43,24 @@ def test_json_formatter_with_extra_fields() -> None:
     assert parsed["message"] == "episode 42 done"
 
 
-def test_setup_file_handler_returns_watched_file_handler() -> None:
+def test_json_formatter_with_exc_info() -> None:
+    formatter = JsonFormatter()
+    record = logging.LogRecord(
+        name="test", level=logging.ERROR, pathname="", lineno=0,
+        msg="something broke", args=(), exc_info=None,
+    )
+    # Simulate an exception info tuple
+    try:
+        raise ValueError("test error")
+    except ValueError:
+        import sys
+        record.exc_info = sys.exc_info()
+        record.exc_text = "ValueError: test error"
+
+    output = formatter.format(record)
+    parsed = json.loads(output)
+    assert "exc_info" in parsed
+    assert "ValueError" in parsed["exc_info"]
     with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as f:
         path = f.name
     handler = setup_file_handler(path)
