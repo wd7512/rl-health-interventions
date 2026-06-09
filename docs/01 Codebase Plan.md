@@ -4,6 +4,7 @@
 **Context:** Bristol x NUS summer internship, 8-week foundation phase
 **Stakeholders:** William Dennis (builder), Mengyan Zhang (Bristol data), Swapnil Mishra (NUS/MLGH)
 **Repo:** `rl-health-interventions`
+**MDP Design Doc:** Overleaf TBD (formalising from google doc)
 
 ---
 
@@ -24,9 +25,10 @@ The framework is the platform. The 5 gaps from the literature review are experim
 Software-oriented deliverables:
 
 1. A working CLI: `uv run rl-health-interventions --config experiment.yml` that trains agents and produces a results table
-2. Config schema documented with an example for the proposed MDP (google doc)
+2. Config schema documented with an example for the formal MDP spec (Overleaf design doc)
 3. A README that lets Swapnil clone, `uv sync`, and run the same experiment
 4. Config schema is stable across 2+ different dataset schemas and 2+ MDP designs (stretch)
+5. Public dataset feasibility report: evaluate All of Us and UK Biobank for simulator training
 
 Papers run *on* the framework later. Phase 2 (LLM simulation) is stretch — core deliverable is working infrastructure.
 
@@ -103,21 +105,47 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 - **Language:** Python 3.11
 - **Package manager:** `uv`
-- **Config format:** TBD (JSON or YAML — to confirm with supervisors)
+- **Config format:** YAML (confirmed with Mengyan)
 - **Dependencies:** Minimal. No SB3 or Gymnasium unless proven necessary
-- **Interface:** CLI + config files
+- **Interface:** CLI + config files (web UI = stretch goal, not necessary at this stage)
 - **Package:** TBD (installable or repo-based — to confirm with supervisors)
 
 ---
 
+## Decisions
+
+| # | Decision | Status |
+|---|---|---|
+| 1 | Config format: YAML | Confirmed (Mengyan) |
+| 2 | Interface: CLI + config files; web UI = stretch | Confirmed (Mengyan) |
+| 3 | Installable package vs repo-based | Pending |
+
 ## Open Decisions (Pending Supervisor Input)
 
-1. JSON or YAML for config?
-2. CLI vs notebook vs web — any strong preferences?
-3. Installable package or repo-based?
-4. Does the proposed MDP look like a reasonable starting point?
+1. Installable package or repo-based?
+2. Does the proposed MDP look like a reasonable starting point? (awaiting Swapnil)
 
 ---
+
+## Public Datasets (Under Investigation)
+
+Two datasets from google doc identified for potential simulator training:
+
+1. **All of Us Fitbit Dataset** — Nature Medicine 2026
+   - 59,000+ participants, Fitbit data, 14-year span
+   - 39M+ step observations, 31M+ sleep observations
+   - 46% linked to EHR, physical measurements, genomics
+   - Access: All of Us Research Program researcher workbench
+   - [Paper](https://www.nature.com/articles/s41591-026-04352-3)
+
+2. **UK Biobank Accelerometer Dataset** — npj Digital Medicine 2024
+   - 700,000+ person-days, wrist-worn tri-axial accelerometer
+   - 100,000+ participants, 7 days free-living data each
+   - Pre-trained SSL models available (OxWearables)
+   - Access: UK Biobank application (project ref required)
+   - [Paper](https://www.nature.com/articles/s41746-024-01062-3) | [Code](https://github.com/OxWearables/ssl-wearables)
+
+**Task:** Evaluate feasibility of using either/both to train the rule-based simulator (Subphase 1C).
 
 ## Literature Review Reference
 
