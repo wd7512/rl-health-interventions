@@ -7,6 +7,7 @@ import pytest
 from rl_health_interventions.data.schemas import (
     DatasetSchema,
     FieldSchema,
+    SemanticField,
     load_schema_from_yaml,
     validate_schema,
 )
@@ -106,3 +107,91 @@ class TestDatasetSchema:
         assert "wear_time" in required
         # heart_rate is None, so not required
         assert all(col != "heart_rate" for col in required)
+
+    def test_get_column_dtype(self) -> None:
+        schema = load_schema_from_yaml(CONFIGS_DIR / "all_of_us_fitbit.yaml")
+        assert schema.get_column_dtype("steps") == "int"
+        assert schema.get_column_dtype("resting_heart_rate") == "float"
+        assert schema.get_column_dtype("nonexistent") is None
+
+
+class TestSemanticField:
+    """Tests for SemanticField enum."""
+
+    def test_all_variants_exist(self) -> None:
+        assert SemanticField.STEPS.value == "steps"
+        assert SemanticField.HEART_RATE.value == "heart_rate"
+        assert SemanticField.SLEEP.value == "sleep"
+        assert SemanticField.TIME_OF_DAY.value == "time_of_day"
+        assert SemanticField.ACCELEROMETER.value == "accelerometer"
+
+    def test_enum_count(self) -> None:
+        assert len(SemanticField) == 5
+
+
+class TestFieldSchema:
+    """Tests for FieldSchema dataclass."""
+
+    def test_basic_creation(self) -> None:
+        fs = FieldSchema(column="steps", dtype="int")
+        assert fs.column == "steps"
+        assert fs.dtype == "int"
+        assert fs.unit is None
+        assert fs.description is None
+
+    def test_with_optional_fields(self) -> None:
+        fs = FieldSchema(
+            column="hr",
+            dtype="float",
+            unit="bpm",
+            description="Heart rate",
+        )
+        assert fs.unit == "bpm"
+        assert fs.description == "Heart rate"
+
+
+class TestValidateSchemaEdgeCases:
+    """Tests for validate_schema error paths."""
+
+    def test_semantic_maps_to_missing_column(self) -> None:
+        schema = DatasetSchema(
+            name="test",
+            description="test",
+            source="test",
+            access="test",
+            schema_fields={
+                "steps": FieldSchema(column="steps", dtype="int"),
+            },
+            semantic_mapping={
+                "steps": "steps",
+                "heart_rate": "nonexistent_column",
+            },
+        )
+        errors = validate_schema(schema)
+        assert any("nonexistent_column" in e for e in errors)
+
+    def test_empty_semantic_mapping(self) -> None:
+        schema = DatasetSchema(
+            name="test",
+            description="test",
+            source="test",
+            access="test",
+            schema_fields={
+                "s": FieldSchema(column="s", dtype="int"),
+            },
+            semantic_mapping={},
+        )
+        errors = validate_schema(schema)
+        assert any("semantic_mapping" in e for e in errors)
+
+    def test_empty_schema_fields(self) -> None:
+        schema = DatasetSchema(
+            name="test",
+            description="test",
+            source="test",
+            access="test",
+            schema_fields={},
+            semantic_mapping={"steps": "s"},
+        )
+        errors = validate_schema(schema)
+        assert any("schema_fields" in e for e in errors)

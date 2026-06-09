@@ -13,32 +13,8 @@ CONFIGS_DIR = Path(__file__).parent.parent.parent / "configs" / "datasets"
 
 
 @pytest.fixture
-def sample_csv(tmp_path: Path) -> Path:
-    """Create a sample CSV file for testing."""
-    df = pd.DataFrame(
-        {
-            "person_id": ["P001", "P001", "P002", "P002"],
-            "date": pd.to_datetime(
-                ["2024-01-01", "2024-01-02", "2024-01-01", "2024-01-02"]
-            ),
-            "steps": [8500, 12000, 6000, 9500],
-            "resting_heart_rate": [68.0, 72.0, 55.0, 60.0],
-            "heart_rate_minutes": [1440.0, 1440.0, 1440.0, 1440.0],
-            "sleep_minutes": [420.0, 390.0, 480.0, 450.0],
-            "sleep_efficiency": [0.92, 0.88, 0.95, 0.91],
-            "calories": [2200.0, 2500.0, 1800.0, 2100.0],
-            "distance_meters": [6500.0, 9200.0, 4800.0, 7300.0],
-            "floors_climbed": [8, 12, 4, 7],
-        }
-    )
-    csv_path = tmp_path / "sample_fitbit.csv"
-    df.to_csv(csv_path, index=False)
-    return csv_path
-
-
-@pytest.fixture
-def sample_config(tmp_path: Path, sample_csv: Path) -> Path:
-    """Create a minimal test config."""
+def sample_config(tmp_path: Path) -> Path:
+    """Create a minimal test config (no dependency on sample_csv fixture)."""
     config = {
         "dataset": {
             "name": "test_fitbit",
@@ -95,6 +71,13 @@ class TestLoadDataset:
         assert "steps" in result.columns
         assert "heart_rate" in result.columns  # renamed via semantic mapping
         assert "sleep" in result.columns
+        # Verify values loaded correctly
+        assert result["steps"].iloc[0] == 8500
+        assert result["steps"].iloc[1] == 12000
+        assert result["heart_rate"].iloc[0] == pytest.approx(68.0)
+        # Verify dtypes
+        assert pd.api.types.is_integer_dtype(result["steps"])
+        assert pd.api.types.is_float_dtype(result["heart_rate"])
 
     def test_load_missing_config(self) -> None:
         """Test that missing config raises FileNotFoundError."""
