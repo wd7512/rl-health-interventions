@@ -11,12 +11,12 @@ logger = logging.getLogger(__name__)
 
 def _read_csv(path: str, **kwargs: Any) -> pl.DataFrame:
     """Materialise a CSV file inside a thread, so timeout covers I/O."""
-    return pl.scan_csv(path, **kwargs).collect()
+    return pl.scan_csv(path, **kwargs).collect()  # type: ignore
 
 
 def _read_parquet(path: str, **kwargs: Any) -> pl.DataFrame:
     """Materialise a Parquet file inside a thread, so timeout covers I/O."""
-    return pl.scan_parquet(path, **kwargs).collect()
+    return pl.scan_parquet(path, **kwargs).collect()  # type: ignore
 
 
 def scan_csv_with_timeout(
