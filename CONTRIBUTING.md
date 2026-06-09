@@ -31,7 +31,7 @@
   uv run pytest
   ```
 - **Keep changes small and focused.** One feature or fix per PR.
-- **Commit messages:** Use conventional format: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`
+- **Commit messages:** Use conventional format: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `ci:`
 
 ## Development Setup
 
