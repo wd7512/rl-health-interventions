@@ -173,6 +173,46 @@ No other framework code changes. The factory discovers it via the registry dict.
 
 ---
 
+## Dataset Config Schema
+
+Dataset configs are YAML files stored in `config/datasets/`. Each config
+describes a single dataset's source, schema, and column roles.
+
+```yaml
+name: wisdm
+source_url: https://www.cis.fordham.edu/wisdm/dataset.php
+license: public
+file_format: csv  # or parquet
+expected_columns:
+  user_id: string
+  timestamp: datetime
+  activity: string  # target
+  accelerometer_x: float
+  accelerometer_y: float
+  accelerometer_z: float
+user_id_column: user_id
+timestamp_column: timestamp
+feature_columns: [accelerometer_x, accelerometer_y, accelerometer_z]
+target_column: activity
+```
+
+Required fields:
+
+- `name` — short identifier for the dataset
+- `source_url` — where the raw file can be obtained
+- `license` — license type (e.g. `public`, `cc-by-4.0`)
+- `file_format` — `csv` or `parquet`
+- `expected_columns` — map of column name → dtype
+- `user_id_column` — column to use as user identifier
+- `timestamp_column` — column to use as timestamp
+- `feature_columns` — list of column names used as model inputs
+- `target_column` — column name for the label / target variable
+
+Configs are static files read by the config parser. No PyYAML dependency is
+needed at runtime unless dynamic loading is added later.
+
+---
+
 ## Validation
 
 ### Layer 1: Schema Validation (Pydantic)

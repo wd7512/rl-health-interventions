@@ -1,0 +1,18 @@
+name: wisdm
+source_url: https://www.cis.fordham.edu/wisdm/dataset.php
+license: public
+file_format: csv
+expected_columns:
+  user_id: string
+  timestamp: datetime
+  activity: string
+  accelerometer_x: float
+  accelerometer_y: float
+  accelerometer_z: float
+user_id_column: user_id
+timestamp_column: timestamp
+feature_columns:
+  - accelerometer_x
+  - accelerometer_y
+  - accelerometer_z
+target_column: activity
