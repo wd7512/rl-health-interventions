@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-09
 **Author:** William Dennis
-**Context:** Supplementary to `docs/03 Data Sources.md` — JITAI trial datasets and smaller accessible sources
+**Context:** Supplementary to `docs/03 Data Sources.md` — JITAI trial datasets, accessible benchmarks, and open wearable health data
 
 ---
 
@@ -10,7 +10,7 @@
 
 `docs/03 Data Sources.md` covers large-scale population datasets (All of Us, UK Biobank). Those are excellent for *population distributions* but (a) require 4-8 week access applications and (b) contain only passive sensing — no intervention delivery or user response data.
 
-This document surveys datasets that **do include intervention delivery**, enabling direct calibration of the Subphase 1C user simulation. Most are smaller and some are publicly available immediately.
+This document surveys datasets that **do include intervention delivery**, enabling direct calibration of the Subphase 1C user simulation. It also covers open-access wearable datasets for pipeline testing and synthetic data parameterisation.
 
 ---
 
@@ -198,19 +198,179 @@ Contact the Alshurafa lab at Northwestern University.
 
 ---
 
-## Gap Analysis: Trial Datasets vs Population Datasets
+## Dataset 7: NHANES Steps (Open-Access)
 
-| Need | Population (All of Us / UKB) | Trial (HeartSteps V1/V2) | Accessible (WISDM, ExtraSensory) |
-|---|---|---|---|
-| Step count distributions | ✅ Large N | ⚠️ Small N | ✅ Activity-specific |
-| Heart rate | ✅ All of Us | ❌ | ❌ |
-| Sleep | ✅ | ⚠️ V2 only | ❌ |
-| Intervention response | ❌ | ✅ | ❌ |
-| Engagement over time | ❌ | ✅ | ❌ |
-| RL action selection data | ❌ | ✅ V2 | ❌ |
-| Immediate availability | ❌ (4-8 week apps) | ⚠️ (data sharing) | ✅ (download now) |
-| Longitudinal (months+) | ✅ (years) | ✅ (42-90 days) | ❌ (days) |
-| Sensor variety | ✅ Fitbit | ✅ Fitbit | ✅ Phone sensors |
+**Source:** [PhysioNet](https://physionet.org/content/minute-level-step-count-nhanes/)
+**Year:** 2025
+
+### Overview
+
+| Property | Value |
+|----------|-------|
+| Type | Population-level accelerometry |
+| Participants | 14,693 |
+| Duration | 7 days per participant |
+| Sensor | ActiGraph GT3X+ (80 Hz triaxial accelerometer) |
+| Data | Step counts (5 algorithms), MIMS, activity counts, wear flags |
+| Access | **Public domain (CC0)** — no application needed |
+
+### Why It Matters
+
+The largest publicly available step-count dataset. 14.7K participants with minute-level step counts from a validated accelerometer. Essential for parameterising the synthetic data generator's step distributions — age groups, sex stratification, activity levels. Freely downloadable.
+
+### Access
+
+- **Open access (CC0):** [PhysioNet](https://physionet.org/content/minute-level-step-count-nhanes/)
+- **Format:** CSV
+- **Size:** Large (14.7K participants × 7 days × minute-level)
+
+---
+
+## Dataset 8: TILES (Tracking Individual Lives with Everyday Sensors)
+
+**Source:** [Open Science Framework](https://osf.io/jm6du/)
+**Lead:** Laura Stroud (Northwestern)
+
+### Overview
+
+| Property | Value |
+|----------|-------|
+| Type | Longitudinal passive sensing + intervention |
+| Participants | ~200 adults |
+| Duration | ~12 months |
+| Sensors | Fitbit (steps, sleep, HR), smartphone (accel, GPS, calls, texts) |
+| Intervention | Physical activity intervention arm with delivery logs |
+| Access | **Open** (OSF) |
+
+### Why It Matters
+
+One of the few open-access datasets that combines (a) Fitbit wearable data, (b) intervention delivery logs, and (c) longitudinal (12-month) coverage. Directly relevant to our framework — contains the action → response mappings we need for 1C calibration, and it's freely available.
+
+### Access
+
+- **Open access:** [OSF](https://osf.io/jm6du/)
+- **Format:** CSV
+
+---
+
+## Dataset 9: GLOBEM (Generalizable Longitudinal Behavioral Monitoring)
+
+**Source:** [PhysioNet](https://physionet.org/content/globem/1.1/)
+**Year:** 2023
+
+### Overview
+
+| Property | Value |
+|----------|-------|
+| Type | Multi-year passive sensing + EMA |
+| Participants | 497 unique (705 person-years) |
+| Duration | 4 years (2018-2021), 10 weeks/year |
+| Sensors | Phone (location, usage, Bluetooth, calls), Fitbit (steps, sleep) |
+| Surveys | PHQ-4, PSS-4, PANAS, BDI-II, UCLA loneliness |
+| Access | Credentialed (PhysioNet, DUA required) |
+
+### Why It Matters
+
+Multi-year passive sensing with Fitbit data. Covers behavioural patterns across academic terms — useful for understanding non-stationarity in activity data. The EMA surveys provide mental health context that could inform user simulation archetypes.
+
+### Access
+
+- **Credentialed access:** [PhysioNet](https://physionet.org/content/globem/1.1/)
+- **Requires:** Data use agreement
+
+---
+
+## Dataset 10: PAMAP2 Physical Activity Monitoring
+
+**Source:** [UCI ML Repository](https://archive.ics.uci.edu/dataset/231/pamap2+physical+activity+monitoring)
+**Also on:** [HuggingFace](https://huggingface.co/datasets/rnicrosoft/PAMAP2)
+
+### Overview
+
+| Property | Value |
+|----------|-------|
+| Type | Multi-sensor activity recognition |
+| Participants | 9 subjects |
+| Duration | ~1.5 hours per subject |
+| Sensors | 3 IMUs (hand, chest, ankle) + HR monitor (100 Hz) |
+| Activities | 12 types (walking, running, cycling, housework, etc.) |
+| Samples | 3.85M+ labeled data points |
+| Access | **Open** |
+
+### Why It Matters
+
+The most widely-used wearable activity recognition benchmark. Multiple body-worn sensors with fine-grained activity labels. Useful for testing the data pipeline (1A) with multi-sensor data and validating activity classification in synthetic data.
+
+### Access
+
+- **Open access:** [UCI](https://archive.ics.uci.edu/dataset/231/pamap2+physical+activity+monitoring) or [HuggingFace](https://huggingface.co/datasets/rnicrosoft/PAMAP2)
+- **Format:** CSV
+
+---
+
+## Dataset 11: MMASH (Multilevel Monitoring of Activity and Sleep)
+
+**Source:** [PhysioNet](https://physionet.org/content/mmash/1.0.0/)
+**Year:** 2020
+
+### Overview
+
+| Property | Value |
+|----------|-------|
+| Type | Multimodal monitoring (24h) |
+| Participants | 22 healthy adults |
+| Duration | 24 hours continuous |
+| Sensors | Polar H7 (beat-to-beat HR), ActiGraph (tri-axial accel, steps) |
+| Additional | Sleep quality, questionnaires, salivary cortisol/melatonin |
+| Access | **Open (ODbL)** |
+
+### Why It Matters
+
+Rich multimodal data: heart rate, acceleration, sleep, and biomarkers — all in one dataset. Freely downloadable. Good for validating that synthetic data produces realistic HR-activity-sleep correlations.
+
+### Access
+
+- **Open access (ODbL):** [PhysioNet](https://physionet.org/content/mmash/1.0.0/)
+
+---
+
+## Dataset 12: Health Gym (Synthetic RL Environments)
+
+**Source:** [GitHub](https://github.com/nikooo777/health-gym)
+**Paper:** Gateno et al. (2023), *Nature Scientific Data*
+
+### Overview
+
+| Property | Value |
+|----------|-------|
+| Type | Synthetic RL environments from MIMIC-III |
+| Environments | HIV treatment, Sepsis, Acute Hypotension |
+| Format | CSV (state-action-reward trajectories) |
+| Access | **Open (GitHub, MIT)** |
+
+### Why It Matters
+
+Pre-built synthetic RL environments designed specifically for offline RL algorithm development. While clinical (not PA-focused), the trajectory format and reward structure are directly transferable to our framework design. Useful for testing the agent library (1D) before PA-specific data is available.
+
+### Access
+
+- **Open access (MIT):** [GitHub](https://github.com/nikooo777/health-gym)
+
+---
+
+## Gap Analysis: All Dataset Categories
+
+| Need | Population (All of Us / UKB) | Trial (HeartSteps V1/V2) | Open Benchmark (WISDM, ExtraSensory, PAMAP2) | Open Wearable (NHANES, MMASH, TILES) |
+|---|---|---|---|---|
+| Step count distributions | ✅ Large N | ⚠️ Small N | ✅ Activity-specific | ✅ NHANES 14.7K |
+| Heart rate | ✅ All of Us | ❌ | ❌ | ✅ MMASH (beat-to-beat) |
+| Sleep | ✅ | ⚠️ V2 only | ❌ | ✅ MMASH, TILES |
+| Intervention response | ❌ | ✅ | ❌ | ✅ TILES |
+| Engagement over time | ❌ | ✅ | ❌ | ✅ TILES (12 months) |
+| RL action selection data | ❌ | ✅ V2 | ❌ | ❌ |
+| Immediate availability | ❌ (4-8 week apps) | ⚠️ (data sharing) | ✅ (download now) | ✅ NHANES, MMASH (now) |
+| Longitudinal (months+) | ✅ (years) | ✅ (42-90 days) | ❌ (days) | ✅ TILES (12 mo), GLOBEM (4 yr) |
+| Sensor variety | ✅ Fitbit | ✅ Fitbit | ✅ Phone + IMU | ✅ Mixed (Fitbit, ActiGraph, Polar) |
 
 ---
 
@@ -218,22 +378,26 @@ Contact the Alshurafa lab at Northwestern University.
 
 ### For Phase 1 (Now)
 
-| Priority | Dataset | Use |
-|---|---|---|
-| 1 | ExtraSensory / WISDM | Quick-start: test data pipeline, validate schemas, no access barriers |
-| 2 | HeartSteps V1 | Best available *intervention response* data — start access request now |
-| 3 | HeartSteps V2 | RL-in-the-loop data for agent benchmark — start access request now |
-| 4 | All of Us / UK Biobank | Population distributions for synthetic data — access applications in parallel |
+| Priority | Dataset | Use | Access |
+|---|---|---|---|
+| 1 | NHANES Steps | Parameterise synthetic step distributions (14.7K participants, CC0) | Download now |
+| 2 | ExtraSensory / WISDM / PAMAP2 | Test data pipeline, validate schemas | Download now |
+| 3 | MMASH | Validate HR-activity-sleep correlations in synthetic data | Download now |
+| 4 | TILES | Open intervention response data for 1C calibration | Download now |
+| 5 | Health Gym | Test agent library (1D) with synthetic RL trajectories | Download now |
+| 6 | HeartSteps V1 | Best restricted intervention response data — start access request | Weeks-months |
+| 7 | HeartSteps V2 | RL-in-the-loop data for agent benchmark — start access request | Weeks-months |
+| 8 | All of Us / UK Biobank | Population distributions for synthetic data — applications in parallel | 4-8 weeks |
 
 ### Impact on Plan
 
-1. **Subphase 1A (Data Layer):** Test the Polars ingestion pipeline against WISDM and ExtraSensory CSV files on Day 1. This catches schema mapping bugs before any data is at stake.
+1. **Subphase 1A (Data Layer):** NHANES (14.7K participants, CC0) provides the primary source for parameterising synthetic step distributions. PAMAP2 and WISDM validate the pipeline on real sensor data on Day 1. MMASH validates HR-activity-sleep correlations.
 
-2. **Subphase 1C (User Simulation):** HeartSteps V1/V2 provides the only direct source of *action → response* mappings we have. Even small-N, these are more valuable for calibrating `ResponseModel` archetypes than population-level step distributions alone. The fatigue/burden decay curves from V1's 42-day engagement data are the best available signal for our burden mechanism.
+2. **Subphase 1C (User Simulation):** TILES is the key find — an open-access dataset with intervention delivery logs, Fitbit data, and 12-month longitudinal coverage. This provides *action → response* mappings without needing to wait for HeartSteps access. HeartSteps V1/V2 remains the gold standard for burden/engagement calibration.
 
-3. **Subphase 1D (Agent Library):** HeartSteps V2's Thompson Sampling implementation and step-count outcomes provide a real-data benchmark for our agent. We can compare our agent's regret curves against V2's published results.
+3. **Subphase 1D (Agent Library):** Health Gym provides ready-made synthetic RL environments for testing agent implementations before PA-specific data is available. HeartSteps V2's Thompson Sampling is the real benchmark.
 
-4. **Synthetic data strategy:** Fit synthetic generators to *both* population distributions (All of Us / UKB) *and* trial response distributions (HeartSteps). The former gives realistic baseline features; the latter gives realistic treatment effects.
+4. **Synthetic data strategy:** Fit synthetic generators to NHANES step distributions (population baseline) + HeartSteps/TILES response distributions (treatment effects). MMASH grounds the HR-activity-sleep correlations.
 
 ---
 
