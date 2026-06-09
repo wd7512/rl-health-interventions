@@ -1,0 +1,28 @@
+from __future__ import annotations
+
+from rl_health_interventions.data.dataset import Dataset
+
+
+class SyntheticDataGenerator:
+    def __init__(self, seed: int = 42) -> None:
+        self.seed = seed
+
+    def generate(self, n_users: int = 0, n_timesteps: int = 0) -> Dataset:
+        import numpy as np
+
+        return Dataset(
+            user_ids=np.array([], dtype=np.int64),
+            timestamps=np.empty((n_users, n_timesteps), dtype=np.int64),
+            features={},
+            metadata={
+                "seed": self.seed,
+                "n_users": n_users,
+                "n_timesteps": n_timesteps,
+            },
+        )
+
+
+def register() -> None:
+    from rl_health_interventions.data import REGISTRY
+
+    REGISTRY[SyntheticDataGenerator.__name__] = SyntheticDataGenerator
