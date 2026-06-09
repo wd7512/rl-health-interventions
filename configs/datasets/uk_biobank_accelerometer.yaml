@@ -1,0 +1,79 @@
+dataset:
+  name: uk_biobank_accelerometer
+  description: "UK Biobank Accelerometer Dataset - npj Digital Medicine 2024"
+  source: "https://www.nature.com/articles/s41746-024-01062-3"
+  code: "https://github.com/OxWearables/ssl-wearables"
+  access: "controlled_access"
+  access_url: "https://www.ukbiobank.ac.uk/register-apply/"
+  participants: 100000
+  person_days: 700000
+  recording_duration: "7 days per participant"
+  sampling_rate: "100 Hz"
+
+schema:
+  participant_id:
+    column: "eid"
+    dtype: "str"
+  date:
+    column: "date"
+    dtype: "datetime"
+  steps:
+    column: "steps"
+    dtype: "int"
+  wear_time_minutes:
+    column: "wear_time"
+    dtype: "float"
+    unit: "minutes"
+  accel_x:
+    column: "x"
+    dtype: "float"
+    unit: "g"
+  accel_y:
+    column: "y"
+    dtype: "float"
+    unit: "g"
+  accel_z:
+    column: "z"
+    dtype: "float"
+    unit: "g"
+  angle_z:
+    column: "anglez"
+    dtype: "float"
+    unit: "degrees"
+  enmo:
+    column: "enmo"
+    dtype: "float"
+    unit: "mg"
+    description: "Euclidean Norm Minus One - measure of movement intensity"
+  pitch:
+    column: "pitch"
+    dtype: "float"
+    unit: "degrees"
+  roll:
+    column: "roll"
+    dtype: "float"
+    unit: "degrees"
+  light:
+    column: "light"
+    dtype: "float"
+    unit: "lux"
+  temperature:
+    column: "temperature"
+    dtype: "float"
+    unit: "celsius"
+
+semantic_mapping:
+  steps: "steps"
+  heart_rate: null
+  sleep: "wear_time"
+  time_of_day: "date"
+  accelerometer: "enmo"
+
+file_format: "csv"
+encoding: "utf-8"
+notes: |
+  UK Biobank provides raw tri-axial accelerometer data at 100Hz.
+  Derived features (ENMO, steps) are computed from raw data.
+  The OxWearables package provides pre-trained models for sleep/wake detection.
+  No heart rate data available in this dataset.
+  Access requires UK Biobank application (project reference required).

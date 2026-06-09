@@ -1,0 +1,58 @@
+dataset:
+  name: all_of_us_fitbit
+  description: "All of Us Fitbit Dataset - Nature Medicine 2026"
+  source: "https://www.nature.com/articles/s41591-026-04352-3"
+  access: "controlled_access"
+  access_url: "https://researchallofus.org/"
+  participants: 59000
+  timespan: "14 years"
+  observations:
+    steps: "39M+"
+    sleep: "31M+"
+
+schema:
+  participant_id:
+    column: "person_id"
+    dtype: "str"
+  date:
+    column: "date"
+    dtype: "datetime"
+  steps:
+    column: "steps"
+    dtype: "int"
+  heart_rate_avg:
+    column: "resting_heart_rate"
+    dtype: "float"
+    unit: "bpm"
+  heart_rate_minutes:
+    column: "heart_rate_minutes"
+    dtype: "float"
+    unit: "minutes"
+  sleep_minutes:
+    column: "sleep_minutes"
+    dtype: "float"
+    unit: "minutes"
+  sleep_efficiency:
+    column: "sleep_efficiency"
+    dtype: "float"
+    unit: "ratio"
+  calories:
+    column: "calories"
+    dtype: "float"
+    unit: "kcal"
+  distance_meters:
+    column: "distance_meters"
+    dtype: "float"
+    unit: "meters"
+  floors_climbed:
+    column: "floors_climbed"
+    dtype: "int"
+
+semantic_mapping:
+  steps: "steps"
+  heart_rate: "resting_heart_rate"
+  sleep: "sleep_minutes"
+  time_of_day: "date"
+
+file_format: "csv"
+encoding: "utf-8"
