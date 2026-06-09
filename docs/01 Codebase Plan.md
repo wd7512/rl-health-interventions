@@ -127,25 +127,25 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 ---
 
-## Public Datasets (Under Investigation)
+## Public Datasets (Feasibility Complete ✅)
 
-Two datasets from google doc identified for potential simulator training:
+Two datasets evaluated for simulator training. Full study: [`docs/03 Data Sources.md`](03%20Data%20Sources.md).
 
 1. **All of Us Fitbit Dataset** — Nature Medicine 2026
    - 59,000+ participants, Fitbit data, 14-year span
    - 39M+ step observations, 31M+ sleep observations
    - 46% linked to EHR, physical measurements, genomics
-   - Access: All of Us Research Program researcher workbench
+   - Access: All of Us Research Program researcher workbench (cloud-only, no local download)
    - [Paper](https://www.nature.com/articles/s41591-026-04352-3)
 
 2. **UK Biobank Accelerometer Dataset** — npj Digital Medicine 2024
    - 700,000+ person-days, wrist-worn tri-axial accelerometer
    - 100,000+ participants, 7 days free-living data each
    - Pre-trained SSL models available (OxWearables)
-   - Access: UK Biobank application (project ref required)
+   - Access: UK Biobank application (project ref required, 4-8 weeks)
    - [Paper](https://www.nature.com/articles/s41746-024-01062-3) | [Code](https://github.com/OxWearables/ssl-wearables)
 
-**Task:** Evaluate feasibility of using either/both to train the rule-based simulator (Subphase 1C).
+**Finding:** Both datasets require institutional applications with 4-8 week lead times. Neither provides downloadable samples. **Phase 1 uses synthetic data generators parameterised from published statistics.** Real data integration is Phase 2.
 
 ## Literature Review Reference
 
