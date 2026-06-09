@@ -77,7 +77,7 @@ cloud environment. We cannot download CSVs to test locally.
 | `hr_t` | ✅ Direct | Resting heart rate |
 | `sleep_hours_t` | ✅ Direct | Sleep minutes (convert to hours) |
 | `sedentary_min_t` | ⚠️ Indirect | Could derive from low-activity periods |
-| `time_of_day_t` | ❌ | Only date, not hourly timestamps |
+| `time_of_day_t` | ⚠️ Indirect | Derivable from intraday/minute-level tables (heart_rate_minute_level, steps_intraday) |
 | `age`, `gender` | ✅ Via demographics | Separate table, joinable |
 | `body_measure_k` | ❌ | Not in Fitbit data |
 
@@ -110,12 +110,25 @@ cloud platform. Local download possible after approval.
 
 ### Schema (from data dictionary)
 
+The UK Biobank data comes at two levels — daily summaries and raw epoch-level
+accelerometer data. These are structurally different and should be treated
+separately for ingestion.
+
+#### Daily Summary Data
+
 | Field | Column Name | Type | Unit |
 |-------|-------------|------|------|
 | Participant ID | `eid` | string | — |
 | Date | `date` | datetime | — |
 | Steps | `steps` | integer | count/day |
 | Wear Time | `wear_time` | float | minutes |
+
+#### Raw/Epoch Accelerometer Time-Series (100 Hz)
+
+| Field | Column Name | Type | Unit |
+|-------|-------------|------|------|
+| Participant ID | `eid` | string | — |
+| Timestamp | `timestamp` | datetime | — |
 | Accelerometer X | `x` | float | g |
 | Accelerometer Y | `y` | float | g |
 | Accelerometer Z | `z` | float | g |
@@ -161,7 +174,7 @@ The MDP spec (docs/02 MDP Specification.tex) defines these state variables:
 | `hr_t` | ✅ | ❌ | ✅ | All of Us only |
 | `sleep_hours_t` | ✅ | ⚠️ | ✅ | All of Us direct, UK Biobank via model |
 | `sedentary_min_t` | ⚠️ | ✅ | ✅ | UK Biobank ENMO |
-| `time_of_day_t` | ❌ | ✅ | ✅ | UK Biobank hourly data |
+| `time_of_day_t` | ⚠️ | ✅ | ✅ | All of Us intraday / UK Biobank hourly |
 | `day_of_week_t` | ✅ | ✅ | ✅ | Derivable from date |
 | `goal_progress_t` | ❌ | ❌ | ❌ | Synthetic/simulated |
 | `burden_t` | ❌ | ❌ | ❌ | State variable (not from data) |
