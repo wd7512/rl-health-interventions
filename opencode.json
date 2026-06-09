@@ -1,0 +1,42 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md"],
+  "skills": {
+    "paths": [".opencode/skills"]
+  },
+  "plugin": ["./.opencode/plugins/write-size-guard.ts"],
+  "agent": {
+    "python-engineer": {
+      "description": "Implements small, well-tested Python changes using uv, ruff, ty, and pytest.",
+      "mode": "subagent",
+      "permission": {
+        "read": "allow",
+        "edit": "allow",
+        "bash": {
+          "*": "ask",
+          "uv *": "allow"
+        }
+      }
+    }
+  },
+  "command": {
+    "check": {
+      "description": "Run format, lint, type, test, and build checks",
+      "template": "Run the project checks and report failures clearly: `uv run ruff format --check`, `uv run ruff check`, `uv run ty check`, `uv run pytest`, and `uv build`."
+    },
+    "grill-me": {
+      "description": "Stress-test a plan or design",
+      "template": "Use the grill-me skill to stress-test this plan or design: $ARGUMENTS"
+    }
+  },
+  "permission": {
+    "read": "allow",
+    "edit": "allow",
+    "bash": {
+      "*": "ask",
+      "uv *": "allow"
+    },
+    "skill": "allow"
+  },
+  "share": "disabled"
+}
