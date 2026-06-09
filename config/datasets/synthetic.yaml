@@ -1,0 +1,32 @@
+name: synthetic
+source_url: null
+license: public
+file_format: generated
+expected_columns:
+  user_id: string
+  timestamp: datetime
+  activity: string
+  accelerometer_x: float
+  accelerometer_y: float
+  accelerometer_z: float
+user_id_column: user_id
+timestamp_column: timestamp
+feature_columns:
+  - accelerometer_x
+  - accelerometer_y
+  - accelerometer_z
+target_column: activity
+generation:
+  seed: 42
+  rng: default_rng
+  distribution: multivariate_normal
+  n_users: 100
+  n_timesteps: 365
+  mean:
+    - 0.0
+    - 0.0
+    - 1.0
+  cov:
+    - [1.0, 0.5, 0.0]
+    - [0.5, 1.0, 0.0]
+    - [0.0, 0.0, 0.5]
