@@ -18,11 +18,15 @@ feature_columns:
 target_column: activity
 generation:
   seed: 42
-  rng: numpy.random.default_rng
+  rng: default_rng
   distribution: multivariate_normal
   n_users: 100
   n_timesteps: 365
-  mean: [0.0, 0.0, 1.0]
-  cov: [[1.0, 0.5, 0.0],
-        [0.5, 1.0, 0.0],
-        [0.0, 0.0, 0.5]]
+  mean:
+    - 0.0
+    - 0.0
+    - 1.0
+  cov:
+    - [1.0, 0.5, 0.0]
+    - [0.5, 1.0, 0.0]
+    - [0.0, 0.0, 0.5]

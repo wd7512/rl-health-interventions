@@ -208,8 +208,9 @@ Required fields:
 - `feature_columns` — list of column names used as model inputs
 - `target_column` — column name for the label / target variable
 
-Configs are static files read by the config parser. No PyYAML dependency is
-needed at runtime unless dynamic loading is added later.
+Configs are static files read by the config parser. A YAML parser
+dependency (such as PyYAML) is required at runtime to load these
+configurations.
 
 ---
 
