@@ -52,36 +52,39 @@ See `docs/01 Codebase Plan.md` for full architecture.
 └──────────────────────────────────────────────────────────────────────┘
                 │
                 ▼
-┌─ 1A: Data Layer ───────────┐   ┌─ 1B: MDP Environment ─────────────┐
-│  □ DataConfig schema        │   │  □ MDPConfig schema               │
-│  □ Polars lazy reader       │   │  □ TransitionModel ABC +          │
-│  □ FeaturePipeline          │   │    RuleBasedTransition            │
-│  □ Dataset + StateView      │   │  □ RewardHandler ABC +            │
-│    .from_dataset() bridge   │   │    CompoundReward                 │
-│  □ SyntheticDataGenerator   │   │  □ FatigueTracker                 │
-└──────────┬──────────────────┘   │  □ Environment step/reset         │
-           │                      │  □ Multi-timescale reward         │
-           │                      └──────────┬────────────────────────┘
-           ▼                                 ▼
-┌─ Dataset Exploration ───────┐        ┌─ 1D: Agent Library ──────────┐
-│  □ Investigate All of Us    │        │  □ Agent ABC                 │
-│  □ Investigate UK Biobank   │        │  □ ThompsonSamplingAgent     │
-│  □ Write report → docs/     │        │                               │
-└──────────┬──────────────────┘        └──────────┬────────────────────┘
-           │                                      │
-           └──────────┬───────────────────────────┘
-                      ▼
-┌─ 1C: User Simulation ───────────────────────────────────────────────┐
-│  □ UserProfile schema + 4 archetypes                                │
-│  □ ResponseModel ABC                                                │
-│  □ Backlash / fatigue mechanism                                     │
-└──────────────────────────┬──────────────────────────────────────────┘
-                           ▼
-┌─ 1E: Experiment Runner ─────────────────────────────────────────────┐
-│  □ ExperimentConfig + full config parsing                           │
-│  □ CLI → ExperimentFactory wiring + e2e test                        │
-│  □ Results table + reproducibility (seed snapshots)                 │
-└──────────────────────────────────────────────────────────────────────┘
+┌─ 1A: Data Layer ───────────┐   ┌─ 1B: MDP Environment ─────────────┐   ┌─ Dataset Exploration ────┐
+│  □ DataConfig schema        │   │  □ MDPConfig schema               │   │  □ Investigate All of Us│
+│  □ Polars lazy reader       │   │  □ TransitionModel ABC +          │   │  □ Investigate UK Biobk │
+│  □ FeaturePipeline          │   │    RuleBasedTransition            │   │  □ Write report → docs/ │
+│  □ Dataset + StateView      │   │  □ RewardHandler ABC +            │   └──────────┬─────────────┘
+│    .from_dataset() bridge   │   │    CompoundReward                 │              │
+│  □ SyntheticDataGenerator   │   │  □ FatigueTracker                 │              │
+└──────────┬──────────────────┘   │  □ Environment step/reset         │              │
+           │                      │  □ Multi-timescale reward         │              │
+           │                      └──────────┬────────────────────────┘              │
+           │                                 │                                        │
+           │                                 │ (interface only)                       │
+           │                                 ├──────────┐                             │
+           │                                 │          │                             │
+           │                                 ▼          ▼                             │
+           │                          ┌─ 1D: Agent Lib ────┐                          │
+           │                          │  □ Agent ABC        │                          │
+           │                          │  □ ThompsonSampling │                          │
+           │                          └─────────────────────┘                          │
+           │                                                                          │
+           └────────────────────────────┬─────────────────────────────────────────────┘
+                                        ▼
+                         ┌─ 1C: User Simulation ────────────────────────┐
+                         │  □ UserProfile schema + 4 archetypes        │
+                         │  □ ResponseModel ABC                        │
+                         │  □ Backlash / fatigue mechanism              │
+                         └──────────────────────┬───────────────────────┘
+                                                ▼
+                         ┌─ 1E: Experiment Runner ──────────────────────┐
+                         │  □ ExperimentConfig + full config parsing    │
+                         │  □ CLI → ExperimentFactory wiring + e2e test│
+                         │  □ Results table + reproducibility          │
+                         └──────────────────────────────────────────────┘
 ```
 
 Each `□` is a GitHub issue. Milestones gate on all their issues closed and CI passing.
