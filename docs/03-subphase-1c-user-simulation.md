@@ -79,3 +79,35 @@ See [`docs/04 Additional Data Sources.md`](04%20Additional%20Data%20Sources.md) 
 
 - **Real data timeline:** Both datasets require 4-8 week institutional applications. Phase 1 is designed around synthetic data — this is now the confirmed approach, not a fallback.
 - **Archetype validity:** The 4 archetypes are theoretical. No guarantee they match real user behaviour. Document this as an explicit assumption.
+
+---
+
+## Logging & Error Handling
+
+See canonical setup in [`06 Code Design.md`](06%20Code%20Design.md#logging--error-handling-canonical).
+
+Subphase-specific concerns for 1C (user simulation):
+
+- **DEBUG events (per step):** user profile id, archetype, current motivation,
+  current burden, response magnitude. Same caveat as 1B — disabled by default.
+- **Response model failures:** If `ResponseModel.response()` returns NaN,
+  Inf, or a value outside the expected range (e.g., step delta > 10K),
+  log WARNING with the offending value and clamp to the expected range.
+  NaN/Inf in the simulator breaks the entire downstream pipeline.
+- **State evolution errors:** If a user state's motivation, burden, or
+  engagement drops below 0 or above 1, log WARNING and clamp. These are
+  bounded [0, 1] quantities by construction.
+- **Archetype sampling:** INFO at episode start: "User synthetic_042 drawn
+  from archetype 'engaged_low_burden' (seed 42)". Useful for offline
+  analysis of per-archetype performance.
+- **Non-stationarity check:** Every 50 episodes, log a DEBUG line with the
+  distribution of motivation/burden values across the active user pool.
+  Catches a buggy simulator that's stuck at one state.
+
+Related 1C tests:
+- `tests/unit/simulation/test_response_clamp.py` — out-of-range response
+  is clamped, not raised.
+- `tests/unit/simulation/test_state_bounds.py` — motivation/burden never
+  escape [0, 1].
+- `tests/integration/simulation/test_archetype_sampling.py` — 1000 user
+  draws produce the expected archetype distribution.

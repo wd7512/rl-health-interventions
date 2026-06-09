@@ -293,3 +293,84 @@ Rules:
   (`tests/integration/test_dummy_step.py`).
 - Plugin discovery (`REGISTRY` dict) has a test ensuring every registered
   component can be instantiated from a minimal valid config.
+
+---
+
+## Logging & Error Handling (canonical)
+
+The framework's observability contract. Every subphase doc references this
+section; subphase docs only specify what's unique to that subphase.
+
+### Logger namespace
+
+- Every module: `logger = logging.getLogger(__name__)`
+- Top-level runner: `rl_health_interventions.runner`
+- Subphase namespaces:
+  - `rl_health_interventions.data`
+  - `rl_health_interventions.transitions`
+  - `rl_health_interventions.rewards`
+  - `rl_health_interventions.agents`
+  - `rl_health_interventions.simulation`
+  - `rl_health_interventions.experiment`
+
+### Log levels
+
+| Level | When |
+|-------|------|
+| DEBUG | Per-step trace (state, action, reward, next_state). Disabled by default. |
+| INFO | Episode boundary, config load, checkpoint, sweep start/end. |
+| WARNING | Retry, fallback to synthetic, missing optional config. |
+| ERROR | Failed episode (caught, logged, written to DLQ). |
+| CRITICAL | Unrecoverable — config invalid, cannot start. |
+
+### Log format
+
+- Console: `%(asctime)s %(levelname)s [%(name)s] %(message)s`
+- File (episode-level traces): JSON, one object per line, written via stdlib
+  `logging.handlers.WatchedFileHandler` with a `JsonFormatter` (custom, ~30 lines
+  in `rl_health_interventions/logging.py`).
+
+### Episode-level structured trace
+
+Every episode emits a JSON line to `logs/episodes.jsonl` with:
+
+```json
+{
+  "episode_id": "uuid4",
+  "config_hash": "sha256",
+  "total_reward": 0.87,
+  "steps": 365,
+  "agent_id": "thompson_sampling",
+  "user_id": "synthetic_042",
+  "timestamp": "2026-06-09T14:30:00Z",
+  "seed": 42
+}
+```
+
+### CLI flags (in experiment runner)
+
+- `--verbose` → DEBUG
+- `--quiet` → WARNING
+- `--log-file <path>` → default `logs/<run_id>.log`
+
+### Exception handling (for 1000+ episode runs)
+
+- Per-episode try/except wraps the entire `for episode in range(N):` body
+- Caught exceptions: log at ERROR, write episode context to
+  `logs/failed_episodes.jsonl`, continue
+- One bad episode must not lose all progress
+
+### Progress heartbeat
+
+- Log every N episodes (configurable, default 100): elapsed time, ETA, mean reward
+  so far. Implementation: counter in runner, no external dependency.
+
+### Retry / circuit breaker for I/O
+
+- Data ingestion (Polars `scan_csv` / `scan_parquet`): explicit timeout
+  via `pl.Config.set_engine_affinity` + wrapper, default 30s for CSV, 60s for
+  Parquet
+- HTTP fetches: configurable timeout (default 60s), exponential backoff
+  (3 retries, 1s / 2s / 4s)
+- Circuit breaker: 5 consecutive I/O failures → fail fast with a clear error
+  message naming the failing path
