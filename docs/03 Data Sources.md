@@ -1,34 +1,58 @@
-# Data Sources
+# Public Dataset Feasibility Study
 
-This document describes the public wearable health datasets available for training the rule-based user simulator.
+**Date:** 2026-06-09
+**Author:** William Dennis
+**Context:** Bristol x NUS RL Health Internship — Phase 1 data layer planning
 
-## Overview
+---
 
-| Dataset | Participants | Data Type | Access | Format |
-|---------|-------------|-----------|--------|--------|
-| All of Us Fitbit | 59,000+ | Fitbit (steps, HR, sleep) | Controlled | CSV |
-| UK Biobank Accelerometer | 100,000+ | Wrist accelerometer | Controlled | CSV |
+## Purpose
 
-## 1. All of Us Fitbit Dataset
+Evaluate two public wearable health datasets as potential sources for training
+the rule-based user simulator (Subphase 1C). This document captures schema
+details, access requirements, usage by other researchers, and a gap analysis
+against our MDP specification.
 
-**Source:** [Nature Medicine 2026](https://www.nature.com/articles/s41591-026-04352-3)
+**Conclusion:** Both datasets require institutional applications with 4-8 week
+lead times. Neither provides downloadable samples. The framework should target
+synthetic data generation for Phase 1, with these schemas as the ingestion
+target when real data becomes available.
+
+---
+
+## Dataset 1: All of Us Fitbit Dataset
+
+**Paper:** [Nature Medicine 2026](https://www.nature.com/articles/s41591-026-04352-3)
+
+### Overview
+
+| Property | Value |
+|----------|-------|
+| Participants | 59,000+ |
+| Data type | Fitbit (steps, heart rate, sleep, calories) |
+| Timespan | 14 years (longitudinal) |
+| Step observations | 39M+ |
+| Sleep observations | 31M+ |
+| EHR linkage | 46% linked to EHR, physical measurements, genomics |
+| Format | CSV (in cloud workbench) |
 
 ### Access
 
 1. Register at [researchallofus.org](https://researchallofus.org/)
-2. Complete required training (CITI + Data or Specimens Only)
-3. Submit a research application
-4. Access data via the All of Us Researcher Workbench (cloud-based)
+2. Complete CITI training + Data or Specimens Only certification
+3. Submit research application (requires institutional affiliation)
+4. Access via All of Us Researcher Workbench (cloud-based, no local download)
 
-**Note:** Data cannot be downloaded locally. Analysis runs in the cloud workbench.
+**Key constraint:** Data cannot leave the workbench. All analysis runs in their
+cloud environment. We cannot download CSVs to test locally.
 
-### Schema
+### Schema (from data dictionary)
 
-| Field | Column | Type | Unit |
-|-------|--------|------|------|
+| Field | Column Name | Type | Unit |
+|-------|-------------|------|------|
 | Participant ID | `person_id` | string | — |
 | Date | `date` | datetime | — |
-| Steps | `steps` | integer | count |
+| Steps | `steps` | integer | count/day |
 | Resting Heart Rate | `resting_heart_rate` | float | bpm |
 | Heart Rate Minutes | `heart_rate_minutes` | float | minutes |
 | Sleep Minutes | `sleep_minutes` | float | minutes |
@@ -37,51 +61,60 @@ This document describes the public wearable health datasets available for traini
 | Distance | `distance_meters` | float | meters |
 | Floors Climbed | `floors_climbed` | integer | count |
 
-### Semantic Mapping
+### How Others Have Used It
 
-| MDP Field | Dataset Column |
-|-----------|---------------|
-| steps | `steps` |
-| heart_rate | `resting_heart_rate` |
-| sleep | `sleep_minutes` |
-| time_of_day | `date` |
+- **Physical activity patterns:** Step count distributions across demographics
+- **Sleep-health associations:** Linking sleep duration/quality to health outcomes
+- **Longitudinal trends:** Tracking activity changes over years
+- **Demographic disparities:** Activity levels across age, gender, ethnicity
+- **Clinical correlations:** Linking wearable data to EHR diagnoses
 
-### Usage Notes
+### Relevance to Our Framework
 
-- 39M+ step observations, 31M+ sleep observations
-- 46% linked to EHR, physical measurements, genomics
-- 14-year span (longitudinal)
-- Fitbit data includes minute-level granularity
-- Resting heart rate available for most participants
+| MDP Variable | Available? | Notes |
+|---|---|---|
+| `steps_t` | ✅ Direct | Daily step counts |
+| `hr_t` | ✅ Direct | Resting heart rate |
+| `sleep_hours_t` | ✅ Direct | Sleep minutes (convert to hours) |
+| `sedentary_min_t` | ⚠️ Indirect | Could derive from low-activity periods |
+| `time_of_day_t` | ❌ | Only date, not hourly timestamps |
+| `age`, `gender` | ✅ Via demographics | Separate table, joinable |
+| `body_measure_k` | ❌ | Not in Fitbit data |
 
-### Config
+---
 
-```yaml
-# configs/datasets/all_of_us_fitbit.yaml
-dataset:
-  name: all_of_us_fitbit
-  access: controlled_access
-```
+## Dataset 2: UK Biobank Accelerometer Dataset
 
-## 2. UK Biobank Accelerometer Dataset
-
-**Source:** [npj Digital Medicine 2024](https://www.nature.com/articles/s41746-024-01062-3)
+**Paper:** [npj Digital Medicine 2024](https://www.nature.com/articles/s41746-024-01062-3)
 **Code:** [OxWearables/ssl-wearables](https://github.com/OxWearables/ssl-wearables)
+
+### Overview
+
+| Property | Value |
+|----------|-------|
+| Participants | 100,000+ |
+| Person-days | 700,000+ |
+| Recording duration | 7 days per participant |
+| Sampling rate | 100 Hz (tri-axial accelerometer) |
+| Format | CSV (via UK Biobank RAP) |
 
 ### Access
 
 1. Register at [ukbiobank.ac.uk](https://www.ukbiobank.ac.uk/register-apply/)
-2. Submit a Research Application (requires institutional affiliation)
+2. Submit Research Application (requires institutional affiliation)
 3. Pay application fee (~£500-9000 depending on scope)
 4. Data delivered via UK Biobank Research Analysis Platform
 
-### Schema
+**Key constraint:** Application takes 4-8 weeks. Data access is via their
+cloud platform. Local download possible after approval.
 
-| Field | Column | Type | Unit |
-|-------|--------|------|------|
+### Schema (from data dictionary)
+
+| Field | Column Name | Type | Unit |
+|-------|-------------|------|------|
 | Participant ID | `eid` | string | — |
 | Date | `date` | datetime | — |
-| Steps | `steps` | integer | count |
+| Steps | `steps` | integer | count/day |
 | Wear Time | `wear_time` | float | minutes |
 | Accelerometer X | `x` | float | g |
 | Accelerometer Y | `y` | float | g |
@@ -93,83 +126,97 @@ dataset:
 | Light | `light` | float | lux |
 | Temperature | `temperature` | float | celsius |
 
-### Semantic Mapping
+**ENMO** (Euclidean Norm Minus One) is the standard metric for movement
+intensity. Values near 0 = sedentary, higher = more active.
 
-| MDP Field | Dataset Column |
-|-----------|---------------|
-| steps | `steps` |
-| heart_rate | *not available* |
-| sleep | `wear_time` |
-| time_of_day | `date` |
-| accelerometer | `enmo` |
+### How Others Have Used It
 
-### Usage Notes
+- **Sleep/wake classification:** OxWearables SSL models trained on this data
+- **Physical activity quantification:** ENMO as activity intensity measure
+- **Sedentary behaviour research:** Identifying sedentary bouts from accelerometer
+- **Circadian rhythm analysis:** Using ENMO patterns to detect sleep/wake cycles
+- **Mortality/morbidity associations:** Linking activity patterns to health outcomes
 
-- 700,000+ person-days of data
-- 100,000+ participants, 7 days each
-- Raw tri-axial accelerometer at 100Hz
-- Derived features (ENMO, steps) computed from raw
-- No heart rate data — use All of Us for HR
-- OxWearables provides pre-trained SSL models for sleep/wake detection
-- ENMO (Euclidean Norm Minus One) is the standard movement intensity metric
+### Relevance to Our Framework
 
-### Config
+| MDP Variable | Available? | Notes |
+|---|---|---|
+| `steps_t` | ✅ Direct | Derived from accelerometer |
+| `hr_t` | ❌ | No heart rate in this dataset |
+| `sleep_hours_t` | ⚠️ Derived | OxWearables models can classify sleep |
+| `sedentary_min_t` | ✅ Direct | ENMO < threshold = sedentary |
+| `time_of_day_t` | ✅ Direct | Hourly timestamps from 100Hz data |
+| `age`, `gender` | ✅ Via demographics | Separate UK Biobank table |
+| `body_measure_k` | ❌ | Not in accelerometer data |
 
-```yaml
-# configs/datasets/uk_biobank_accelerometer.yaml
-dataset:
-  name: uk_biobank_accelerometer
-  access: controlled_access
-```
+---
 
-## Dataset Selection Guide
+## Gap Analysis: Datasets vs MDP Specification
 
-| Need | Use |
-|------|-----|
-| Heart rate data | All of Us |
-| High-frequency movement | UK Biobank (100Hz) |
-| Longitudinal (years) | All of Us (14 years) |
-| Large N, short duration | UK Biobank (7 days, 100K people) |
-| EHR linkage | All of Us (46% linked) |
-| Sleep staging | UK Biobank (OxWearables models) |
-| Both heart rate + steps | All of Us |
+The MDP spec (docs/02 MDP Specification.tex) defines these state variables:
 
-## Using the Data Layer
+| Variable | All of Us | UK Biobank | Both Combined | Source |
+|---|---|---|---|---|
+| `steps_t` | ✅ | ✅ | ✅ | Direct from either |
+| `hr_t` | ✅ | ❌ | ✅ | All of Us only |
+| `sleep_hours_t` | ✅ | ⚠️ | ✅ | All of Us direct, UK Biobank via model |
+| `sedentary_min_t` | ⚠️ | ✅ | ✅ | UK Biobank ENMO |
+| `time_of_day_t` | ❌ | ✅ | ✅ | UK Biobank hourly data |
+| `day_of_week_t` | ✅ | ✅ | ✅ | Derivable from date |
+| `goal_progress_t` | ❌ | ❌ | ❌ | Synthetic/simulated |
+| `burden_t` | ❌ | ❌ | ❌ | State variable (not from data) |
+| `body_measure_k` | ❌ | ❌ | ❌ | Needs EHR (All of Us has 46% linked) |
+| `age` | ✅ | ✅ | ✅ | Demographics tables |
+| `gender` | ✅ | ✅ | ✅ | Demographics tables |
+| `baseline_activity` | ❌ | ❌ | ❌ | Derived from step distributions |
+| `previous_action` | ❌ | ❌ | ❌ | State variable (not from data) |
+| `previous_response` | ❌ | ❌ | ❌ | State variable (not from data) |
 
-### Load a dataset
+**Key finding:** Between the two datasets, we can cover most wearable-derived
+MDP variables. The gaps are:
+- **Goal progress, burden, previous action/response** — these are state
+  variables that evolve during simulation, not from raw data
+- **Body measures** — would need EHR linkage (All of Us has 46% linked)
+- **Baseline activity** — derived from step distributions, not a raw field
 
-```python
-from rl_health_interventions.data import load_dataset
+---
 
-df = load_dataset(
-    config_path="configs/datasets/all_of_us_fitbit.yaml",
-    data_dir="/path/to/data/",
-)
-# df has columns: steps, heart_rate, sleep, time_of_day, ...
-```
+## Recommendation
 
-### Preprocess
+### Phase 1 (Now): Synthetic Data Generation
 
-```python
-from rl_health_interventions.data.preprocessing import (
-    resample_to_hourly,
-    compute_daily_aggregates,
-    add_time_features,
-)
+Since neither dataset is immediately accessible, Phase 1 should focus on:
 
-# Resample to hourly
-hourly = resample_to_hourly(df, time_col="time_of_day")
+1. **Synthetic data generator** that produces realistic wearable data matching
+   the schemas above (step distributions, heart rate ranges, sleep patterns)
+2. **Config-driven ingestion** ready to swap in real data when access is granted
+3. **Distribution fitting** — use published summary statistics from both papers
+   to parameterise synthetic generators
 
-# Daily aggregates
-daily = compute_daily_aggregates(df, group_col="participant_id")
+### Phase 2 (After Access): Real Data Integration
 
-# Add temporal features
-df = add_time_features(df, time_col="time_of_day")
-```
+Once institutional access is obtained:
 
-### Add a new dataset
+1. **All of Us** — apply for researcher workbench access (cloud-based)
+2. **UK Biobank** — submit research application (4-8 weeks)
+3. Swap synthetic data for real data by changing the config YAML
+4. Validate simulator behaviour against real distributions
 
-1. Create `configs/datasets/your_dataset.yaml` following the schema format
-2. Ensure the `semantic_mapping` covers at least `steps`
-3. Place CSV files in your data directory
-4. Load with `load_dataset(config_path, data_dir)`
+### Dataset Selection
+
+| Use Case | Recommended Dataset |
+|---|---|
+| Heart rate + steps + sleep | All of Us |
+| Sedentary behaviour + hourly patterns | UK Biobank |
+| Both HR and sedentary | Need both (complementary) |
+| Quick prototyping | Synthetic data (now) |
+
+---
+
+## Files Reference
+
+| File | Purpose |
+|------|---------|
+| `docs/02 MDP Specification.tex` | Formal MDP definition with state variables |
+| `docs/01 Codebase Plan.md` | Architecture and phased delivery plan |
+| This document | Dataset feasibility and gap analysis |
