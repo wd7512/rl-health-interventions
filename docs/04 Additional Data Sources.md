@@ -173,7 +173,7 @@ Data available via [Stanford Digital Health](https://myheartcounts.stanford.edu/
 
 ---
 
-## Dataset 6: LiveWell / LifeSnaps
+## Dataset 6: LiveWell
 
 **Paper:** Alshurafa et al. (2019), *Proceedings of the ACM on Interactive, Mobile, Wearable and Ubiquitous Technologies*
 **Lead:** Nabil Alshurafa (Northwestern)
@@ -195,6 +195,31 @@ Long-duration (4 months) with rich context. Useful for understanding behavioural
 ### Access
 
 Contact the Alshurafa lab at Northwestern University.
+
+---
+
+## Dataset 7: LifeSnaps
+
+**Paper:** Hermans et al. (2023), *Scientific Data* (Nature)
+**Lead:** Rik Hermans (TU Eindhoven) /生活方式分析团队
+
+### Overview
+
+| Property | Value |
+|----------|-------|
+| Type | Multi-modal Fitbit + smartphone sensing |
+| Participants | 71 |
+| Duration | 4 weeks (4 phases × 1 week each) |
+| Data | Fitbit Charge 2 (HR, steps, sleep, calories), smartphone sensors (accelerometer, gyroscope, audio features), EMA self-reports |
+| Labels | Mood, stress, energy, social context, sleep quality, physical activity |
+
+### Why It Matters
+
+EMA-coupled Fitbit data is rare and useful for fitting the *subjective response* component of the response model. Phased design (baseline → low activity → high activity → recovery) enables causal estimation of activity-mood coupling without HeartSteps access.
+
+### Access
+
+Open access via the 4TU ResearchData repository. DOI in Hermans et al. (2023).
 
 ---
 

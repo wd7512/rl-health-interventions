@@ -62,7 +62,9 @@ entry, and a config string reference --- no framework code changes.
 \subsection{Dependency Graph}
 
 Tracks A (1A) and B (1B) run in parallel. Track C (Dataset Exploration)
-runs alongside both and is now complete (\texttt{docs/03 Data Sources.md}).
+runs alongside both and is now complete (see \texttt{docs/03 Data Sources.md}
+for the population-dataset feasibility study and \texttt{docs/04 Additional Data Sources.md}
+for the JITAI trial survey).
 After 1A, 1B, and exploration complete, tracks merge at
 1C (user simulation) and 1D (agent library, which only needs the 1B interface).
 The final track is 1E (experiment runner), which depends on 1C and 1D.
