@@ -21,9 +21,9 @@
 
 ## TDD Checklist
 
-- [ ] Write test for config-to-environment instantiation *before* implementing
-- [ ] Write test for step API contract *before* implementing transitions
-- [ ] Write test for delayed reward at correct epoch *before* implementing reward accumulator
+- [ ] Write test for config-to-environment instantiation (valid config builds, invalid config raises) *before* implementing
+- [ ] Write test for step API contract (returns (StateView, float, bool), state fields match config) *before* implementing transitions
+- [ ] Write test for delayed reward at correct epoch (body measure reward non-zero only at interval boundary) *before* implementing reward accumulator
 
 ---
 
@@ -43,15 +43,15 @@ class MDPConfig(BaseModel):
 ### `Environment`
 ```python
 class Environment:
-    def step(self, state: State, action: Action) -> tuple[State, float, bool]
-    def reset(self) -> State
+    def step(self, state: StateView, action: int) -> tuple[StateView, float, bool]
+    def reset(self) -> StateView
 ```
 
 ### `TransitionModel`
 ```python
 class TransitionModel(ABC):
     @abstractmethod
-    def transition(self, state: State, action: Action, user_profile: UserProfile) -> State
+    def transition(self, state: StateView, action: int, user_profile: UserProfile) -> StateView
 ```
 
 ---

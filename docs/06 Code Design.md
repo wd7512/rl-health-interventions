@@ -101,6 +101,40 @@ class Dataset:
 Materialised from a Polars lazy pipeline. The sim loop indexes into these
 arrays to build `StateView` objects. No DataFrame operations in the hot path.
 
+### Dataset → StateView Bridge
+
+The simulation loop never receives a full `Dataset`. It receives per-step
+`StateView` slices built from the materialised feature arrays:
+
+```python
+@dataclass
+class StateView:
+    features: dict[str, float]     # single-timestep feature values
+    user_id: int
+    timestamp: int
+    metadata: dict[str, Any]       # week number, body measure flag, etc.
+
+    @classmethod
+    def from_dataset(cls, dataset: Dataset, user_idx: int, t: int) -> StateView:
+        return cls(
+            features={name: array[user_idx, t] for name, array in dataset.features.items()},
+            user_id=user_idx,
+            timestamp=dataset.timestamps[user_idx, t],
+            metadata={"week": t // 7},
+        )
+```
+
+The bridge is explicit: the `Experiment` loop indexes `Dataset` by user and
+time step, calls `StateView.from_dataset()`, and passes the result to the
+environment and agent. This is a single function, not a new component —
+no separate bridge module needed.
+
+### Action Type
+
+Throughout the framework, actions are `int` indices into the action space
+defined in config. The config defines the label-to-index mapping. Components
+never use opaque `Action` objects.
+
 A single factory that takes the full `ExperimentConfig` and returns a ready-to-run
 experiment:
 
@@ -251,5 +285,11 @@ tests/
 
 Rules:
 - Every ABC method has at least one test proving it works with a real implementation.
-- Every subphase gate requires all tests in that subphase to pass.
+- Every subphase gate requires all tests in that subphase's modules to pass.
 - Integration tests mirror the researcher's workflow: write config, run, inspect output.
+- Test organisation maps to modules, not subphase numbers:
+  `tests/unit/transitions/` covers both 1B's transition gate and 1C's response model gate.
+- The factory's Layer 3 dummy step has a dedicated integration test
+  (`tests/integration/test_dummy_step.py`).
+- Plugin discovery (`REGISTRY` dict) has a test ensuring every registered
+  component can be instantiated from a minimal valid config.

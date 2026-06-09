@@ -23,8 +23,8 @@
 
 ## TDD Checklist
 
-- [ ] Write test for each behavioural archetype producing expected response direction *before* implementing models
-- [ ] Write test for fatigue accumulation and decay *before* implementing burden logic
+- [ ] Write test for each behavioural archetype producing expected response direction (goal-driven increases steps after goal reminder, resistant shows flat response) *before* implementing models
+- [ ] Write test for fatigue accumulation and decay: burden increments on intervention, resets on no-action, response probability decays past threshold *before* implementing burden logic
 
 ---
 
@@ -41,7 +41,7 @@ class UserProfile(BaseModel):
 ```python
 class ResponseModel(ABC):
     @abstractmethod
-    def response(self, state: State, action: Action, profile: UserProfile) -> float
+    def response(self, state: StateView, action: int, profile: UserProfile) -> StateView
 ```
 
 ---
@@ -52,8 +52,8 @@ Investigating two public datasets for future simulator calibration:
 
 | Dataset | Source | Size | Access |
 |---------|--------|------|--------|
-| All of Us Fitbit | Nature Medicine 2026 | 59K participants, 14yr | Researcher workbench |
-| UK Biobank Accelerometer | npj Digital Medicine 2024 | 100K participants, 7 days ea. | Application required |
+| All of Us Fitbit | Nature Medicine 2026 | 59K participants, 14 years | Researcher workbench |
+| UK Biobank Accelerometer | npj Digital Medicine 2024 | 100K participants, 7 days each | Application required |
 
 Exploration report should cover:
 - Feature availability (steps, HR, sleep, etc.)

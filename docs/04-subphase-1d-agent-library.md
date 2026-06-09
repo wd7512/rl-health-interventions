@@ -10,7 +10,7 @@
 
 ## Gate Checklist (MVP)
 
-- [ ] Agent interface defined: `Agent.select_action(state) → action` and `Agent.update(experience)`
+- [ ] Agent interface defined: `Agent.select_action(state: StateView) → int` and `Agent.update(state, action, reward, next_state) → None`
 - [ ] Thompson Sampling agent implemented from scratch (no external RL lib)
 - [ ] Agent reads hyperparameters from config (e.g. prior parameters, exploration rate)
 - [ ] All agents share a common `Agent` base class
@@ -21,7 +21,7 @@
 
 ## Stretch Goals (Not in Gate)
 
-- [ ] ε-greedy baseline
+- [ ] epsilon-greedy baseline
 - [ ] LinUCB baseline
 - [ ] DQN (from scratch or minimal impl)
 - [ ] Double DQN
@@ -33,9 +33,9 @@
 
 ## TDD Checklist
 
-- [ ] Write test for agent interface contract *before* implementing
-- [ ] Write test for Thompson Sampling producing different actions for different contexts *before* implementing
-- [ ] Write test for agent learning (regret decreases over time) *before* optimising
+- [ ] Write test for agent interface contract (select_action returns valid action idx, update accepts any state) *before* implementing
+- [ ] Write test for Thompson Sampling producing different action distributions for different state contexts *before* implementing
+- [ ] Write test for agent learning: regret decreases over time on a known-optimal bandit problem *before* optimising
 
 ---
 
@@ -52,10 +52,10 @@ class AgentConfig(BaseModel):
 ```python
 class Agent(ABC):
     @abstractmethod
-    def select_action(self, state: State) -> Action
+    def select_action(self, state: StateView) -> int
 
     @abstractmethod
-    def update(self, state: State, action: Action, reward: float, next_state: State) -> None
+    def update(self, state: StateView, action: int, reward: float, next_state: StateView) -> None
 ```
 
 ---

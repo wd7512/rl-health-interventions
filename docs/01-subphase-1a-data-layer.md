@@ -21,9 +21,9 @@
 
 ## TDD Checklist
 
-- [ ] Write test for config schema parsing *before* implementing parser
-- [ ] Write test for ingest pipeline *before* implementing pipeline
-- [ ] Write test for synthetic data shape + statistical properties *before* implementing generator
+- [ ] Write test for config schema parsing (valid config parses, missing field rejects) *before* implementing parser
+- [ ] Write test for ingest pipeline (correctly maps columns per config, rejects unknown column types gracefully) *before* implementing pipeline
+- [ ] Write test for synthetic data shape + statistical properties (output shape matches params, step counts non-negative, no NaNs) *before* implementing generator
 
 ---
 

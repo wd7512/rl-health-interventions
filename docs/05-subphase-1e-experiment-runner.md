@@ -21,8 +21,8 @@
 
 ## TDD Checklist
 
-- [ ] Write test for experiment config parsing *before* implementing runner
-- [ ] Write test for reproducibility (same config + seed → same results) *before* implementing runner
+- [ ] Write test for experiment config parsing (valid full experiment config loads, each sub-config delegates correctly) *before* implementing runner
+- [ ] Write test for reproducibility (same config + seed → identical results across 2 runs) *before* implementing runner
 
 ---
 
