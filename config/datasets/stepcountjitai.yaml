@@ -1,0 +1,26 @@
+name: stepcountjitai
+source_url: https://arxiv.org/abs/2411.00336
+license: academic
+file_format: csv
+description: >
+  RL simulation environment for physical activity JITAIs, built from
+  real micro-randomized trial data. NeurIPS 2024 Workshop on Behavioral ML.
+expected_columns:
+  user_id: string
+  timestamp: datetime
+  step_count: float
+  intervention_type: string
+  intervention_context: string
+  time_of_day: integer
+  day_of_week: integer
+  activity_level: float
+user_id_column: user_id
+timestamp_column: timestamp
+feature_columns:
+  - step_count
+  - intervention_type
+  - intervention_context
+  - time_of_day
+  - day_of_week
+  - activity_level
+target_column: intervention_type
