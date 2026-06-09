@@ -3,7 +3,7 @@
 **Date:** 2026-06-09
 **Context:** Bristol x NUS summer internship, 8-week foundation phase
 **Stakeholders:** William Dennis (builder), Mengyan Zhang (Bristol data), Swapnil Mishra (NUS/MLGH)
-**Repo:** `rl-heath-interventions`
+**Repo:** `rl-health-interventions`
 
 ---
 
