@@ -41,6 +41,7 @@
 | 1A | Ingest + feature pipeline + synthetic data work, tested | 1C | 1B, 1D, Exploration |
 | 1B | Environment interface defined + config-driven, tested | 1C | 1A, 1D (interface only), Exploration |
 | Dataset Exploration | ✅ DONE — see `docs/03 Data Sources.md` | 1C gate | 1A, 1B |
+| Additional Data Sources | Survey of JITAI trials (HeartSteps V1/V2) and accessible benchmarks — see `docs/04 Additional Data Sources.md` | 1C calibration | 1A, 1B |
 | 1C | Rule-based user profiles + dataset report exist, tested | 1E | 1D |
 | 1D | Thompson Sampling agent implemented, configured from config, tested | 1E | 1A, 1B (interface only) |
 | 1E | End-to-end experiment runs, results output, tested | — | — |
@@ -60,6 +61,7 @@
 ## Risks
 
 - **Data access:** Both datasets require institutional applications (4-8 weeks). Phase 1 uses synthetic data; real data integration is Phase 2. Exploration report complete (`docs/03 Data Sources.md`).
+- **HeartSteps access:** HeartSteps V1/V2 (see `docs/04 Additional Data Sources.md`) contains the only available *intervention response* data. Start access request early to avoid blocking 1C calibration.
 - **Scope creep on 1D:** Deep RL agents explicitly excluded from MVP gate. TS only.
 - **MDP confirmation:** Awaiting Swapnil sign-off on MDP spec. If he wants major changes, 1B interface may need rework.
 - **Overlap tracking:** Parallel tracks need explicit integration points at 1C and 1E.

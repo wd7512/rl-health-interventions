@@ -147,6 +147,8 @@ Two datasets evaluated for simulator training. Full study: [`docs/03 Data Source
 
 **Finding:** Both datasets require institutional applications with 4-8 week lead times. Neither provides downloadable samples. **Phase 1 uses synthetic data generators parameterised from published statistics.** Real data integration is Phase 2.
 
+**Supplementary finding:** HeartSteps V1/V2 micro-randomized trials contain the only available *intervention response* data. These are smaller (50–100 participants) but directly calibrate the user simulation (1C). See [`docs/04 Additional Data Sources.md`](04%20Additional%20Data%20Sources.md).
+
 ## Literature Review Reference
 
 Full review at `C:\Obsidian_Vaults\main\10 Research\Bristol x NUS RL\Literature Review\05 Master Literature Review.md`.
