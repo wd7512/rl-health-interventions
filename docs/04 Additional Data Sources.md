@@ -58,7 +58,13 @@ Part of the [HeartSteps research project](https://klasnja.org/heartsteps/). Data
 
 ## Dataset 2: HeartSteps V2
 
-**Paper:** Klasnja et al. (2021/2022), *npj Digital Medicine* (expected)
+**Protocol:** Spruijt-Metz D, Marlin BM, Pavel M, Rivera DE, Hekler E, De La Torre S, El Mistiri M, et al. (2022). "Advancing Behavioral Intervention and Theory Development for Mobile Health: The HeartSteps II Protocol." *Int J Environ Res Public Health*. 19(4):2267. doi: 10.3390/ijerph19042267. PMID: 35206455.
+
+**Results papers:**
+- De La Torre SA, El Mistiri M, Tung K, Hekler E, Klasnja P, Pavel M, Rivera DE, Spruijt-Metz D, Marlin B. (2024). "Modeling engagement with a digital behavior change intervention (HeartSteps II)." *J Biomed Inform*. 158:104721. doi: 10.1016/j.jbi.2024.104721. PMID: 39265816.
+- De La Torre SA, El Mistiri M, Tung K, Hekler E, Klasnja P, Pavel M, Rivera DE, Spruijt-Metz D, Marlin B. (2025). "A dynamic Bayesian network approach to modeling engagement and walking behavior: insights from a yearlong micro-randomized trial (Heartsteps II)." *Health Psychol Behav Med*. 13(1):2552479. doi: 10.1080/21642850.2025.2552479. PMID: 40979180.
+- Mistiri ME, De La Torre S, Marlin BM, Pavel M, Klasnja P, Spruijt-Metz D, Rivera DE. (2025). "Dynamic Modeling and System Identification of User Engagement in mHealth Interventions." *Control Eng Pract*. 164:106460. doi: 10.1016/j.conengprac.2025.106460. PMID: 40727918.
+
 **Lead:** Predrag Klasnja / Susan Murphy (University of Michigan)
 
 ### Overview
@@ -223,7 +229,7 @@ Open access via the 4TU ResearchData repository. DOI in Hermans et al. (2023).
 
 ---
 
-## Dataset 7: NHANES Steps (Open-Access)
+## Dataset 8: NHANES Steps (Open-Access)
 
 **Source:** [PhysioNet](https://physionet.org/content/minute-level-step-count-nhanes/)
 **Year:** 2025
@@ -251,7 +257,7 @@ The largest publicly available step-count dataset. 14.7K participants with minut
 
 ---
 
-## Dataset 8: TILES (Tracking Individual Lives with Everyday Sensors)
+## Dataset 9: TILES (Tracking Individual Lives with Everyday Sensors)
 
 **Source:** [Open Science Framework](https://osf.io/jm6du/)
 **Lead:** Laura Stroud (Northwestern)
@@ -278,7 +284,7 @@ One of the few open-access datasets that combines (a) Fitbit wearable data, (b) 
 
 ---
 
-## Dataset 9: GLOBEM (Generalizable Longitudinal Behavioral Monitoring)
+## Dataset 10: GLOBEM (Generalizable Longitudinal Behavioral Monitoring)
 
 **Source:** [PhysioNet](https://physionet.org/content/globem/1.1/)
 **Year:** 2023
@@ -305,7 +311,7 @@ Multi-year passive sensing with Fitbit data. Covers behavioural patterns across 
 
 ---
 
-## Dataset 10: PAMAP2 Physical Activity Monitoring
+## Dataset 11: PAMAP2 Physical Activity Monitoring
 
 **Source:** [UCI ML Repository](https://archive.ics.uci.edu/dataset/231/pamap2+physical+activity+monitoring)
 **Also on:** [HuggingFace](https://huggingface.co/datasets/rnicrosoft/PAMAP2)
@@ -333,7 +339,7 @@ The most widely-used wearable activity recognition benchmark. Multiple body-worn
 
 ---
 
-## Dataset 11: MMASH (Multilevel Monitoring of Activity and Sleep)
+## Dataset 12: MMASH (Multilevel Monitoring of Activity and Sleep)
 
 **Source:** [PhysioNet](https://physionet.org/content/mmash/1.0.0/)
 **Year:** 2020
@@ -359,7 +365,7 @@ Rich multimodal data: heart rate, acceleration, sleep, and biomarkers — all in
 
 ---
 
-## Dataset 12: Health Gym (Synthetic RL Environments)
+## Dataset 13: Health Gym (Synthetic RL Environments)
 
 **Source:** [GitHub](https://github.com/nikooo777/health-gym)
 **Paper:** Gateno et al. (2023), *Nature Scientific Data*
