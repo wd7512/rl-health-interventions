@@ -155,17 +155,14 @@ SELECT person_id, birth_datetime
 FROM `dataset.person`
 
 -- Valid day (compliant = 10+ hours with steps)
-SELECT person_id, date, hours_worn, compliant
-FROM (
-  SELECT person_id, date, SUM(has_hour) AS hours_worn,
-         SUM(has_hour) >= 10 AS compliant
-  FROM (
-    SELECT person_id, CAST(datetime AS DATE) AS date,
-           IF(SUM(steps) > 0, 1, 0) AS has_hour
-    FROM `dataset.steps_intraday`
-    GROUP BY CAST(datetime AS DATE), EXTRACT(HOUR FROM datetime), person_id
-  ) GROUP BY date, person_id
-)
+SELECT
+  person_id,
+  CAST(datetime AS DATE) AS date,
+  COUNT(DISTINCT EXTRACT(HOUR FROM datetime)) AS hours_worn,
+  COUNT(DISTINCT EXTRACT(HOUR FROM datetime)) >= 10 AS compliant
+FROM `dataset.steps_intraday`
+WHERE steps > 0
+GROUP BY person_id, date
 ```
 
 ## Files Reference

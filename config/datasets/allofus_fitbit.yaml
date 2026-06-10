@@ -36,7 +36,6 @@ bigquery_tables:
       person_id: string
       datetime: timestamp
       steps: integer
-      heart_rate: float
     partition_by: date(datetime)
     clustering: person_id
 
@@ -54,6 +53,8 @@ bigquery_tables:
       person_id: string
       sleep_date: date
       sleep_level: string
+    partition_by: sleep_date
+    clustering: person_id
 
   heart_rate_summary:
     columns:
@@ -103,7 +104,7 @@ mdp_variable_mapping:
     derivation: "EXTRACT(HOUR)"
   age:
     source: person.birth_datetime
-    derivation: "FLOOR(DATE_DIFF / 365.25)"
+    derivation: "DATE_DIFF(CURRENT_DATE(), CAST(birth_datetime AS DATE), YEAR)"
   gender:
     source: ds_survey.sex_at_birth
     type: direct
