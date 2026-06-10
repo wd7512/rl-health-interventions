@@ -1,0 +1,32 @@
+name: pmdata_garmin
+source_url: https://www.kaggle.com/datasets/vlbthambawita/pmdata-a-sports-logging-dataset
+license: cc-by-4.0
+file_format: csv
+description: >
+  PMData Sports Logging — Garmin watch sub-dataset. Multi-source
+  fitness data with HR, steps, HRV, sleep, SpO2, body temp.
+  Largest open fitness dataset (1 GB).
+expected_columns:
+  user_id: string
+  date: datetime
+  heart_rate: float
+  heart_rate_variability: float
+  step_count: float
+  sleep_duration: float
+  sleep_stages: string
+  recovery_score: float
+  spo2: float
+  body_temperature: float
+  stress_level: float
+user_id_column: user_id
+timestamp_column: date
+feature_columns:
+  - heart_rate
+  - heart_rate_variability
+  - step_count
+  - sleep_duration
+  - recovery_score
+  - spo2
+  - body_temperature
+  - stress_level
+target_column: recovery_score

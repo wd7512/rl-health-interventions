@@ -1,0 +1,38 @@
+name: wesad
+source_url: https://www.kaggle.com/datasets/orvile/wesad-wearable-stress-affect-detection-dataset
+license: academic
+file_format: csv
+description: >
+  WESAD — Wearable Stress and Affect Detection. 15 subjects, chest
+  (ECG, EDA, EMG, resp, temp) + wrist (accel, EDA, temp, BVP).
+  Stress, amusement, meditation, baseline labels.
+expected_columns:
+  user_id: string
+  timestamp: datetime
+  chest_ecg: float
+  chest_eda: float
+  chest_emg: float
+  chest_resp: float
+  chest_temp: float
+  wrist_accel_x: float
+  wrist_accel_y: float
+  wrist_accel_z: float
+  wrist_eda: float
+  wrist_temp: float
+  wrist_bvp: float
+  label: string
+user_id_column: user_id
+timestamp_column: timestamp
+feature_columns:
+  - chest_ecg
+  - chest_eda
+  - chest_emg
+  - chest_resp
+  - chest_temp
+  - wrist_accel_x
+  - wrist_accel_y
+  - wrist_accel_z
+  - wrist_eda
+  - wrist_temp
+  - wrist_bvp
+target_column: label
