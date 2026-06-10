@@ -1,0 +1,30 @@
+name: dreamt
+source_url: https://physionet.org/content/dreamt/2.2.0/
+license: open-access
+file_format: csv
+description: >
+  DREAMT — 100 participants, Empatica E4 wristband + PSG sleep staging.
+  Accel, HR, EDA, temp, BVP, sleep stages. Open access via PhysioNet.
+expected_columns:
+  user_id: string
+  night: integer
+  timestamp: datetime
+  accel_x: float
+  accel_y: float
+  accel_z: float
+  heart_rate: float
+  eda: float
+  skin_temperature: float
+  bvp: float
+  sleep_stage: string
+user_id_column: user_id
+timestamp_column: timestamp
+feature_columns:
+  - accel_x
+  - accel_y
+  - accel_z
+  - heart_rate
+  - eda
+  - skin_temperature
+  - bvp
+target_column: sleep_stage
