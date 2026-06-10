@@ -1,0 +1,41 @@
+name: mhealth
+source_url: https://archive.ics.uci.edu/dataset/319/mhealth+dataset
+license: cc-by-4.0
+file_format: csv
+description: >
+  MHEALTH Dataset — 10 subjects, chest+wrist+ankle sensors (accel,
+  gyro, mag, ECG), 12 activities. CC BY 4.0.
+expected_columns:
+  user_id: string
+  timestamp: datetime
+  chest_accel_x: float
+  chest_accel_y: float
+  chest_accel_z: float
+  chest_gyro_x: float
+  chest_gyro_y: float
+  chest_gyro_z: float
+  chest_mag_x: float
+  chest_mag_y: float
+  chest_mag_z: float
+  chest_ecg: float
+  wrist_accel_x: float
+  wrist_accel_y: float
+  wrist_accel_z: float
+  ankle_accel_x: float
+  ankle_accel_y: float
+  ankle_accel_z: float
+  activity: string
+user_id_column: user_id
+timestamp_column: timestamp
+feature_columns:
+  - chest_accel_x
+  - chest_accel_y
+  - chest_accel_z
+  - chest_ecg
+  - wrist_accel_x
+  - wrist_accel_y
+  - wrist_accel_z
+  - ankle_accel_x
+  - ankle_accel_y
+  - ankle_accel_z
+target_column: activity
