@@ -1,0 +1,25 @@
+name: bidsleep
+source_url: https://physionet.org/content/bidsleep-dataset/1.0.0/
+license: open-access
+file_format: csv
+description: >
+  BIDSleep — Apple Watch accelerometry + HR paired with Dreem 2
+  EEG sleep stage labels. Multi-night recordings. Open access.
+expected_columns:
+  user_id: string
+  night: integer
+  timestamp: datetime
+  heart_rate: float
+  accel_x: float
+  accel_y: float
+  accel_z: float
+  sleep_stage: string
+  sleep_stage_onset: datetime
+user_id_column: user_id
+timestamp_column: timestamp
+feature_columns:
+  - heart_rate
+  - accel_x
+  - accel_y
+  - accel_z
+target_column: sleep_stage

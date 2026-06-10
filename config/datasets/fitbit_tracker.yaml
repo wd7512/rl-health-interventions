@@ -1,0 +1,29 @@
+name: fitbit_tracker
+source_url: https://www.kaggle.com/datasets/haseeb85/fitbit-fitness-tracker-data
+license: cc0
+file_format: csv
+description: >
+  Fitbit Fitness Tracker Data — 33 users, daily/hourly/minute-level
+  steps, HR, sleep, calories. CC0 public domain.
+expected_columns:
+  user_id: string
+  date: datetime
+  step_count: float
+  heart_rate: float
+  sleep_minutes: float
+  sleep_efficiency: float
+  calories: float
+  distance: float
+  active_minutes: float
+  sedentary_minutes: float
+user_id_column: user_id
+timestamp_column: date
+feature_columns:
+  - heart_rate
+  - sleep_minutes
+  - sleep_efficiency
+  - calories
+  - distance
+  - active_minutes
+  - sedentary_minutes
+target_column: step_count
