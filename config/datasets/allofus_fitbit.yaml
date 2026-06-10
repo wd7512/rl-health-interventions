@@ -1,0 +1,127 @@
+name: allofus_fitbit
+source_url: https://workbench.researchallofus.org
+license: controlled-tier
+file_format: bigquery
+description: >
+  All of Us Fitbit Dataset — 59,000+ participants, 39M+ step observations,
+  31M+ sleep observations, 14 years longitudinal. Controlled Tier access
+  via AoU Researcher Workbench (cloud-only, no local download).
+  BigQuery tables: activity_summary, steps_intraday, sleep_daily_summary,
+  sleep_level, heart_rate_summary, heart_rate_minute_level, person, device.
+notes: >
+  ACCESS: Requires institutional DURA + 4-8 week application.
+  Data cannot leave the Researcher Workbench. Parameters below are extracted
+  from the workbench and used to configure the local synthetic data generator.
+access_instructions: >
+  1. Register at https://researchallofus.org/
+  2. Complete CITI training + Data or Specimens Only certification
+  3. Obtain DURA from your institution
+  4. Submit research application (4-8 week review)
+  5. Access via https://workbench.researchallofus.org
+
+bigquery_tables:
+  activity_summary:
+    columns:
+      person_id: string
+      date: date
+      steps: integer
+      calories: float
+      distance_meters: float
+      floors_climbed: integer
+    partition_by: date
+    clustering: person_id
+
+  steps_intraday:
+    columns:
+      person_id: string
+      datetime: timestamp
+      steps: integer
+    partition_by: date(datetime)
+    clustering: person_id
+
+  sleep_daily_summary:
+    columns:
+      person_id: string
+      sleep_date: date
+      is_main_sleep: boolean
+      minute_asleep: integer
+    partition_by: sleep_date
+    clustering: person_id
+
+  sleep_level:
+    columns:
+      person_id: string
+      sleep_date: date
+      sleep_level: string
+    partition_by: sleep_date
+    clustering: person_id
+
+  heart_rate_summary:
+    columns:
+      person_id: string
+      date: date
+      resting_heart_rate: float
+      heart_rate_minutes: float
+    partition_by: date
+    clustering: person_id
+
+  heart_rate_minute_level:
+    columns:
+      person_id: string
+      datetime: timestamp
+      heart_rate: float
+    partition_by: date(datetime)
+    clustering: person_id
+
+  person:
+    columns:
+      person_id: string
+      birth_datetime: timestamp
+
+  device:
+    columns:
+      person_id: string
+      device_type: string
+
+mdp_variable_mapping:
+  steps_t:
+    source: activity_summary.steps
+    type: direct
+  hr_t:
+    source: heart_rate_summary.resting_heart_rate
+    type: direct
+  sleep_hours_t:
+    source: sleep_daily_summary.minute_asleep
+    derivation: "divide by 60"
+  sedentary_min_t:
+    source: steps_intraday
+    derivation: "count 0-step minutes per day"
+  day_of_week_t:
+    source: activity_summary.date
+    derivation: "EXTRACT(DAYOFWEEK)"
+  time_component_t:
+    source: steps_intraday.datetime
+    derivation: "EXTRACT(HOUR)"
+  age:
+    source: person.birth_datetime
+    derivation: "DATE_DIFF(CURRENT_DATE(), CAST(birth_datetime AS DATE), YEAR)"
+  gender:
+    source: ds_survey.sex_at_birth
+    type: direct
+  body_measure_k:
+    source: ehr_linkage_table
+    coverage: "46%"
+    type: sparse
+
+summary_statistics:
+  participants_total: 59018
+  participants_with_steps: 56594
+  participants_with_sleep: 54322
+  participants_with_device: 52860
+  total_step_observations: 39840857
+  total_sleep_observations: 31844165
+  total_earliest_fitbit_dates: 59540
+  total_valid_days: 41632973
+  pct_linked_to_ehr: 46
+  timespan_years: 14
+  date_range: 2009-01-01 to 2023-12-31
