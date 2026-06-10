@@ -18,7 +18,6 @@ user_id_column: user_id
 timestamp_column: timestamp
 feature_columns:
   - step_count
-  - intervention_type
   - intervention_context
   - time_of_day
   - day_of_week
