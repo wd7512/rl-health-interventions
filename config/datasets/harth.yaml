@@ -1,0 +1,28 @@
+name: harth
+source_url: https://huggingface.co/datasets/josefheidler/har_adults_2021-harth
+license: mit
+file_format: csv
+description: >
+  Human Activity Recognition for Thigh and Back — dual Axivity AX3
+  accelerometers, 50 Hz, 12 activity types, 31 adults. MIT license.
+  HuggingFace: josefheidler/har_adults_2021-harth
+expected_columns:
+  user_id: string
+  timestamp: datetime
+  thigh_accel_x: float
+  thigh_accel_y: float
+  thigh_accel_z: float
+  back_accel_x: float
+  back_accel_y: float
+  back_accel_z: float
+  activity: string
+user_id_column: user_id
+timestamp_column: timestamp
+feature_columns:
+  - thigh_accel_x
+  - thigh_accel_y
+  - thigh_accel_z
+  - back_accel_x
+  - back_accel_y
+  - back_accel_z
+target_column: activity
