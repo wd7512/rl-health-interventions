@@ -19,7 +19,6 @@ expected_columns:
 user_id_column: user_id
 timestamp_column: date
 feature_columns:
-  - step_count
   - heart_rate
   - sleep_minutes
   - sleep_efficiency
