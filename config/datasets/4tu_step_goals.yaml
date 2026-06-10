@@ -1,0 +1,24 @@
+name: 4tu_step_goals
+source_url: https://data.4tu.nl/datasets/6f8e6750-7494-4226-b6f9-299a9edbb077/1
+license: cc-by-4.0
+file_format: csv
+description: >
+  Reinforcement Learning to Personalize Daily Step Goals. Step count
+  data with RL-based adaptive goal setting for PA intervention.
+expected_columns:
+  user_id: string
+  date: datetime
+  step_count: float
+  assigned_goal: float
+  goal_met: boolean
+  intervention_type: string
+  day_of_week: integer
+user_id_column: user_id
+timestamp_column: date
+feature_columns:
+  - step_count
+  - assigned_goal
+  - goal_met
+  - intervention_type
+  - day_of_week
+target_column: goal_met
