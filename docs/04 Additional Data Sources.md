@@ -62,7 +62,7 @@ Part of the [HeartSteps research project](https://klasnja.org/heartsteps/). Data
 
 **Results papers:**
 - De La Torre SA, El Mistiri M, Tung K, Hekler E, Klasnja P, Pavel M, Rivera DE, Spruijt-Metz D, Marlin B. (2024). "Modeling engagement with a digital behavior change intervention (HeartSteps II)." *J Biomed Inform*. 158:104721. doi: 10.1016/j.jbi.2024.104721. PMID: 39265816.
-- De La Torre SA, El Mistiri M, Tung K, Hekler E, Klasnja P, Pavel M, Rivera DE, Spruijt-Metz D, Marlin B. (2025). "A dynamic Bayesian network approach to modeling engagement and walking behavior: insights from a yearlong micro-randomized trial (Heartsteps II)." *Health Psychol Behav Med*. 13(1):2552479. doi: 10.1080/21642850.2025.2552479. PMID: 40979180.
+- De La Torre SA, El Mistiri M, Tung K, Hekler E, Klasnja P, Pavel M, Rivera DE, Spruijt-Metz D, Marlin B. (2025). "A dynamic Bayesian network approach to modeling engagement and walking behavior: insights from a yearlong micro-randomized trial (HeartSteps II)." *Health Psychol Behav Med*. 13(1):2552479. doi: 10.1080/21642850.2025.2552479. PMID: 40979180.
 - Mistiri ME, De La Torre S, Marlin BM, Pavel M, Klasnja P, Spruijt-Metz D, Rivera DE. (2025). "Dynamic Modeling and System Identification of User Engagement in mHealth Interventions." *Control Eng Pract*. 164:106460. doi: 10.1016/j.conengprac.2025.106460. PMID: 40727918.
 
 **Lead:** Predrag Klasnja / Susan Murphy (University of Michigan)
