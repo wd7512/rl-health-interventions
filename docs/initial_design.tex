@@ -241,7 +241,7 @@ behaviour models.
 A typical experiment starts with a YAML file that selects the dataset,
 MDP parameters, user profiles, and agent. The framework wires everything
 from config --- adding a new dataset or agent means writing a new config
-(and optionally a new ABC subclass), not touching framework code.
+(and optionally a new ABC subclass), not touching framework code. All dataset schemas, MDP parameters (state variables, action space, reward weights, transition models), user archetypes, and agent hyperparameters are configurable via YAML. Adding new component types (e.g., novel transition models, new agents) requires Python implementation but follows a standard interface pattern.
 
 \begin{table}[H]
 \centering
@@ -313,6 +313,7 @@ What evaluation methodology? & Baselines (random, fixed, rule-based), metrics (r
 What success criteria for agent comparison? & Minimum improvement threshold (e.g., $\geq$15\% reward gain over best baseline) to be determined after initial experiments. & Open \\
 What safety constraints for health interventions? & Hard limits (max intervention frequency, min recovery period, burden threshold) to be implemented in Sprint 4. & Open \\
 How to handle ethics/privacy for Phase 2 data? & IRB approval status, GDPR/HIPAA compliance, data use agreements to be documented before real data access. & Open \\
+Is the config-driven boundary correct? & Current boundary: all parameters configurable via YAML, new component types require Python implementation. Verify this is the right balance between flexibility and implementation effort. & Open \\
 \bottomrule
 \end{tabular}
 \end{table}
