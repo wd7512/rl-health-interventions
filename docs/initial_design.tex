@@ -50,12 +50,7 @@ agent \cite{karine2024stepcountjitai,klasnja2019heartsteps}. Deep RL agents
 (DQN, PPO) will be added if time permits. All
 components share a common ABC + registry interface for extensibility.
 
-\textbf{Research objectives.} We aim to investigate whether config-driven
-simulations can reproduce known behavioural patterns from PA intervention
-trials, and whether Thompson Sampling adapts intervention policies more
-effectively than fixed or rule-based baselines under heterogeneous user
-archetypes. These questions are exploratory; the framework is a tool for
-investigation, not a guaranteed outcome.
+\textbf{Research objectives.} We aim to investigate: (1) which state features best predict user response to interventions, (2) whether Thompson Sampling outperforms fixed and rule-based baselines under heterogeneous user archetypes, (3) how short-term wearable signals and long-term health outcomes can be combined in a multi-timescale reward, and (4) whether LLM-simulated users provide realistic evaluation environments for RL policy testing. These questions are exploratory; the framework is a tool for investigation, not a guaranteed outcome.
 
 \section{Literature Review}
 \label{sec:lit}
@@ -324,7 +319,8 @@ Phase 2 shifts from synthetic to real data, calibrating the user simulator
 and grounding MDP dynamics against observed behavioural responses (see
 \S\ref{sec:data}). Phase 1 scope is fixed and must be completed before any stretch goals are attempted. Beyond Phase 2, stretch goals include LLM-based user
 simulation, offline RL (CQL, IQL), and non-stationary environment
-adaptation.
+adaptation. User behaviour clustering will inform the LLM simulation design,
+enabling persona-based response models grounded in observed behavioural patterns.
 
 \textbf{Implementation roadmap.} A comprehensive audit (June 2026) generated
 43 issues across 4 domains: 10 milestone issues (M-01 through M-10), 13 risk
