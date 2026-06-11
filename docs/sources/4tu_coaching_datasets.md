@@ -60,5 +60,5 @@
 
 | File | Purpose |
 |------|---------|
-| `docs/02 MDP Specification.tex` | Formal MDP definition |
+| `initial_design.tex` | Formal MDP definition |
 | `config/datasets/4tu_step_goals.yaml` | Data ingestion config (primary dataset) |

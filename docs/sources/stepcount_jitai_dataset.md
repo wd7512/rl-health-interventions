@@ -43,5 +43,5 @@
 
 | File | Purpose |
 |------|---------|
-| `docs/02 MDP Specification.tex` | Formal MDP definition |
+| `initial_design.tex` | Formal MDP definition |
 | `config/datasets/stepcountjitai.yaml` | Data ingestion config |

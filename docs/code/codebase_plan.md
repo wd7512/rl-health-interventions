@@ -4,7 +4,7 @@
 **Context:** Bristol x NUS summer internship, 8-week foundation phase
 **Stakeholders:** William Dennis (builder), Mengyan Zhang (Bristol data), Swapnil Mishra (NUS/MLGH)
 **Repo:** `rl-health-interventions`
-**MDP Design Doc:** `docs/02 MDP Specification.tex` (formalised from google doc)
+**MDP Design Doc:** `initial_design.tex` (formalised from google doc)
 
 ---
 
@@ -14,7 +14,7 @@ A configurable simulation framework for testing RL-driven health interventions o
 
 **Phase 1:** Foundational framework — config-driven data layer, MDP environment, rule-based user simulation, RL agent library, experiment runner.
 
-**Phase 2 (stretch):** LLM-based user simulation, validation against real data, LLM-augmented experiments.
+**Phase 2:** Real-data validation — calibrate the user simulator and ground MDP dynamics against observed behavioural responses using HeartSteps V1/V2, All of Us Fitbit Dataset, and UK Biobank Accelerometer Dataset. Beyond Phase 2, stretch goals include LLM-based user simulation.
 
 The framework is the platform. The 5 gaps from the literature review are experiments run *on* the platform, not part of it.
 
@@ -30,7 +30,7 @@ Software-oriented deliverables:
 4. Config schema is stable across 2+ different dataset schemas and 2+ MDP designs (stretch)
 5. Public dataset feasibility report: evaluate All of Us and UK Biobank for simulator training
 
-Papers run *on* the framework later. Phase 2 (LLM simulation) is stretch — core deliverable is working infrastructure.
+Papers run *on* the framework later. Phase 2 (real-data validation) follows the foundation phase — core deliverable is working infrastructure.
 
 ---
 
@@ -70,9 +70,8 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 *Subphase 1D: Config-Driven Agent Library*
 - Agents parameterised from config
-- Baselines: Thompson Sampling, ε-greedy, LinUCB
-- RL: DQN, Double DQN, PPO
-- Offline: CQL, IQL
+- Baselines: Thompson Sampling
+- Deep RL (stretch): DQN, PPO
 - All share common interface
 - Minimise dependencies — implement from scratch where reasonable
 
@@ -81,7 +80,13 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 - Statistical comparison, visualisation, export
 - Reproducibility (seeds, config snapshots)
 
-**PHASE 2: LLM SIMULATION (Stretch)**
+**PHASE 2: REAL-DATA VALIDATION**  
+
+- Integrate real wearable datasets (HeartSteps first, then All of Us, UK Biobank)
+- Calibrate user simulator against observed behavioural responses
+- Benchmark agents on real data distributions
+
+**FUTURE (Post–Phase 2): LLM SIMULATION (Stretch)**  
 
 - LLM-as-user architecture (prompt-driven persona simulation)
 - Calibration against real wearable data distributions
@@ -89,15 +94,20 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 ---
 
-## Proposed MDP (from google doc)
+## MDP (formalised in `initial_design.tex`)
 
-**State:** steps, heart rate, sleep, time of day, past response history, goal progress, user profile
+**State (14 variables, see initial_design.tex appendix):**
+`steps_t`, `hr_t`, `sleep_hours_t`, `sedentary_min_t`, `time_of_day_t`,
+`day_of_week_t`, `goal_progress_t`, `burden_t`, `a_{t-1}`,
+`response_{t-1}`, `body_measure_k`, `age`, `gender`, `baseline_activity`
 
-**Actions (discrete):** no message, motivational prompt, walking suggestion, goal reminder, recovery suggestion, progress feedback
+**Actions (discrete, configurable):** no message, motivational prompt, walking suggestion, goal reminder, recovery suggestion, progress feedback. Each action carries `reward_penalty` and `burden_penalty` (zero on no-op).
 
-**Reward:** `R_t = α·Δsteps - β·notification_burden + λ·goal_progress`, plus delayed body measures every 3 weeks
+**Reward:** `R_t = α·Δsteps - β·reward_penalty_{a_t} + λ·goal_progress` (immediate) + `η·BM_improvement` (delayed body measure, every 21 days)
 
-**Discount factor:** γ ≈ 0.9–0.95
+**Discount factor:** γ ∈ [0.9, 0.99] (open question — see `initial_design.tex` decision log)
+
+**Dependencies:** Agent → MDP (Agent acts in the environment; the user simulation provides the reward and transition signals but the agent interface depends only on the MDP abstraction)
 
 ---
 
@@ -108,7 +118,7 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 - **Config format:** YAML (confirmed with Mengyan)
 - **Dependencies:** Minimal. No SB3 or Gymnasium unless proven necessary
 - **Interface:** CLI + config files (web UI = stretch goal, not necessary at this stage)
-- **Package:** TBD (installable or repo-based — to confirm with supervisors)
+- **Package:** Repo-based now; installable package if needed later (confirmed)
 
 ---
 
@@ -116,20 +126,34 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | Config format: YAML | Confirmed (Mengyan) |
-| 2 | Interface: CLI + config files; web UI = stretch | Confirmed (Mengyan) |
-| 3 | Installable package vs repo-based | Pending |
-
-## Open Decisions (Pending Supervisor Input)
-
-1. Installable package or repo-based?
-2. Does the proposed MDP look like a reasonable starting point? (awaiting Swapnil)
+| 1 | Config format: YAML | Confirmed |
+| 2 | Interface: CLI + config files; web UI = stretch | Confirmed |
+| 3 | Language and package manager: Python 3.11 + uv | Confirmed |
+| 4 | Phase 1 data: synthetic (real data requires 4–8 week applications while arrangements are underway) | Open |
+| 5 | Baseline agent: Thompson Sampling | Confirmed |
+| 6 | Decision frequency: daily epochs | Confirmed |
+| 7 | Reward structure: multi-timescale (immediate + delayed) | Confirmed |
+| 8 | User archetypes: goal-driven, social responder, resistant, stable maintainer | Confirmed |
+| 9 | Component wiring: ABC + registry pattern | Confirmed |
+| 10 | Dependencies: minimal — no Gymnasium, no SB3 | Confirmed |
+| 11 | Distribution: repo-based now, package if needed later | Confirmed |
+| 12 | MDP formalisation | Awaiting supervisor approval (Swapnil) |
+| 13 | Phase 2 dataset priority: HeartSteps first, then All of Us, UK Biobank | Open |
+| 14 | Experiment output format: CSV, terminal table, JSON, or summary plots | Open |
+| 15 | Success metrics: regret, reward, adherence | Open |
+| 16 | Action penalties (reward_penalty, burden_penalty) per archetype | Open |
+| 17 | Discount factor γ ∈ [0.9, 0.99]: optimal range for PA interventions | Open |
+| 18 | Decision epoch frequency: daily (base library of policies; per-user refinement within constraints). Hourly is an alternative. | Open |
+| 19 | Merge reward penalty and burden penalty: currently separate (different roles: direct reward vs. state-accumulator). Merging is possible if simpler. | Open |
+| 20 | Burden model: linear accumulator max(0, burden_t + penalty) with threshold decay. StepCountJITAI uses bounded [0,1] habituation. | Open |
+| 21 | Activity metric for immediate reward: steps (default). Active minutes, METs, or composites are configurable alternatives. | Open |
+| 22 | Sparse vs decaying delayed reward: 3-week sparse (current). Decaying formulation (η · BM · γ^{3k-t}) may improve credit assignment. | Open |
 
 ---
 
 ## Public Datasets (Feasibility Complete ✅)
 
-Two datasets evaluated for simulator training. Full study: [`docs/03 Data Sources.md`](03%20Data%20Sources.md).
+Two datasets evaluated for simulator training. Full study: [`sources/data_sources.md`](sources/data_sources.md).
 
 1. **All of Us Fitbit Dataset** — Nature Medicine 2026
    - 59,000+ participants, Fitbit data, 14-year span
@@ -147,11 +171,11 @@ Two datasets evaluated for simulator training. Full study: [`docs/03 Data Source
 
 **Finding:** Both datasets require institutional applications with 4-8 week lead times. Neither provides downloadable samples. **Phase 1 uses synthetic data generators parameterised from published statistics.** Real data integration is Phase 2.
 
-**Supplementary finding:** HeartSteps V1/V2 micro-randomized trials contain the only available *intervention response* data. These are smaller (50–100 participants) but directly calibrate the user simulation (1C). See [`docs/04 Additional Data Sources.md`](04%20Additional%20Data%20Sources.md).
+**Supplementary finding:** HeartSteps V1/V2 micro-randomized trials contain the only available *intervention response* data. These are smaller (50–100 participants) but directly calibrate the user simulation (1C). See [`sources/additional_data_sources.md`](sources/additional_data_sources.md).
 
 ## Logging & Error Handling
 
-See canonical setup in [`06 Code Design.md`](06%20Code%20Design.md#logging--error-handling-canonical).
+See canonical setup in [`code_design.md`](code_design.md#logging--error-handling-canonical).
 
 Project-wide observability concerns:
 
@@ -167,7 +191,7 @@ Project-wide observability concerns:
 
 ## Literature Review Reference
 
-Full review at `C:\Obsidian_Vaults\main\10 Research\Bristol x NUS RL\Literature Review\05 Master Literature Review.md`.
+See `initial_design.tex` §2 for the full literature review.
 
 5 major gaps identified (experiments *on* the framework, not *in* it):
 1. No LLM simulation validated for wearable health data

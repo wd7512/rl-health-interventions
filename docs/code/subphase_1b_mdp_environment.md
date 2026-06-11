@@ -31,14 +31,24 @@
 
 ### `MDPConfig`
 ```python
+class ActionSpec(BaseModel):
+    label: str
+    reward_penalty: float = Field(ge=0.0)
+    burden_penalty: int = Field(ge=0)
+
+
 class MDPConfig(BaseModel):
     state_variables: list[str]
     actions: list[ActionSpec]
     reward_weights: RewardWeights
     transition_model: str  # e.g. "rule_based"
-    gamma: float
+    gamma: float = Field(ge=0.9, le=0.99)
     body_measure_interval: int  # epochs
 ```
+
+The `gamma` range `[0.9, 0.99]` is a framework constraint — the MDP is designed
+for long-term behaviour change, not myopic optimisation. Reward weights
+(α, β, λ, η) follow the same bounded Pydantic convention.
 
 ### `Environment`
 ```python
@@ -54,18 +64,22 @@ class TransitionModel(ABC):
     def transition(self, state: StateView, action: int, user_profile: UserProfile) -> StateView
 ```
 
+Note: `initial_design.tex` groups both `TransitionModel` and `RewardHandler`
+under the MDP module. The `RewardHandler` ABC lives in `rewards/_base.py`
+(see `code_design.md`); the environment's `step()` wires both together.
+
 ---
 
 ## Blocking Risks
 
-- **MDP confirmation pending:** If Swapnil wants significant changes to the MDP structure, the environment interface may need rework. Mitigation: design the config schema around the google doc MDP and flag that deviations are config changes, not code changes.
+- **MDP confirmation pending:** If Swapnil wants significant changes to the MDP structure, the environment interface may need rework. Mitigation: design the config schema around the formal MDP (`initial_design.tex`) and flag that deviations are config changes, not code changes.
 - **Gymnasium dependency:** Not needed yet. Keep it minimal.
 
 ---
 
 ## Logging & Error Handling
 
-See canonical setup in [`06 Code Design.md`](06%20Code%20Design.md#logging--error-handling-canonical).
+See canonical setup in [`code_design.md`](code_design.md#logging--error-handling-canonical).
 
 Subphase-specific concerns for 1B (MDP environment):
 

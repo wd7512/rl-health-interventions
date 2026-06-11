@@ -30,4 +30,4 @@ class SyntheticDataGenerator:
 def register() -> None:
     from rl_health_interventions.data import REGISTRY
 
-    REGISTRY[SyntheticDataGenerator.__name__] = SyntheticDataGenerator
+    REGISTRY["synthetic"] = SyntheticDataGenerator

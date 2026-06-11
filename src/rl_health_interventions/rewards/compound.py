@@ -13,4 +13,4 @@ class CompoundReward(RewardHandler):
 def register() -> None:
     from rl_health_interventions.rewards import REGISTRY
 
-    REGISTRY[CompoundReward.__name__] = CompoundReward
+    REGISTRY["compound"] = CompoundReward
