@@ -16,4 +16,4 @@ class ThompsonSamplingAgent(Agent):
 def register() -> None:
     from rl_health_interventions.agents import REGISTRY
 
-    REGISTRY["thompson_sampling"] = ThompsonSamplingAgent
+    REGISTRY[ThompsonSamplingAgent.__name__] = ThompsonSamplingAgent

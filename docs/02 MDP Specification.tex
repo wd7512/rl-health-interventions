@@ -1,0 +1,251 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+
+\title{Markov Decision Process Specification\\for RL-Driven Physical Activity Interventions}
+\author{William Dennis\\Bristol x NUS Research Project}
+\date{June 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{High-Level Framework Design}
+
+The \texttt{rl-health-interventions} framework simulates a wearable-device
+physical activity intervention as a Markov Decision Process. Researchers
+configure the data schema, environment dynamics, user behaviour, and agents
+entirely through YAML config files --- no source code changes required.
+
+\subsection{Architecture}
+
+The framework is organised into five subphases, each delivering a pluggable
+component:
+
+\begin{enumerate}
+    \item \textbf{Data Layer (1A):} Ingests CSV/Parquet files via Polars lazy
+    scans, applies config-driven feature engineering, and materialises a
+    numpy-backed \texttt{Dataset}. Provides a \texttt{StateView} bridge for
+    the simulation loop.
+    \item \textbf{MDP Environment (1B):} Exposes a clean
+    \texttt{step(state, action) $\rightarrow$ (next\_state, reward, done)} API.
+    Pluggable \texttt{TransitionModel} and \texttt{RewardHandler} components
+    are selected from a registry by config string.
+    \item \textbf{User Simulation (1C):} Rule-based behavioural archetypes
+    (goal-driven, social responder, resistant, stable maintainer) with
+    backlash and fatigue mechanisms. A \texttt{ResponseModel} maps
+    $(\text{state}, \text{action}, \text{profile})$ to a next state.
+    \item \textbf{Agent Library (1D):} Common \texttt{Agent} ABC with
+    \texttt{select\_action(state) $\rightarrow$ int} and
+    \texttt{update(...)}. Thompson Sampling is the MVP gate; deep RL
+    agents (DQN, PPO, CQL, IQL) are stretch.
+    \item \textbf{Experiment Runner (1E):} Wires all components via a single
+    \texttt{ExperimentFactory.build(config)}. Runs multi-trial, multi-agent
+    experiments with config snapshot reproducibility.
+\end{enumerate}
+
+\subsection{Component Registration}
+
+Each pluggable family (transitions, rewards, agents, response models) is a flat
+package with a \texttt{\_base.py} ABC and a \texttt{REGISTRY} dict in its
+\texttt{\_\_init\_\_.py}. Adding a new component requires one file, one registry
+entry, and a config string reference --- no framework code changes.
+
+\subsection{Dependency Graph}
+
+Tracks A (1A) and B (1B) run in parallel. Track C (Dataset Exploration)
+runs alongside both and is now complete (see \texttt{docs/03 Data Sources.md}
+for the population-dataset feasibility study and \texttt{docs/04 Additional Data Sources.md}
+for the JITAI trial survey).
+After 1A, 1B, and exploration complete, tracks merge at
+1C (user simulation) and 1D (agent library, which only needs the 1B interface).
+The final track is 1E (experiment runner), which depends on 1C and 1D.
+
+\subsection{Validation}
+
+The factory applies three layers of validation before the main experiment loop:
+(1) Pydantic schema parsing rejects malformed configs at load time; (2) component
+compatibility checks verify registry keys and cross-references; (3) a single
+dummy \texttt{step()} catches wiring errors and shape mismatches.
+
+\subsection{Test Organisation}
+
+Tests mirror the component module structure (\texttt{tests/unit/transitions/},
+\texttt{tests/unit/rewards/}, etc.), not subphase numbers. Every ABC method has
+at least one test. Integration and end-to-end tests cover factory wiring and the
+full experiment pipeline.
+
+\section{MDP Specification}
+
+This document specifies the Markov Decision Process (MDP) for the first iteration
+of the \texttt{rl-health-interventions} simulation framework. It formalises the
+design from the project google doc and incorporates decisions from the
+2026-06-08 planning session.
+
+The MDP is defined as the tuple $(\mathcal{S}, \mathcal{A}, P, R, \gamma)$.
+
+\section{State Space $\mathcal{S}$}
+
+The state represents the current context of a user at decision epoch $t$.
+States are constructed from wearable-device signals, user profile information,
+and intervention history:
+
+\[
+s_t = \{ \mathbf{x}_t^{\text{wearable}}, \mathbf{x}_t^{\text{context}},
+\mathbf{x}_t^{\text{history}}, \mathbf{x}^{\text{profile}} \}
+\]
+
+\begin{table}[h]
+\centering
+\caption{State variables}
+\begin{tabular}{lll}
+\toprule
+Variable & Type & Description \\
+\midrule
+$\text{steps}_t$ & $\mathbb{R}_{\geq 0}$ & Step count, past 24h \\
+$\text{hr}_t$ & $\mathbb{R}_{\geq 0}$ & Heart rate (or resting) \\
+$\text{sleep\_hours}_t$ & $\mathbb{R}_{\geq 0}$ & Previous night sleep \\
+$\text{sedentary\_min}_t$ & $\mathbb{R}_{\geq 0}$ & Sedentary minutes today \\
+$\text{time\_of\_day}_t$ & $\{0,\dots,23\}$ & Current hour \\
+$\text{day\_of\_week}_t$ & $\{0,\dots,6\}$ & Day of week \\
+$\text{goal\_progress}_t$ & $[0,1]$ & Fraction of daily goal met \\
+$\text{burden}_t$ & $\mathbb{Z}_{\geq 0}$ & Interventions sent today \\
+$a_{t-1}$ & $\mathcal{A}$ & Previous action \\
+$\text{response}_{t-1}$ & $\{0,1\}$ & Previous response \\
+$\text{body\_measure}_k$ & $\mathbb{R}$ & Clinical measure (q3wks) \\
+$\text{age}$ & $\mathbb{Z}_{>0}$ & Static profile \\
+$\text{gender}$ & $\{0,1\}$ & Static profile \\
+$\text{baseline\_activity}$ & $\{0,1,2\}$ & Low / medium / high \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Variables are normalised to $[0,1]$ before being passed to the agent. The body
+measure is only observed every 3 weeks (sparse reward signal).
+
+\section{Action Space $\mathcal{A}$}
+
+\[
+\mathcal{A} = \{ a_0, a_1, a_2, a_3, a_4, a_5 \}
+\]
+
+\begin{table}[h]
+\centering
+\caption{Action space}
+\begin{tabular}{cll}
+\toprule
+Action & Label & Description \\
+\midrule
+$a_0$ & No message & Do not intervene \\
+$a_1$ & Motivational prompt & Generic encouragement \\
+$a_2$ & Walking suggestion & Recommend a short walk \\
+$a_3$ & Goal reminder & Remind of step goal \\
+$a_4$ & Recovery suggestion & Stretch or rest \\
+$a_5$ & Progress feedback & Report goal progress \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Exactly one action per decision epoch. The ``no message'' action is critical
+for managing notification burden.
+
+\section{Transition Function $P$}
+
+The transition function models the probability over next states:
+
+\[
+P(s_{t+1} \mid s_t, a_t): \mathcal{S} \times \mathcal{A} \times \mathcal{S}
+\rightarrow [0,1]
+\]
+
+In Phase 1 (rule-based), transitions follow a behavioural response model:
+
+\[
+\Delta \text{steps}_{t+1} = f(s_t, a_t, \theta_{\text{user}})
+\]
+
+where $\theta_{\text{user}}$ parameterises one of four behavioural archetypes:
+
+\begin{itemize}
+    \item \textbf{Goal-driven:} Responds to reminders and feedback.
+    Proportional to goal progress.
+    \item \textbf{Social responder:} Responds to motivational prompts.
+    Models social desirability bias.
+    \item \textbf{Resistant:} Low response. Fatigue accumulates quickly.
+    \item \textbf{Stable maintainer:} Already active. Low marginal gain.
+\end{itemize}
+
+Burden evolves as:
+
+\[
+\text{burden}_{t+1} =
+\begin{cases}
+\text{burden}_t + 1 & \text{if } a_t \neq a_0 \\
+0 & \text{if } a_t = a_0
+\end{cases}
+\]
+
+When $\text{burden} > B_{\max}$, response probability decays linearly.
+
+\section{Reward Function $R$}
+\label{sec:reward}
+
+\subsection{Immediate Reward}
+
+\[
+R_t^{\text{immediate}} = \alpha \cdot \Delta\text{steps}_t
+- \beta \cdot \mathbf{1}_{\{a_t \neq a_0\}}
++ \lambda \cdot \text{goal\_progress}_t
+\]
+
+\subsection{Delayed Reward (Body Measures)}
+
+Clinical body measures arrive every 3 weeks ($t = 3k$):
+
+\[
+R_{3k}^{\text{delayed}} = \eta \cdot \text{BM\_improvement}_{3k}
+\]
+
+Total reward:
+
+\[
+R_t =
+\begin{cases}
+R_t^{\text{immediate}} + R_t^{\text{delayed}} & t \equiv 0 \pmod{3} \\
+R_t^{\text{immediate}} & \text{otherwise}
+\end{cases}
+\]
+
+The compound reward (immediate + delayed) is a central research question.
+Weights $(\alpha, \beta, \lambda, \eta)$ are configurable experiment parameters.
+
+\section{Discount Factor $\gamma$}
+
+\[
+\gamma \in [0.9, 0.95]
+\]
+
+A high discount factor encourages long-term behaviour change over short-term
+step increases. Appropriate for health habit formation.
+
+\section{Decision Epoch}
+
+\textbf{Daily} decisions. This aligns with the weekly intervention cadence,
+the 3-week body measure delay (3 epochs), and practical deployment constraints.
+
+\section{Configurability}
+
+All MDP components are exposed in the config schema: state variable selection,
+action subsets, reward weights, transition archetypes, fatigue threshold,
+discount factor, and epoch frequency. New datasets or intervention designs
+require a new config file, not new code.
+
+\end{document}

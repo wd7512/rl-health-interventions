@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 from typing import Any, ClassVar, Literal, Protocol, runtime_checkable
 
 from pydantic import BaseModel, Field
@@ -25,11 +24,11 @@ class DataConfig(BaseModel):
 
     def resolved_path(self) -> str:
         if self.base_path:
-            return (Path(self.base_path) / self.file_path).as_posix()
+            return os.path.join(self.base_path, self.file_path)
         for var in self._KNOWN_ENV_VARS:
             value = os.environ.get(var)
             if value is not None:
-                return (Path(value) / self.file_path).as_posix()
+                return os.path.join(value, self.file_path)
         raise FileNotFoundError(
             f"No base_path set and none of {self._KNOWN_ENV_VARS} are set. "
             f"Cannot resolve {self.file_path}"

@@ -7,12 +7,12 @@ from rl_health_interventions.simulation.rule_based import RuleBasedResponse
 
 
 def test_registry_populated() -> None:
-    assert "rule_based" in REGISTRY
-    assert REGISTRY["rule_based"] is RuleBasedResponse
+    assert "RuleBasedResponse" in REGISTRY
+    assert REGISTRY["RuleBasedResponse"] is RuleBasedResponse
 
 
 def test_make_returns_instance() -> None:
-    instance = make("rule_based")
+    instance = make("RuleBasedResponse")
     assert isinstance(instance, RuleBasedResponse)
 
 

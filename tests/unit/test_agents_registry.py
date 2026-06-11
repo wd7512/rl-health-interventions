@@ -7,12 +7,12 @@ from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAge
 
 
 def test_registry_populated() -> None:
-    assert "thompson_sampling" in REGISTRY
-    assert REGISTRY["thompson_sampling"] is ThompsonSamplingAgent
+    assert "ThompsonSamplingAgent" in REGISTRY
+    assert REGISTRY["ThompsonSamplingAgent"] is ThompsonSamplingAgent
 
 
 def test_make_returns_instance() -> None:
-    instance = make("thompson_sampling")
+    instance = make("ThompsonSamplingAgent")
     assert isinstance(instance, ThompsonSamplingAgent)
 
 
