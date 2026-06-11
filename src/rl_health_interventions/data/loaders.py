@@ -320,9 +320,9 @@ def load_harth(
         return None
 
     # Determine split — commonly "train" or the only split
-    if not ds:
+    split = list(ds.keys())[0] if ds else None
+    if split is None:
         return None
-    split = next(iter(ds))
 
     raw = ds[split].to_polars()  # type: ignore[union-attr]
     # to_polars can return an Iterator for large datasets → collect
@@ -934,10 +934,12 @@ def load_4tu_step_goals(
             return None
 
     if not main_csv.exists():
+        # Maybe CSV is in a subdirectory
         csv_files = _find_csv_files(dest_dir)
-        if not csv_files:
+        if csv_files:
+            main_csv = csv_files[0]
+        else:
             return None
-        main_csv = csv_files[0]
 
     try:
         df = pl.read_csv(main_csv, try_parse_dates=True)
