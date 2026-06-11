@@ -41,18 +41,23 @@ class UserProfile(BaseModel):
 ```python
 class ResponseModel(ABC):
     @abstractmethod
-    def response(self, state: StateView, action: int, profile: UserProfile) -> StateView
+    def response(self, state: StateView, action: int, profile: UserProfile) -> float
 ```
+
+`ResponseModel` returns a scalar response magnitude (e.g. Δsteps), unlike
+`TransitionModel` which returns a full `StateView`. The transition model
+applies the response to produce the next state; the response model only
+predicts the behavioural outcome.
 
 ---
 
 ## Dataset Exploration
 
-✅ **COMPLETE** — see [`docs/03 Data Sources.md`](03%20Data%20Sources.md) for the full feasibility study.
+✅ **COMPLETE** — see [`sources/data_sources.md`](sources/data_sources.md) for the full feasibility study.
 
 ### Additional: JITAI Trial Datasets
 
-See [`docs/04 Additional Data Sources.md`](04%20Additional%20Data%20Sources.md) for a survey of HeartSteps V1/V2 and other accessible benchmarks. Key findings for 1C:
+See [`sources/additional_data_sources.md`](sources/additional_data_sources.md) for a survey of HeartSteps V1/V2 and other accessible benchmarks. Key findings for 1C:
 
 - **HeartSteps V1** (42 days, ~50 participants) — the best available source of *action → response* mappings. Real engagement decay curves for burden calibration.
 - **HeartSteps V2** (90 days, ~97 participants) — RL-in-the-loop data with Thompson Sampling. Provides non-stationary engagement patterns over 3 months.
@@ -77,14 +82,14 @@ See [`docs/04 Additional Data Sources.md`](04%20Additional%20Data%20Sources.md) 
 
 ## Blocking Risks
 
-- **Real data timeline:** Both datasets require 4-8 week institutional applications. Phase 1 is designed around synthetic data — this is now the confirmed approach, not a fallback.
+- **Real data timeline:** Both datasets require 4-8 week institutional applications. Phase 1 uses synthetic data generators parameterised from published statistics while real data access is being arranged (status: open — see Decision Log in `initial_design.tex`).
 - **Archetype validity:** The 4 archetypes are theoretical. No guarantee they match real user behaviour. Document this as an explicit assumption.
 
 ---
 
 ## Logging & Error Handling
 
-See canonical setup in [`06 Code Design.md`](06%20Code%20Design.md#logging--error-handling-canonical).
+See canonical setup in [`code_design.md`](code_design.md#logging--error-handling-canonical).
 
 Subphase-specific concerns for 1C (user simulation):
 
@@ -94,20 +99,21 @@ Subphase-specific concerns for 1C (user simulation):
   Inf, or a value outside the expected range (e.g., step delta > 10K),
   log WARNING with the offending value and clamp to the expected range.
   NaN/Inf in the simulator breaks the entire downstream pipeline.
-- **State evolution errors:** If a user state's motivation, burden, or
+- **State evolution errors:** If a user state's motivation or
   engagement drops below 0 or above 1, log WARNING and clamp. These are
-  bounded [0, 1] quantities by construction.
+  bounded [0, 1] quantities by construction. Burden is a non-negative
+  integer (`ℤ≥₀`) — never clamped to [0, 1].
 - **Archetype sampling:** INFO at episode start: "User synthetic_042 drawn
-  from archetype 'engaged_low_burden' (seed 42)". Useful for offline
+  from archetype 'goal_driven' (seed 42)". Useful for offline
   analysis of per-archetype performance.
 - **Non-stationarity check:** Every 50 episodes, log a DEBUG line with the
-  distribution of motivation/burden values across the active user pool.
+  distribution of motivation and burden values across the active user pool.
   Catches a buggy simulator that's stuck at one state.
 
 Related 1C tests:
 - `tests/unit/simulation/test_response_clamp.py` — out-of-range response
   is clamped, not raised.
-- `tests/unit/simulation/test_state_bounds.py` — motivation/burden never
-  escape [0, 1].
+- `tests/unit/simulation/test_state_bounds.py` — motivation/engagement never
+  escape [0, 1]; burden is non-negative integer.
 - `tests/integration/simulation/test_archetype_sampling.py` — 1000 user
   draws produce the expected archetype distribution.

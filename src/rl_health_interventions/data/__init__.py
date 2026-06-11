@@ -19,9 +19,9 @@ def make(name: str) -> object:
 try:
     synthetic.register()
 except Exception:
-    logger.exception("Failed to register SyntheticDataGenerator")
+    logger.exception("Failed to register data.synthetic")
 
 try:
     feature_pipeline.register()
 except Exception:
-    logger.exception("Failed to register FeaturePipeline")
+    logger.exception("Failed to register data.feature_pipeline")

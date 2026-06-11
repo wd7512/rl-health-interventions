@@ -9,11 +9,11 @@ from rl_health_interventions.data import make as make_dataset
 
 def test_layer2_component_compatibility() -> None:
     """All registered components can be instantiated via the factory."""
-    transition = make_transition("RuleBasedTransition")
-    reward = make_reward("CompoundReward")
-    agent = make_agent("ThompsonSamplingAgent")
-    response = make_response_model("RuleBasedResponse")
-    dataset = make_dataset("SyntheticDataGenerator")
+    transition = make_transition("rule_based")
+    reward = make_reward("compound")
+    agent = make_agent("thompson_sampling")
+    response = make_response_model("rule_based")
+    dataset = make_dataset("synthetic")
 
     # Verify correct types (not just non-None)
     from rl_health_interventions.transitions._base import TransitionModel
@@ -45,10 +45,10 @@ def test_layer2_unknown_component_fails() -> None:
 
 
 def test_layer3_dummy_step() -> None:
-    transition = make_transition("RuleBasedTransition")
-    reward = make_reward("CompoundReward")
-    agent = make_agent("ThompsonSamplingAgent")
-    response = make_response_model("RuleBasedResponse")
+    transition = make_transition("rule_based")
+    reward = make_reward("compound")
+    agent = make_agent("thompson_sampling")
+    response = make_response_model("rule_based")
 
     dummy_state = {"step": 0}
     action = agent.select_action(dummy_state)

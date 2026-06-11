@@ -12,7 +12,7 @@
 
 - [ ] CLI command `uv run rl-health-interventions --config experiment.yml` runs end-to-end
 - [ ] Experiment config defines: which agents to compare, number of trials, environment config
-- [ ] Results output: table comparing agent performance (mean reward, regret, engagement)
+- [ ] Results output: table comparing agent performance (mean reward, regret, adherence)
 - [ ] Reproducibility: seeds and config snapshot saved with each run
 - [ ] `uv run pytest` passes for all 1E tests
 - [ ] `uv run ruff check` and `uv run ty check` pass
@@ -38,6 +38,24 @@ class ExperimentConfig(BaseModel):
     n_epochs: int
     seeds: list[int]
 ```
+
+### Factory / Experiment boundary
+
+The `ExperimentFactory` constructs everything from config; the `Experiment`
+executes and owns runtime state:
+
+```python
+class ExperimentFactory:
+    @staticmethod
+    def build(config: ExperimentConfig) -> Experiment
+
+class Experiment:
+    def run(self) -> ExperimentResult
+```
+
+The factory is stateless — same config always gives the same wiring. The
+experiment owns episode counters, accumulators, checkpoints, and the
+results output.
 
 ### `ExperimentResult`
 ```python
@@ -69,7 +87,7 @@ Expected output:
 
 ## Logging & Error Handling
 
-See canonical setup in [`06 Code Design.md`](06%20Code%20Design.md#logging--error-handling-canonical).
+See canonical setup in [`code_design.md`](code_design.md#logging--error-handling-canonical).
 
 Subphase-specific concerns for 1E (experiment runner):
 

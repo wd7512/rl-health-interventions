@@ -13,4 +13,4 @@ class RuleBasedTransition(TransitionModel):
 def register() -> None:
     from rl_health_interventions.transitions import REGISTRY
 
-    REGISTRY[RuleBasedTransition.__name__] = RuleBasedTransition
+    REGISTRY["rule_based"] = RuleBasedTransition
