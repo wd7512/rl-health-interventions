@@ -62,7 +62,7 @@ Build a configurable simulation framework where RL-driven health intervention ex
 - Episode termination logic (fixed-length or condition-based)
 - Environment tests (step API contract, reward timing, episode boundaries)
 
-**Definition of Done:** Environment.step() returns correctly typed StateView; reward includes both immediate and delayed components at correct epochs; episode termination works; `uv run pytest` passes for all environment tests.
+**Definition of Done:** Environment.step(state, action) returns correctly typed StateView; reward includes both immediate and delayed components at correct epochs; episode termination works; `uv run pytest` passes for all environment tests.
 
 **Dependencies:** M-01 (config schemas define state variables, actions, reward weights)
 
@@ -288,12 +288,12 @@ gantt
     M-05 Thompson Sampling  : m05, after m02, 2w
   
   section Integration
-    M-06 Experiment Runner  : m06, after m03, after m04, after m05, 2w
+    M-06 Experiment Runner  : m06, after m03 m04 m05, 2w
     M-08 Evaluation         : m08, after m06, 1w
     M-09 Documentation      : m09, after m06, 1w
-  
+
   section Safety
-    M-10 Safety & Ethics    : m10, after m03, after m04, 1w
+    M-10 Safety & Ethics    : m10, after m03 m04, 1w
 ```
 
 ## Success Metrics

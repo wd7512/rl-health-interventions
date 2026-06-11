@@ -9,20 +9,6 @@ Sources: `docs/initial_design.tex`, `docs/ROADMAP.md`, `reports/phase1_design_an
 
 ```mermaid
 flowchart TD
-    %% ===== EXTERNAL DEPENDENCIES =====
-    subgraph External["External Dependencies"]
-        NP["numpy"]
-        PD["polars"]
-        PYD["pydantic"]
-        DS["datasets (HF)"]
-        HF["huggingface-hub"]
-        KG["kagglehub"]
-        PND["pandas"]
-        UCI["ucimlrepo"]
-        WF["wfdb"]
-        REQ["requests"]
-        PY["Python ≥3.11"]
-    end
 
     %% ===== CONFIG LAYER =====
     subgraph Config["Config Layer"]
@@ -157,6 +143,23 @@ flowchart TD
     SAFEM --> ENV
     SAFEM --> UPROF
 ```
+### External Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| numpy | Numerical operations, array processing |
+| polars | Fast CSV/Parquet data reading |
+| pydantic | Config schema validation |
+| datasets (HF) | HuggingFace dataset access |
+| huggingface-hub | Model/dataset hub integration |
+| kagglehub | Kaggle dataset download |
+| pandas | Data manipulation (secondary) |
+| ucimlrepo | UCI ML Repository access |
+| wfdb | WFDB signal data (physiological) |
+| requests | HTTP requests for data retrieval |
+| Python >=3.11 | Runtime requirement |
+
+
 
 ---
 
@@ -217,7 +220,7 @@ TRL definitions (adapted for computational research):
 | `src/rl_health_interventions/data/synthetic.py` — `SyntheticDataGenerator.generate()` | Generate multi-feature synthetic wearable data (steps, HR, sleep hours, sedentary minutes) with configurable distribution parameters (mean, variance, correlations). Support NHANES-calibrated population statistics. Include temporal correlation across timesteps. | • Output `Dataset` object validates successfully<br>• Step counts non-negative, HR in [30,220], sleep hours in [0,24]<br>• Feature means within 10% of configured population parameters over 1000 samples<br>• No NaN/Inf values<br>• Seeded reproducibility (same seed → identical data) | M-07 |
 | `src/rl_health_interventions/data/feature_pipeline.py` — `FeaturePipeline.from_config()` | Parse config dict to build transformation chain: column selection → normalisation → feature engineering (time-of-day encoding, day-of-week encoding, rolling averages). Support composable transforms registered via the ABC+registry pattern. | • Pipeline produces correct output shapes per transform<br>• Normalisation maps to [0,1] range<br>• Config validation rejects invalid transforms with clear error<br>• Empty config produces identity pipeline | M-07 |
 | `src/rl_health_interventions/transitions/rule_based.py` — `RuleBasedTransition.transition()` | Implement behavioural response model: compute Δsteps based on action and user profile archetype. Implement burden accumulation/decay (linear accumulator with configurable decay rate δ and max threshold B_max). Support 4 archetypes with distinct response parameters. Return new state. | • Goal-driven archetype responds more to reminders/feedback than other archetypes<br>• Burden increases on intervention, decays on no-action (a₀)<br>• Burden > B_max triggers linear response decay<br>• Configurable parameters (α_Δsteps, burden_decay, B_max) affect output as expected<br>• All 4 archetypes produce statistically distinct response distributions (p<0.01, ANOVA) | M-03 |
-| `src/rl_health_interventions/rewards/compound.py` — `CompoundReward.reward()` | Compute immediate reward: R_immediate = α·Δactivity - β·reward_penalty + λ·goal_progress. Compute delayed reward every 21 epochs: R_delayed = η·BM_improvement. Return (reward, done) tuple. Support configurable weights (α, β, λ, η) and action penalties. | • Immediate reward computed correctly for each action with configured penalties<br>• Delayed reward non-zero only on epochs t ≡ 0 (mod 21)<br>• Goal_progress term reflects steps/goal ratio<br>• Config weight changes produce proportional reward changes<br>• Reward stays within expected bounds | M-03 |
+| `src/rl_health_interventions/rewards/compound.py` — `CompoundReward.reward()` | Compute immediate reward: R_immediate = α·Δactivity - β·burden_penalty + λ·goal_progress. Compute delayed reward every 21 epochs: R_delayed = η·BM_improvement. Return (reward, done) tuple. Support configurable weights (α, β, λ, η) and action penalties. | • Immediate reward computed correctly for each action with configured penalties<br>• Delayed reward non-zero only on epochs t ≡ 0 (mod 21)<br>• Goal_progress term reflects steps/goal ratio<br>• Config weight changes produce proportional reward changes<br>• Reward stays within expected bounds | M-03 |
 | `src/rl_health_interventions/simulation/rule_based.py` — `RuleBasedResponse.response()` | Implement archetype-specific response magnitude given (state, action, profile). 4 archetypes: goal-driven (responds to reminders/feedback), social responder (responds to motivational prompts), resistant (low response, fast burden accumulation), stable maintainer (already active, low marginal gain). Return response magnitude. | • Goal-driven: response to a₂ (walking suggestion) and a₃ (goal reminder) > response to a₁<br>• Social: response to a₁ (motivational prompt) > response to a₂/a₃<br>• Resistant: overall response magnitude < 30% of other archetypes; burden saturates 2× faster<br>• Stable maintainer: high baseline, low marginal gain from any action<br>• All response values in [0, 1] | M-04 |
 | Not yet created — must implement `simulation/user_profile.py`: `UserProfile` | Pydantic schema with fields: archetype (Literal enum), baseline_activity (low/med/high), response_params (dict of action→response params), burden_params (decay rate, max threshold). Factory method to instantiate pre-defined archetype profiles. | • 4 pre-defined archetype profiles produce correct parameter sets<br>• Serialisation round-trips via JSON<br>• Validation rejects invalid archetype names with clear error<br>• All parameters have sensible defaults documented | M-04 |
 | `src/rl_health_interventions/agents/thompson_sampling.py` — `ThompsonSamplingAgent` | Implement Gaussian Thompson Sampling with known variance (or Beta TS for binary rewards). Configurable prior parameters (μ₀, σ²₀). `select_action()` samples from posterior and returns argmax. `update()` performs conjugate Bayesian update. Support exploration temperature parameter. | • `select_action()` returns a valid action index (0–5)<br>• Posterior mean converges to true action value over 1000 steps<br>• Regret decreases ≥20% over 1000 episodes on known-optimal bandit problem<br>• Prior parameters affect initial exploration behaviour<br>• Multiple calls with same state produce varied actions due to posterior sampling | M-05 |
