@@ -22,7 +22,9 @@ from rl_health_interventions.data.loaders import (
 )
 
 
-def test_check_kaggle_auth_no_credentials(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_check_kaggle_auth_no_credentials(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.delenv("KAGGLE_API_TOKEN", raising=False)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     result = _check_kaggle_auth()
@@ -35,7 +37,9 @@ def test_check_kaggle_auth_env_var(monkeypatch: pytest.MonkeyPatch) -> None:
     assert result is True
 
 
-def test_check_kaggle_auth_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_check_kaggle_auth_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.delenv("KAGGLE_API_TOKEN", raising=False)
     kaggle_dir = tmp_path / ".kaggle"
     kaggle_dir.mkdir()
@@ -99,7 +103,9 @@ def test_load_all_returns_dict_with_all_datasets() -> None:
     assert set(results.keys()) == expected
 
 
-def test_load_pmdata_returns_none_without_kaggle_auth(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_load_pmdata_returns_none_without_kaggle_auth(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(
         "rl_health_interventions.data.loaders._check_kaggle_auth", lambda: False
     )
@@ -107,7 +113,9 @@ def test_load_pmdata_returns_none_without_kaggle_auth(monkeypatch: pytest.Monkey
     assert result is None
 
 
-def test_load_wesad_returns_none_without_kaggle_auth(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_load_wesad_returns_none_without_kaggle_auth(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(
         "rl_health_interventions.data.loaders._check_kaggle_auth", lambda: False
     )
@@ -115,7 +123,9 @@ def test_load_wesad_returns_none_without_kaggle_auth(monkeypatch: pytest.MonkeyP
     assert result is None
 
 
-def test_load_bidsleep_returns_none_without_physionet(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_load_bidsleep_returns_none_without_physionet(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(
         "rl_health_interventions.data.loaders._physionet_download",
         lambda *a, **kw: None,

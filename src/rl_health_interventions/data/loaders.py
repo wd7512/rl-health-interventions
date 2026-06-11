@@ -60,7 +60,9 @@ def _safe_extract_zip(zf: zipfile.ZipFile, member: str, dest_dir: Path) -> None:
     zf.extract(member, dest_dir)
 
 
-def _safe_extract_tar(tar: tarfile.TarFile, member: tarfile.TarInfo, dest_dir: Path) -> None:
+def _safe_extract_tar(
+    tar: tarfile.TarFile, member: tarfile.TarInfo, dest_dir: Path
+) -> None:
     target = (dest_dir.resolve() / member.name).resolve()
     if not str(target).startswith(str(dest_dir.resolve())):
         raise ValueError(f"Path traversal detected in tar member: {member.name}")
@@ -120,7 +122,15 @@ def _kaggle_download(
     # Check kagglehub cache first — avoids SSL/API errors when data is cached
     try:
         owner, dataset = handle.split("/", 1)
-        cache_root = Path.home() / ".cache" / "kagglehub" / "datasets" / owner / dataset / "versions"
+        cache_root = (
+            Path.home()
+            / ".cache"
+            / "kagglehub"
+            / "datasets"
+            / owner
+            / dataset
+            / "versions"
+        )
         if cache_root.exists():
             versions = sorted(cache_root.iterdir())
             if versions:
@@ -855,9 +865,7 @@ def load_fitbit_tracker(
     if "user_id" in df.columns:
         df = df.with_columns(df["user_id"].cast(pl.Utf8))
 
-    logger.info(
-        "Fitbit Tracker loaded: %d rows, %d columns", df.height, df.width
-    )
+    logger.info("Fitbit Tracker loaded: %d rows, %d columns", df.height, df.width)
     return df
 
 
