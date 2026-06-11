@@ -13,8 +13,8 @@
 \geometry{margin=2.5cm}
 \hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
 
-\title{Initial Design Document: RL-Driven Physical Activity Interventions\\
-\large A Configurable Simulation Framework}
+\title{Initial Design Document: RL-Driven Just-in-Time Adaptive Interventions\\
+\large A Configurable Simulation Framework for Physical Activity}
 \author{William Dennis\\
 Bristol x NUS Research Project\\
 \texttt{ky23812@bristol.ac.uk}}
@@ -36,8 +36,8 @@ simulation environment. While existing simulation environments such as
 StepCountJITAI \cite{karine2024stepcountjitai} and Health Gym
 \cite{gateno2023healthgym} provide valuable foundations, they are scoped to
 specific datasets or research questions. We present \texttt{rl-health-interventions},
-a configurable simulation framework designed for our research workflow: the
-dataset schema, MDP dynamics, user behaviour models, and agent configurations
+a configurable simulation framework for just-in-time adaptive interventions (JITAIs):
+the dataset schema, MDP dynamics, user behaviour models, and agent configurations
 are specified entirely through YAML config files---no source code changes
 required. This enables systematic comparison of RL agents on PA intervention
 tasks using synthetic data in Phase 1, with real-data integration planned for
