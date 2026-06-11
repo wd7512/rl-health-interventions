@@ -305,8 +305,8 @@ Question & Decision & Status \\
 \midrule
 What activity metric for the immediate reward? & Steps (default). Active minutes, METs, or composites are configurable alternatives. & Open \\
 What format for experiment output? & CSV, terminal table, JSON, or summary plots & Open \\
-Which datasets for Phase 2? & HeartSteps first, then All of Us, UK Biobank & Open \\
-What data for Phase 1? & Synthetic data while awaiting real data access & Open \\
+Which datasets for Phase 2? & HeartSteps first, then All of Us, UK Biobank (see \S\ref{sec:data}) & Confirmed \\
+What data for Phase 1? & Synthetic data + 7 open datasets for pipeline validation (see \S\ref{sec:data}) & Confirmed \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -319,14 +319,13 @@ What data for Phase 1? & Synthetic data while awaiting real data access & Open \
 Question & Decision & Status \\
 \midrule
 What reward structure? & Multi-timescale: immediate + 3-week delayed & Confirmed \\
-How often are decisions made? & Daily epochs & Confirmed \\
 How are components wired? & ABC + registry pattern & Confirmed \\
 \midrule
+What is the decision epoch cadence? & Daily (hourly is a configurable alternative). To be validated empirically. & Open \\
 Is MDP formalisation reasonable? & Awaiting supervisor approval & Open \\
 Which burden model is most appropriate? & Linear accumulator $\max(0, burden_t - \delta \cdot \mathbb{1}[a_t=a_0] + penalty)$ with threshold decay. Configurable decay rate $\delta$. StepCountJITAI uses bounded $[0,1]$ habituation. & Open \\
 What discount factor range is optimal? & $\gamma \in [0.9, 0.99]$ to be explored empirically & Open \\
-Merge reward penalty and burden penalty? & Currently separate (different roles: direct reward vs. state-accumulator). Merging is possible if simpler. & Open \\
-Decision epoch frequency? & Daily (base library of policies; per-user refinement within constraints). Hourly is an alternative. & Open \\
+How should action penalties relate? & Currently separate mechanisms: reward\_penalty (direct reward subtraction) and burden\_penalty (state-accumulator addition), configurable per action and per archetype. Merging is possible if simpler. & Open \\
 Sparse vs decaying delayed reward? & 3-week sparse (current). Decaying formulation ($\eta \cdot BM \cdot \gamma^{21k-t}$) may improve credit assignment. & Open \\
 \bottomrule
 \end{tabular}
@@ -341,9 +340,10 @@ Question & Decision & Status \\
 \midrule
 Which agent first? & Thompson Sampling & Confirmed \\
 \midrule
+What metrics for agent evaluation? & Regret, reward, adherence, sustained behaviour change. Computed per-agent per-episode. & Open \\
+What baselines for agent comparison? & Random, fixed, rule-based. To be implemented before Sprint 3. & Open \\
+What statistical analysis plan? & Bootstrap CIs for pairwise comparisons, effect sizes, pre-registered endpoints. To be defined before Sprint 3. & Open \\
 What success criteria for agent comparison? & Minimum improvement threshold (e.g., $\geq$15\% reward gain over best baseline) to be determined after initial experiments. & Open \\
-What evaluation methodology? & Baselines (random, fixed, rule-based), metrics (regret, reward, adherence, sustained change), statistical analysis (bootstrap CIs, effect sizes) to be defined before Sprint 3. & Open \\
-Metrics for success? & Output metrics to evaluate agent performance (regret, reward, adherence) & Open \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -358,7 +358,6 @@ Question & Decision & Status \\
 Which user archetypes? & Goal-driven, social, resistant, stable maintainer & Confirmed \\
 \midrule
 Are user archetypes evidence-based? & Current 4 archetypes are a Phase~1 simplification. Validate against real behavioural data in Phase~2 (HeartSteps, All of Us) and refine if needed. & Open \\
-What action penalties for which archetypes? & reward\_penalty and burden\_penalty per action, per archetype & Open \\
 \bottomrule
 \end{tabular}
 \end{table}
