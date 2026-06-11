@@ -270,12 +270,14 @@ Metrics for success? & Output metrics to evaluate agent performance (regret, rew
 \end{tabular}
 \end{table}
 
-\section{Future Work}
+\section{Phase 2: Real-Data Validation}
 
-Beyond Phase 1, the framework targets LLM-based user simulation using
-prompt-driven persona modelling, offline RL agents (CQL, IQL) for batch
-policy learning, non-stationary environment adaptation, and real-data
-validation against All of Us, UK Biobank, and HeartSteps datasets.
+Phase 2 shifts from synthetic to real data. The three datasets identified in
+\S\ref{sec:data} (HeartSteps, All of Us, UK Biobank) will calibrate the user
+simulator, ground the MDP dynamics, and benchmark agent performance on
+observed behavioural responses. Beyond Phase 2, stretch goals include
+LLM-based user simulation, offline RL (CQL, IQL), and non-stationary
+environment adaptation.
 
 \bibliographystyle{unsrt}
 \bibliography{references}
