@@ -3,7 +3,7 @@
 ## initial_design.tex
 
 Initial academic LaTeX design document covering problem statement, MDP formalisation,
-architecture, timeline, and future work. This is the signed-off baseline spec;
+architecture, timeline, and future work. This is a draft awaiting supervisor review;
 implementation docs in `code/` derive from it.
 
 ## code/

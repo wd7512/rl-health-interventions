@@ -103,7 +103,7 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 **Actions (discrete, configurable):** no message, motivational prompt, walking suggestion, goal reminder, recovery suggestion, progress feedback. Each action carries `reward_penalty` and `burden_penalty` (zero on no-op).
 
-**Reward:** `R_t = α·Δsteps - β·reward_penalty_{a_t} + λ·goal_progress` (immediate) + `η·BM_improvement` (delayed body measure, configurable interval)
+**Reward:** `R_t = α·Δsteps - β·reward_penalty_{a_t} + λ·goal_progress` (immediate) + `η·BM_improvement` (delayed body measure, every 21 days)
 
 **Discount factor:** γ ∈ [0.9, 0.99] (open question — see `initial_design.tex` decision log)
 

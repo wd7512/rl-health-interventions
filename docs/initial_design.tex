@@ -156,9 +156,12 @@ where $\theta_{\text{user}}$ parameterises one of four behavioural archetypes:
 Burden evolves as:
 
 \[
-\text{burden}_{t+1} = \max(0,\; \text{burden}_t + \text{burden\_penalty}_{a_t})
+\text{burden}_{t+1} = \max(0,\; \text{burden}_t - \delta \cdot \mathbb{1}[a_t = a_0] + \text{burden\ penalty}_{a_t})
 \]
 
+where $a_0$ is the ``no message'' action, $\delta > 0$ is the configurable
+burden decay rate, and $\mathbb{1}[\cdot]$ is the indicator function.
+Burden decays only when no intervention is sent, allowing user recovery.
 When $\text{burden} > B_{\max}$, response probability decays linearly.
 This is a simple linear-accumulator model. The closest published precedent
 is StepCountJITAI's bounded habituation variable \cite{karine2024stepcountjitai},
@@ -179,14 +182,14 @@ count by default; active minutes, METs, or a composite can be substituted
 via config). Whether steps is the most appropriate primary metric is an
 open question --- see Decision Log \S\ref{sec:decisions}.
 
-Delayed reward (body measures) arrives every 3 weeks ($t = 3k$):
+Delayed reward (body measures) arrives every 3 weeks ($t = 21k$, i.e.\ every 21 days):
 
 \[
-R_{3k}^{\text{delayed}} = \eta \cdot \text{BM\_improvement}_{3k}
+R_{21k}^{\text{delayed}} = \eta \cdot \text{BM\_improvement}_{21k}
 \]
 
 Whether this sparse formulation is optimal, or whether a decaying reward
-(e.g. $\eta \cdot \text{BM\_improvement} \cdot \gamma^{3k-t}$ between
+(e.g.\ $\eta \cdot \text{BM\_improvement} \cdot \gamma^{21k-t}$ between
 body measures) would improve learning, is an open question
 --- see Decision Log \S\ref{sec:decisions}.
 
@@ -195,7 +198,7 @@ Total reward:
 \[
 R_t =
 \begin{cases}
-R_t^{\text{immediate}} + R_t^{\text{delayed}} & t \equiv 0 \pmod{3} \\
+R_t^{\text{immediate}} + R_t^{\text{delayed}} & t \equiv 0 \pmod{21} \\
 R_t^{\text{immediate}} & \text{otherwise}
 \end{cases}
 \]
@@ -303,9 +306,9 @@ What action penalties for which archetypes? & reward\_penalty and burden\_penalt
 What discount factor range is optimal? & $\gamma \in [0.9, 0.99]$ to be explored empirically & Open \\
 Decision epoch frequency? & Daily (base library of policies; per-user refinement within constraints). Hourly is an alternative. & Open \\
 Merge reward penalty and burden penalty? & Currently separate (different roles: direct reward vs. state-accumulator). Merging is possible if simpler. & Open \\
-Which burden model is most appropriate? & Linear accumulator $\max(0, burden_t + penalty)$ with threshold decay. StepCountJITAI uses bounded $[0,1]$ habituation. & Open \\
+Which burden model is most appropriate? & Linear accumulator $\max(0, burden_t - \delta \cdot \mathbb{1}[a_t=a_0] + penalty)$ with threshold decay. Configurable decay rate $\delta$. StepCountJITAI uses bounded $[0,1]$ habituation. & Open \\
 What activity metric for the immediate reward? & Steps (default). Active minutes, METs, or composites are configurable alternatives. & Open \\
-Sparse vs decaying delayed reward? & 3-week sparse (current). Decaying formulation ($\eta \cdot BM \cdot \gamma^{3k-t}$) may improve credit assignment. & Open \\
+Sparse vs decaying delayed reward? & 3-week sparse (current). Decaying formulation ($\eta \cdot BM \cdot \gamma^{21k-t}$) may improve credit assignment. & Open \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -339,7 +342,7 @@ $\text{sedentary\_min}_t$ & $\mathbb{R}_{\geq 0}$ & Sedentary minutes today \\
 $\text{time\_of\_day}_t$ & $\{0,\dots,23\}$ & Current hour \\
 $\text{day\_of\_week}_t$ & $\{0,\dots,6\}$ & Day of week \\
 $\text{goal\_progress}_t$ & $[0,1]$ & Fraction of daily goal met \\
-$\text{burden}_t$ & $\mathbb{Z}_{\geq 0}$ & Interventions sent today \\
+$\text{burden}_t$ & $\mathbb{R}_{\geq 0}$ & Cumulative burden (decays when no interventions) \\
 $a_{t-1}$ & $\mathcal{A}$ & Previous action \\
 $\text{response}_{t-1}$ & $\{0,1\}$ & Previous response \\
 $\text{body\_measure}_k$ & $\mathbb{R}$ & Clinical measure (q3wks) \\

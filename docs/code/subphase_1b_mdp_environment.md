@@ -34,7 +34,7 @@
 class ActionSpec(BaseModel):
     label: str
     reward_penalty: float = Field(ge=0.0)
-    burden_penalty: float = Field(ge=0.0)
+    burden_penalty: int = Field(ge=0)
 
 
 class MDPConfig(BaseModel):
