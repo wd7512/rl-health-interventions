@@ -78,9 +78,6 @@ This section specifies the Markov Decision Process (MDP) for the first
 iteration of the simulation framework. The MDP is defined as the tuple
 $(\mathcal{S}, \mathcal{A}, P, R, \gamma)$.
 
-\subsection{State \& Action Spaces}
-\label{sec:state-action}
-
 \textbf{State.} The state represents the current context of a user at decision epoch $t$.
 States are constructed from wearable-device signals, user profile
 information, and intervention history:
@@ -118,9 +115,6 @@ $a_5$ & Progress feedback & Report goal progress \\
 
 Exactly one action per decision epoch. The ``no message'' action is critical
 for managing notification burden.
-
-\subsection{Transition \& Reward}
-\label{sec:transition-reward}
 
 \textbf{Transition.} The transition function models the probability over next states:
 
@@ -186,9 +180,6 @@ R_t^{\text{immediate}} & \text{otherwise}
 The compound reward (immediate + delayed) is a central research question.
 Weights $(\alpha, \beta, \lambda, \eta)$ are configurable experiment parameters.
 
-\subsection{Discount \& Decision Epoch}
-\label{sec:discount-epoch}
-
 \textbf{Discount factor.} $\gamma \in [0.9, 0.95]$. A high discount factor
 encourages long-term behaviour change over short-term step increases.
 Appropriate for health habit formation.
@@ -196,6 +187,40 @@ Appropriate for health habit formation.
 \textbf{Decision epoch.} Daily decisions. This aligns with typical intervention cadence,
 the 3-week body measure delay (3 epochs), and practical deployment
 constraints.
+
+\section{Framework Design}
+\label{sec:design}
+
+The framework is organised into six modules that form a pipeline from
+configuration to results. All extension points use an ABC + registry pattern:
+implement an abstract class, register it with a key, and reference that key in
+config --- no source code changes required to add new datasets, agents, or
+behaviour models.
+
+\begin{table}[h]
+\centering
+\caption{Software modules and their dependencies}
+\begin{tabular}{lll}
+\toprule
+Module & Role & Depends on \\
+\midrule
+Config & YAML $\rightarrow$ Pydantic schemas, 3-layer validation & --- \\
+Data & Polars lazy reader, FeaturePipeline, StateView & Config \\
+MDP & Environment step/reset, Transition ABC, Reward ABC & Data \\
+UserSim & UserProfile (4 archetypes), ResponseModel ABC & MDP \\
+Agent & Agent ABC, ThompsonSampling (+ optional DQN) & UserSim \\
+Experiment & Factory wiring, CLI, results output & All above \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Config files specify dataset paths, MDP parameters, user profile
+distributions, and agent hyperparameters. The ExperimentFactory reads a
+composed experiment config, instantiates each component in dependency order,
+and runs the trial loop. Results are written to CSV with a YAML sidecar for
+reproducibility. See \texttt{docs/code/codebase\_plan.md} and
+\texttt{docs/code/code\_design.md} for the full specification and
+\texttt{README.md} for a visual dependency chart.
 
 \section{Data Sources}
 \label{sec:data}
