@@ -97,7 +97,7 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 **Reward:** `R_t = α·Δsteps - β·notification_burden + λ·goal_progress`, plus delayed body measures every 3 weeks
 
-**Discount factor:** γ ≈ 0.9–0.95
+**Discount factor:** γ ∈ [0.9, 0.99] (open question — see `initial_design.tex` decision log)
 
 ---
 
