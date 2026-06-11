@@ -33,11 +33,6 @@ def _ensure_dir(path: str | os.PathLike) -> Path:
     return p
 
 
-def _cache_path(data_dir: str | os.PathLike, name: str, *parts: str) -> Path:
-    """Return a path inside ``data_dir / name / *parts``, creating dirs."""
-    return _ensure_dir(Path(data_dir) / name / Path(*parts).parent) / Path(*parts).name
-
-
 def _download_file(
     url: str,
     dest: str | os.PathLike,
@@ -56,6 +51,20 @@ def _download_file(
             if chunk:
                 f.write(chunk)
     return dest
+
+
+def _safe_extract_zip(zf: zipfile.ZipFile, member: str, dest_dir: Path) -> None:
+    target = (dest_dir.resolve() / member).resolve()
+    if not str(target).startswith(str(dest_dir.resolve())):
+        raise ValueError(f"Path traversal detected in zip member: {member}")
+    zf.extract(member, dest_dir)
+
+
+def _safe_extract_tar(tar: tarfile.TarFile, member: tarfile.TarInfo, dest_dir: Path) -> None:
+    target = (dest_dir.resolve() / member.name).resolve()
+    if not str(target).startswith(str(dest_dir.resolve())):
+        raise ValueError(f"Path traversal detected in tar member: {member.name}")
+    tar.extract(member, dest_dir)
 
 
 def _check_kaggle_auth() -> bool:
@@ -479,9 +488,12 @@ def load_wesad(
 ) -> pl.DataFrame | None:
     """Load WESAD wearable stress-affect detection dataset from Kaggle.
 
-    Expected columns: ``user_id, timestamp, chest_ecg, chest_eda, chest_emg,
-    chest_resp, chest_temp, wrist_accel_x/y/z, wrist_eda, wrist_temp, wrist_bvp,
-    label``.
+    Expected columns: ``user_id, timestamp, chest_acc, chest_ecg, chest_eda,
+    chest_emg, chest_resp, chest_temp, label``.
+
+    .. note::
+       Only chest-worn signals are extracted (ECG, EDA, EMG, respiration,
+       temperature, and 3-axis acceleration).  Wrist signals are not returned.
     """
     dest = _kaggle_download(
         "orvile/wesad-wearable-stress-affect-detection-dataset", data_dir, "wesad"
@@ -582,7 +594,7 @@ def load_wisdm(
             with tarfile.open(tar_path, "r:gz") as tar:
                 for member in tar.getmembers():
                     if member.name.endswith("_raw.txt"):
-                        tar.extract(member, path=raw_dir)
+                        _safe_extract_tar(tar, member, raw_dir)
                         # Move to expected location
                         extracted = raw_dir / member.name
                         if extracted != raw_txt and not raw_txt.exists():
@@ -625,7 +637,7 @@ def load_wisdm(
             try_parse_dates=False,
         )
         df = df.with_columns(
-            pl.from_epoch(df["timestamp"].cast(pl.Int64), time_unit="ms")
+            pl.from_epoch(df["timestamp"].cast(pl.Int64), time_unit="ns")
         )
         df = df.with_columns(df["user_id"].cast(pl.Utf8))
         logger.info("WISDM loaded: %d rows, %d columns", df.height, df.width)
@@ -649,11 +661,6 @@ def load_mhealth(
     chest_mag_x/y/z, chest_ecg, wrist_accel_x/y/z, ankle_accel_x/y/z,
     activity``.
     """
-    cache_dir = _ensure_dir(Path(data_dir) / "mhealth")
-    marker = cache_dir / ".mhealth_done"
-    if marker.exists():
-        logger.info("MHEALTH already cached at %s", cache_dir)
-
     try:
         from ucimlrepo import fetch_ucirepo  # type: ignore[import-untyped]
     except ModuleNotFoundError:
@@ -691,7 +698,6 @@ def load_mhealth(
             df = df.rename({ts_col: "timestamp"})
             break
 
-    marker.touch()
     logger.info("MHEALTH loaded: %d rows, %d columns", df.height, df.width)
     return df
 
@@ -701,7 +707,6 @@ def load_mhealth(
 # ===================================================================
 
 _EXTRASENSORY_URLS = [
-    "http://extrasensory.ucsd.edu/extra_sensory_data/",
     "https://extrasensory.ucsd.edu/extra_sensory_data/",
 ]
 
@@ -751,7 +756,8 @@ def load_extrasensory(
         if zip_path.exists():
             try:
                 with zipfile.ZipFile(zip_path, "r") as zf:
-                    zf.extractall(dest_dir)
+                    for member in zf.namelist():
+                        _safe_extract_zip(zf, member, dest_dir)
                 zip_path.unlink()
             except Exception:
                 logger.exception("Failed to extract ExtraSensory zip")
@@ -892,7 +898,7 @@ def load_4tu_step_goals(
             with zipfile.ZipFile(zip_path, "r") as zf:
                 for member in zf.namelist():
                     if member.endswith(".csv"):
-                        zf.extract(member, dest_dir)
+                        _safe_extract_zip(zf, member, dest_dir)
             zip_path.unlink()
 
             # Move the CSV up one level for easier access
