@@ -1,0 +1,468 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+
+\title{Design Document: RL-Driven Physical Activity Interventions\\
+\large A Configurable Simulation Framework}
+\author{William Dennis\\
+Bristol x NUS Research Project\\
+\texttt{wd7512@bristol.ac.uk}}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Physical activity (PA) interventions delivered via wearable devices show promise
+for improving public health outcomes, but personalising intervention timing and
+content at scale remains an open challenge. Reinforcement learning (RL) offers a
+principled approach to learning intervention policies that adapt to individual
+behaviour over time. We present \texttt{rl-health-interventions}, a configurable
+simulation framework that models PA interventions as a Markov Decision Process
+(MDP). Researchers define their dataset schema, MDP dynamics, user behaviour
+models, and agent configurations entirely through YAML config files---no source
+code changes required. The framework enables systematic comparison of RL agents
+(Thompson Sampling, DQN, PPO) and intervention strategies on synthetic and
+real-world wearable data. This document specifies the framework architecture,
+the MDP formalisation, and key design decisions.
+\end{abstract}
+
+%% ─────────────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+
+%% ── 1.1  Background
+\subsection{Background}
+
+Physical inactivity is a leading risk factor for chronic disease worldwide.
+Just-in-time adaptive interventions (JITAIs) delivered through wearable devices
+aim to provide the right support at the right moment, leveraging real-time
+sensor data to trigger personalised prompts. However, designing effective
+intervention policies---deciding \emph{when}, \emph{what}, and \emph{how
+much} to intervene---is a sequential decision-making problem that traditional
+rule-based approaches handle poorly.
+
+Reinforcement learning provides a natural framework for this problem: an agent
+learns a policy that maps user state (step count, sleep, heart rate, time of
+day) to an intervention action (motivational prompt, goal reminder, rest
+suggestion), optimising long-term behaviour change rather than short-term
+response. The key challenge is that training RL agents requires either
+expensive real-world trials or a realistic simulation environment.
+
+%% ── 1.2  Problem Statement
+\subsection{Problem Statement}
+
+There is no standardised, configurable simulation platform for evaluating RL
+agents on PA intervention tasks. Existing work uses bespoke simulators tied to
+specific datasets or papers. This makes cross-paper comparison difficult and
+limits reproducibility.
+
+%% ── 1.3  Goals
+\subsection{Goals}
+
+This project delivers:
+
+\begin{enumerate}[noitemsep]
+    \item A \textbf{config-first simulation framework} where the dataset
+    schema, MDP, user behaviour, and agents are specified entirely via YAML
+    config files.
+    \item A \textbf{configurable MDP environment} supporting multi-timescale
+    rewards (daily steps + delayed clinical measures).
+    \item A \textbf{rule-based user simulator} grounded in behavioural theory,
+    with configurable archetypes and fatigue mechanisms.
+    \item A \textbf{library of RL agents} sharing a common interface, from
+    simple baselines (Thompson Sampling) to deep RL (DQN, PPO).
+    \item An \textbf{experiment runner} for reproducible multi-trial,
+    multi-agent comparisons.
+\end{enumerate}
+
+%% ── 1.4  Scope
+\subsection{Scope}
+
+Phase 1 (8 weeks) delivers a working CLI: \texttt{uv run rl-health-interventions
+--config experiment.yml} that trains agents and produces a results table.
+Phase 2 (stretch) adds LLM-based user simulation and validation against real
+data.
+
+%% ── 1.5  Literature Gaps
+\subsection{Literature Gaps}
+
+A systematic literature review identified five gaps this framework addresses:
+
+\begin{enumerate}[noitemsep]
+    \item No LLM simulation validated for wearable health data
+    \item No delayed-feedback bandit for 3-week clinical measures
+    \item No non-stationary adaptation for PA interventions
+    \item No standardised MDP/benchmark for PA JITAI RL
+    \item No offline RL for PA interventions with real wearable data
+\end{enumerate}
+
+These gaps are \emph{experiments run on the framework}, not part of the
+framework itself.
+
+%% ─────────────────────────────────────────────────────────────────────
+\section{Architecture}
+\label{sec:architecture}
+
+%% ── 2.1  Design Principles
+\subsection{Design Principles}
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Config-first:} Every component reads from YAML. New dataset
+    or intervention design = new config, not new code.
+    \item \textbf{Pluggable components:} Each family (transitions, rewards,
+    agents, response models) uses an ABC + registry pattern. Adding a new
+    component requires one file, one registry entry, and a config string
+    reference.
+    \item \textbf{Minimal dependencies:} Python 3.11, \texttt{uv}, Polars,
+    Pydantic, NumPy. No Stable Baselines or Gymnasium unless proven necessary.
+    \item \textbf{Reproducibility:} Config snapshots, fixed seeds, deterministic
+    evaluation.
+\end{itemize}
+
+%% ── 2.2  Component Overview
+\subsection{Component Overview}
+
+The framework is organised into five subphases, each delivering a pluggable
+component:
+
+\begin{enumerate}[noitemsep]
+    \item \textbf{Data Layer (1A):} Ingests CSV/Parquet files via Polars lazy
+    scans, applies config-driven feature engineering, and materialises a
+    numpy-backed \texttt{Dataset}. Provides a \texttt{StateView} bridge for
+    the simulation loop.
+
+    \item \textbf{MDP Environment (1B):} Exposes a clean
+    \texttt{step(state, action) $\rightarrow$ (next\_state, reward, done)} API.
+    Pluggable \texttt{TransitionModel} and \texttt{RewardHandler} components
+    are selected from a registry by config string.
+
+    \item \textbf{User Simulation (1C):} Rule-based behavioural archetypes
+    (goal-driven, social responder, resistant, stable maintainer) with
+    backlash and fatigue mechanisms. A \texttt{ResponseModel} maps
+    $(\text{state}, \text{action}, \text{profile})$ to a next state.
+
+    \item \textbf{Agent Library (1D):} Common \texttt{Agent} ABC with
+    \texttt{select\_action(state) $\rightarrow$ int} and
+    \texttt{update(...)}. Thompson Sampling is the MVP gate; deep RL
+    agents (DQN, PPO, CQL, IQL) are stretch.
+
+    \item \textbf{Experiment Runner (1E):} Wires all components via a single
+    \texttt{ExperimentFactory.build(config)}. Runs multi-trial, multi-agent
+    experiments with config snapshot reproducibility.
+\end{enumerate}
+
+%% ── 2.3  Dependency Graph
+\subsection{Dependency Graph}
+
+Tracks A (1A) and B (1B) run in parallel. Dataset exploration runs alongside
+both. After 1A and 1B complete, tracks merge at 1C (user simulation) and 1D
+(agent library). The final track is 1E (experiment runner), which depends on
+1C and 1D.
+
+%% ── 2.4  Validation
+\subsection{Validation}
+
+The factory applies three layers of validation before the main experiment loop:
+(1) Pydantic schema parsing rejects malformed configs at load time; (2) component
+compatibility checks verify registry keys and cross-references; (3) a single
+dummy \texttt{step()} catches wiring errors and shape mismatches.
+
+%% ── 2.5  Test Organisation
+\subsection{Test Organisation}
+
+Tests mirror the component module structure (\texttt{tests/unit/transitions/},
+\texttt{tests/unit/rewards/}, etc.), not subphase numbers. Every ABC method has
+at least one test. Integration and end-to-end tests cover factory wiring and the
+full experiment pipeline.
+
+%% ─────────────────────────────────────────────────────────────────────
+\section{MDP Formalisation}
+\label{sec:mdp}
+
+This section specifies the Markov Decision Process (MDP) for the first iteration
+of the simulation framework. The MDP is defined as the tuple
+$(\mathcal{S}, \mathcal{A}, P, R, \gamma)$.
+
+%% ── 3.1  State Space
+\subsection{State Space $\mathcal{S}$}
+
+The state represents the current context of a user at decision epoch $t$.
+States are constructed from wearable-device signals, user profile information,
+and intervention history:
+
+\[
+s_t = \{ \mathbf{x}_t^{\text{wearable}}, \mathbf{x}_t^{\text{context}},
+\mathbf{x}_t^{\text{history}}, \mathbf{x}^{\text{profile}} \}
+\]
+
+\begin{table}[h]
+\centering
+\caption{State variables}
+\begin{tabular}{lll}
+\toprule
+Variable & Type & Description \\
+\midrule
+$\text{steps}_t$ & $\mathbb{R}_{\geq 0}$ & Step count, past 24h \\
+$\text{hr}_t$ & $\mathbb{R}_{\geq 0}$ & Heart rate (or resting) \\
+$\text{sleep\_hours}_t$ & $\mathbb{R}_{\geq 0}$ & Previous night sleep \\
+$\text{sedentary\_min}_t$ & $\mathbb{R}_{\geq 0}$ & Sedentary minutes today \\
+$\text{time\_of\_day}_t$ & $\{0,\dots,23\}$ & Current hour \\
+$\text{day\_of\_week}_t$ & $\{0,\dots,6\}$ & Day of week \\
+$\text{goal\_progress}_t$ & $[0,1]$ & Fraction of daily goal met \\
+$\text{burden}_t$ & $\mathbb{Z}_{\geq 0}$ & Interventions sent today \\
+$a_{t-1}$ & $\mathcal{A}$ & Previous action \\
+$\text{response}_{t-1}$ & $\{0,1\}$ & Previous response \\
+$\text{body\_measure}_k$ & $\mathbb{R}$ & Clinical measure (q3wks) \\
+$\text{age}$ & $\mathbb{Z}_{>0}$ & Static profile \\
+$\text{gender}$ & $\{0,1\}$ & Static profile \\
+$\text{baseline\_activity}$ & $\{0,1,2\}$ & Low / medium / high \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Variables are normalised to $[0,1]$ before being passed to the agent. The body
+measure is only observed every 3 weeks (sparse reward signal).
+
+%% ── 3.2  Action Space
+\subsection{Action Space $\mathcal{A}$}
+
+\[
+\mathcal{A} = \{ a_0, a_1, a_2, a_3, a_4, a_5 \}
+\]
+
+\begin{table}[h]
+\centering
+\caption{Action space}
+\begin{tabular}{cll}
+\toprule
+Action & Label & Description \\
+\midrule
+$a_0$ & No message & Do not intervene \\
+$a_1$ & Motivational prompt & Generic encouragement \\
+$a_2$ & Walking suggestion & Recommend a short walk \\
+$a_3$ & Goal reminder & Remind of step goal \\
+$a_4$ & Recovery suggestion & Stretch or rest \\
+$a_5$ & Progress feedback & Report goal progress \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Exactly one action per decision epoch. The ``no message'' action is critical
+for managing notification burden.
+
+%% ── 3.3  Transition Function
+\subsection{Transition Function $P$}
+
+The transition function models the probability over next states:
+
+\[
+P(s_{t+1} \mid s_t, a_t): \mathcal{S} \times \mathcal{A} \times \mathcal{S}
+\rightarrow [0,1]
+\]
+
+In Phase 1 (rule-based), transitions follow a behavioural response model:
+
+\[
+\Delta \text{steps}_{t+1} = f(s_t, a_t, \theta_{\text{user}})
+\]
+
+where $\theta_{\text{user}}$ parameterises one of four behavioural archetypes:
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Goal-driven:} Responds to reminders and feedback.
+    Proportional to goal progress.
+    \item \textbf{Social responder:} Responds to motivational prompts.
+    Models social desirability bias.
+    \item \textbf{Resistant:} Low response. Fatigue accumulates quickly.
+    \item \textbf{Stable maintainer:} Already active. Low marginal gain.
+\end{itemize}
+
+Burden evolves as:
+
+\[
+\text{burden}_{t+1} =
+\begin{cases}
+\text{burden}_t + 1 & \text{if } a_t \neq a_0 \\
+0 & \text{if } a_t = a_0
+\end{cases}
+\]
+
+When $\text{burden} > B_{\max}$, response probability decays linearly.
+
+%% ── 3.4  Reward Function
+\subsection{Reward Function $R$}
+\label{sec:reward}
+
+\subsubsection{Immediate Reward}
+
+\[
+R_t^{\text{immediate}} = \alpha \cdot \Delta\text{steps}_t
+- \beta \cdot \mathbf{1}_{\{a_t \neq a_0\}}
++ \lambda \cdot \text{goal\_progress}_t
+\]
+
+\subsubsection{Delayed Reward (Body Measures)}
+
+Clinical body measures arrive every 3 weeks ($t = 3k$):
+
+\[
+R_{3k}^{\text{delayed}} = \eta \cdot \text{BM\_improvement}_{3k}
+\]
+
+Total reward:
+
+\[
+R_t =
+\begin{cases}
+R_t^{\text{immediate}} + R_t^{\text{delayed}} & t \equiv 0 \pmod{3} \\
+R_t^{\text{immediate}} & \text{otherwise}
+\end{cases}
+\]
+
+The compound reward (immediate + delayed) is a central research question.
+Weights $(\alpha, \beta, \lambda, \eta)$ are configurable experiment parameters.
+
+%% ── 3.5  Discount Factor
+\subsection{Discount Factor $\gamma$}
+
+\[
+\gamma \in [0.9, 0.95]
+\]
+
+A high discount factor encourages long-term behaviour change over short-term
+step increases. Appropriate for health habit formation.
+
+%% ── 3.6  Decision Epoch
+\subsection{Decision Epoch}
+
+\textbf{Daily} decisions. This aligns with the weekly intervention cadence,
+the 3-week body measure delay (3 epochs), and practical deployment constraints.
+
+%% ─────────────────────────────────────────────────────────────────────
+\section{Configurability}
+\label{sec:config}
+
+All MDP components are exposed in the config schema: state variable selection,
+action subsets, reward weights, transition archetypes, fatigue threshold,
+discount factor, and epoch frequency. New datasets or intervention designs
+require a new config file, not new code.
+
+\begin{table}[h]
+\centering
+\caption{Configurable parameters}
+\begin{tabular}{lll}
+\toprule
+Category & Parameter & Default \\
+\midrule
+State & Variable selection & All \\
+Actions & Available subsets & $\{a_0, \dots, a_5\}$ \\
+Reward & $(\alpha, \beta, \lambda, \eta)$ & $(1.0, 0.1, 0.5, 1.0)$ \\
+Transition & Archetype & goal-driven \\
+Fatigue & $B_{\max}$ & 3 \\
+Discount & $\gamma$ & 0.95 \\
+Epoch & Frequency & Daily \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ─────────────────────────────────────────────────────────────────────
+\section{Decision Log}
+\label{sec:decisions}
+
+Key decisions made during the design phase:
+
+\begin{table}[h]
+\centering
+\caption{Design decisions}
+\begin{tabular}{cll}
+\toprule
+\# & Decision & Status \\
+\midrule
+1 & Config format: YAML & Confirmed \\
+2 & Interface: CLI + config files; web UI = stretch & Confirmed \\
+3 & Python 3.11 + uv for package management & Confirmed \\
+4 & Synthetic data for Phase 1 (real data requires 4-8 week applications) & Confirmed \\
+5 & Thompson Sampling as MVP agent & Confirmed \\
+6 & Daily decision epochs & Confirmed \\
+7 & Multi-timescale reward: immediate (daily steps) + delayed (3-week body measures) & Confirmed \\
+8 & Four behavioural archetypes: goal-driven, social responder, resistant, stable maintainer & Confirmed \\
+9 & Pluggable component architecture (ABC + registry pattern) & Confirmed \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Open Decisions}
+
+\begin{enumerate}[noitemsep]
+    \item Installable package or repo-based distribution?
+    \item Does the proposed MDP look like a reasonable starting point?
+    \item Which datasets to target first for real-data validation (Phase 2)?
+\end{enumerate}
+
+%% ─────────────────────────────────────────────────────────────────────
+\section{Data Sources}
+\label{sec:data}
+
+\subsection{Phase 1: Synthetic Data}
+
+All Phase 1 experiments use synthetic data generators parameterised from
+published statistics. This avoids the 4-8 week lead time for real dataset
+access.
+
+\subsection{Phase 2: Real Data Targets}
+
+Two public datasets are under consideration:
+
+\begin{enumerate}[noitemsep]
+    \item \textbf{All of Us Fitbit Dataset} (Nature Medicine 2026): 59,000+
+    participants, Fitbit data, 14-year span. Access via cloud workbench only.
+    \item \textbf{UK Biobank Accelerometer Dataset} (npj Digital Medicine
+    2024): 700,000+ person-days, wrist-worn tri-axial accelerometer. Requires
+    institutional application (4-8 weeks).
+\end{enumerate}
+
+Supplementary: HeartSteps V1/V2 micro-randomized trials provide intervention
+response data for calibrating the user simulator.
+
+%% ─────────────────────────────────────────────────────────────────────
+\section{Timeline}
+\label{sec:timeline}
+
+\begin{table}[h]
+\centering
+\caption{Phase 1 milestones}
+\begin{tabular}{ll}
+\toprule
+Week & Milestone \\
+\midrule
+1--2 & Data layer (1A) + MDP environment (1B) \\
+3--4 & User simulation (1C) + Agent library (1D) \\
+5--6 & Experiment runner (1E) + end-to-end tests \\
+7--8 & Documentation, examples, handover \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ─────────────────────────────────────────────────────────────────────
+\section{Future Work}
+\label{sec:future}
+
+\begin{itemize}[noitemsep]
+    \item LLM-based user simulation (Phase 2 stretch)
+    \item Offline RL agents (CQL, IQL) for batch policy learning
+    \item Non-stationary environment adaptation
+    \item Cross-dataset transfer experiments
+    \item Integration with real-world JITAIs
+\end{itemize}
+
+\end{document}
