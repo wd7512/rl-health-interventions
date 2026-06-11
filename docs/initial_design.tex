@@ -88,6 +88,8 @@ This section specifies the Markov Decision Process (MDP) for the first
 iteration of the simulation framework. The MDP is defined as the tuple
 $(\mathcal{S}, \mathcal{A}, P, R, \gamma)$.
 
+\textbf{Implementation assumptions.} We assume full observability: the agent observes the complete state $s_t$ at each decision point. Episode length and action constraints (e.g., maximum interventions per day, minimum rest periods) are configurable parameters, allowing the framework to adapt to different study designs and intervention protocols.
+
 \textbf{State.} The state represents the current context of a user at decision epoch $t$.
 States are constructed from wearable-device signals, user profile
 information, and intervention history:
