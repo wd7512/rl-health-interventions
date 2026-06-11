@@ -81,7 +81,13 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 - Statistical comparison, visualisation, export
 - Reproducibility (seeds, config snapshots)
 
-**PHASE 2: LLM SIMULATION (Stretch)**
+**PHASE 2: REAL-DATA VALIDATION**  
+
+- Integrate real wearable datasets (HeartSteps first, then All of Us, UK Biobank)
+- Calibrate user simulator against observed behavioural responses
+- Benchmark agents on real data distributions
+
+**FUTURE (Post–Phase 2): LLM SIMULATION (Stretch)**  
 
 - LLM-as-user architecture (prompt-driven persona simulation)
 - Calibration against real wearable data distributions
@@ -89,15 +95,20 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 ---
 
-## Proposed MDP (from google doc)
+## MDP (formalised in `initial_design.tex`)
 
-**State:** steps, heart rate, sleep, time of day, past response history, goal progress, user profile
+**State (14 variables, see initial_design.tex appendix):**
+`steps_t`, `hr_t`, `sleep_hours_t`, `sedentary_min_t`, `time_of_day_t`,
+`day_of_week_t`, `goal_progress_t`, `burden_t`, `a_{t-1}`,
+`response_{t-1}`, `body_measure_k`, `age`, `gender`, `baseline_activity`
 
-**Actions (discrete):** no message, motivational prompt, walking suggestion, goal reminder, recovery suggestion, progress feedback
+**Actions (discrete, configurable):** no message, motivational prompt, walking suggestion, goal reminder, recovery suggestion, progress feedback. Each action carries `reward_penalty` and `burden_penalty` (zero on no-op).
 
-**Reward:** `R_t = α·Δsteps - β·notification_burden + λ·goal_progress`, plus delayed body measures every 3 weeks
+**Reward:** `R_t = α·Δsteps - β·reward_penalty_{a_t} + λ·goal_progress` (immediate) + `η·BM_improvement` (delayed body measure, configurable interval)
 
 **Discount factor:** γ ∈ [0.9, 0.99] (open question — see `initial_design.tex` decision log)
+
+**Dependencies:** Agent → MDP (Agent acts in the environment; the user simulation provides the reward and transition signals but the agent interface depends only on the MDP abstraction)
 
 ---
 
@@ -108,7 +119,7 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 - **Config format:** YAML (confirmed with Mengyan)
 - **Dependencies:** Minimal. No SB3 or Gymnasium unless proven necessary
 - **Interface:** CLI + config files (web UI = stretch goal, not necessary at this stage)
-- **Package:** TBD (installable or repo-based — to confirm with supervisors)
+- **Package:** Repo-based now; installable package if needed later (confirmed)
 
 ---
 
@@ -116,14 +127,23 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 | # | Decision | Status |
 |---|---|---|
-| 1 | Config format: YAML | Confirmed (Mengyan) |
-| 2 | Interface: CLI + config files; web UI = stretch | Confirmed (Mengyan) |
-| 3 | Installable package vs repo-based | Pending |
-
-## Open Decisions (Pending Supervisor Input)
-
-1. Installable package or repo-based?
-2. Does the proposed MDP look like a reasonable starting point? (awaiting Swapnil)
+| 1 | Config format: YAML | Confirmed |
+| 2 | Interface: CLI + config files; web UI = stretch | Confirmed |
+| 3 | Language and package manager: Python 3.11 + uv | Confirmed |
+| 4 | Phase 1 data: synthetic (real data requires 4–8 week applications) | Confirmed |
+| 5 | Baseline agent: Thompson Sampling | Confirmed |
+| 6 | Decision frequency: daily epochs | Confirmed |
+| 7 | Reward structure: multi-timescale (immediate + delayed) | Confirmed |
+| 8 | User archetypes: goal-driven, social responder, resistant, stable maintainer | Confirmed |
+| 9 | Component wiring: ABC + registry pattern | Confirmed |
+| 10 | Dependencies: minimal — no Gymnasium, no SB3 | Confirmed |
+| 11 | Distribution: repo-based now, package if needed later | Confirmed |
+| 12 | MDP formalisation | Awaiting supervisor approval (Swapnil) |
+| 13 | Phase 2 dataset priority: HeartSteps first, then All of Us, UK Biobank | Open |
+| 14 | Experiment output format: CSV, terminal table, JSON, or summary plots | Open |
+| 15 | Success metrics: regret, reward, adherence | Open |
+| 16 | Action penalties (reward_penalty, burden_penalty) per archetype | Open |
+| 17 | Discount factor γ ∈ [0.9, 0.99]: optimal range for PA interventions | Open |
 
 ---
 

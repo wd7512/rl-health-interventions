@@ -6,7 +6,7 @@ from rl_health_interventions.simulation._base import ResponseModel
 
 
 class RuleBasedResponse(ResponseModel):
-    def response(self, state: Any, action: int, profile: Any) -> Any:
+    def response(self, state: Any, action: int, profile: Any) -> float:
         return 0.0
 
 

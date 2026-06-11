@@ -41,8 +41,13 @@ class UserProfile(BaseModel):
 ```python
 class ResponseModel(ABC):
     @abstractmethod
-    def response(self, state: StateView, action: int, profile: UserProfile) -> StateView
+    def response(self, state: StateView, action: int, profile: UserProfile) -> float
 ```
+
+`ResponseModel` returns a scalar response magnitude (e.g. Δsteps), unlike
+`TransitionModel` which returns a full `StateView`. The transition model
+applies the response to produce the next state; the response model only
+predicts the behavioural outcome.
 
 ---
 
@@ -94,20 +99,21 @@ Subphase-specific concerns for 1C (user simulation):
   Inf, or a value outside the expected range (e.g., step delta > 10K),
   log WARNING with the offending value and clamp to the expected range.
   NaN/Inf in the simulator breaks the entire downstream pipeline.
-- **State evolution errors:** If a user state's motivation, burden, or
+- **State evolution errors:** If a user state's motivation or
   engagement drops below 0 or above 1, log WARNING and clamp. These are
-  bounded [0, 1] quantities by construction.
+  bounded [0, 1] quantities by construction. Burden is a non-negative
+  integer (`ℤ≥₀`) — never clamped to [0, 1].
 - **Archetype sampling:** INFO at episode start: "User synthetic_042 drawn
-  from archetype 'engaged_low_burden' (seed 42)". Useful for offline
+  from archetype 'goal_driven' (seed 42)". Useful for offline
   analysis of per-archetype performance.
 - **Non-stationarity check:** Every 50 episodes, log a DEBUG line with the
-  distribution of motivation/burden values across the active user pool.
+  distribution of motivation and burden values across the active user pool.
   Catches a buggy simulator that's stuck at one state.
 
 Related 1C tests:
 - `tests/unit/simulation/test_response_clamp.py` — out-of-range response
   is clamped, not raised.
-- `tests/unit/simulation/test_state_bounds.py` — motivation/burden never
-  escape [0, 1].
+- `tests/unit/simulation/test_state_bounds.py` — motivation/engagement never
+  escape [0, 1]; burden is non-negative integer.
 - `tests/integration/simulation/test_archetype_sampling.py` — 1000 user
   draws produce the expected archetype distribution.

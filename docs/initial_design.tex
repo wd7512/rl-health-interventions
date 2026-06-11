@@ -221,7 +221,7 @@ Config & YAML $\rightarrow$ Pydantic schemas, 3-layer validation & --- \\
 Data & Polars lazy reader, FeaturePipeline, StateView & Config \\
 MDP & Environment step/reset, Transition ABC, Reward ABC & Data \\
 UserSim & UserProfile (4 archetypes), ResponseModel ABC & MDP \\
-Agent & Agent ABC, ThompsonSampling (+ optional DQN) & UserSim \\
+Agent & Agent ABC, ThompsonSampling (+ optional DQN) & MDP \\
 Experiment & Factory wiring, CLI, results output & All above \\
 \bottomrule
 \end{tabular}

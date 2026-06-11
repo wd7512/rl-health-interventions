@@ -182,8 +182,8 @@ The MDP spec (initial_design.tex) defines these state variables:
 | `age` | ✅ | ✅ | ✅ | Demographics tables |
 | `gender` | ✅ | ✅ | ✅ | Demographics tables |
 | `baseline_activity` | ❌ | ❌ | ❌ | Derived from step distributions |
-| `previous_action` | ❌ | ❌ | ❌ | State variable (not from data) |
-| `previous_response` | ❌ | ❌ | ❌ | State variable (not from data) |
+| `a_{t-1}` (previous action) | ❌ | ❌ | ❌ | State variable (not from data) |
+| `response_{t-1}` (previous response) | ❌ | ❌ | ❌ | State variable (not from data) |
 
 **Key finding:** Between the two datasets, we can cover most wearable-derived
 MDP variables. The gaps are:
@@ -208,12 +208,17 @@ Since neither dataset is immediately accessible, Phase 1 should focus on:
 
 ### Phase 2 (After Access): Real Data Integration
 
-Once institutional access is obtained:
+Phase 2 dataset priority (per `initial_design.tex` decision log):
 
-1. **All of Us** — apply for researcher workbench access (cloud-based)
-2. **UK Biobank** — submit research application (4-8 weeks)
-3. Swap synthetic data for real data by changing the config YAML
-4. Validate simulator behaviour against real distributions
+1. **HeartSteps V1/V2** — MRT data with *action → response* mappings for calibrating the user simulator. Start data access requests early (see `additional_data_sources.md`).
+2. **All of Us** — apply for researcher workbench access (cloud-based)
+3. **UK Biobank** — submit research application (4-8 weeks)
+4. Swap synthetic data for real data by changing the config YAML
+5. Validate simulator behaviour against real distributions
+
+Several immediately-accessible datasets exist for Phase 1 pipeline testing
+and synthetic parameterisation — see `additional_data_sources.md` for
+NHANES, TILES, MMASH, ExtraSensory, and WISDM.
 
 ### Dataset Selection
 

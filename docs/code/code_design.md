@@ -7,6 +7,18 @@ Deep modules, information hiding, strategic thinking, define errors out of exist
 
 ## Module Structure
 
+The framework has 5 physical packages, corresponding to the 6 conceptual
+modules in `initial_design.tex`:
+
+| Initial design module | Physical package(s) |
+|---|---|
+| Config | Folded into `ExperimentFactory` (Pydantic schemas throughout) |
+| Data | `data/` |
+| MDP | `transitions/` + `rewards/` |
+| UserSim | `simulation/` |
+| Agent | `agents/` |
+| Experiment | `ExperimentFactory` + `Experiment` (in the runner) |
+
 Each pluggable concept gets a flat package with a `_base.py` ABC and a
 `REGISTRY` dict in `__init__.py`:
 
@@ -296,8 +308,11 @@ class Agent(ABC):
 ```python
 class ResponseModel(ABC):
     @abstractmethod
-    def response(self, state: StateView, action: int, profile: UserProfile) -> StateView: ...
+    def response(self, state: StateView, action: int, profile: UserProfile) -> float: ...
 ```
+
+Returns a scalar response magnitude (e.g. Δsteps), unlike `TransitionModel`
+which returns a full `StateView`.
 
 ### `StateView`
 

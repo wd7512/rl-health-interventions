@@ -223,7 +223,7 @@ Open access via the 4TU ResearchData repository. DOI in Hermans et al. (2023).
 
 ---
 
-## Dataset 7: NHANES Steps (Open-Access)
+## Dataset 8: NHANES Steps (Open-Access)
 
 **Source:** [PhysioNet](https://physionet.org/content/minute-level-step-count-nhanes/)
 **Year:** 2025
@@ -251,7 +251,7 @@ The largest publicly available step-count dataset. 14.7K participants with minut
 
 ---
 
-## Dataset 8: TILES (Tracking Individual Lives with Everyday Sensors)
+## Dataset 9: TILES (Tracking Individual Lives with Everyday Sensors)
 
 **Source:** [Open Science Framework](https://osf.io/jm6du/)
 **Lead:** Laura Stroud (Northwestern)
@@ -278,7 +278,7 @@ One of the few open-access datasets that combines (a) Fitbit wearable data, (b) 
 
 ---
 
-## Dataset 9: GLOBEM (Generalizable Longitudinal Behavioral Monitoring)
+## Dataset 10: GLOBEM (Generalizable Longitudinal Behavioral Monitoring)
 
 **Source:** [PhysioNet](https://physionet.org/content/globem/1.1/)
 **Year:** 2023
@@ -305,7 +305,7 @@ Multi-year passive sensing with Fitbit data. Covers behavioural patterns across 
 
 ---
 
-## Dataset 10: PAMAP2 Physical Activity Monitoring
+## Dataset 11: PAMAP2 Physical Activity Monitoring
 
 **Source:** [UCI ML Repository](https://archive.ics.uci.edu/dataset/231/pamap2+physical+activity+monitoring)
 **Also on:** [HuggingFace](https://huggingface.co/datasets/rnicrosoft/PAMAP2)
@@ -333,7 +333,7 @@ The most widely-used wearable activity recognition benchmark. Multiple body-worn
 
 ---
 
-## Dataset 11: MMASH (Multilevel Monitoring of Activity and Sleep)
+## Dataset 12: MMASH (Multilevel Monitoring of Activity and Sleep)
 
 **Source:** [PhysioNet](https://physionet.org/content/mmash/1.0.0/)
 **Year:** 2020
@@ -359,7 +359,7 @@ Rich multimodal data: heart rate, acceleration, sleep, and biomarkers — all in
 
 ---
 
-## Dataset 12: Health Gym (Synthetic RL Environments)
+## Dataset 13: Health Gym (Synthetic RL Environments)
 
 **Source:** [GitHub](https://github.com/nikooo777/health-gym)
 **Paper:** Gateno et al. (2023), *Nature Scientific Data*

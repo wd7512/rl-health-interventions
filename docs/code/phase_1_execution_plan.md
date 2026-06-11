@@ -63,7 +63,7 @@
 - **Data access:** Both datasets require institutional applications (4-8 weeks). Phase 1 uses synthetic data; real data integration is Phase 2. Exploration report complete (`sources/data_sources.md`).
 - **HeartSteps access:** HeartSteps V1/V2 (see `sources/additional_data_sources.md`) contains the only available *intervention response* data. Start access request early to avoid blocking 1C calibration.
 - **Scope creep on 1D:** Deep RL agents explicitly excluded from MVP gate. TS only.
-- **MDP confirmation:** Awaiting Swapnil sign-off on MDP spec. If he wants major changes, 1B interface may need rework.
+- **MDP confirmation:** Awaiting Swapnil sign-off on MDP spec. If he wants major changes, 1B interface may need rework. Note: `initial_design.tex` splits MDP across Config/transition/reward responsibilities; code mirrors this via `transitions/` + `rewards/` sub-packages — not a single monolithic module.
 - **Overlap tracking:** Parallel tracks need explicit integration points at 1C and 1E.
 - **Test organization:** Unit tests organised by component module (transitions/, rewards/, etc.). Gate coverage measured by module, not by test directory structure.
 

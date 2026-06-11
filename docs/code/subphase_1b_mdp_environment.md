@@ -64,11 +64,15 @@ class TransitionModel(ABC):
     def transition(self, state: StateView, action: int, user_profile: UserProfile) -> StateView
 ```
 
+Note: `initial_design.tex` groups both `TransitionModel` and `RewardHandler`
+under the MDP module. The `RewardHandler` ABC lives in `rewards/_base.py`
+(see `code_design.md`); the environment's `step()` wires both together.
+
 ---
 
 ## Blocking Risks
 
-- **MDP confirmation pending:** If Swapnil wants significant changes to the MDP structure, the environment interface may need rework. Mitigation: design the config schema around the google doc MDP and flag that deviations are config changes, not code changes.
+- **MDP confirmation pending:** If Swapnil wants significant changes to the MDP structure, the environment interface may need rework. Mitigation: design the config schema around the formal MDP (`initial_design.tex`) and flag that deviations are config changes, not code changes.
 - **Gymnasium dependency:** Not needed yet. Keep it minimal.
 
 ---
