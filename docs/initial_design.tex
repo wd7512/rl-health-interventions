@@ -260,10 +260,10 @@ dependency map.
 
 This project targets two tiers of data. \textbf{Phase 1} uses synthetic data
 generators parameterised from published population statistics (e.g., NHANES
-step counts, All of Us sleep distributions). This avoids the 4-8 week lead
-time required for real dataset access while allowing pipeline development and
-agent benchmarking. Unified data loaders for all open datasets are provided
-by the data layer (see \texttt{src/rl\_health\_interventions/data/}).
+step counts, All of Us sleep distributions). This allows pipeline development and
+agent benchmarking while real data access is being arranged. Unified data
+loaders for all open datasets are provided by the data layer (see
+\texttt{src/rl\_health\_interventions/data/}).
 
 \textbf{Phase 2} targets three real datasets for validation:
 HeartSteps V1/V2 \cite{klasnja2019heartsteps,klasnja2022heartsteps}
@@ -287,7 +287,7 @@ Question & Decision & Status \\
 What config format? & YAML & Confirmed \\
 What interface? & CLI + config files; web UI = stretch & Confirmed \\
 Which language and package manager? & Python 3.11 + \texttt{uv} & Confirmed \\
-What data for Phase 1? & Synthetic data (real data requires 4-8 weeks) & Confirmed \\
+What data for Phase 1? & Synthetic data while awaiting real data access & Open \\
 Which agent first? & Thompson Sampling & Confirmed \\
 How often are decisions made? & Daily epochs & Confirmed \\
 What reward structure? & Multi-timescale: immediate + 3-week delayed & Confirmed \\
