@@ -101,9 +101,9 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 `day_of_week_t`, `goal_progress_t`, `burden_t`, `a_{t-1}`,
 `response_{t-1}`, `body_measure_k`, `age`, `gender`, `baseline_activity`
 
-**Actions (discrete, configurable):** no message, motivational prompt, walking suggestion, goal reminder, recovery suggestion, progress feedback. Each action carries `reward_penalty` and `burden_penalty` (zero on no-op).
+**Actions (discrete, configurable):** no message, motivational prompt, walking suggestion, goal reminder, recovery suggestion, progress feedback. Each action carries `burden_penalty` and `burden_penalty` (zero on no-op).
 
-**Reward:** `R_t = α·Δsteps - β·reward_penalty_{a_t} + λ·goal_progress` (immediate) + `η·BM_improvement` (delayed body measure, every 21 days)
+**Reward:** `R_t = α·Δsteps - β·burden_penalty_{a_t} + λ·goal_progress` (immediate) + `η·BM_improvement` (delayed body measure, every 21 days)
 
 **Discount factor:** γ ∈ [0.9, 0.99] (open question — see `initial_design.tex` decision log)
 
@@ -141,7 +141,7 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 | 13 | Phase 2 dataset priority: HeartSteps first, then All of Us, UK Biobank | Open |
 | 14 | Experiment output format: CSV, terminal table, JSON, or summary plots | Open |
 | 15 | Success metrics: regret, reward, adherence | Open |
-| 16 | Action penalties (reward_penalty, burden_penalty) per archetype | Open |
+| 16 | Action penalties (burden_penalty, burden_penalty) per archetype | Open |
 | 17 | Discount factor γ ∈ [0.9, 0.99]: optimal range for PA interventions | Open |
 | 18 | Decision epoch frequency: daily (base library of policies; per-user refinement within constraints). Hourly is an alternative. | Open |
 | 19 | Merge reward penalty and burden penalty: currently separate (different roles: direct reward vs. state-accumulator). Merging is possible if simpler. | Open |

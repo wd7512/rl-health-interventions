@@ -149,7 +149,7 @@ defined in config. Each action carries two scalar properties:
 
 | Property | Role |
 |----------|------|
-| `reward_penalty` | Subtracted from the step-change reward when this action is selected |
+| `burden_penalty` | Subtracted from the step-change reward when this action is selected |
 | `burden_penalty` | Added to the user's cumulative burden when this action is selected |
 
 The no-op action (e.g. ``no message``) has zero on both axes. These penalties
