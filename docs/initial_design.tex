@@ -76,6 +76,8 @@ schema, MDP dynamics, user behaviour, and agent configurations are specified
 entirely through config files, enabling systematic cross-dataset and
 cross-policy comparisons without bespoke engineering.
 
+A comprehensive literature review with 84 papers is in \texttt{docs/sources/}.
+
 \section{MDP Formalisation}
 \label{sec:mdp}
 
@@ -309,6 +311,7 @@ What success criteria for agent comparison? & Minimum improvement threshold (e.g
 What safety constraints for health interventions? & Hard limits (max intervention frequency, min recovery period, burden threshold) to be implemented in Sprint 4. & Open \\
 How to handle ethics/privacy for Phase 2 data? & IRB approval status, GDPR/HIPAA compliance, data use agreements to be documented before real data access. & Open \\
 Is the config-driven boundary correct? & Current boundary: all parameters configurable via YAML, new component types require Python implementation. Verify this is the right balance between flexibility and implementation effort. & Open \\
+What is the treatment policy constraint? & Treatment policies are predetermined by the doctor. The RL agent can only vary within the constraints of that policy, not pick an arbitrary alternative. Clarify how this constraint interacts with the action space and personalisation. & Open \\
 \bottomrule
 \end{tabular}
 \end{table}
