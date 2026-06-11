@@ -303,7 +303,7 @@ gantt
 - **M-07:** Synthetic data statistical properties within 10% of published population statistics for steps, HR, sleep
 
 ### Core MDP Phase (M-02, M-03, M-04)
-- **M-02:** Environment.step() executes in <1ms per step; multi-timescale reward correct at 21-day boundaries
+- **M-02:** Environment.step(state, action) executes in <1ms per step; multi-timescale reward correct at 21-day boundaries
 - **M-03:** Transition model produces ≥3 distinct response patterns; burden accumulation/decay matches StepCountJITAI formulation
 - **M-04:** 4 archetypes produce statistically distinct response distributions (p<0.01, ANOVA)
 
