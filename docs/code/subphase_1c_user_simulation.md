@@ -48,11 +48,11 @@ class ResponseModel(ABC):
 
 ## Dataset Exploration
 
-✅ **COMPLETE** — see [`docs/03 Data Sources.md`](03%20Data%20Sources.md) for the full feasibility study.
+✅ **COMPLETE** — see [`sources/data_sources.md`](sources/data_sources.md) for the full feasibility study.
 
 ### Additional: JITAI Trial Datasets
 
-See [`docs/04 Additional Data Sources.md`](04%20Additional%20Data%20Sources.md) for a survey of HeartSteps V1/V2 and other accessible benchmarks. Key findings for 1C:
+See [`sources/additional_data_sources.md`](sources/additional_data_sources.md) for a survey of HeartSteps V1/V2 and other accessible benchmarks. Key findings for 1C:
 
 - **HeartSteps V1** (42 days, ~50 participants) — the best available source of *action → response* mappings. Real engagement decay curves for burden calibration.
 - **HeartSteps V2** (90 days, ~97 participants) — RL-in-the-loop data with Thompson Sampling. Provides non-stationary engagement patterns over 3 months.
@@ -84,7 +84,7 @@ See [`docs/04 Additional Data Sources.md`](04%20Additional%20Data%20Sources.md) 
 
 ## Logging & Error Handling
 
-See canonical setup in [`06 Code Design.md`](06%20Code%20Design.md#logging--error-handling-canonical).
+See canonical setup in [`code_design.md`](code_design.md#logging--error-handling-canonical).
 
 Subphase-specific concerns for 1C (user simulation):
 

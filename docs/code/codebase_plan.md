@@ -4,7 +4,7 @@
 **Context:** Bristol x NUS summer internship, 8-week foundation phase
 **Stakeholders:** William Dennis (builder), Mengyan Zhang (Bristol data), Swapnil Mishra (NUS/MLGH)
 **Repo:** `rl-health-interventions`
-**MDP Design Doc:** `docs/02 MDP Specification.tex` (formalised from google doc)
+**MDP Design Doc:** `design.tex` (formalised from google doc)
 
 ---
 
@@ -129,7 +129,7 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 ## Public Datasets (Feasibility Complete ✅)
 
-Two datasets evaluated for simulator training. Full study: [`docs/03 Data Sources.md`](03%20Data%20Sources.md).
+Two datasets evaluated for simulator training. Full study: [`sources/data_sources.md`](sources/data_sources.md).
 
 1. **All of Us Fitbit Dataset** — Nature Medicine 2026
    - 59,000+ participants, Fitbit data, 14-year span
@@ -147,11 +147,11 @@ Two datasets evaluated for simulator training. Full study: [`docs/03 Data Source
 
 **Finding:** Both datasets require institutional applications with 4-8 week lead times. Neither provides downloadable samples. **Phase 1 uses synthetic data generators parameterised from published statistics.** Real data integration is Phase 2.
 
-**Supplementary finding:** HeartSteps V1/V2 micro-randomized trials contain the only available *intervention response* data. These are smaller (50–100 participants) but directly calibrate the user simulation (1C). See [`docs/04 Additional Data Sources.md`](04%20Additional%20Data%20Sources.md).
+**Supplementary finding:** HeartSteps V1/V2 micro-randomized trials contain the only available *intervention response* data. These are smaller (50–100 participants) but directly calibrate the user simulation (1C). See [`sources/additional_data_sources.md`](sources/additional_data_sources.md).
 
 ## Logging & Error Handling
 
-See canonical setup in [`06 Code Design.md`](06%20Code%20Design.md#logging--error-handling-canonical).
+See canonical setup in [`code_design.md`](code_design.md#logging--error-handling-canonical).
 
 Project-wide observability concerns:
 

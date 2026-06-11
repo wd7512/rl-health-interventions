@@ -166,7 +166,7 @@ intensity. Values near 0 = sedentary, higher = more active.
 
 ## Gap Analysis: Datasets vs MDP Specification
 
-The MDP spec (docs/02 MDP Specification.tex) defines these state variables:
+The MDP spec (design.tex) defines these state variables:
 
 | Variable | All of Us | UK Biobank | Both Combined | Source |
 |---|---|---|---|---|
@@ -230,6 +230,6 @@ Once institutional access is obtained:
 
 | File | Purpose |
 |------|---------|
-| `docs/02 MDP Specification.tex` | Formal MDP definition with state variables |
-| `docs/01 Codebase Plan.md` | Architecture and phased delivery plan |
+| `design.tex` | Formal MDP definition with state variables |
+| `code/codebase_plan.md` | Architecture and phased delivery plan |
 | This document | Dataset feasibility and gap analysis |

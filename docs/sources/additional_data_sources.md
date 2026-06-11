@@ -2,13 +2,13 @@
 
 **Date:** 2026-06-09
 **Author:** William Dennis
-**Context:** Supplementary to `docs/03 Data Sources.md` — JITAI trial datasets, accessible benchmarks, and open wearable health data
+**Context:** Supplementary to `sources/data_sources.md` — JITAI trial datasets, accessible benchmarks, and open wearable health data
 
 ---
 
 ## Purpose
 
-`docs/03 Data Sources.md` covers large-scale population datasets (All of Us, UK Biobank). Those are excellent for *population distributions* but (a) require 4-8 week access applications and (b) contain only passive sensing — no intervention delivery or user response data.
+`sources/data_sources.md` covers large-scale population datasets (All of Us, UK Biobank). Those are excellent for *population distributions* but (a) require 4-8 week access applications and (b) contain only passive sensing — no intervention delivery or user response data.
 
 This document surveys datasets that **do include intervention delivery**, enabling direct calibration of the Subphase 1C user simulation. It also covers open-access wearable datasets for pipeline testing and synthetic data parameterisation.
 
@@ -430,7 +430,7 @@ Pre-built synthetic RL environments designed specifically for offline RL algorit
 
 | File | Purpose |
 |------|---------|
-| `docs/03 Data Sources.md` | Large-scale population dataset feasibility study |
+| `sources/data_sources.md` | Large-scale population dataset feasibility study |
 | This document | JITAI trial datasets and accessible sources |
-| `docs/02 MDP Specification.tex` | Formal MDP definition with state variables |
-| `docs/01 Codebase Plan.md` | Architecture and phased delivery plan |
+| `design.tex` | Formal MDP definition with state variables |
+| `code/codebase_plan.md` | Architecture and phased delivery plan |

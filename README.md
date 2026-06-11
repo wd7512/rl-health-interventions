@@ -32,7 +32,7 @@ Config-first design. Researchers define their dataset schema, MDP, agents, and e
 
 Phase 1 delivers: config-driven data layer, MDP environment, rule-based user simulation, RL agent library, and experiment runner. Phase 2 (stretch) adds LLM-based user simulation.
 
-See `docs/01 Codebase Plan.md` for full architecture.
+See `docs/code/codebase_plan.md` for full architecture.
 
 ## Milestones & Issues
 
@@ -55,7 +55,7 @@ See `docs/01 Codebase Plan.md` for full architecture.
 ┌─ 1A: Data Layer ───────────┐   ┌─ 1B: MDP Environment ─────────────┐   ┌─ Dataset Exploration ────┐
 │  □ DataConfig schema        │   │  □ MDPConfig schema               │   │  ☑ Investigate All of Us│
 │  □ Polars lazy reader       │   │  □ TransitionModel ABC +          │   │  ☑ Investigate UK Biobank│
-│  □ FeaturePipeline          │   │    RuleBasedTransition            │   │  ☑ Write report → docs/03 Data Sources.md│
+│  □ FeaturePipeline          │   │    RuleBasedTransition            │   │  ☑ Write report → sources/data_sources.md│
 │  □ Dataset + StateView      │   │  □ RewardHandler ABC +            │   └──────────┬─────────────┘
 │    .from_dataset() bridge   │   │    CompoundReward                 │              │
 │  □ SyntheticDataGenerator   │   │  □ FatigueTracker                 │              │
@@ -88,6 +88,6 @@ See `docs/01 Codebase Plan.md` for full architecture.
 ```
 
 Each `□` is a GitHub issue. Milestones gate on all their issues closed and CI passing.
-See `docs/phase-1-execution-plan.md` and `docs/06 Code Design.md` for detailed specifications.
+See `docs/code/phase_1_execution_plan.md` and `docs/code/code_design.md` for detailed specifications.
 
-See also `docs/04 Additional Data Sources.md` for a survey of JITAI trial datasets (HeartSteps V1/V2) that provide intervention response data for calibrating the user simulation (1C) and agent benchmarks (1D).
+See also `docs/sources/additional_data_sources.md` for a survey of JITAI trial datasets (HeartSteps V1/V2) that provide intervention response data for calibrating the user simulation (1C) and agent benchmarks (1D).

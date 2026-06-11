@@ -40,8 +40,8 @@
 |----------|------|--------|---------------|
 | 1A | Ingest + feature pipeline + synthetic data work, tested | 1C | 1B, 1D, Exploration |
 | 1B | Environment interface defined + config-driven, tested | 1C | 1A, 1D (interface only), Exploration |
-| Dataset Exploration | ✅ DONE — see `docs/03 Data Sources.md` | 1C gate | 1A, 1B |
-| Additional Data Sources | Survey of JITAI trials (HeartSteps V1/V2) and accessible benchmarks — see `docs/04 Additional Data Sources.md` | 1C calibration | 1A, 1B |
+| Dataset Exploration | ✅ DONE — see `sources/data_sources.md` | 1C gate | 1A, 1B |
+| Additional Data Sources | Survey of JITAI trials (HeartSteps V1/V2) and accessible benchmarks — see `sources/additional_data_sources.md` | 1C calibration | 1A, 1B |
 | 1C | Rule-based user profiles + dataset report exist, tested | 1E | 1D |
 | 1D | Thompson Sampling agent implemented, configured from config, tested | 1E | 1A, 1B (interface only) |
 | 1E | End-to-end experiment runs, results output, tested | — | — |
@@ -50,18 +50,18 @@
 
 ## Subphase Files
 
-- [01-subphase-1a-data-layer.md](01-subphase-1a-data-layer.md)
-- [02-subphase-1b-mdp-environment.md](02-subphase-1b-mdp-environment.md)
-- [03-subphase-1c-user-simulation.md](03-subphase-1c-user-simulation.md)
-- [04-subphase-1d-agent-library.md](04-subphase-1d-agent-library.md)
-- [05-subphase-1e-experiment-runner.md](05-subphase-1e-experiment-runner.md)
+- [subphase_1a_data_layer.md](subphase_1a_data_layer.md)
+- [subphase_1b_mdp_environment.md](subphase_1b_mdp_environment.md)
+- [subphase_1c_user_simulation.md](subphase_1c_user_simulation.md)
+- [subphase_1d_agent_library.md](subphase_1d_agent_library.md)
+- [subphase_1e_experiment_runner.md](subphase_1e_experiment_runner.md)
 
 ---
 
 ## Risks
 
-- **Data access:** Both datasets require institutional applications (4-8 weeks). Phase 1 uses synthetic data; real data integration is Phase 2. Exploration report complete (`docs/03 Data Sources.md`).
-- **HeartSteps access:** HeartSteps V1/V2 (see `docs/04 Additional Data Sources.md`) contains the only available *intervention response* data. Start access request early to avoid blocking 1C calibration.
+- **Data access:** Both datasets require institutional applications (4-8 weeks). Phase 1 uses synthetic data; real data integration is Phase 2. Exploration report complete (`sources/data_sources.md`).
+- **HeartSteps access:** HeartSteps V1/V2 (see `sources/additional_data_sources.md`) contains the only available *intervention response* data. Start access request early to avoid blocking 1C calibration.
 - **Scope creep on 1D:** Deep RL agents explicitly excluded from MVP gate. TS only.
 - **MDP confirmation:** Awaiting Swapnil sign-off on MDP spec. If he wants major changes, 1B interface may need rework.
 - **Overlap tracking:** Parallel tracks need explicit integration points at 1C and 1E.
@@ -72,7 +72,7 @@
 ## Observability
 
 The framework's observability contract is defined in
-[`06 Code Design.md`](06%20Code%20Design.md#logging--error-handling-canonical).
+[`code_design.md`](code_design.md#logging--error-handling-canonical).
 Each subphase doc specifies what's unique to that subphase; the runner
 implementation owns the CLI flags, per-episode exception isolation, the
 progress heartbeat, and the structured trace emission.
