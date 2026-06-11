@@ -73,7 +73,7 @@
 - **Access:** `kagglehub.dataset_download("orvile/wesad-wearable-stress-affect-detection-dataset")`
 - **Credentials:** Kaggle API token
 - **File format:** Pickle (`.pkl`), one per subject
-- **Size:** 60,807,600 rows, 12 columns
+- **Size:** 60,807,600 rows, 11 columns
 
 | Column | Type | Description |
 |--------|------|-------------|
