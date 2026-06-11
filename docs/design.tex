@@ -198,6 +198,11 @@ implement an abstract class, register it with a key, and reference that key in
 config --- no source code changes required to add new datasets, agents, or
 behaviour models.
 
+A typical experiment starts with a YAML file that selects the dataset,
+MDP parameters, user profiles, and agent. The framework wires everything
+from config --- adding a new dataset or agent means writing a new config
+(and optionally a new ABC subclass), not touching framework code.
+
 \begin{table}[H]
 \centering
 \caption{Software modules and their dependencies}
@@ -215,13 +220,14 @@ Experiment & Factory wiring, CLI, results output & All above \\
 \end{tabular}
 \end{table}
 
-Config files specify dataset paths, MDP parameters, user profile
-distributions, and agent hyperparameters. The ExperimentFactory reads a
-composed experiment config, instantiates each component in dependency order,
-and runs the trial loop. Results are written to CSV with a YAML sidecar for
-reproducibility. See \texttt{docs/code/codebase\_plan.md} and
-\texttt{docs/code/code\_design.md} for the full specification and
-\texttt{README.md} for a visual dependency chart.
+The ExperimentFactory reads a composed experiment config, instantiates
+each component in dependency order, and runs the trial loop. Results are
+written to CSV with a YAML sidecar for reproducibility. The ABC + registry
+pattern means swapping any component requires only a new subclass and a
+config key --- no framework modifications. See
+\texttt{docs/code/codebase\_plan.md} and \texttt{docs/code/code\_design.md}
+for the full specification and \texttt{README.md} for a visual dependency
+chart.
 
 \section{Data Sources}
 \label{sec:data}
