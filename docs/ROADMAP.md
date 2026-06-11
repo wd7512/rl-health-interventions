@@ -1,8 +1,11 @@
 ---
-# Roadmap — rl-health-interventions
-Updated: 2026-06-11 | Supersedes: README.md roadmap section
-Source inputs: initial_design.tex · docs/code/* · Phase 1–2 audit findings
+title: "Roadmap — rl-health-interventions"
+updated: "2026-06-11"
+supersedes: "README.md roadmap section"
+source_inputs: "initial_design.tex · docs/code/* · Phase 1–2 audit findings"
 ---
+
+# Roadmap — rl-health-interventions
 
 ## Vision Statement
 
@@ -10,18 +13,18 @@ Build a configurable simulation framework where RL-driven health intervention ex
 
 ## Milestone Table
 
-| ID | Name | Description | Prerequisite IDs | Sprint Target | Definition of Done |
-|----|------|-------------|-----------------|---------------|-------------------|
-| M-01 | Config Schema & Validation | Implement Pydantic schemas for all config types (DataConfig, MDPConfig, AgentConfig, ExperimentConfig) with 3-layer validation | — | Sprint 1 | All config types validated from YAML; invalid configs rejected with clear errors; 3-layer validation (schema → registry → dummy step) implemented |
-| M-02 | StateView & Environment | Implement StateView dataclass and Environment with step/reset API following MDP formalisation | M-01 | Sprint 1 | Environment.step(state, action) returns (StateView, float, bool); StateView.from_dataset() works; multi-timescale reward (immediate + 3-week delayed) functional |
-| M-03 | Transition & Reward Models | Implement RuleBasedTransition and CompoundReward with configurable parameters | M-02 | Sprint 2 | Transition model produces state changes based on action + user profile; compound reward computes immediate + delayed components; burden accumulation/decay working |
-| M-04 | User Simulation Engine | Implement UserProfile with 4 archetypes and RuleBasedResponse model | M-03 | Sprint 2 | 4 archetypes (goal-driven, social, resistant, stable) produce distinct response patterns; burden threshold triggers response decay; all parameters configurable |
-| M-05 | Thompson Sampling Agent | Implement ThompsonSamplingAgent with configurable priors and action selection | M-02 | Sprint 2 | Agent.select_action(state) returns valid action; Agent.update() updates posterior; regret decreases on known-optimal bandit problem |
-| M-06 | Experiment Runner & CLI | Implement ExperimentFactory, Experiment, and CLI with config-driven execution | M-01, M-03, M-04, M-05 | Sprint 3 | `uv run rl-health-interventions --config experiment.yml` runs end-to-end; results table output; config snapshot + seeds saved for reproducibility |
-| M-07 | Synthetic Data Pipeline | Complete synthetic data generation with realistic wearable data distributions | M-01 | Sprint 1 | SyntheticDataGenerator produces multi-feature data (steps, HR, sleep) from configurable parameters; statistical properties match published population stats |
-| M-08 | Evaluation Framework | Define baselines, metrics, and statistical analysis plan for agent comparison | M-06 | Sprint 3 | Random/fixed/rule-based baselines implemented; regret/reward/adherence metrics computed; bootstrap CIs for pairwise comparisons; power analysis documented |
-| M-09 | Documentation & Examples | Complete API docs, example configs, and contributor guide | M-06 | Sprint 3 | Sphinx/mkdocs setup; 3 example experiment configs; README quickstart produces working results; architecture diagram present |
-| M-10 | Safety & Ethics Review | Add safety constraints, privacy documentation, and ethics considerations | M-03, M-04 | Sprint 4 | Hard burden thresholds enforced; maximum intervention frequency configurable; GDPR/HIPAA compliance documented; IRB/ethics discussion added to design doc |
+| ID | Name | Description | Prerequisite IDs | Definition of Done |
+|----|------|-------------|-----------------|-------------------|
+| M-01 | Config Schema & Validation | Implement Pydantic schemas for all config types (DataConfig, MDPConfig, AgentConfig, ExperimentConfig) with 3-layer validation | — | All config types validated from YAML; invalid configs rejected with clear errors; 3-layer validation (schema → registry → dummy step) implemented |
+| M-02 | StateView & Environment | Implement StateView dataclass and Environment with step/reset API following MDP formalisation | M-01 | Environment.step(state, action) returns (StateView, float, bool); StateView.from_dataset() works; multi-timescale reward (immediate + 3-week delayed) functional |
+| M-03 | Transition & Reward Models | Implement RuleBasedTransition and CompoundReward with configurable parameters | M-02 | Transition model produces state changes based on action + user profile; compound reward computes immediate + delayed components; burden accumulation/decay working |
+| M-04 | User Simulation Engine | Implement UserProfile with 4 archetypes and RuleBasedResponse model | M-03 | 4 archetypes (goal-driven, social, resistant, stable) produce distinct response patterns; burden threshold triggers response decay; all parameters configurable |
+| M-05 | Thompson Sampling Agent | Implement ThompsonSamplingAgent with configurable priors and action selection | M-02 | Agent.select_action(state) returns valid action; Agent.update() updates posterior; regret decreases on known-optimal bandit problem |
+| M-06 | Experiment Runner & CLI | Implement ExperimentFactory, Experiment, and CLI with config-driven execution | M-01, M-03, M-04, M-05 | `uv run rl-health-interventions --config experiment.yml` runs end-to-end; results table output; config snapshot + seeds saved for reproducibility |
+| M-07 | Synthetic Data Pipeline | Complete synthetic data generation with realistic wearable data distributions | M-01 | SyntheticDataGenerator produces multi-feature data (steps, HR, sleep) from configurable parameters; statistical properties match published population stats |
+| M-08 | Evaluation Framework | Define baselines, metrics, and statistical analysis plan for agent comparison | M-06 | Random/fixed/rule-based baselines implemented; regret/reward/adherence metrics computed; bootstrap CIs for pairwise comparisons; power analysis documented |
+| M-09 | Documentation & Examples | Complete API docs, example configs, and contributor guide | M-06 | Sphinx/mkdocs setup; 3 example experiment configs; README quickstart produces working results; architecture diagram present |
+| M-10 | Safety & Ethics Review | Add safety constraints, privacy documentation, and ethics considerations | M-03, M-04 | Hard burden thresholds enforced; maximum intervention frequency configurable; GDPR/HIPAA compliance documented; IRB/ethics discussion added to design doc |
 
 ## Milestone Detail Cards
 
@@ -267,55 +270,80 @@ Build a configurable simulation framework where RL-driven health intervention ex
 
 **Source sub-plan:** Derived from Phase 1 gap analysis (no safety/ethics in design doc)
 
-## Critical Path (Mermaid Gantt)
+## Critical Path
 
 ```mermaid
-gantt
-  dateFormat  YYYY-MM-DD
-  axisFormat  %b %Y
-  title  rl-health-interventions Roadmap
-  
-  section Foundation
-    M-01 Config Schema      : m01, 2026-06-16, 2w
-    M-07 Synthetic Data     : m07, after m01, 1w
-  
-  section Core MDP
-    M-02 StateView & Env    : m02, after m01, 2w
-    M-03 Transition/Reward  : m03, after m02, 2w
-    M-04 User Simulation    : m04, after m03, 2w
-  
-  section Agent
-    M-05 Thompson Sampling  : m05, after m02, 2w
-  
-  section Integration
-    M-06 Experiment Runner  : m06, after m03 m04 m05, 2w
-    M-08 Evaluation         : m08, after m06, 1w
-    M-09 Documentation      : m09, after m06, 1w
+flowchart TD
+    M01["M-01 Config Schema & Validation"]
+    M07["M-07 Synthetic Data Pipeline"]
+    M02["M-02 StateView & Environment"]
+    M03["M-03 Transition & Reward Models"]
+    M04["M-04 User Simulation Engine"]
+    M05["M-05 Thompson Sampling Agent"]
+    M06["M-06 Experiment Runner & CLI"]
+    M08["M-08 Evaluation Framework"]
+    M09["M-09 Documentation & Examples"]
+    M10["M-10 Safety & Ethics Review"]
 
-  section Safety
-    M-10 Safety & Ethics    : m10, after m03 m04, 1w
+    M01 --> M07
+    M01 --> M02
+    M02 --> M03
+    M03 --> M04
+    M02 --> M05
+    M03 --> M06
+    M04 --> M06
+    M05 --> M06
+    M06 --> M08
+    M06 --> M09
+    M03 --> M10
+    M04 --> M10
+
+    subgraph Foundation
+        M01
+        M07
+    end
+
+    subgraph "Core MDP"
+        M02
+        M03
+        M04
+    end
+
+    subgraph Agent
+        M05
+    end
+
+    subgraph Integration
+        M06
+        M08
+        M09
+    end
+
+    subgraph Safety
+        M10
+    end
 ```
 
 ## Success Metrics
 
-### Foundation Phase (M-01, M-07)
+### Foundation (M-01, M-07)
 - **M-01:** 100% of config types validated from YAML; 3-layer validation catches ≥5 real wiring errors in test suite
 - **M-07:** Synthetic data statistical properties within 10% of published population statistics for steps, HR, sleep
 
-### Core MDP Phase (M-02, M-03, M-04)
+### Core MDP (M-02, M-03, M-04)
 - **M-02:** Environment.step(state, action) executes in <1ms per step; multi-timescale reward correct at 21-day boundaries
 - **M-03:** Transition model produces ≥3 distinct response patterns; burden accumulation/decay matches StepCountJITAI formulation
 - **M-04:** 4 archetypes produce statistically distinct response distributions (p<0.01, ANOVA)
 
-### Agent Phase (M-05)
+### Agent (M-05)
 - **M-05:** Thompson Sampling regret decreases ≥20% over 1000 episodes on bandit problem; action selection matches theoretical distribution
 
-### Integration Phase (M-06, M-08, M-09)
+### Integration (M-06, M-08, M-09)
 - **M-06:** End-to-end experiment completes in <5 minutes for 100 users × 90 days; reproducibility: identical results across 2 runs with same seed
 - **M-08:** ≥3 baselines implemented; statistical power ≥80% for detecting 10% improvement over best baseline
 - **M-09:** API docs cover 100% of public APIs; 3 example configs tested and working; README quickstart produces results in <2 minutes
 
-### Safety Phase (M-10)
+### Safety (M-10)
 - **M-10:** 100% of safety constraints enforced; zero safety violations in test suite; privacy documentation covers all 3 Phase 2 datasets
 
 ### Overall Success Criteria
@@ -323,7 +351,3 @@ gantt
 - **Framework usability:** External researcher can configure and run experiment using only documentation
 - **Reproducibility:** Same config + seed produces identical results on different machines
 - **Performance:** Thompson Sampling outperforms random baseline by ≥15% cumulative reward on synthetic data
-
----
-
-*End of Phase 3A roadmap synthesis*

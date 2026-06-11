@@ -80,11 +80,14 @@ See `docs/code/codebase_plan.md` and `docs/code/code_design.md` for full archite
                             │  □ Backlash / fatigue mechanism          │
                             └─────────────────┬───────────────────────┘
                                               ▼
-                            ┌─ 1E: Experiment Runner ──────────────────┐
-                            │  □ ExperimentConfig + full config parsing│
-                            │  □ CLI → ExperimentFactory wiring + e2e  │
-                            │  □ Results table + reproducibility      │
-                            └──────────────────────────────────────────┘
+                            ┌─ 1E: Experiment Runner ───────────────────┐
+                            │  □ M-06 ExperimentConfig + full config    │
+                            │    parsing + CLI wiring                   │
+                            │  □ Results table + reproducibility        │
+                            │  □ M-08 Evaluation Framework              │
+                            │  □ M-09 Documentation & Examples          │
+                            │  □ M-10 Safety & Ethics Review            │
+                            └───────────────────────────────────────────┘
 ```
 
 Each `□` is a GitHub issue. Milestones gate on all their issues closed and CI passing.
