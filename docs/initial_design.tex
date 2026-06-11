@@ -277,40 +277,101 @@ Detailed schema documentation and access procedures are in \texttt{docs/sources/
 
 \section{Decision Log}
 \label{sec:decisions}
+
 \begin{table}[H]
 \centering
-\begin{tabular}{p{0.30\textwidth}p{0.55\textwidth}c}
+\caption{Config}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
 \toprule
 Question & Decision & Status \\
 \midrule
 What config format? & YAML & Confirmed \\
 What interface? & CLI + config files; web UI = stretch & Confirmed \\
 Which language and package manager? & Python 3.11 + \texttt{uv} & Confirmed \\
-What data for Phase 1? & Synthetic data while awaiting real data access & Open \\
-Which agent first? & Thompson Sampling & Confirmed \\
-How often are decisions made? & Daily epochs & Confirmed \\
-What reward structure? & Multi-timescale: immediate + 3-week delayed & Confirmed \\
-Which user archetypes? & Goal-driven, social, resistant, stable maintainer & Confirmed \\
-Are user archetypes evidence-based? & Current 4 archetypes are a Phase~1 simplification. Validate against real behavioural data in Phase~2 (HeartSteps, All of Us) and refine if needed. & Open \\
-How are components wired? & ABC + registry pattern & Confirmed \\
 Which dependencies? & Minimal: no Gymnasium, no SB3 & Confirmed \\
 How to distribute? & Both: repo-based now, package if needed later & Confirmed \\
-Is MDP formalisation reasonable? & Awaiting supervisor approval & Open \\
-Which datasets for Phase 2? & HeartSteps first, then All of Us, UK Biobank & Open \\
-What format for experiment output? & CSV, terminal table, JSON, or summary plots & Open \\
-Metrics for success? & Output metrics to evaluate agent performance (regret, reward, adherence) & Open \\
-What action penalties for which archetypes? & reward\_penalty and burden\_penalty per action, per archetype & Open \\
-What discount factor range is optimal? & $\gamma \in [0.9, 0.99]$ to be explored empirically & Open \\
-Decision epoch frequency? & Daily (base library of policies; per-user refinement within constraints). Hourly is an alternative. & Open \\
-Merge reward penalty and burden penalty? & Currently separate (different roles: direct reward vs. state-accumulator). Merging is possible if simpler. & Open \\
-Which burden model is most appropriate? & Linear accumulator $\max(0, burden_t - \delta \cdot \mathbb{1}[a_t=a_0] + penalty)$ with threshold decay. Configurable decay rate $\delta$. StepCountJITAI uses bounded $[0,1]$ habituation. & Open \\
+\midrule
+Is the config-driven boundary correct? & Current boundary: all parameters configurable via YAML, new component types require Python implementation. Verify this is the right balance between flexibility and implementation effort. & Open \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Data}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
+\toprule
+Question & Decision & Status \\
+\midrule
 What activity metric for the immediate reward? & Steps (default). Active minutes, METs, or composites are configurable alternatives. & Open \\
+What format for experiment output? & CSV, terminal table, JSON, or summary plots & Open \\
+Which datasets for Phase 2? & HeartSteps first, then All of Us, UK Biobank & Open \\
+What data for Phase 1? & Synthetic data while awaiting real data access & Open \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{MDP}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
+\toprule
+Question & Decision & Status \\
+\midrule
+What reward structure? & Multi-timescale: immediate + 3-week delayed & Confirmed \\
+How often are decisions made? & Daily epochs & Confirmed \\
+How are components wired? & ABC + registry pattern & Confirmed \\
+\midrule
+Is MDP formalisation reasonable? & Awaiting supervisor approval & Open \\
+Which burden model is most appropriate? & Linear accumulator $\max(0, burden_t - \delta \cdot \mathbb{1}[a_t=a_0] + penalty)$ with threshold decay. Configurable decay rate $\delta$. StepCountJITAI uses bounded $[0,1]$ habituation. & Open \\
+What discount factor range is optimal? & $\gamma \in [0.9, 0.99]$ to be explored empirically & Open \\
+Merge reward penalty and burden penalty? & Currently separate (different roles: direct reward vs. state-accumulator). Merging is possible if simpler. & Open \\
+Decision epoch frequency? & Daily (base library of policies; per-user refinement within constraints). Hourly is an alternative. & Open \\
 Sparse vs decaying delayed reward? & 3-week sparse (current). Decaying formulation ($\eta \cdot BM \cdot \gamma^{21k-t}$) may improve credit assignment. & Open \\
-What evaluation methodology? & Baselines (random, fixed, rule-based), metrics (regret, reward, adherence, sustained change), statistical analysis (bootstrap CIs, effect sizes) to be defined before Sprint 3. & Open \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Agent}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
+\toprule
+Question & Decision & Status \\
+\midrule
+Which agent first? & Thompson Sampling & Confirmed \\
+\midrule
 What success criteria for agent comparison? & Minimum improvement threshold (e.g., $\geq$15\% reward gain over best baseline) to be determined after initial experiments. & Open \\
+What evaluation methodology? & Baselines (random, fixed, rule-based), metrics (regret, reward, adherence, sustained change), statistical analysis (bootstrap CIs, effect sizes) to be defined before Sprint 3. & Open \\
+Metrics for success? & Output metrics to evaluate agent performance (regret, reward, adherence) & Open \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{User Simulation}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
+\toprule
+Question & Decision & Status \\
+\midrule
+Which user archetypes? & Goal-driven, social, resistant, stable maintainer & Confirmed \\
+\midrule
+Are user archetypes evidence-based? & Current 4 archetypes are a Phase~1 simplification. Validate against real behavioural data in Phase~2 (HeartSteps, All of Us) and refine if needed. & Open \\
+What action penalties for which archetypes? & reward\_penalty and burden\_penalty per action, per archetype & Open \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Safety \& Ethics}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
+\toprule
+Question & Decision & Status \\
+\midrule
 What safety constraints for health interventions? & Hard limits (max intervention frequency, min recovery period, burden threshold) to be implemented in Sprint 4. & Open \\
 How to handle ethics/privacy for Phase 2 data? & IRB approval status, GDPR/HIPAA compliance, data use agreements to be documented before real data access. & Open \\
-Is the config-driven boundary correct? & Current boundary: all parameters configurable via YAML, new component types require Python implementation. Verify this is the right balance between flexibility and implementation effort. & Open \\
 What is the treatment policy constraint? & Treatment policies are predetermined by the doctor. The RL agent can only vary within the constraints of that policy, not pick an arbitrary alternative. Clarify how this constraint interacts with the action space and personalisation. & Open \\
 \bottomrule
 \end{tabular}
