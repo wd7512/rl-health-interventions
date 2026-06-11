@@ -11,6 +11,7 @@ import logging
 import os
 import tarfile
 import zipfile
+from io import StringIO
 from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import urljoin
@@ -86,17 +87,13 @@ def _check_physionet_auth() -> bool:
 def _kaggle_download(
     handle: str, data_dir: str | os.PathLike, name: str
 ) -> Path | None:
-    """Download a Kaggle dataset via kagglehub, return the local path.
+    """Download a Kaggle dataset via kagglehub, return the actual download path.
+
+    kagglehub caches downloads under ``~/.cache/kagglehub/`` internally, so
+    the returned :class:`~pathlib.Path` points directly into that cache tree.
 
     Returns ``None`` if credentials are missing.
     """
-    dest_dir = _ensure_dir(Path(data_dir) / name)
-    # Check if already downloaded
-    maybe_marker = dest_dir / ".kaggle_done"
-    if maybe_marker.exists():
-        logger.info("Kaggle dataset %s already cached at %s", handle, dest_dir)
-        return dest_dir
-
     if not _check_kaggle_auth():
         logger.warning(
             "Kaggle credentials not found.  Set up ~/.kaggle/kaggle.json or "
@@ -111,20 +108,27 @@ def _kaggle_download(
         logger.warning("kagglehub not installed; cannot download %s", handle)
         return None
 
+    # Check kagglehub cache first — avoids SSL/API errors when data is cached
+    try:
+        owner, dataset = handle.split("/", 1)
+        cache_root = Path.home() / ".cache" / "kagglehub" / "datasets" / owner / dataset / "versions"
+        if cache_root.exists():
+            versions = sorted(cache_root.iterdir())
+            if versions:
+                cached_path = versions[-1]
+                logger.info("Found cached Kaggle dataset %s at %s", handle, cached_path)
+                return cached_path
+    except Exception:
+        pass
+
     try:
         path = kagglehub.dataset_download(handle)
         if path is None:
             logger.warning("kagglehub returned None for %s", handle)
             return None
-        # symlink or copy into our cache dir
-        src = Path(path)
-        for item in src.iterdir():
-            dst = dest_dir / item.name
-            if not dst.exists():
-                os.symlink(item.resolve(), dst) if hasattr(os, "symlink") else ...
-        maybe_marker.touch()
-        logger.info("Kaggle dataset %s downloaded to %s", handle, dest_dir)
-        return dest_dir
+        dl_path = Path(path)
+        logger.info("Kaggle dataset %s available at %s", handle, dl_path)
+        return dl_path
     except Exception:
         logger.exception("Failed to download Kaggle dataset %s", handle)
         return None
@@ -216,19 +220,24 @@ def load_pmdata(
     if dest is None:
         return None
 
-    csv_files = _find_csv_files(dest)
-    if not csv_files:
-        logger.warning("No CSV files found in PMData download")
-        return None
+    # PMData is organised as: osfstorage-archive/pmdata/pXX/fitbit/sleep_score.csv
+    # where XX = 01..16.  Load every fitbit/sleep_score.csv across participants.
+    sleep_score_files = sorted(dest.rglob("fitbit/sleep_score.csv"))
+    if not sleep_score_files:
+        # fallback: any CSV files
+        csv_files = _find_csv_files(dest)
+        if not csv_files:
+            logger.warning("No CSV files found in PMData download")
+            return None
+        sleep_score_files = csv_files
 
-    # PMData contains per-user CSV files – concatenate
     frames: list[pl.DataFrame] = []
-    for f in csv_files:
+    for f in sleep_score_files:
         try:
             df = pl.read_csv(f, try_parse_dates=True)
-            # Extract user id from filename if not in columns
             if "user_id" not in df.columns:
-                user = f.stem.replace("user_", "").replace("User", "").replace("_", "")
+                # Extract user id from parent directory name (e.g. "p10")
+                user = f.parent.parent.name  # sleep_score.csv → fitbit → p10
                 df = df.with_columns(pl.lit(user).alias("user_id"))
             frames.append(df)
         except Exception:
@@ -237,7 +246,7 @@ def load_pmdata(
     if not frames:
         return None
 
-    result = pl.concat(frames, how="diagonal_relaxed")
+    result = pl.concat(frames, how="diagonal")
     # Standardise timestamp column
     for ts_col in ("date", "timestamp", "time", "datetime"):
         if ts_col in result.columns:
@@ -264,12 +273,6 @@ def load_harth(
     Expected columns: ``user_id, timestamp, thigh_accel_x/y/z, back_accel_x/y/z,
     activity``.
     """
-    cache_dir = _ensure_dir(Path(data_dir) / "harth")
-    maybe_marker = cache_dir / ".harth_done"
-    if maybe_marker.exists():
-        logger.info("HARTH already cached at %s", cache_dir)
-        return None
-
     try:
         from datasets import load_dataset  # type: ignore[import-untyped]
     except ModuleNotFoundError:
@@ -277,6 +280,7 @@ def load_harth(
         return None
 
     try:
+        cache_dir = _ensure_dir(Path(data_dir) / "harth")
         ds = load_dataset(
             "josefheidler/har_adults_2021-harth", cache_dir=str(cache_dir)
         )
@@ -294,7 +298,7 @@ def load_harth(
     if isinstance(raw, pl.DataFrame):
         df = raw
     else:
-        df = pl.concat(list(raw), how="diagonal_relaxed")
+        df = pl.concat(list(raw), how="diagonal")
 
     # Standardise columns
     col_map: dict[str, str] = {}
@@ -308,7 +312,6 @@ def load_harth(
     if "timestamp" in df.columns and df["timestamp"].dtype != pl.Datetime:
         df = df.with_columns(df["timestamp"].cast(pl.Datetime, strict=False))
 
-    maybe_marker.touch()
     logger.info("HARTH loaded: %d rows, %d columns", df.height, df.width)
     return df
 
@@ -350,7 +353,7 @@ def load_bidsleep(
 
     if not frames:
         return None
-    result = pl.concat(frames, how="diagonal_relaxed")
+    result = pl.concat(frames, how="diagonal")
     # Standardise
     for ts_col in ("date", "time", "timestamp", "datetime"):
         if ts_col in result.columns:
@@ -402,7 +405,7 @@ def load_scientisst_move(
 
     if not frames:
         return None
-    result = pl.concat(frames, how="diagonal_relaxed")
+    result = pl.concat(frames, how="diagonal")
     for ts_col in ("date", "time", "timestamp", "datetime"):
         if ts_col in result.columns:
             result = result.rename({ts_col: "timestamp"})
@@ -453,7 +456,7 @@ def load_dreamt(
 
     if not frames:
         return None
-    result = pl.concat(frames, how="diagonal_relaxed")
+    result = pl.concat(frames, how="diagonal")
     for ts_col in ("date", "time", "timestamp", "datetime"):
         if ts_col in result.columns:
             result = result.rename({ts_col: "timestamp"})
@@ -486,33 +489,59 @@ def load_wesad(
     if dest is None:
         return None
 
-    csv_files = _find_csv_files(dest)
-    if not csv_files:
-        logger.warning("No CSV files found in WESAD download")
+    # WESAD data is stored in pickle files: WESAD/S2/S2.pkl, WESAD/S5/S5.pkl, etc.
+    pkl_files = sorted(dest.rglob("*.pkl"))
+    if not pkl_files:
+        logger.warning("No .pkl files found in WESAD download")
         return None
 
+    import pickle as _pickle
+
     frames: list[pl.DataFrame] = []
-    for f in csv_files:
+    for f in pkl_files:
         try:
-            df = pl.read_csv(f, try_parse_dates=True)
-            if "user_id" not in df.columns:
-                user = f.stem.replace("_", "").replace(" ", "")
-                df = df.with_columns(pl.lit(user).alias("user_id"))
+            with open(f, "rb") as fh:
+                raw = _pickle.load(fh, encoding="latin1")
+            subject = raw["subject"]
+            labels = raw["label"].flatten()
+            chest = raw["signal"]["chest"]
+
+            n = len(labels)
+            data: dict[str, Any] = {
+                "user_id": subject,
+                "timestamp": range(n),
+                "label": labels,
+            }
+            # Map chest signal keys to output column names
+            col_map = {
+                "acc": "chest_acc",
+                "ecg": "chest_ecg",
+                "eda": "chest_eda",
+                "emg": "chest_emg",
+                "temp": "chest_temp",
+                "resp": "chest_resp",
+            }
+            for key, arr in chest.items():
+                k = key.lower()
+                col = col_map.get(k)
+                if col is None:
+                    continue
+                if arr.ndim == 2 and arr.shape[1] == 3:
+                    data[f"{col}_x"] = arr[:, 0]
+                    data[f"{col}_y"] = arr[:, 1]
+                    data[f"{col}_z"] = arr[:, 2]
+                else:
+                    data[col] = arr[:n, 0] if arr.ndim == 2 else arr[:n]
+
+            df = pl.DataFrame(data)
             frames.append(df)
         except Exception:
-            logger.debug("Skipping unreadable CSV %s", f)
+            logger.debug("Skipping unreadable pickle %s", f)
 
     if not frames:
         return None
-    result = pl.concat(frames, how="diagonal_relaxed")
-    for ts_col in ("date", "time", "timestamp", "datetime"):
-        if ts_col in result.columns:
-            result = result.rename({ts_col: "timestamp"})
-            break
-    if "timestamp" in result.columns and result["timestamp"].dtype != pl.Datetime:
-        result = result.with_columns(
-            result["timestamp"].cast(pl.Datetime, strict=False)
-        )
+    result = pl.concat(frames, how="diagonal")
+    result = result.with_columns(result["user_id"].cast(pl.Utf8))
     logger.info("WESAD loaded: %d rows, %d columns", result.height, result.width)
     return result
 
@@ -568,12 +597,21 @@ def load_wisdm(
     if not raw_txt.exists():
         return None
 
-    # WISDM raw file is space-separated, no header
-    # Columns: user_id, activity, timestamp, x_accel, y_accel, z_accel
+    # WISDM raw file is comma-separated, no header, trailing semicolons.
+    # Each line looks like: "33,Jogging,49105962326000,-0.6946377,12.680544,0.50395286;"
+    # Read as text, strip trailing semicolons, then parse as CSV.
+    # Columns: user_id, activity, timestamp, accelerometer_x, accelerometer_y, accelerometer_z
     try:
+        raw_text = raw_txt.read_text(encoding="utf-8")
+        # Some lines contain two records concatenated with a semicolon.
+        # Split on semicolons to get individual records, then filter empties.
+        records = [r.strip() for r in raw_text.replace("\n", ";").split(";")]
+        records = [r for r in records if r]
+        cleaned = "\n".join(records)
+
         df = pl.read_csv(
-            raw_txt,
-            separator=r"\s+",
+            StringIO(cleaned),
+            separator=",",
             has_header=False,
             new_columns=[
                 "user_id",
@@ -583,6 +621,7 @@ def load_wisdm(
                 "accelerometer_y",
                 "accelerometer_z",
             ],
+            truncate_ragged_lines=True,
             try_parse_dates=False,
         )
         df = df.with_columns(
@@ -739,7 +778,7 @@ def load_extrasensory(
 
     if not frames:
         return None
-    result = pl.concat(frames, how="diagonal_relaxed")
+    result = pl.concat(frames, how="diagonal")
     for ts_col in ("date", "time", "timestamp", "datetime"):
         if ts_col in result.columns:
             result = result.rename({ts_col: "timestamp"})
@@ -781,38 +820,39 @@ def load_fitbit_tracker(
         logger.warning("No CSV files found in Fitbit download")
         return None
 
-    frames: list[pl.DataFrame] = []
-    for f in csv_files:
-        try:
-            df = pl.read_csv(f, try_parse_dates=True)
-            if "user_id" not in df.columns and "Id" in df.columns:
-                df = df.rename({"Id": "user_id"})
-            elif "user_id" not in df.columns:
-                df = df.with_columns(pl.lit(f.stem.replace(" ", "_")).alias("user_id"))
-            frames.append(df)
-        except Exception:
-            logger.debug("Skipping unreadable CSV %s", f)
-
-    if not frames:
+    # Only load dailyActivity_merged.csv — it has the richest daily-level data.
+    daily = [f for f in csv_files if f.name == "dailyActivity_merged.csv"]
+    if not daily:
+        logger.warning("dailyActivity_merged.csv not found in Fitbit download")
         return None
-    result = pl.concat(frames, how="diagonal_relaxed")
 
-    # Standardise timestamp and date columns
-    for ts_col in ("date", "timestamp", "time", "datetime", "ActivityDate"):
-        if ts_col in result.columns:
-            result = result.rename({ts_col: "timestamp"})
-            break
-    if "timestamp" in result.columns and result["timestamp"].dtype != pl.Datetime:
-        result = result.with_columns(
-            result["timestamp"].cast(pl.Datetime, strict=False)
+    try:
+        df = pl.read_csv(
+            daily[0],
+            try_parse_dates=True,
+            truncate_ragged_lines=True,
+            infer_schema_length=10000,
         )
-    if "user_id" in result.columns:
-        result = result.with_columns(result["user_id"].cast(pl.Utf8))
+    except Exception:
+        logger.exception("Failed to parse dailyActivity_merged.csv")
+        return None
+
+    # Rename Id -> user_id and standardise columns
+    if "Id" in df.columns:
+        df = df.rename({"Id": "user_id"})
+    for ts_col in ("ActivityDate", "date", "timestamp", "time", "datetime"):
+        if ts_col in df.columns:
+            df = df.rename({ts_col: "timestamp"})
+            break
+    if "timestamp" in df.columns and df["timestamp"].dtype != pl.Datetime:
+        df = df.with_columns(df["timestamp"].cast(pl.Datetime, strict=False))
+    if "user_id" in df.columns:
+        df = df.with_columns(df["user_id"].cast(pl.Utf8))
 
     logger.info(
-        "Fitbit Tracker loaded: %d rows, %d columns", result.height, result.width
+        "Fitbit Tracker loaded: %d rows, %d columns", df.height, df.width
     )
-    return result
+    return df
 
 
 # ===================================================================
@@ -925,21 +965,14 @@ def load_synthetic(
     ds = generator.generate(n_users=n_users, n_timesteps=n_timesteps)
 
     # Convert the Dataset (numpy-based) to a tidy polars DataFrame
-    user_ids = np.repeat(ds.user_ids, n_timesteps)
-    timesteps = np.tile(np.arange(n_timesteps), n_users)
-
-    # Build a DataFrame with user_id, timestep, and each feature
-    records: dict[str, list[Any]] = {
-        "user_id": [],
-        "timestep": [],
+    data: dict[str, Any] = {
+        "user_id": np.repeat(ds.user_ids, n_timesteps),
+        "timestep": np.tile(np.arange(n_timesteps), n_users),
     }
-    records["user_id"].extend(user_ids.tolist())
-    records["timestep"].extend(timesteps.tolist())
-
     for feat_name, feat_arr in ds.features.items():
-        records[feat_name] = feat_arr.flatten().tolist()
+        data[feat_name] = feat_arr.flatten()
 
-    df = pl.DataFrame(records)
+    df = pl.DataFrame(data)
     df = df.with_columns(df["user_id"].cast(pl.Utf8))
 
     logger.info("Synthetic data generated: %d rows, %d columns", df.height, df.width)

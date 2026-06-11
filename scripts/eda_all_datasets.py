@@ -66,7 +66,7 @@ def describe_dataset(
     lines.append("  Missing values:")
     has_missing = False
     for col_name in df.columns:
-        m = missing[col_name][0] if missing.width > 1 else missing[col_name, 0]
+        m = missing[col_name].item()
         if m > 0:
             has_missing = True
             pct = m / total * 100
@@ -138,13 +138,12 @@ def describe_dataset(
             clean = df.select(numeric_cols).drop_nulls()
             if clean.height > 10:
                 corr = clean.corr()
-                for i, row in enumerate(corr.iter_rows()):
-                    col_name = str(row[0]).rjust(20)
+                for col_name, row in zip(corr.columns, corr.iter_rows()):
+                    cname = str(col_name).rjust(20)
                     values = "  ".join(
-                        f"{v:7.4f}" if isinstance(v, float) else str(v)[:7]
-                        for v in row[1:]
+                        f"{v:7.4f}" if isinstance(v, float) else str(v)[:7] for v in row
                     )
-                    lines.append(f"      {col_name}:  {values}")
+                    lines.append(f"      {cname}:  {values}")
             else:
                 lines.append("      (too few complete rows)")
         except Exception:
@@ -181,7 +180,7 @@ def summary_table(
         # Total missing percentage
         total_cells = df.height * df.width
         if total_cells > 0:
-            missing_total = sum(df.select(pl.all().null_count()).to_numpy().flatten())
+            missing_total = df.null_count().sum_horizontal().item()
             missing_pct = f"{missing_total / total_cells * 100:.1f}%"
         else:
             missing_pct = "—"
