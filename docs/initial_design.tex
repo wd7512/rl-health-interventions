@@ -119,13 +119,15 @@ for managing notification burden.
 
 Each action carries two scalar penalties in the config schema:
 \begin{itemize}[noitemsep]
-    \item \texttt{reward\_penalty} --- subtracted from the step-change reward at the current epoch.
+    \item \texttt{reward\_penalty} --- subtracted from the activity-change reward at the current epoch.
     \item \texttt{burden\_penalty} --- added to the user's cumulative burden (fatigue model).
 \end{itemize}
 The ``no message'' action has zero on both axes; all other actions have
 positive values. Penalties are configurable per action, allowing researchers
 to model different notification intensities (e.g. a walking suggestion may
-have higher burden cost than a motivational prompt).
+have higher burden cost than a motivational prompt). Whether these two
+penalties should be merged into a single mechanism is an open question
+--- see Decision Log \S\ref{sec:decisions}.
 
 \textbf{Transition.} The transition function models the probability over next states:
 
@@ -158,21 +160,35 @@ Burden evolves as:
 \]
 
 When $\text{burden} > B_{\max}$, response probability decays linearly.
+This is a simple linear-accumulator model. The closest published precedent
+is StepCountJITAI's bounded habituation variable \cite{karine2024stepcountjitai},
+which uses a $[0,1]$ increment/decrement formulation. The most appropriate
+burden model for PA interventions is an open question
+--- see Decision Log \S\ref{sec:decisions}.
 
 \textbf{Reward.} The reward has an immediate and a delayed component.
 
 Immediate reward:
 \[
-R_t^{\text{immediate}} = \alpha \cdot \Delta\text{steps}_t
+R_t^{\text{immediate}} = \alpha \cdot \Delta\text{activity}_t
 - \beta \cdot \text{reward\_penalty}_{a_t}
 + \lambda \cdot \text{goal\_progress}_t
 \]
+where $\Delta\text{activity}_t$ is a configurable activity metric (step
+count by default; active minutes, METs, or a composite can be substituted
+via config). Whether steps is the most appropriate primary metric is an
+open question --- see Decision Log \S\ref{sec:decisions}.
 
 Delayed reward (body measures) arrives every 3 weeks ($t = 3k$):
 
 \[
 R_{3k}^{\text{delayed}} = \eta \cdot \text{BM\_improvement}_{3k}
 \]
+
+Whether this sparse formulation is optimal, or whether a decaying reward
+(e.g. $\eta \cdot \text{BM\_improvement} \cdot \gamma^{3k-t}$ between
+body measures) would improve learning, is an open question
+--- see Decision Log \S\ref{sec:decisions}.
 
 Total reward:
 
@@ -192,9 +208,12 @@ encourages long-term behaviour change over short-term step increases.
 Appropriate for health habit formation. The optimal range for PA interventions
 is an open question --- see Decision Log \S\ref{sec:decisions}.
 
-\textbf{Decision epoch.} Daily decisions. This aligns with typical intervention cadence,
-the 3-week body measure delay (3 epochs), and practical deployment
-constraints.
+\textbf{Decision epoch.} Daily decisions. The framework provides a base library
+of policies; per-user policy refinement operates within these constraints.
+Daily decisions align with typical intervention cadence, the 3-week body
+measure delay (3 epochs), and practical deployment constraints. Whether
+hourly decisions would be more appropriate is an open question
+--- see Decision Log \S\ref{sec:decisions}.
 
 \section{Framework Design}
 \label{sec:design}
@@ -233,8 +252,8 @@ written to CSV with a YAML sidecar for reproducibility. The ABC + registry
 pattern means swapping any component requires only a new subclass and a
 config key --- no framework modifications. See
 \texttt{docs/code/codebase\_plan.md} and \texttt{docs/code/code\_design.md}
-for the full specification and \texttt{README.md} for a visual dependency
-chart.
+for the full specification and \texttt{README.md} for a milestone/issue
+dependency map.
 
 \section{Data Sources}
 \label{sec:data}
@@ -243,7 +262,8 @@ This project targets two tiers of data. \textbf{Phase 1} uses synthetic data
 generators parameterised from published population statistics (e.g., NHANES
 step counts, All of Us sleep distributions). This avoids the 4-8 week lead
 time required for real dataset access while allowing pipeline development and
-agent benchmarking.
+agent benchmarking. Unified data loaders for all open datasets are provided
+by the data layer (see \texttt{src/rl\_health\_interventions/data/}).
 
 \textbf{Phase 2} targets three real datasets for validation:
 HeartSteps V1/V2 \cite{klasnja2019heartsteps,klasnja2022heartsteps}
@@ -281,18 +301,22 @@ What format for experiment output? & CSV, terminal table, JSON, or summary plots
 Metrics for success? & Output metrics to evaluate agent performance (regret, reward, adherence) & Open \\
 What action penalties for which archetypes? & reward\_penalty and burden\_penalty per action, per archetype & Open \\
 What discount factor range is optimal? & $\gamma \in [0.9, 0.99]$ to be explored empirically & Open \\
+Decision epoch frequency? & Daily (base library of policies; per-user refinement within constraints). Hourly is an alternative. & Open \\
+Merge reward penalty and burden penalty? & Currently separate (different roles: direct reward vs. state-accumulator). Merging is possible if simpler. & Open \\
+Which burden model is most appropriate? & Linear accumulator $\max(0, burden_t + penalty)$ with threshold decay. StepCountJITAI uses bounded $[0,1]$ habituation. & Open \\
+What activity metric for the immediate reward? & Steps (default). Active minutes, METs, or composites are configurable alternatives. & Open \\
+Sparse vs decaying delayed reward? & 3-week sparse (current). Decaying formulation ($\eta \cdot BM \cdot \gamma^{3k-t}$) may improve credit assignment. & Open \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \section{Phase 2: Real-Data Validation}
 
-Phase 2 shifts from synthetic to real data. The three datasets identified in
-\S\ref{sec:data} (HeartSteps, All of Us, UK Biobank) will calibrate the user
-simulator, ground the MDP dynamics, and benchmark agent performance on
-observed behavioural responses. Beyond Phase 2, stretch goals include
-LLM-based user simulation, offline RL (CQL, IQL), and non-stationary
-environment adaptation.
+Phase 2 shifts from synthetic to real data, calibrating the user simulator
+and grounding MDP dynamics against observed behavioural responses (see
+\S\ref{sec:data}). Beyond Phase 2, stretch goals include LLM-based user
+simulation, offline RL (CQL, IQL), and non-stationary environment
+adaptation.
 
 \bibliographystyle{unsrt}
 \bibliography{references}
