@@ -25,6 +25,7 @@ implementation docs in `code/` derive from it.
 |------|-------------|
 | `data_sources.md` | Feasibility study of All of Us and UK Biobank; MDP variable gap analysis; recommends synthetic data for Phase 1 |
 | `additional_data_sources.md` | Survey of 12 JITAI trial and wearable datasets; gap analysis matrix; priority-ordered recommendations |
+| `data_availability_schema.md` | Schema reference and credential setup for all 14 datasets; access status, column types, and EDA instructions |
 | `all_of_us_fitbit_dataset.md` | Deep dive into All of Us Fitbit BigQuery schema (7 tables); SQL examples; MDP variable mapping |
 | `bidsleep_sleep_staging.md` | Apple Watch HR/accel + Dreem 2 EEG gold-standard sleep labels; multi-night variability |
 | `4tu_coaching_datasets.md` | 5 open-access coaching intervention datasets with step response data; only open-access intervention response data available |
