@@ -13,8 +13,8 @@
 \geometry{margin=2.5cm}
 \hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
 
-\title{Initial Design Document: RL-Driven Physical Activity Interventions\\
-\large A Configurable Simulation Framework}
+\title{Initial Design Document: RL-Driven Just-in-Time Adaptive Interventions\\
+\large A Configurable Simulation Framework for Physical Activity}
 \author{William Dennis\\
 Bristol x NUS Research Project\\
 \texttt{ky23812@bristol.ac.uk}}
@@ -32,14 +32,16 @@ Bristol x NUS Research Project\\
 Reinforcement learning offers a principled approach to personalising
 just-in-time adaptive interventions (JITAIs) for physical activity, but
 training RL agents requires either expensive real-world trials or a realistic
-simulation environment. Existing simulators are bespoke and tied to specific
-datasets or papers, making cross-paper comparison difficult and limiting
-reproducibility. We present \texttt{rl-health-interventions}, a configurable
-simulation framework where the dataset schema, MDP dynamics, user behaviour
-models, and agent configurations are specified entirely through YAML config
-files---no source code changes required. The framework enables systematic
-comparison of RL agents on PA intervention tasks using synthetic data in
-Phase 1, with real-data integration planned for Phase 2.
+simulation environment. While existing simulation environments such as
+StepCountJITAI \cite{karine2024stepcountjitai} and Health Gym
+\cite{gateno2023healthgym} provide valuable foundations, they are scoped to
+specific datasets or research questions. This work supports a cohort study on physical activity and health behaviour change, building a simulation framework to test intervention strategies before real-world deployment. We present \texttt{rl-health-interventions},
+a configurable simulation framework for just-in-time adaptive interventions (JITAIs):
+the dataset schema, MDP dynamics, user behaviour models, and agent configurations
+are specified entirely through YAML config files---no source code changes
+required. This enables systematic comparison of RL agents on PA intervention
+tasks using synthetic data in Phase 1, with real-data integration planned for
+Phase 2.
 
 The initial implementation delivers a rule-based user simulator with four
 behavioural archetypes, a multi-timescale MDP environment (daily steps +
@@ -47,6 +49,8 @@ delayed 3-week clinical measures), and Thompson Sampling as the baseline
 agent \cite{karine2024stepcountjitai,klasnja2019heartsteps}. Deep RL agents
 (DQN, PPO) will be added if time permits. All
 components share a common ABC + registry interface for extensibility.
+
+\textbf{Research objectives.} We aim to investigate: (1) which state features best predict user response to interventions, (2) whether Thompson Sampling outperforms fixed and rule-based baselines under heterogeneous user archetypes, (3) how short-term wearable signals and long-term health outcomes can be combined in a multi-timescale reward, and (4) whether LLM-simulated users provide realistic evaluation environments for RL policy testing. These questions are exploratory; the framework is a tool for investigation, not a guaranteed outcome.
 
 \section{Literature Review}
 \label{sec:lit}
@@ -72,12 +76,16 @@ schema, MDP dynamics, user behaviour, and agent configurations are specified
 entirely through config files, enabling systematic cross-dataset and
 cross-policy comparisons without bespoke engineering.
 
+A comprehensive literature review with 84 papers is in \texttt{docs/sources/}.
+
 \section{MDP Formalisation}
 \label{sec:mdp}
 
 This section specifies the Markov Decision Process (MDP) for the first
 iteration of the simulation framework. The MDP is defined as the tuple
 $(\mathcal{S}, \mathcal{A}, P, R, \gamma)$.
+
+\textbf{Implementation assumptions.} We assume full observability: the agent observes the complete state $s_t$ at each decision point. Episode length and action constraints (e.g., maximum interventions per day, minimum rest periods) are configurable parameters, allowing the framework to adapt to different study designs and intervention protocols.
 
 \textbf{State.} The state represents the current context of a user at decision epoch $t$.
 States are constructed from wearable-device signals, user profile
@@ -230,7 +238,7 @@ behaviour models.
 A typical experiment starts with a YAML file that selects the dataset,
 MDP parameters, user profiles, and agent. The framework wires everything
 from config --- adding a new dataset or agent means writing a new config
-(and optionally a new ABC subclass), not touching framework code.
+(and optionally a new ABC subclass), not touching framework code. All dataset schemas, MDP parameters (state variables, action space, reward weights, transition models), user archetypes, and agent hyperparameters are configurable via YAML. Adding new component types (e.g., novel transition models, new agents) requires Python implementation but follows a standard interface pattern.
 
 \begin{table}[H]
 \centering
@@ -258,57 +266,111 @@ config key --- no framework modifications. See
 for the full specification and \texttt{README.md} for a milestone/issue
 dependency map.
 
-\section{Data Sources}
+\section{Data Availability}
 \label{sec:data}
 
-This project targets two tiers of data. \textbf{Phase 1} uses synthetic data
-generators parameterised from published population statistics (e.g., NHANES
-step counts, All of Us sleep distributions). This allows pipeline development and
-agent benchmarking while real data access is being arranged. Unified data
-loaders for all open datasets are provided by the data layer (see
-\texttt{src/rl\_health\_interventions/data/}).
+This project uses a three-tier data strategy. \textbf{Phase 1} combines synthetic data generators (parameterised from published population statistics) with seven immediately-accessible open datasets for pipeline validation: PMData (1,836 rows, Kaggle), HARTH (8.3M rows, HuggingFace), WESAD (60.8M rows, Kaggle), WISDM (1.1M rows, direct download), Fitbit Tracker (940 rows, Kaggle), 4TU Step Goals (117 rows, direct download), and synthetic generation. These datasets provide real wearable data for testing the ingestion pipeline and parameterising synthetic generators before Phase 2 access is granted.
 
-\textbf{Phase 2} targets three real datasets for validation:
-HeartSteps V1/V2 \cite{klasnja2019heartsteps,klasnja2022heartsteps}
-provide MRT data with intervention response mappings for calibrating the
-user simulator. The All of Us Fitbit Dataset \cite{patten2026allofus}
-offers 59,000+ participants with wearable data and EHR linkage. The UK
-Biobank Accelerometer Dataset \cite{williamson2024ukbiobank} provides
-700,000+ person-days of raw accelerometer data.
+\textbf{Phase 2} targets three large-scale datasets requiring institutional applications: HeartSteps V1/V2 \cite{klasnja2019heartsteps,klasnja2022heartsteps} provide MRT data with intervention response mappings for calibrating the user simulator. The All of Us Fitbit Dataset \cite{patten2026allofus} offers 59,000+ participants with wearable data and EHR linkage (4-8 week application, cloud-only access). The UK Biobank Accelerometer Dataset \cite{williamson2024ukbiobank} provides 700,000+ person-days of raw accelerometer data (4-8 week application).
 
-Detailed feasibility studies are in \texttt{docs/sources/data\_sources.md}
-and \texttt{docs/sources/additional\_data\_sources.md}.
+Detailed schema documentation and access procedures are in \texttt{docs/sources/data\_availability\_schema.md}. Feasibility studies for Phase 2 datasets are in \texttt{docs/sources/data\_sources.md} and \texttt{docs/sources/additional\_data\_sources.md}.
 
 \section{Decision Log}
 \label{sec:decisions}
+
 \begin{table}[H]
 \centering
-\begin{tabular}{p{0.30\textwidth}p{0.55\textwidth}c}
+\caption{Config}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
 \toprule
 Question & Decision & Status \\
 \midrule
 What config format? & YAML & Confirmed \\
 What interface? & CLI + config files; web UI = stretch & Confirmed \\
 Which language and package manager? & Python 3.11 + \texttt{uv} & Confirmed \\
-What data for Phase 1? & Synthetic data while awaiting real data access & Open \\
-Which agent first? & Thompson Sampling & Confirmed \\
-How often are decisions made? & Daily epochs & Confirmed \\
-What reward structure? & Multi-timescale: immediate + 3-week delayed & Confirmed \\
-Which user archetypes? & Goal-driven, social, resistant, stable maintainer & Confirmed \\
-How are components wired? & ABC + registry pattern & Confirmed \\
 Which dependencies? & Minimal: no Gymnasium, no SB3 & Confirmed \\
 How to distribute? & Both: repo-based now, package if needed later & Confirmed \\
-Is MDP formalisation reasonable? & Awaiting supervisor approval & Open \\
-Which datasets for Phase 2? & HeartSteps first, then All of Us, UK Biobank & Open \\
-What format for experiment output? & CSV, terminal table, JSON, or summary plots & Open \\
-Metrics for success? & Output metrics to evaluate agent performance (regret, reward, adherence) & Open \\
-What action penalties for which archetypes? & reward\_penalty and burden\_penalty per action, per archetype & Open \\
-What discount factor range is optimal? & $\gamma \in [0.9, 0.99]$ to be explored empirically & Open \\
-Decision epoch frequency? & Daily (base library of policies; per-user refinement within constraints). Hourly is an alternative. & Open \\
-Merge reward penalty and burden penalty? & Currently separate (different roles: direct reward vs. state-accumulator). Merging is possible if simpler. & Open \\
-Which burden model is most appropriate? & Linear accumulator $\max(0, burden_t - \delta \cdot \mathbb{1}[a_t=a_0] + penalty)$ with threshold decay. Configurable decay rate $\delta$. StepCountJITAI uses bounded $[0,1]$ habituation. & Open \\
+\midrule
+Is the config-driven boundary correct? & Current boundary: all parameters configurable via YAML, new component types require Python implementation. Verify this is the right balance between flexibility and implementation effort. & Open \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Data}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
+\toprule
+Question & Decision & Status \\
+\midrule
 What activity metric for the immediate reward? & Steps (default). Active minutes, METs, or composites are configurable alternatives. & Open \\
+What format for experiment output? & CSV, terminal table, JSON, or summary plots & Open \\
+Which datasets for Phase 2? & HeartSteps first, then All of Us, UK Biobank (see \S\ref{sec:data}) & Confirmed \\
+What data for Phase 1? & Synthetic data + 7 open datasets for pipeline validation (see \S\ref{sec:data}) & Confirmed \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{MDP}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
+\toprule
+Question & Decision & Status \\
+\midrule
+What reward structure? & Multi-timescale: immediate + 3-week delayed & Confirmed \\
+How are components wired? & ABC + registry pattern & Confirmed \\
+\midrule
+What is the decision epoch cadence? & Daily (hourly is a configurable alternative). To be validated empirically. & Open \\
+Is MDP formalisation reasonable? & Awaiting supervisor approval & Open \\
+Which burden model is most appropriate? & Linear accumulator $\max(0, burden_t - \delta \cdot \mathbb{1}[a_t=a_0] + penalty)$ with threshold decay. Configurable decay rate $\delta$. StepCountJITAI uses bounded $[0,1]$ habituation. & Open \\
+What discount factor range is optimal? & $\gamma \in [0.9, 0.99]$ to be explored empirically & Open \\
+How should action penalties relate? & Currently separate mechanisms: reward\_penalty (direct reward subtraction) and burden\_penalty (state-accumulator addition), configurable per action and per archetype. Merging is possible if simpler. & Open \\
 Sparse vs decaying delayed reward? & 3-week sparse (current). Decaying formulation ($\eta \cdot BM \cdot \gamma^{21k-t}$) may improve credit assignment. & Open \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Agent}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
+\toprule
+Question & Decision & Status \\
+\midrule
+Which agent first? & Thompson Sampling & Confirmed \\
+\midrule
+What success criteria for agent comparison? & Minimum improvement threshold (e.g., $\geq$15\% reward gain over best baseline) to be determined after initial experiments. & Open \\
+What evaluation methodology? & Baselines (random, fixed, rule-based), metrics (regret, reward, adherence, sustained change), statistical analysis (bootstrap CIs, effect sizes) to be defined before Sprint 3. & Open \\
+Metrics for success? & Output metrics to evaluate agent performance (regret, reward, adherence) & Open \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{User Simulation}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
+\toprule
+Question & Decision & Status \\
+\midrule
+Which user archetypes? & Goal-driven, social, resistant, stable maintainer & Confirmed \\
+\midrule
+Are user archetypes evidence-based? & Current 4 archetypes are a Phase~1 simplification. Validate against real behavioural data in Phase~2 (HeartSteps, All of Us) and refine if needed. & Open \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Safety \& Ethics}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
+\toprule
+Question & Decision & Status \\
+\midrule
+What safety constraints for health interventions? & Hard limits (max intervention frequency, min recovery period, burden threshold) to be implemented in Sprint 4. & Open \\
+How to handle ethics/privacy for Phase 2 data? & IRB approval status, GDPR/HIPAA compliance, data use agreements to be documented before real data access. & Open \\
+What is the treatment policy constraint? & Treatment policies are predetermined by the doctor. The RL agent can only vary within the constraints of that policy, not pick an arbitrary alternative. Clarify how this constraint interacts with the action space and personalisation. & Open \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -317,9 +379,21 @@ Sparse vs decaying delayed reward? & 3-week sparse (current). Decaying formulati
 
 Phase 2 shifts from synthetic to real data, calibrating the user simulator
 and grounding MDP dynamics against observed behavioural responses (see
-\S\ref{sec:data}). Beyond Phase 2, stretch goals include LLM-based user
+\S\ref{sec:data}). Phase 1 scope is fixed and must be completed before any stretch goals are attempted. Beyond Phase 2, stretch goals include LLM-based user
 simulation, offline RL (CQL, IQL), and non-stationary environment
-adaptation.
+adaptation. User behaviour clustering will inform the LLM simulation design,
+enabling persona-based response models grounded in observed behavioural patterns.
+
+\textbf{Implementation roadmap.} A comprehensive audit (June 2026) generated
+43 issues across 4 domains: 10 milestone issues (M-01 through M-10), 13 risk
+issues (including 5 RL-specific risks), 8 documentation debt issues, and 12
+stub implementation issues. The roadmap spans 4 sprints (12--16 weeks):
+Sprint~1 (config schemas, StateView/Environment, synthetic data, CI/CD),
+Sprint~2 (transition/reward models, user simulation, Thompson Sampling),
+Sprint~3 (experiment runner, evaluation framework, documentation), and
+Sprint~4 (safety constraints, ethics documentation, clinical validity). Full
+audit reports available in \texttt{reports/} directory and
+\texttt{AUDIT\_MASTER.md}.
 
 \bibliographystyle{unsrt}
 \bibliography{references}
