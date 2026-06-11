@@ -269,26 +269,14 @@ config key --- no framework modifications. See
 for the full specification and \texttt{README.md} for a milestone/issue
 dependency map.
 
-\section{Data Sources}
+\section{Data Availability}
 \label{sec:data}
 
-This project targets two tiers of data. \textbf{Phase 1} uses synthetic data
-generators parameterised from published population statistics (e.g., NHANES
-step counts, All of Us sleep distributions). This allows pipeline development and
-agent benchmarking while real data access is being arranged. Unified data
-loaders for all open datasets are provided by the data layer (see
-\texttt{src/rl\_health\_interventions/data/}).
+This project uses a three-tier data strategy. \textbf{Phase 1} combines synthetic data generators (parameterised from published population statistics) with seven immediately-accessible open datasets for pipeline validation: PMData (1,836 rows, Kaggle), HARTH (8.3M rows, HuggingFace), WESAD (60.8M rows, Kaggle), WISDM (1.1M rows, direct download), Fitbit Tracker (940 rows, Kaggle), 4TU Step Goals (117 rows, direct download), and synthetic generation. These datasets provide real wearable data for testing the ingestion pipeline and parameterising synthetic generators before Phase 2 access is granted.
 
-\textbf{Phase 2} targets three real datasets for validation:
-HeartSteps V1/V2 \cite{klasnja2019heartsteps,klasnja2022heartsteps}
-provide MRT data with intervention response mappings for calibrating the
-user simulator. The All of Us Fitbit Dataset \cite{patten2026allofus}
-offers 59,000+ participants with wearable data and EHR linkage. The UK
-Biobank Accelerometer Dataset \cite{williamson2024ukbiobank} provides
-700,000+ person-days of raw accelerometer data.
+\textbf{Phase 2} targets three large-scale datasets requiring institutional applications: HeartSteps V1/V2 \cite{klasnja2019heartsteps,klasnja2022heartsteps} provide MRT data with intervention response mappings for calibrating the user simulator. The All of Us Fitbit Dataset \cite{patten2026allofus} offers 59,000+ participants with wearable data and EHR linkage (4-8 week application, cloud-only access). The UK Biobank Accelerometer Dataset \cite{williamson2024ukbiobank} provides 700,000+ person-days of raw accelerometer data (4-8 week application).
 
-Detailed feasibility studies are in \texttt{docs/sources/data\_sources.md}
-and \texttt{docs/sources/additional\_data\_sources.md}.
+Detailed schema documentation and access procedures are in \texttt{docs/sources/data\_availability\_schema.md}. Feasibility studies for Phase 2 datasets are in \texttt{docs/sources/data\_sources.md} and \texttt{docs/sources/additional\_data\_sources.md}.
 
 \section{Decision Log}
 \label{sec:decisions}
