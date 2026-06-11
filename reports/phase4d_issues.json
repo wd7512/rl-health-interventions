@@ -1,0 +1,115 @@
+[
+  {
+    "id": "IMPL-01",
+    "title": "IMPL: src/rl_health_interventions/data/synthetic.py \u2014 Implement multi-feature synthetic data generation",
+    "body": "## What must be implemented\nSyntheticDataGenerator currently generates only 'steps' feature. Must generate: steps, heart_rate, sleep_hours, sedentary_min, with realistic distributions from published population statistics.\n\n## Test Criteria\n- [ ] Output includes steps, HR, sleep, sedentary features\n- [ ] Step counts non-negative, mean ~8000, std ~2000\n- [ ] Heart rate in physiological range (40-200 bpm)\n- [ ] Sleep hours realistic (4-12 hours)\n- [ ] No NaN values in output\n- [ ] Configurable distribution parameters\n- [ ] Reproducible with seed",
+    "labels": [
+      "implementation",
+      "good-first-issue"
+    ],
+    "blocking_milestone": "M-07"
+  },
+  {
+    "id": "IMPL-02",
+    "title": "IMPL: src/rl_health_interventions/data/feature_pipeline.py \u2014 Implement config-driven feature engineering",
+    "body": "## What must be implemented\nFeaturePipeline is currently a stub that accepts config but ignores it. Must implement: from_config() that builds Polars lazy computation graph, transform() that applies aggregations, rolling windows, normalisation.\n\n## Test Criteria\n- [ ] from_config() builds computation graph from config\n- [ ] transform() applies normalisation, aggregation, derived features\n- [ ] Polars lazy API used for efficiency\n- [ ] Output is numpy arrays for simulation loop\n- [ ] Config-driven column mapping works\n- [ ] Tests for each transform type",
+    "labels": [
+      "implementation",
+      "good-first-issue"
+    ],
+    "blocking_milestone": "M-01"
+  },
+  {
+    "id": "IMPL-03",
+    "title": "IMPL: src/rl_health_interventions/transitions/rule_based.py \u2014 Implement behavioural response model",
+    "body": "## What must be implemented\nRuleBasedTransition.transition() currently returns state unchanged. Must implement: state change based on action + user profile, burden accumulation/decay, archetype-specific responses.\n\n## Test Criteria\n- [ ] transition() produces different state changes for different actions\n- [ ] Burden accumulates on intervention, decays on no-action\n- [ ] Burden threshold triggers response decay\n- [ ] 4 archetypes produce distinct response patterns\n- [ ] Configurable parameters for each archetype\n- [ ] Tests for each archetype response direction",
+    "labels": [
+      "implementation"
+    ],
+    "blocking_milestone": "M-03"
+  },
+  {
+    "id": "IMPL-04",
+    "title": "IMPL: src/rl_health_interventions/rewards/compound.py \u2014 Implement multi-timescale reward",
+    "body": "## What must be implemented\nCompoundReward.reward() currently returns (0.0, False). Must implement: immediate reward (\u03b1\u00b7\u0394activity - \u03b2\u00b7reward_penalty + \u03bb\u00b7goal_progress), delayed reward (\u03b7\u00b7BM_improvement every 21 days), burden tracking.\n\n## Test Criteria\n- [ ] Immediate reward computed correctly with configurable weights\n- [ ] Delayed reward non-zero only at 21-day boundaries\n- [ ] Total reward = immediate + delayed at boundary epochs\n- [ ] Action penalties applied correctly\n- [ ] Goal progress calculation defined and tested\n- [ ] Tests for reward components",
+    "labels": [
+      "implementation"
+    ],
+    "blocking_milestone": "M-03"
+  },
+  {
+    "id": "IMPL-05",
+    "title": "IMPL: src/rl_health_interventions/agents/thompson_sampling.py \u2014 Implement full Thompson Sampling algorithm",
+    "body": "## What must be implemented\nThompsonSamplingAgent currently returns action 0 always. Must implement: posterior sampling, action selection based on sampled values, posterior updates after each step, configurable priors.\n\n## Test Criteria\n- [ ] select_action() samples from posterior and returns action\n- [ ] update() updates posterior with observed reward\n- [ ] Regret decreases over time on bandit problem\n- [ ] Configurable prior parameters\n- [ ] Handles exploration-exploitation tradeoff\n- [ ] Tests for action distribution, posterior updates, regret",
+    "labels": [
+      "implementation"
+    ],
+    "blocking_milestone": "M-05"
+  },
+  {
+    "id": "IMPL-06",
+    "title": "IMPL: src/rl_health_interventions/simulation/rule_based.py \u2014 Implement archetype-specific response model",
+    "body": "## What must be implemented\nRuleBasedResponse.response() currently returns 0.0. Must implement: archetype-specific response magnitudes, burden threshold effects, parameterised response functions.\n\n## Test Criteria\n- [ ] response() returns different values for different archetypes\n- [ ] Goal-driven responds to reminders/feedback\n- [ ] Social responder responds to motivational prompts\n- [ ] Resistant shows flat response\n- [ ] Stable maintainer shows low marginal gain\n- [ ] Burden threshold reduces response probability\n- [ ] Tests for each archetype",
+    "labels": [
+      "implementation"
+    ],
+    "blocking_milestone": "M-04"
+  },
+  {
+    "id": "IMPL-07",
+    "title": "IMPL: src/rl_health_interventions/__main__.py \u2014 Implement CLI with config-driven experiment execution",
+    "body": "## What must be implemented\n__main__.py currently prints 'Hello' and exits. Must implement: CLI argument parsing (--config flag), config loading, ExperimentFactory invocation, results output.\n\n## Test Criteria\n- [ ] CLI accepts --config argument\n- [ ] Config loaded and validated\n- [ ] Experiment runs end-to-end\n- [ ] Results output to console and file\n- [ ] Config snapshot saved with results\n- [ ] Seed management for reproducibility\n- [ ] Tests for CLI argument parsing",
+    "labels": [
+      "implementation"
+    ],
+    "blocking_milestone": "M-06"
+  },
+  {
+    "id": "IMPL-08",
+    "title": "IMPL: NEW \u2014 src/rl_health_interventions/state.py \u2014 Implement StateView dataclass",
+    "body": "## What must be implemented\nStateView dataclass as defined in code_design.md: features dict, user_id, timestamp, metadata, from_dataset() classmethod.\n\n## Test Criteria\n- [ ] StateView is a dataclass with correct fields\n- [ ] from_dataset(dataset, user_idx, t) extracts correct slice\n- [ ] Features dict contains all state variables\n- [ ] Metadata includes week number, body measure flag\n- [ ] Type hints are concrete (not Any)\n- [ ] Tests for StateView creation and slicing",
+    "labels": [
+      "implementation",
+      "good-first-issue"
+    ],
+    "blocking_milestone": "M-02"
+  },
+  {
+    "id": "IMPL-09",
+    "title": "IMPL: NEW \u2014 src/rl_health_interventions/environment.py \u2014 Implement Environment with step/reset API",
+    "body": "## What must be implemented\nEnvironment class with step(state, action) \u2192 (StateView, float, bool) and reset() \u2192 StateView. Multi-timescale reward accumulator. Episode termination logic.\n\n## Test Criteria\n- [ ] step() returns (StateView, float, bool) tuple\n- [ ] reset() returns initial StateView\n- [ ] Reward includes immediate + delayed components\n- [ ] Delayed reward at correct 21-day boundaries\n- [ ] Episode termination works (fixed-length or condition)\n- [ ] Tests for step API contract, reward timing, episode boundaries",
+    "labels": [
+      "implementation"
+    ],
+    "blocking_milestone": "M-02"
+  },
+  {
+    "id": "IMPL-10",
+    "title": "IMPL: NEW \u2014 src/rl_health_interventions/config/schemas.py \u2014 Implement all Pydantic config schemas",
+    "body": "## What must be implemented\nDataConfig, MDPConfig, ActionSpec, RewardWeights, AgentConfig, ExperimentConfig as Pydantic models. 3-layer validation pipeline.\n\n## Test Criteria\n- [ ] All config types defined as Pydantic models\n- [ ] YAML \u2192 Pydantic loading works\n- [ ] Invalid configs raise ValidationError with clear messages\n- [ ] 3-layer validation: schema \u2192 registry \u2192 dummy step\n- [ ] Config defaults documented\n- [ ] Tests for valid/invalid configs",
+    "labels": [
+      "implementation",
+      "good-first-issue"
+    ],
+    "blocking_milestone": "M-01"
+  },
+  {
+    "id": "IMPL-11",
+    "title": "IMPL: NEW \u2014 src/rl_health_interventions/simulation/user_profile.py \u2014 Implement UserProfile schema",
+    "body": "## What must be implemented\nUserProfile Pydantic schema with archetype field (4 options) and parameters dict. Default parameter ranges for each archetype.\n\n## Test Criteria\n- [ ] UserProfile is a Pydantic model\n- [ ] Archetype field accepts 4 values\n- [ ] Parameters dict is validated\n- [ ] Default parameters for each archetype\n- [ ] Invalid archetypes rejected\n- [ ] Tests for profile creation and validation",
+    "labels": [
+      "implementation",
+      "good-first-issue"
+    ],
+    "blocking_milestone": "M-04"
+  },
+  {
+    "id": "IMPL-12",
+    "title": "IMPL: NEW \u2014 src/rl_health_interventions/experiment/ \u2014 Implement ExperimentFactory and Experiment",
+    "body": "## What must be implemented\nExperimentFactory.build(config) \u2192 Experiment. Experiment.run() \u2192 ExperimentResult. Config-driven component instantiation. Results output.\n\n## Test Criteria\n- [ ] ExperimentFactory.build() instantiates all components from config\n- [ ] Experiment.run() executes full simulation loop\n- [ ] ExperimentResult contains config snapshot, agent results, seeds\n- [ ] Results output to console and file\n- [ ] Same config + seed \u2192 identical results\n- [ ] Integration tests for end-to-end execution",
+    "labels": [
+      "implementation"
+    ],
+    "blocking_milestone": "M-06"
+  }
+]

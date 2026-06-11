@@ -1,0 +1,82 @@
+[
+  {
+    "id": "DOC-01",
+    "title": "DOC: subphase_1a through 1e \u2014 Status fields say 'Not started' but implementations exist",
+    "body": "## What is wrong\nAll 5 subphase files in docs/code/ say 'Status: [ ] Not started' when implementations exist for 1A (partial), 1B (partial), and 1D (partial).\n\n## What correct state looks like\nEach subphase file accurately reflects implementation status:\n- 1A: [~] In progress \u2014 data layer partially implemented\n- 1B: [~] In progress \u2014 ABC stubs done; Environment missing\n- 1C: [ ] Not started \u2014 accurate\n- 1D: [~] In progress \u2014 Agent ABC + TS stub done\n- 1E: [ ] Not started \u2014 accurate\n\n## PR Acceptance Criteria\n- [ ] All 5 subphase files have accurate status fields\n- [ ] Gate checklist items reflect actual implementation state\n- [ ] README milestone diagram updated to match\n- [ ] phase_1_execution_plan.md dependency graph updated",
+    "labels": [
+      "documentation",
+      "severity:high"
+    ],
+    "blocking_milestone": "M-06"
+  },
+  {
+    "id": "DOC-02",
+    "title": "DOC: code_design.md \u2014 StateView, Environment, ExperimentConfig interfaces documented but not implemented",
+    "body": "## What is wrong\ncode_design.md defines StateView, Environment, and ExperimentConfig in detail. None exist in code. All component interfaces use `Any` type annotations.\n\n## What correct state looks like\nEither (a) implement all interfaces as documented, or (b) update design docs to reflect deferral with rationale.\n\n## PR Acceptance Criteria\n- [ ] StateView dataclass implemented OR design doc updated with deferral rationale\n- [ ] Environment class implemented OR design doc updated\n- [ ] ExperimentConfig schema implemented OR design doc updated\n- [ ] All ABC base classes updated from `Any` to concrete types\n- [ ] `uv run ty check` passes with concrete types",
+    "labels": [
+      "documentation",
+      "severity:critical"
+    ],
+    "blocking_milestone": "M-02"
+  },
+  {
+    "id": "DOC-03",
+    "title": "DOC: README.md \u2014 Quickstart promises working system that doesn't exist",
+    "body": "## What is wrong\nREADME says `uv run rl-health-interventions` runs the system. It actually prints 'Hello from rl-health-interventions!' and exits. No experiment runs.\n\n## What correct state looks like\nREADME quickstart either (a) runs a minimal working experiment, or (b) explicitly states 'Phase 1 implementation in progress' and points to design docs.\n\n## PR Acceptance Criteria\n- [ ] experiments/demo.yml exists with documented fields\n- [ ] README quickstart either works OR clearly states implementation status\n- [ ] Config schema documented\n- [ ] New contributor can understand what the system will do",
+    "labels": [
+      "documentation",
+      "severity:critical"
+    ],
+    "blocking_milestone": "M-09"
+  },
+  {
+    "id": "DOC-04",
+    "title": "DOC: config/datasets/ \u2014 allofus_fitbit.yaml and stepcountjitai.yaml have no matching loaders",
+    "body": "## What is wrong\n2 dataset configs exist but no corresponding loader functions in loaders.py. Users cannot load these datasets.\n\n## What correct state looks like\nEither (a) implement load_allofus_fitbit() and load_stepcountjitai(), or (b) remove configs and document why.\n\n## PR Acceptance Criteria\n- [ ] All configs have matching loaders OR configs removed with documentation\n- [ ] load_all() function handles missing loaders gracefully\n- [ ] Dataset access requirements documented",
+    "labels": [
+      "documentation",
+      "severity:high"
+    ],
+    "blocking_milestone": "M-07"
+  },
+  {
+    "id": "DOC-05",
+    "title": "DOC: API documentation \u2014 No Sphinx/mkdocs setup, minimal docstrings on ABCs",
+    "body": "## What is wrong\nNo API documentation exists. No Sphinx/mkdocs setup. ABC base classes have minimal docstrings. Contributors must read source code.\n\n## What correct state looks like\nSphinx or mkdocs setup with auto-generated API docs. All public classes and functions have docstrings.\n\n## PR Acceptance Criteria\n- [ ] Sphinx or mkdocs configuration added\n- [ ] Docstrings on all public classes and functions\n- [ ] API docs build without errors\n- [ ] Docs hosted or buildable locally",
+    "labels": [
+      "documentation",
+      "severity:medium"
+    ],
+    "blocking_milestone": "M-09"
+  },
+  {
+    "id": "DOC-06",
+    "title": "DOC: codebase_plan.md \u2014 Done Criteria lists 5 deliverables, none met",
+    "body": "## What is wrong\ncodebase_plan.md lists 5 done criteria (working CLI, config schema documented, README enables running, config stable across schemas, dataset feasibility report). None are fully met.\n\n## What correct state looks like\nDone criteria accurately reflect current state. Unmet criteria have clear tracking.\n\n## PR Acceptance Criteria\n- [ ] Each done criterion has accurate status (met/partial/not met)\n- [ ] Unmet criteria have clear path to completion\n- [ ] Criteria linked to roadmap milestones",
+    "labels": [
+      "documentation",
+      "severity:medium"
+    ],
+    "blocking_milestone": "M-06"
+  },
+  {
+    "id": "DOC-07",
+    "title": "DOC: initial_design.tex \u2014 Decision Log has open questions that may be resolved",
+    "body": "## What is wrong\nDecision Log lists 'Is MDP formalisation reasonable? \u2014 Awaiting supervisor approval' as Open. Code implements the MDP structure, suggesting approval may have been given.\n\n## What correct state looks like\nDecision Log accurately reflects current decision status. Resolved questions marked as confirmed.\n\n## PR Acceptance Criteria\n- [ ] All Decision Log entries have accurate status\n- [ ] Resolved questions marked as confirmed\n- [ ] Open questions have clear owners and timelines",
+    "labels": [
+      "documentation",
+      "severity:low"
+    ],
+    "blocking_milestone": "M-10"
+  },
+  {
+    "id": "DOC-08",
+    "title": "DOC: No example experiment configs exist in repo",
+    "body": "## What is wrong\nREADME references `--config experiment.yml` but no example configs exist. Users cannot learn config schema from examples.\n\n## What correct state looks like\nAt least 3 example configs demonstrating different use cases.\n\n## PR Acceptance Criteria\n- [ ] experiments/synthetic_baseline.yml\n- [ ] experiments/multi_agent_comparison.yml\n- [ ] experiments/sensitivity_analysis.yml\n- [ ] Each config tested and working\n- [ ] Config fields documented",
+    "labels": [
+      "documentation",
+      "severity:high"
+    ],
+    "blocking_milestone": "M-09"
+  }
+]
