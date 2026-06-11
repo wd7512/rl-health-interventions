@@ -185,13 +185,25 @@ def _physionet_download(
         return None
 
     try:
+        # wfdb reads credentials from ~/.netrc, not function kwargs.
+        # Set up a temporary .netrc if env vars are provided.
+        netrc_path = Path.home() / ".netrc"
+        created_netrc = False
+        if username and password and not netrc_path.exists():
+            netrc_path.write_text(
+                f"machine physionet.org\nlogin {username}\npassword {password}\n"
+            )
+            created_netrc = True
+            logger.debug("Created temporary .netrc for PhysioNet auth")
+
         wfdb.dl_database(
             db_name,
             dl_dir=str(dest_dir),
             overwrite=False,
-            username=username,
-            password=password,
         )
+
+        if created_netrc:
+            netrc_path.unlink(missing_ok=True)
         maybe_marker.touch()
         logger.info("PhysioNet db %s downloaded to %s", db_name, dest_dir)
         return dest_dir
