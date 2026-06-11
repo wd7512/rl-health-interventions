@@ -65,31 +65,7 @@ s_t = \{ \mathbf{x}_t^{\text{wearable}}, \mathbf{x}_t^{\text{context}},
 \mathbf{x}_t^{\text{history}}, \mathbf{x}^{\text{profile}} \}
 \]
 
-\begin{table}[h]
-\centering
-\caption{State variables}
-\begin{tabular}{lll}
-\toprule
-Variable & Type & Description \\
-\midrule
-$\text{steps}_t$ & $\mathbb{R}_{\geq 0}$ & Step count, past 24h \\
-$\text{hr}_t$ & $\mathbb{R}_{\geq 0}$ & Heart rate (or resting) \\
-$\text{sleep\_hours}_t$ & $\mathbb{R}_{\geq 0}$ & Previous night sleep \\
-$\text{sedentary\_min}_t$ & $\mathbb{R}_{\geq 0}$ & Sedentary minutes today \\
-$\text{time\_of\_day}_t$ & $\{0,\dots,23\}$ & Current hour \\
-$\text{day\_of\_week}_t$ & $\{0,\dots,6\}$ & Day of week \\
-$\text{goal\_progress}_t$ & $[0,1]$ & Fraction of daily goal met \\
-$\text{burden}_t$ & $\mathbb{Z}_{\geq 0}$ & Interventions sent today \\
-$a_{t-1}$ & $\mathcal{A}$ & Previous action \\
-$\text{response}_{t-1}$ & $\{0,1\}$ & Previous response \\
-$\text{body\_measure}_k$ & $\mathbb{R}$ & Clinical measure (q3wks) \\
-$\text{age}$ & $\mathbb{Z}_{>0}$ & Static profile \\
-$\text{gender}$ & $\{0,1\}$ & Static profile \\
-$\text{baseline\_activity}$ & $\{0,1,2\}$ & Low / medium / high \\
-\bottomrule
-\end{tabular}
-\end{table}
-
+See Appendix~\ref{app:state} for the full list of state variables.
 Variables are normalised to $[0,1]$ before being passed to the agent. The
 body measure is only observed every 3 weeks (sparse reward signal).
 
@@ -206,52 +182,30 @@ constraints.
 
 \section{Decision Log}
 \label{sec:decisions}
-
-\subsection{Confirmed Decisions}
-
 \begin{table}[h]
 \centering
-\begin{tabular}{cll}
+\begin{tabular}{p{5.5cm}p{8cm}c}
 \toprule
-\# & Decision & Status \\
+Question & Decision & Status \\
 \midrule
-1 & Config format: YAML & Confirmed \\
-2 & Interface: CLI + config files; web UI = stretch & Confirmed \\
-3 & Python 3.11 + \texttt{uv} for package management & Confirmed \\
-4 & Synthetic data for Phase 1 (real data requires 4-8 week applications) & Confirmed \\
-5 & Thompson Sampling as initial agent & Confirmed \\
-6 & Daily decision epochs & Confirmed \\
-7 & Multi-timescale reward: immediate (daily steps) + delayed (3-week body measures) & Confirmed \\
-8 & Four behavioural archetypes: goal-driven, social responder, resistant, stable maintainer & Confirmed \\
-9 & Pluggable component architecture (ABC + registry pattern) & Confirmed \\
-10 & Minimal dependencies: no Gymnasium, no SB3 & Confirmed \\
+What config format? & YAML & Confirmed \\
+What interface? & CLI + config files; web UI = stretch & Confirmed \\
+Which language and package manager? & Python 3.11 + \texttt{uv} & Confirmed \\
+What data for Phase 1? & Synthetic data (real data requires 4-8 weeks) & Confirmed \\
+Which agent first? & Thompson Sampling & Confirmed \\
+How often are decisions made? & Daily epochs & Confirmed \\
+What reward structure? & Multi-timescale: immediate + 3-week delayed & Confirmed \\
+Which user archetypes? & Goal-driven, social, resistant, stable maintainer & Confirmed \\
+How are components wired? & ABC + registry pattern & Confirmed \\
+Which dependencies? & Minimal: no Gymnasium, no SB3 & Confirmed \\
+How to distribute? & Both: repo-based now, package if needed later & Confirmed \\
+Is MDP formalisation reasonable? & Awaiting supervisor approval & Open \\
+Which datasets for Phase 2? & HeartSteps first, then All of Us, UK Biobank & Open \\
+What format for experiment output? & CSV, terminal table, JSON, or summary plots & Open \\
+Metrics for success? & Output metrics to evaluate agent performance (regret, reward, adherence) & Open \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-\subsection{Open Decisions}
-
-The following require supervisor input:
-
-\begin{description}[noitemsep]
-    \item[Distribution model] \hfill \\
-    Installable package (\texttt{uv build} produces a wheel) vs repo-based
-    (clone and \texttt{uv sync})?
-
-    \item[MDP baseline approval] \hfill \\
-    Does the MDP formalisation (\S2) look like a reasonable starting point?
-
-    \item[Phase 2 dataset targets] \hfill \\
-    HeartSteps first (fastest access), then All of Us, then UK Biobank?
-
-    \item[Results table format] \hfill \\
-    What format and content do you want in the experiment output (CSV,
-    terminal table, JSON, summary plots)?
-
-    \item[Simulator validation criteria] \hfill \\
-    Acceptable thresholds for response-rate RMSE, state-distribution KL
-    divergence, and engagement-curve alignment before running experiments?
-\end{description}
 
 \section{Future Work}
 
@@ -262,5 +216,34 @@ validation against All of Us, UK Biobank, and HeartSteps datasets.
 
 \bibliographystyle{unsrt}
 \bibliography{references}
+
+\appendix
+\section{State Variables}
+\label{app:state}
+
+\begin{table}[h]
+\centering
+\caption{State variables}
+\begin{tabular}{lll}
+\toprule
+Variable & Type & Description \\
+\midrule
+$\text{steps}_t$ & $\mathbb{R}_{\geq 0}$ & Step count, past 24h \\
+$\text{hr}_t$ & $\mathbb{R}_{\geq 0}$ & Heart rate (or resting) \\
+$\text{sleep\_hours}_t$ & $\mathbb{R}_{\geq 0}$ & Previous night sleep \\
+$\text{sedentary\_min}_t$ & $\mathbb{R}_{\geq 0}$ & Sedentary minutes today \\
+$\text{time\_of\_day}_t$ & $\{0,\dots,23\}$ & Current hour \\
+$\text{day\_of\_week}_t$ & $\{0,\dots,6\}$ & Day of week \\
+$\text{goal\_progress}_t$ & $[0,1]$ & Fraction of daily goal met \\
+$\text{burden}_t$ & $\mathbb{Z}_{\geq 0}$ & Interventions sent today \\
+$a_{t-1}$ & $\mathcal{A}$ & Previous action \\
+$\text{response}_{t-1}$ & $\{0,1\}$ & Previous response \\
+$\text{body\_measure}_k$ & $\mathbb{R}$ & Clinical measure (q3wks) \\
+$\text{age}$ & $\mathbb{Z}_{>0}$ & Static profile \\
+$\text{gender}$ & $\{0,1\}$ & Static profile \\
+$\text{baseline\_activity}$ & $\{0,1,2\}$ & Low / medium / high \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \end{document}
