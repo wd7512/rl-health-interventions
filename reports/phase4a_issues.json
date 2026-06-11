@@ -1,0 +1,122 @@
+[
+  {
+    "id": "MILE-01",
+    "title": "M-01: Config Schema & Validation \u2014 Implement Pydantic schemas with 3-layer validation",
+    "body": "## Acceptance Criteria\n- [ ] DataConfig, MDPConfig, ActionSpec, RewardWeights, AgentConfig, ExperimentConfig defined as Pydantic models\n- [ ] YAML \u2192 Pydantic loading pipeline implemented\n- [ ] 3-layer validation: schema \u2192 registry \u2192 dummy step\n- [ ] Invalid configs rejected with clear error messages\n- [ ] Example config files for synthetic data experiments\n- [ ] `uv run ty check` passes with concrete types\n\n## Definition of Done\nAll config types validated from YAML; 3-layer validation catches wiring errors before experiment starts.\n\n## Source\nsubphase_1a_data_layer.md, subphase_1b_mdp_environment.md, subphase_1d_agent_library.md, subphase_1e_experiment_runner.md",
+    "labels": [
+      "roadmap",
+      "milestone",
+      "priority:high"
+    ],
+    "milestone_id": "M-01",
+    "estimated_effort": "L"
+  },
+  {
+    "id": "MILE-02",
+    "title": "M-02: StateView & Environment \u2014 Implement StateView dataclass and Environment with step/reset API",
+    "body": "## Acceptance Criteria\n- [ ] StateView dataclass with features dict, user_id, timestamp, metadata\n- [ ] StateView.from_dataset(dataset, user_idx, t) classmethod\n- [ ] Environment class with step(state, action) \u2192 (StateView, float, bool)\n- [ ] Environment.reset() \u2192 StateView\n- [ ] Multi-timescale reward accumulator (immediate + 3-week delayed)\n- [ ] Episode termination logic\n- [ ] Environment tests pass\n\n## Definition of Done\nEnvironment.step() returns correctly typed StateView; reward includes both components at correct epochs.\n\n## Source\nsubphase_1b_mdp_environment.md, code_design.md, initial_design.tex \u00a73",
+    "labels": [
+      "roadmap",
+      "milestone",
+      "priority:high"
+    ],
+    "milestone_id": "M-02",
+    "estimated_effort": "L"
+  },
+  {
+    "id": "MILE-03",
+    "title": "M-03: Transition & Reward Models \u2014 Implement RuleBasedTransition and CompoundReward",
+    "body": "## Acceptance Criteria\n- [ ] RuleBasedTransition implements behavioural response model\n- [ ] CompoundReward implements multi-timescale reward\n- [ ] Burden accumulation/decay logic\n- [ ] Configurable reward weights (\u03b1, \u03b2, \u03bb, \u03b7) and action penalties\n- [ ] Transition and reward tests pass\n\n## Definition of Done\nTransition model produces state changes; burden accumulates/decays correctly; compound reward computes both components.\n\n## Source\nsubphase_1b_mdp_environment.md, initial_design.tex \u00a73.2, \u00a73.3",
+    "labels": [
+      "roadmap",
+      "milestone",
+      "priority:high"
+    ],
+    "milestone_id": "M-03",
+    "estimated_effort": "M"
+  },
+  {
+    "id": "MILE-04",
+    "title": "M-04: User Simulation Engine \u2014 Implement UserProfile with 4 archetypes",
+    "body": "## Acceptance Criteria\n- [ ] UserProfile Pydantic schema\n- [ ] RuleBasedResponse with archetype-specific responses\n- [ ] 4 archetypes: goal-driven, social responder, resistant, stable maintainer\n- [ ] Parameter ranges for each archetype\n- [ ] Response model tests pass\n\n## Definition of Done\n4 archetypes produce distinct response patterns; burden threshold triggers response decay.\n\n## Source\nsubphase_1c_user_simulation.md, initial_design.tex \u00a73.2",
+    "labels": [
+      "roadmap",
+      "milestone",
+      "priority:high"
+    ],
+    "milestone_id": "M-04",
+    "estimated_effort": "M"
+  },
+  {
+    "id": "MILE-05",
+    "title": "M-05: Thompson Sampling Agent \u2014 Implement full TS algorithm",
+    "body": "## Acceptance Criteria\n- [ ] ThompsonSamplingAgent with Gaussian/Beta TS\n- [ ] Configurable prior parameters and exploration rate\n- [ ] Agent.select_action(state) returns valid action\n- [ ] Agent.update() updates posterior\n- [ ] Regret decreases on bandit problem\n- [ ] Agent tests pass\n\n## Definition of Done\nAgent implements full TS algorithm; regret decreases \u226520% over 1000 episodes.\n\n## Source\nsubphase_1d_agent_library.md",
+    "labels": [
+      "roadmap",
+      "milestone",
+      "priority:high"
+    ],
+    "milestone_id": "M-05",
+    "estimated_effort": "M"
+  },
+  {
+    "id": "MILE-06",
+    "title": "M-06: Experiment Runner & CLI \u2014 Implement end-to-end experiment execution",
+    "body": "## Acceptance Criteria\n- [ ] ExperimentFactory.build(config) \u2192 Experiment\n- [ ] Experiment.run() \u2192 ExperimentResult\n- [ ] CLI with --config flag\n- [ ] ExperimentResult with config snapshot, agent results, seeds\n- [ ] Results output: console table + CSV/JSON\n- [ ] Reproducibility: same config + seed \u2192 identical results\n- [ ] Integration tests pass\n\n## Definition of Done\n`uv run rl-health-interventions --config experiment.yml` runs end-to-end; results saved.\n\n## Source\nsubphase_1e_experiment_runner.md, code_design.md",
+    "labels": [
+      "roadmap",
+      "milestone",
+      "priority:critical"
+    ],
+    "milestone_id": "M-06",
+    "estimated_effort": "XL"
+  },
+  {
+    "id": "MILE-07",
+    "title": "M-07: Synthetic Data Pipeline \u2014 Complete multi-feature synthetic data generation",
+    "body": "## Acceptance Criteria\n- [ ] SyntheticDataGenerator produces steps, HR, sleep, sedentary time\n- [ ] Population statistics from NHANES, All of Us, UK Biobank\n- [ ] Distribution parameters configurable\n- [ ] Synthetic data validation tests\n- [ ] Example synthetic dataset\n\n## Definition of Done\nSynthetic data statistical properties within 10% of published population stats.\n\n## Source\nsubphase_1a_data_layer.md, initial_design.tex \u00a75",
+    "labels": [
+      "roadmap",
+      "milestone",
+      "priority:medium"
+    ],
+    "milestone_id": "M-07",
+    "estimated_effort": "M"
+  },
+  {
+    "id": "MILE-08",
+    "title": "M-08: Evaluation Framework \u2014 Define baselines, metrics, and statistical analysis",
+    "body": "## Acceptance Criteria\n- [ ] Baseline agents: random, fixed, rule-based\n- [ ] Metrics: regret, reward, adherence, sustained change\n- [ ] Statistical analysis: bootstrap CIs, effect sizes\n- [ ] Power analysis document\n- [ ] Evaluation tests pass\n\n## Definition of Done\n\u22653 baselines implemented; statistical power \u226580% for 10% improvement detection.\n\n## Source\nDerived from Phase 1 gap analysis",
+    "labels": [
+      "roadmap",
+      "milestone",
+      "priority:high"
+    ],
+    "milestone_id": "M-08",
+    "estimated_effort": "L"
+  },
+  {
+    "id": "MILE-09",
+    "title": "M-09: Documentation & Examples \u2014 Complete API docs and example configs",
+    "body": "## Acceptance Criteria\n- [ ] Sphinx/mkdocs setup with auto-generated API docs\n- [ ] 3 example experiment configs\n- [ ] README with architecture diagram and working quickstart\n- [ ] CONTRIBUTING.md updated\n- [ ] CHANGELOG.md created\n\n## Definition of Done\nAPI docs cover 100% of public APIs; 3 example configs tested; README quickstart works.\n\n## Source\nDerived from Phase 2 doc-alignment audit",
+    "labels": [
+      "roadmap",
+      "milestone",
+      "priority:medium"
+    ],
+    "milestone_id": "M-09",
+    "estimated_effort": "M"
+  },
+  {
+    "id": "MILE-10",
+    "title": "M-10: Safety & Ethics Review \u2014 Add safety constraints and privacy documentation",
+    "body": "## Acceptance Criteria\n- [ ] Hard safety constraints: max intervention frequency, min recovery, burden limits\n- [ ] Safety violation logging\n- [ ] Privacy documentation: GDPR/HIPAA compliance\n- [ ] Ethics section in initial_design.tex\n- [ ] Safety tests pass\n\n## Definition of Done\n100% of safety constraints enforced; privacy docs cover all Phase 2 datasets.\n\n## Source\nDerived from Phase 1 gap analysis",
+    "labels": [
+      "roadmap",
+      "milestone",
+      "priority:high"
+    ],
+    "milestone_id": "M-10",
+    "estimated_effort": "L"
+  }
+]

@@ -1,0 +1,132 @@
+[
+  {
+    "id": "RISK-01",
+    "title": "RISK-01: Reward hacking \u2014 agent exploits reward function without genuine behaviour change",
+    "body": "## Risk Description\nAgent may discover unintended strategies to maximise reward (e.g., always intervene to get step-change reward, ignoring burden penalty).\n\n## Affected Milestones\nM-03, M-05, M-08\n\n## Mitigation Steps\n- [ ] Analyse reward landscape for exploitable patterns\n- [ ] Add hard constraints on intervention frequency\n- [ ] Monitor reward distribution during training for anomalies\n- [ ] Test agents against adversarial reward scenarios\n- [ ] Document known reward hacking vectors\n\n## Severity\nLikelihood: High | Impact: High",
+    "labels": [
+      "risk",
+      "severity:critical"
+    ],
+    "blocking_milestone": "M-03"
+  },
+  {
+    "id": "RISK-02",
+    "title": "RISK-02: Distribution shift \u2014 synthetic data doesn't match real user behaviour",
+    "body": "## Risk Description\nRule-based simulator produces synthetic trajectories that differ systematically from real user behaviour, invalidating agent evaluation.\n\n## Affected Milestones\nM-04, M-07, M-08\n\n## Mitigation Steps\n- [ ] Validate synthetic data statistics against published population data\n- [ ] Implement domain randomisation for robustness testing\n- [ ] Plan Phase 2 calibration with HeartSteps MRT data\n- [ ] Document sim-to-real gap as known limitation\n- [ ] Sensitivity analysis on archetype parameters\n\n## Severity\nLikelihood: High | Impact: High",
+    "labels": [
+      "risk",
+      "severity:high"
+    ],
+    "blocking_milestone": "M-04"
+  },
+  {
+    "id": "RISK-03",
+    "title": "RISK-03: Safety violations \u2014 intervention policy causes user harm or excessive burden",
+    "body": "## Risk Description\nRL agent may recommend interventions that exceed safe frequency or ignore user recovery needs, causing notification fatigue or adverse effects.\n\n## Affected Milestones\nM-03, M-04, M-10\n\n## Mitigation Steps\n- [ ] Implement hard burden threshold with intervention blocking\n- [ ] Add maximum intervention frequency constraint\n- [ ] Log all safety violations with timestamps\n- [ ] Test policy under adversarial user profiles\n- [ ] Document safety constraints in design doc\n\n## Severity\nLikelihood: Medium | Impact: Critical",
+    "labels": [
+      "risk",
+      "severity:critical"
+    ],
+    "blocking_milestone": "M-10"
+  },
+  {
+    "id": "RISK-04",
+    "title": "RISK-04: Data leakage \u2014 training data includes future information",
+    "body": "## Risk Description\nFeature engineering or data loading may inadvertently include future state information, giving agents unfair advantage.\n\n## Affected Milestones\nM-01, M-02, M-07\n\n## Mitigation Steps\n- [ ] Audit feature pipeline for temporal leakage\n- [ ] Implement strict train/test split by time\n- [ ] Add tests verifying no future information access\n- [ ] Document data preprocessing pipeline with timestamps\n- [ ] Code review for data loading logic\n\n## Severity\nLikelihood: Medium | Impact: High",
+    "labels": [
+      "risk",
+      "severity:high"
+    ],
+    "blocking_milestone": "M-02"
+  },
+  {
+    "id": "RISK-05",
+    "title": "RISK-05: Clinical validity failures \u2014 agent performance doesn't translate to clinical outcomes",
+    "body": "## Risk Description\nAgent may achieve high reward/regret metrics without producing clinically meaningful behaviour change (e.g., 100 extra steps/day is statistically significant but clinically irrelevant).\n\n## Affected Milestones\nM-08, M-10\n\n## Mitigation Steps\n- [ ] Define clinically meaningful thresholds for step changes\n- [ ] Consult clinical literature for minimal important difference\n- [ ] Add clinical outcome metrics alongside ML metrics\n- [ ] Validate against published intervention effect sizes\n- [ ] Document clinical relevance criteria\n\n## Severity\nLikelihood: High | Impact: High",
+    "labels": [
+      "risk",
+      "severity:high"
+    ],
+    "blocking_milestone": "M-08"
+  },
+  {
+    "id": "RISK-06",
+    "title": "RISK-06: Config schema rigidity \u2014 schema too restrictive for extensibility",
+    "body": "## Risk Description\nPydantic schemas may be too strict, preventing researchers from adding custom fields or extending the framework.\n\n## Affected Milestones\nM-01\n\n## Mitigation Steps\n- [ ] Use Pydantic `extra=\"allow\"` for forward compatibility\n- [ ] Document extension points clearly\n- [ ] Test schema with non-standard configs\n- [ ] Gather feedback from external users early\n\n## Severity\nLikelihood: Medium | Impact: Medium",
+    "labels": [
+      "risk",
+      "severity:medium"
+    ],
+    "blocking_milestone": "M-01"
+  },
+  {
+    "id": "RISK-07",
+    "title": "RISK-07: Credit assignment failure \u2014 delayed reward not properly attributed",
+    "body": "## Risk Description\n3-week delayed body measure reward may not be correctly attributed to actions taken weeks earlier, causing poor learning.\n\n## Affected Milestones\nM-02, M-03\n\n## Mitigation Steps\n- [ ] Implement eligibility traces or temporal difference methods\n- [ ] Test credit assignment on simple scenarios\n- [ ] Compare sparse vs decaying reward formulations\n- [ ] Document credit assignment limitations\n\n## Severity\nLikelihood: High | Impact: Medium",
+    "labels": [
+      "risk",
+      "severity:medium"
+    ],
+    "blocking_milestone": "M-03"
+  },
+  {
+    "id": "RISK-08",
+    "title": "RISK-08: Missing dataset loaders \u2014 allofus_fitbit and stepcountjitai not loadable",
+    "body": "## Risk Description\nTwo critical dataset configs exist but no loader functions, blocking Phase 2 validation.\n\n## Affected Milestones\nM-07\n\n## Mitigation Steps\n- [ ] Implement load_allofus_fitbit() with BigQuery/cloud access\n- [ ] Implement load_stepcountjitai() with special download logic\n- [ ] Document access requirements for each dataset\n- [ ] Test loaders with sample data\n\n## Severity\nLikelihood: High | Impact: Medium",
+    "labels": [
+      "risk",
+      "severity:medium"
+    ],
+    "blocking_milestone": "M-07"
+  },
+  {
+    "id": "RISK-09",
+    "title": "RISK-09: Archetype heterogeneity \u2014 4 discrete archetypes don't capture continuous variation",
+    "body": "## Risk Description\nReal users exist on a spectrum; 4 discrete archetypes may not capture the diversity of behavioural responses.\n\n## Affected Milestones\nM-04\n\n## Mitigation Steps\n- [ ] Document as known limitation\n- [ ] Plan continuous parameter sampling for Phase 2\n- [ ] Test with mixed-archetype populations\n- [ ] Validate archetype assignments against real data\n\n## Severity\nLikelihood: High | Impact: Medium",
+    "labels": [
+      "risk",
+      "severity:medium"
+    ],
+    "blocking_milestone": "M-04"
+  },
+  {
+    "id": "RISK-10",
+    "title": "RISK-10: Partial observability \u2014 MDP assumes full state observability but sensors have noise/missing data",
+    "body": "## Risk Description\nReal wearable sensors have missing data, measurement noise, and reporting delays. Full observability assumption may not hold.\n\n## Affected Milestones\nM-02, M-04\n\n## Mitigation Steps\n- [ ] Implement observation function O(o|s) for POMDP framing\n- [ ] Add sensor noise and missing data simulation\n- [ ] Test agents under partial observability\n- [ ] Document observability assumptions\n\n## Severity\nLikelihood: High | Impact: Medium",
+    "labels": [
+      "risk",
+      "severity:medium"
+    ],
+    "blocking_milestone": "M-02"
+  },
+  {
+    "id": "RISK-11",
+    "title": "RISK-11: Insufficient evaluation metrics \u2014 ML metrics don't capture intervention effectiveness",
+    "body": "## Risk Description\nRegret and reward may not capture clinically meaningful outcomes like sustained behaviour change or user engagement.\n\n## Affected Milestones\nM-08\n\n## Mitigation Steps\n- [ ] Add adherence rate metric\n- [ ] Add sustained behaviour change metric (3+ months)\n- [ ] Add user dropout/fatigue rate\n- [ ] Consult clinical literature for relevant outcomes\n\n## Severity\nLikelihood: Medium | Impact: High",
+    "labels": [
+      "risk",
+      "severity:high"
+    ],
+    "blocking_milestone": "M-08"
+  },
+  {
+    "id": "RISK-12",
+    "title": "RISK-12: Performance bottlenecks \u2014 simulation too slow for large-scale experiments",
+    "body": "## Risk Description\nEnvironment step loop may be too slow for experiments with 1000+ users \u00d7 365 days \u00d7 multiple agents.\n\n## Affected Milestones\nM-06\n\n## Mitigation Steps\n- [ ] Profile simulation loop early\n- [ ] Use numpy vectorisation where possible\n- [ ] Implement parallel experiment execution\n- [ ] Document performance benchmarks\n\n## Severity\nLikelihood: Medium | Impact: Medium",
+    "labels": [
+      "risk",
+      "severity:medium"
+    ],
+    "blocking_milestone": "M-06"
+  },
+  {
+    "id": "RISK-13",
+    "title": "RISK-13: Dependency conflicts \u2014 external package version incompatibilities",
+    "body": "## Risk Description\npyproject.toml has 9 runtime dependencies; version conflicts may arise during installation or updates.\n\n## Affected Milestones\nM-01\n\n## Mitigation Steps\n- [ ] Pin dependency versions in uv.lock\n- [ ] Test installation on clean environment\n- [ ] Document minimum Python version (3.11+)\n- [ ] Monitor for breaking changes in dependencies\n\n## Severity\nLikelihood: Low | Impact: Medium",
+    "labels": [
+      "risk",
+      "severity:low"
+    ],
+    "blocking_milestone": "M-01"
+  }
+]
