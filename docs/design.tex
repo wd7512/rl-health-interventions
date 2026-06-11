@@ -8,6 +8,7 @@
 \usepackage{xcolor}
 \usepackage{enumitem}
 \usepackage{url}
+\usepackage{float}
 
 \geometry{margin=2.5cm}
 \hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
@@ -96,7 +97,7 @@ body measure is only observed every 3 weeks (sparse reward signal).
 \mathcal{A} = \{ a_0, a_1, a_2, a_3, a_4, a_5 \}
 \]
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Action space}
 \begin{tabular}{cll}
@@ -197,7 +198,7 @@ implement an abstract class, register it with a key, and reference that key in
 config --- no source code changes required to add new datasets, agents, or
 behaviour models.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Software modules and their dependencies}
 \begin{tabular}{lll}
@@ -244,9 +245,9 @@ and \texttt{docs/sources/additional\_data\_sources.md}.
 
 \section{Decision Log}
 \label{sec:decisions}
-\begin{table}[h]
+\begin{table}[H]
 \centering
-\begin{tabular}{p{5.5cm}p{8cm}c}
+\begin{tabular}{p{0.30\textwidth}p{0.55\textwidth}c}
 \toprule
 Question & Decision & Status \\
 \midrule
@@ -283,7 +284,7 @@ validation against All of Us, UK Biobank, and HeartSteps datasets.
 \section{State Variables}
 \label{app:state}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{State variables}
 \begin{tabular}{lll}
