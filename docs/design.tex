@@ -7,6 +7,7 @@
 \usepackage{booktabs}
 \usepackage{xcolor}
 \usepackage{enumitem}
+\usepackage{url}
 
 \geometry{margin=2.5cm}
 \hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
@@ -20,27 +21,13 @@ Bristol x NUS Research Project\\
 
 \begin{document}
 \maketitle
+\tableofcontents
 
-\begin{abstract}
-Physical activity (PA) interventions delivered via wearable devices show promise
-for improving public health outcomes, but personalising intervention timing and
-content at scale remains an open challenge. Reinforcement learning (RL) offers a
-principled approach to learning intervention policies that adapt to individual
-behaviour over time. We present \texttt{rl-health-interventions}, a configurable
-simulation framework that models PA interventions as a Markov Decision Process
-(MDP). Researchers define their dataset schema, MDP dynamics, user behaviour
-models, and agent configurations entirely through YAML config files---no source
-code changes required. The framework enables systematic comparison of RL agents
-(Thompson Sampling, DQN, PPO) and intervention strategies on synthetic and
-real-world wearable data. This document specifies the framework architecture,
-the MDP formalisation, and key design decisions.
-\end{abstract}
+\newpage
 
-%% ─────────────────────────────────────────────────────────────────────
-\section{Introduction}
-\label{sec:intro}
+\section{Problem Statement}
+\label{sec:problem}
 
-%% ── 1.1  Background
 \subsection{Background}
 
 Physical inactivity is a leading risk factor for chronic disease worldwide.
@@ -58,15 +45,26 @@ suggestion), optimising long-term behaviour change rather than short-term
 response. The key challenge is that training RL agents requires either
 expensive real-world trials or a realistic simulation environment.
 
-%% ── 1.2  Problem Statement
-\subsection{Problem Statement}
+\subsection{Problem}
 
 There is no standardised, configurable simulation platform for evaluating RL
 agents on PA intervention tasks. Existing work uses bespoke simulators tied to
 specific datasets or papers. This makes cross-paper comparison difficult and
-limits reproducibility.
+limits reproducibility. Five specific gaps in the current landscape motivate
+this work:
 
-%% ── 1.3  Goals
+\begin{enumerate}[noitemsep]
+    \item No LLM simulation validated for wearable health data
+    \item No delayed-feedback bandit for 3-week clinical measures
+    \item No non-stationary adaptation for PA interventions
+    \item No standardised MDP/benchmark for PA JITAI RL \cite{karine2024stepcountjitai}
+    \item No offline RL for PA interventions with real wearable data
+\end{enumerate}
+
+These gaps are \emph{experiments run on the framework}, not part of the
+framework itself. The framework provides the infrastructure to investigate
+each one.
+
 \subsection{Goals}
 
 This project delivers:
@@ -85,7 +83,6 @@ This project delivers:
     multi-agent comparisons.
 \end{enumerate}
 
-%% ── 1.4  Scope
 \subsection{Scope}
 
 Phase 1 (8 weeks) delivers a working CLI: \texttt{uv run rl-health-interventions
@@ -93,27 +90,75 @@ Phase 1 (8 weeks) delivers a working CLI: \texttt{uv run rl-health-interventions
 Phase 2 (stretch) adds LLM-based user simulation and validation against real
 data.
 
-%% ── 1.5  Literature Gaps
-\subsection{Literature Gaps}
+\section{Design Requirements}
+\label{sec:requirements}
 
-A systematic literature review identified five gaps this framework addresses:
+\subsection{Stakeholders}
 
-\begin{enumerate}[noitemsep]
-    \item No LLM simulation validated for wearable health data
-    \item No delayed-feedback bandit for 3-week clinical measures
-    \item No non-stationary adaptation for PA interventions
-    \item No standardised MDP/benchmark for PA JITAI RL
-    \item No offline RL for PA interventions with real wearable data
-\end{enumerate}
+\begin{itemize}[noitemsep]
+    \item \textbf{William Dennis} -- implementation, single developer
+    \item \textbf{Mengyan Zhang} (Bristol) -- domain expertise, data access,
+    supervision
+    \item \textbf{Swapnil Mishra} (NUS / MLGH) -- supervision, downstream
+    research team
+\end{itemize}
 
-These gaps are \emph{experiments run on the framework}, not part of the
-framework itself.
+\subsection{Constraints}
 
-%% ─────────────────────────────────────────────────────────────────────
-\section{Architecture}
+\begin{itemize}[noitemsep]
+    \item 8-week internship timeline
+    \item Single developer, no prior codebase
+    \item No existing real data access (4-8 week institutional applications
+    required)
+    \item Deliverable must be usable by Swapnil's team after handover
+\end{itemize}
+
+\subsection{Requirements}
+
+\begin{description}[noitemsep]
+    \item[R1 -- Config-first] \hfill \\
+    All components (dataset schema, MDP, user behaviour, agents, experiments)
+    are specified via YAML config files. New dataset or intervention design
+    requires a new config, not new code.
+
+    \item[R2 -- Reproducible] \hfill \\
+    Fixed seeds, config snapshot captured per run, deterministic evaluation
+    mode.
+
+    \item[R3 -- Pluggable] \hfill \\
+    Each component family (transitions, rewards, agents, response models) uses
+    an ABC + registry pattern. Adding a new implementation requires one file
+    and one registry entry.
+
+    \item[R4 -- Minimal dependencies] \hfill \\
+    Python 3.11, \texttt{uv}, Polars, Pydantic, NumPy. No Stable Baselines or
+    Gymnasium unless proven necessary.
+
+    \item[R5 -- Production-quality error handling] \hfill \\
+    Three-layer validation (schema, compatibility, dummy step). Per-episode
+    exception isolation. Structured JSON trace output.
+
+    \item[R6 -- Single-entry experiment] \hfill \\
+    \texttt{uv run rl-health-interventions --config experiment.yml} builds,
+    runs, and reports. No multi-step workflow.
+\end{description}
+
+\subsection{Non-Requirements}
+
+The following are explicitly out of scope for Phase 1:
+
+\begin{itemize}[noitemsep]
+    \item Web UI or dashboard
+    \item Real data integration (All of Us, UK Biobank)
+    \item Deep RL agents (DQN, PPO, CQL, IQL)
+    \item LLM-based user simulation
+    \item Gymnasium or SB3 compatibility layer
+    \item Real-time or online learning
+\end{itemize}
+
+\section{Architecture Overview}
 \label{sec:architecture}
 
-%% ── 2.1  Design Principles
 \subsection{Design Principles}
 
 \begin{itemize}[noitemsep]
@@ -129,7 +174,6 @@ framework itself.
     evaluation.
 \end{itemize}
 
-%% ── 2.2  Component Overview
 \subsection{Component Overview}
 
 The framework is organised into five subphases, each delivering a pluggable
@@ -153,52 +197,216 @@ component:
 
     \item \textbf{Agent Library (1D):} Common \texttt{Agent} ABC with
     \texttt{select\_action(state) $\rightarrow$ int} and
-    \texttt{update(...)}. Thompson Sampling is the MVP gate; deep RL
-    agents (DQN, PPO, CQL, IQL) are stretch.
+    \texttt{update(...)}. Thompson Sampling is the initial implementation;
+    deep RL agents (DQN, PPO, CQL, IQL) are stretch.
 
     \item \textbf{Experiment Runner (1E):} Wires all components via a single
     \texttt{ExperimentFactory.build(config)}. Runs multi-trial, multi-agent
     experiments with config snapshot reproducibility.
 \end{enumerate}
 
-%% ── 2.3  Dependency Graph
-\subsection{Dependency Graph}
+\subsection{Data Pipeline}
 
-Tracks A (1A) and B (1B) run in parallel. Dataset exploration runs alongside
-both. After 1A and 1B complete, tracks merge at 1C (user simulation) and 1D
-(agent library). The final track is 1E (experiment runner), which depends on
-1C and 1D.
+\begin{verbatim}
+Raw files (CSV, Parquet, ...)      <- researcher provides these
+    |
+Polars LazyFrame scan               <- config-driven schema mapping
+    |
+FeaturePipeline.from_config(config) <- config-driven transforms (agg, window, diff, etc.)
+    |  (Polars lazy graph, materialised once)
+numpy arrays                         <- materialised for sim loop
+    |
+Dataset (user x time index)          <- random access for StateView slices
+\end{verbatim}
 
-%% ── 2.4  Validation
+Polars owns the feature engineering stage. Its lazy API maps one-to-one with
+the config-driven specification---grouping, rolling windows, expressions. The
+framework builds a \texttt{pl.LazyFrame} from the config and materialises it
+once. The result is converted to numpy arrays for the simulation loop, which
+needs fast random access by user and time rather than query capability.
+
+After materialisation, the simulation depends only on numpy---no Polars
+dependency in the hot path.
+
+\subsection{Module Layout}
+
+Each pluggable concept gets a flat package with a \texttt{\_base.py} ABC and a
+\texttt{REGISTRY} dict in \texttt{\_\_init\_\_.py}:
+
+\begin{verbatim}
+transitions/               <- pluggable transition models
+    _base.py               <- TransitionModel ABC
+    rule_based.py          <- RuleBasedTransition
+    __init__.py            <- imports + REGISTRY dict
+rewards/                   <- pluggable reward functions
+    _base.py               <- RewardHandler ABC
+    compound.py            <- CompoundReward
+    __init__.py            <- imports + REGISTRY dict
+agents/                    <- pluggable agents
+    _base.py               <- Agent ABC
+    thompson_sampling.py   <- ThompsonSamplingAgent
+    __init__.py            <- imports + REGISTRY dict
+simulation/                <- pluggable user response models
+    _base.py               <- ResponseModel ABC
+    rule_based.py          <- RuleBasedResponse
+    __init__.py            <- imports + REGISTRY dict
+data/                      <- data layer
+    _base.py               <- IngestPipeline ABC
+    feature_pipeline.py    <- Config-driven feature engineering on Polars
+    polars_reader.py       <- Reads CSV/Parquet via Polars lazy API
+    dataset.py             <- Dataset (numpy arrays, for sim loop)
+    synthetic.py           <- SyntheticDataGenerator
+    __init__.py            <- imports + REGISTRY dict
+\end{verbatim}
+
+Rules:
+\begin{itemize}[noitemsep]
+    \item \texttt{\_base.py} contains only the ABC. No implementations.
+    \item Each implementation is its own file, named after the class in
+    snake\_case.
+    \item \texttt{\_\_init\_\_.py} explicitly imports every implementation and
+    populates a \texttt{REGISTRY} dict. No auto-discovery.
+\end{itemize}
+
+\subsection{Configurability}
+
+All MDP components are exposed in the config schema:
+
+\begin{table}[h]
+\centering
+\caption{Configurable parameters}
+\begin{tabular}{lll}
+\toprule
+Category & Parameter & Default \\
+\midrule
+State & Variable selection & All \\
+Actions & Available subsets & $\{a_0, \dots, a_5\}$ \\
+Reward & $(\alpha, \beta, \lambda, \eta)$ & $(1.0, 0.1, 0.5, 1.0)$ \\
+Transition & Archetype & goal-driven \\
+Fatigue & $B_{\max}$ & 3 \\
+Discount & $\gamma$ & 0.95 \\
+Epoch & Frequency & Daily \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Validation}
 
 The factory applies three layers of validation before the main experiment loop:
-(1) Pydantic schema parsing rejects malformed configs at load time; (2) component
-compatibility checks verify registry keys and cross-references; (3) a single
-dummy \texttt{step()} catches wiring errors and shape mismatches.
 
-%% ── 2.5  Test Organisation
+\begin{enumerate}[noitemsep]
+    \item \textbf{Schema validation (Pydantic):} Malformed configs are rejected
+    at load time with a precise error message.
+    \item \textbf{Component compatibility:} Registry keys and cross-references
+    are checked before instantiation.
+    \item \textbf{Dummy step:} A single \texttt{step()} call catches wiring
+    errors and shape mismatches before the main loop.
+\end{enumerate}
+
 \subsection{Test Organisation}
 
-Tests mirror the component module structure (\texttt{tests/unit/transitions/},
-\texttt{tests/unit/rewards/}, etc.), not subphase numbers. Every ABC method has
-at least one test. Integration and end-to-end tests cover factory wiring and the
-full experiment pipeline.
+\begin{verbatim}
+tests/
+    unit/
+        transitions/       <- each transition model in isolation
+        rewards/           <- each reward function in isolation
+        agents/            <- each agent in isolation
+        simulation/        <- each response model in isolation
+        factory/           <- factory validation and wiring
+    integration/
+        test_dummy_step.py <- factory builds and step succeeds
+        test_config.yml    <- minimal config is loadable
+    end_to_end/
+        test_experiment.py <- full pipeline: config -> build -> train -> results
+\end{verbatim}
 
-%% ─────────────────────────────────────────────────────────────────────
+Rules:
+\begin{itemize}[noitemsep]
+    \item Every ABC method has at least one test with a real implementation.
+    \item Every subphase gate requires all tests in that subphase's modules.
+    \item Test structure maps to modules, not subphase numbers.
+    \item Registry discovery test ensures every registered component can be
+    instantiated from a minimal config.
+\end{itemize}
+
+\section{Decision Log}
+\label{sec:decisions}
+
+\begin{table}[h]
+\centering
+\caption{Design decisions}
+\begin{tabular}{cll}
+\toprule
+\# & Decision & Status \\
+\midrule
+1 & Config format: YAML & Confirmed \\
+2 & Interface: CLI + config files; web UI = stretch & Confirmed \\
+3 & Python 3.11 + \texttt{uv} for package management & Confirmed \\
+4 & Synthetic data for Phase 1 (real data requires 4-8 week applications) & Confirmed \\
+5 & Thompson Sampling as initial agent & Confirmed \\
+6 & Daily decision epochs & Confirmed \\
+7 & Multi-timescale reward: immediate (daily steps) + delayed (3-week body measures) & Confirmed \\
+8 & Four behavioural archetypes: goal-driven, social responder, resistant, stable maintainer & Confirmed \\
+9 & Pluggable component architecture (ABC + registry pattern) & Confirmed \\
+10 & Minimal dependencies: no Gymnasium, no SB3 & Confirmed \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Open Decisions}
+\label{sec:open}
+
+The following decisions require supervisor input before they affect
+implementation direction.
+
+\subsection{Distribution model}
+
+Should the framework be distributed as an installable package or remain
+repo-based?
+
+\begin{description}[noitemsep]
+    \item[Option A -- Installable package] \hfill \\
+    \texttt{uv build} produces a wheel. Researchers run
+    \texttt{uv add rl-health-interventions} in their own project.
+    Clearer dependency boundary, but requires CI/CD for publishing.
+
+    \item[Option B -- Repo-based] \hfill \\
+    Clone and \texttt{uv sync}. Simpler for a single-team prototype.
+    Swapnil's team would fork or clone directly.
+\end{description}
+
+\subsection{MDP baseline approval}
+
+Does the proposed MDP formalisation (\S6) look like a reasonable starting
+point? The state space, action set, and reward function are intentionally
+conservative---they can be extended via config without breaking changes.
+
+\subsection{Phase 2 dataset targets}
+
+Which datasets should we target for real-data validation?
+
+A recommended order: HeartSteps first (fastest access, most relevant), then
+All of Us (largest population), then UK Biobank (raw accelerometer).
+
+\subsection{Simulator validation criteria}
+
+How do we determine the simulator is ``good enough'' before running
+experiments? Candidate metrics include response-rate RMSE against real
+MRT data, state-distribution KL divergence, and engagement-curve alignment.
+We need agreement on acceptable thresholds.
+
 \section{MDP Formalisation}
 \label{sec:mdp}
 
-This section specifies the Markov Decision Process (MDP) for the first iteration
-of the simulation framework. The MDP is defined as the tuple
+This section specifies the Markov Decision Process (MDP) for the first
+iteration of the simulation framework. The MDP is defined as the tuple
 $(\mathcal{S}, \mathcal{A}, P, R, \gamma)$.
 
-%% ── 3.1  State Space
 \subsection{State Space $\mathcal{S}$}
 
 The state represents the current context of a user at decision epoch $t$.
-States are constructed from wearable-device signals, user profile information,
-and intervention history:
+States are constructed from wearable-device signals, user profile
+information, and intervention history:
 
 \[
 s_t = \{ \mathbf{x}_t^{\text{wearable}}, \mathbf{x}_t^{\text{context}},
@@ -230,10 +438,9 @@ $\text{baseline\_activity}$ & $\{0,1,2\}$ & Low / medium / high \\
 \end{tabular}
 \end{table}
 
-Variables are normalised to $[0,1]$ before being passed to the agent. The body
-measure is only observed every 3 weeks (sparse reward signal).
+Variables are normalised to $[0,1]$ before being passed to the agent. The
+body measure is only observed every 3 weeks (sparse reward signal).
 
-%% ── 3.2  Action Space
 \subsection{Action Space $\mathcal{A}$}
 
 \[
@@ -260,7 +467,6 @@ $a_5$ & Progress feedback & Report goal progress \\
 Exactly one action per decision epoch. The ``no message'' action is critical
 for managing notification burden.
 
-%% ── 3.3  Transition Function
 \subsection{Transition Function $P$}
 
 The transition function models the probability over next states:
@@ -299,7 +505,6 @@ Burden evolves as:
 
 When $\text{burden} > B_{\max}$, response probability decays linearly.
 
-%% ── 3.4  Reward Function
 \subsection{Reward Function $R$}
 \label{sec:reward}
 
@@ -332,7 +537,6 @@ R_t^{\text{immediate}} & \text{otherwise}
 The compound reward (immediate + delayed) is a central research question.
 Weights $(\alpha, \beta, \lambda, \eta)$ are configurable experiment parameters.
 
-%% ── 3.5  Discount Factor
 \subsection{Discount Factor $\gamma$}
 
 \[
@@ -342,101 +546,158 @@ Weights $(\alpha, \beta, \lambda, \eta)$ are configurable experiment parameters.
 A high discount factor encourages long-term behaviour change over short-term
 step increases. Appropriate for health habit formation.
 
-%% ── 3.6  Decision Epoch
 \subsection{Decision Epoch}
 
-\textbf{Daily} decisions. This aligns with the weekly intervention cadence,
-the 3-week body measure delay (3 epochs), and practical deployment constraints.
+\textbf{Daily} decisions. This aligns with typical intervention cadence,
+the 3-week body measure delay (3 epochs), and practical deployment
+constraints.
 
-%% ─────────────────────────────────────────────────────────────────────
-\section{Configurability}
-\label{sec:config}
+\section{Simulator Training Method}
+\label{sec:sim}
 
-All MDP components are exposed in the config schema: state variable selection,
-action subsets, reward weights, transition archetypes, fatigue threshold,
-discount factor, and epoch frequency. New datasets or intervention designs
-require a new config file, not new code.
+The user simulator (1C) transforms a current state and chosen action into
+a next state via a parameterised response model:
 
-\begin{table}[h]
-\centering
-\caption{Configurable parameters}
-\begin{tabular}{lll}
-\toprule
-Category & Parameter & Default \\
-\midrule
-State & Variable selection & All \\
-Actions & Available subsets & $\{a_0, \dots, a_5\}$ \\
-Reward & $(\alpha, \beta, \lambda, \eta)$ & $(1.0, 0.1, 0.5, 1.0)$ \\
-Transition & Archetype & goal-driven \\
-Fatigue & $B_{\max}$ & 3 \\
-Discount & $\gamma$ & 0.95 \\
-Epoch & Frequency & Daily \\
-\bottomrule
-\end{tabular}
-\end{table}
+\[
+s_{t+1} = \text{ResponseModel}(s_t, a_t; \theta)
+\]
 
-%% ─────────────────────────────────────────────────────────────────────
-\section{Decision Log}
-\label{sec:decisions}
+This section describes how $\theta$ is estimated and validated.
 
-Key decisions made during the design phase:
+\subsection{Parameter Estimation from MRT Data}
 
-\begin{table}[h]
-\centering
-\caption{Design decisions}
-\begin{tabular}{cll}
-\toprule
-\# & Decision & Status \\
-\midrule
-1 & Config format: YAML & Confirmed \\
-2 & Interface: CLI + config files; web UI = stretch & Confirmed \\
-3 & Python 3.11 + uv for package management & Confirmed \\
-4 & Synthetic data for Phase 1 (real data requires 4-8 week applications) & Confirmed \\
-5 & Thompson Sampling as MVP agent & Confirmed \\
-6 & Daily decision epochs & Confirmed \\
-7 & Multi-timescale reward: immediate (daily steps) + delayed (3-week body measures) & Confirmed \\
-8 & Four behavioural archetypes: goal-driven, social responder, resistant, stable maintainer & Confirmed \\
-9 & Pluggable component architecture (ABC + registry pattern) & Confirmed \\
-\bottomrule
-\end{tabular}
-\end{table}
+Micro-randomized trials (HeartSteps V1/V2) provide sequences of
+$(s_t, a_t, s_{t+1})$ tuples. For each user, we observe how their step
+count changes after each intervention type. The parameter vector
+$\theta$ governs:
 
-\subsection{Open Decisions}
+\begin{itemize}[noitemsep]
+    \item \textbf{Baseline step increase:} Expected $\Delta$steps when
+    no intervention is sent
+    \item \textbf{Intervention effect size:} Marginal $\Delta$steps per
+    action type, modelled as $\Delta_{\text{effect}}(a_t) \sim
+    \mathcal{N}(\mu_a, \sigma_a^2)$
+    \item \textbf{Fatigue sensitivity:} Decay rate $\delta$ such that
+    response probability $p(\text{respond}) = \max(0, 1 - \delta \cdot
+    \text{burden})$
+    \item \textbf{Burden threshold:} $B_{\max}$, the number of consecutive
+    interventions before response probability reaches zero
+\end{itemize}
+
+Estimation procedure:
 
 \begin{enumerate}[noitemsep]
-    \item Installable package or repo-based distribution?
-    \item Does the proposed MDP look like a reasonable starting point?
-    \item Which datasets to target first for real-data validation (Phase 2)?
+    \item Fit baseline step distribution from non-intervention control
+    periods
+    \item Compute empirical effect sizes per action type from intervention
+    windows
+    \item Cluster users by response pattern to assign archetype labels
+    \item Estimate archetype-specific parameters via maximum likelihood
+    on held-out users
 \end{enumerate}
 
-%% ─────────────────────────────────────────────────────────────────────
+In Phase 1, synthetic parameter values are drawn from published statistics
+(mean step counts by age and gender, published HeartSteps engagement
+curves) \cite{klasnja2019heartsteps,klasnja2022heartsteps}. Real MRT data calibration is Phase 2.
+
+\subsection{Calibration Loop}
+
+After parameter estimation, the simulator is calibrated by comparing
+population-level statistics:
+
+\begin{enumerate}[noitemsep]
+    \item Generate $N$ synthetic user trajectories from the simulator
+    \item Compute target statistics from real data (or published
+    benchmarks): mean daily steps, response rate by week, burden
+    accumulation rate
+    \item Adjust $\theta$ to minimise discrepancy between simulated and
+    target statistics
+    \item Repeat until convergence or budget exhausted
+\end{enumerate}
+
+\subsection{Fidelity Metrics}
+
+\begin{description}[noitemsep]
+    \item[Response rate RMSE] \hfill \\
+    Root mean squared error between simulated and real response rates,
+    bucketed by week and action type. Target: $<0.05$.
+
+    \item[Step count distribution KL divergence] \hfill \\
+    KL divergence between simulated and real daily step distributions.
+    Target: $<0.1$ nats.
+
+    \item[Engagement decay alignment] \hfill \\
+    Slope of engagement-over-time curve. Target: within 20\% of real
+    decay rate.
+
+    \item[Archetype separation] \hfill \\
+    Do distinct archetypes produce distinct reward trajectories?
+    Measured by inter-archetype mean reward variance.
+\end{description}
+
+\subsection{Limitations}
+
+The rule-based simulators in Phase 1 capture first-order effects only:
+\begin{itemize}[noitemsep]
+    \item No habituation or context-dependent preference shifts
+    \item No social or environmental confounders (weather, holidays)
+    \item No long-term habit formation (positive reinforcement compound
+    effects)
+\end{itemize}
+
+These limitations motivate Phase 2 LLM-based simulation.
+
 \section{Data Sources}
 \label{sec:data}
+
+This project targets two tiers of data: synthetic for Phase 1
+development and real-world for Phase 2 validation.
 
 \subsection{Phase 1: Synthetic Data}
 
 All Phase 1 experiments use synthetic data generators parameterised from
 published statistics. This avoids the 4-8 week lead time for real dataset
-access.
+access. The \texttt{SyntheticDataGenerator} produces realistic wearable
+traces by sampling from population distributions reported in the literature
+(e.g., NHANES step counts by age/gender \cite{nhanes2025steps}, All of Us sleep distributions \cite{patten2026allofus}).
 
 \subsection{Phase 2: Real Data Targets}
 
-Two public datasets are under consideration:
-
 \begin{enumerate}[noitemsep]
-    \item \textbf{All of Us Fitbit Dataset} (Nature Medicine 2026): 59,000+
-    participants, Fitbit data, 14-year span. Access via cloud workbench only.
-    \item \textbf{UK Biobank Accelerometer Dataset} (npj Digital Medicine
-    2024): 700,000+ person-days, wrist-worn tri-axial accelerometer. Requires
-    institutional application (4-8 weeks).
+    \item \textbf{All of Us Fitbit Dataset} \cite{patten2026allofus}: 59,000+
+    participants, Fitbit data, 14-year span. Access via cloud workbench
+    only.
+
+    \item \textbf{UK Biobank Accelerometer Dataset} \cite{williamson2024ukbiobank}:
+    700,000+ person-days, wrist-worn tri-axial accelerometer.
+    Requires institutional application (4-8 weeks).
+
+    \item \textbf{HeartSteps V1/V2}: Micro-randomized trials with
+    intervention response data. Directly calibrates the user simulation
+    (1C). Access requires data sharing agreement (weeks to months).
 \end{enumerate}
 
-Supplementary: HeartSteps V1/V2 micro-randomized trials provide intervention
-response data for calibrating the user simulator.
+\subsection{Dataset Survey}
 
-%% ─────────────────────────────────────────────────────────────────────
-\section{Timeline}
+See \texttt{docs/sources/data\_sources.md} for the full feasibility study
+(All of Us, UK Biobank) and \texttt{docs/sources/additional\_data\_sources.md}
+for a survey of 12 additional datasets including HeartSteps, WISDM,
+ExtraSensory, and open-access coaching intervention datasets. Key findings:
+
+\begin{itemize}[noitemsep]
+    \item Between All of Us and UK Biobank, most wearable MDP variables
+    (steps, HR, sleep, sedentary, time-of-day) are covered.
+    \item Gaps are simulated variables: goal progress, burden, user
+    archetype.
+    \item Body measures need EHR linkage (All of Us has 46\% linked).
+    \item HeartSteps is the only available source of action-to-response
+    mappings for direct simulator calibration.
+\end{itemize}
+
+\section{Timeline \& Future Work}
 \label{sec:timeline}
+
+\subsection{Phase 1 Milestones}
 
 \begin{table}[h]
 \centering
@@ -453,16 +714,18 @@ Week & Milestone \\
 \end{tabular}
 \end{table}
 
-%% ─────────────────────────────────────────────────────────────────────
-\section{Future Work}
-\label{sec:future}
+\subsection{Phase 2: Future Work}
 
 \begin{itemize}[noitemsep]
-    \item LLM-based user simulation (Phase 2 stretch)
+    \item LLM-based user simulation (prompt-driven persona modelling)
     \item Offline RL agents (CQL, IQL) for batch policy learning
     \item Non-stationary environment adaptation
     \item Cross-dataset transfer experiments
+    \item Real-data validation pipeline (All of Us, UK Biobank)
     \item Integration with real-world JITAIs
 \end{itemize}
+
+\bibliographystyle{unsrt}
+\bibliography{references}
 
 \end{document}
