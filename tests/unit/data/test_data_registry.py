@@ -7,17 +7,17 @@ from rl_health_interventions.data._base import DataConfig
 
 
 def test_registry_populated() -> None:
-    assert "SyntheticDataGenerator" in REGISTRY
-    assert "FeaturePipeline" in REGISTRY
+    assert "synthetic" in REGISTRY
+    assert "feature_pipeline" in REGISTRY
 
 
 def test_make_synthetic() -> None:
-    gen = make("SyntheticDataGenerator")
+    gen = make("synthetic")
     assert gen is not None
 
 
 def test_make_feature_pipeline() -> None:
-    pipe = make("FeaturePipeline")
+    pipe = make("feature_pipeline")
     assert pipe is not None
 
 

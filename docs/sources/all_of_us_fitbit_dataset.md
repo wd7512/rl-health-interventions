@@ -170,5 +170,5 @@ GROUP BY person_id, date
 | File | Purpose |
 |------|---------|
 | `sources/data_sources.md` | Original feasibility study (covers AoU + UK Biobank) |
-| `design.tex` | Formal MDP definition with state variables |
+| `initial_design.tex` | Formal MDP definition with state variables |
 | `config/datasets/allofus_fitbit.yaml` | Data ingestion config (for when access is granted) |

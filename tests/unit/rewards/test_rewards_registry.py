@@ -7,12 +7,12 @@ from rl_health_interventions.rewards.compound import CompoundReward
 
 
 def test_registry_populated() -> None:
-    assert "CompoundReward" in REGISTRY
-    assert REGISTRY["CompoundReward"] is CompoundReward
+    assert "compound" in REGISTRY
+    assert REGISTRY["compound"] is CompoundReward
 
 
 def test_make_returns_instance() -> None:
-    instance = make("CompoundReward")
+    instance = make("compound")
     assert isinstance(instance, CompoundReward)
 
 

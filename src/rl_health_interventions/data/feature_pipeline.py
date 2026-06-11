@@ -16,4 +16,4 @@ class FeaturePipeline:
 def register() -> None:
     from rl_health_interventions.data import REGISTRY
 
-    REGISTRY[FeaturePipeline.__name__] = FeaturePipeline
+    REGISTRY["feature_pipeline"] = FeaturePipeline

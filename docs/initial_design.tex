@@ -13,7 +13,7 @@
 \geometry{margin=2.5cm}
 \hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
 
-\title{Design Document: RL-Driven Physical Activity Interventions\\
+\title{Initial Design Document: RL-Driven Physical Activity Interventions\\
 \large A Configurable Simulation Framework}
 \author{William Dennis\\
 Bristol x NUS Research Project\\
@@ -100,7 +100,7 @@ body measure is only observed every 3 weeks (sparse reward signal).
 \begin{table}[H]
 \centering
 \caption{Action space}
-\begin{tabular}{cll}
+\begin{tabular}{clll}
 \toprule
 Action & Label & Description \\
 \midrule
@@ -116,6 +116,16 @@ $a_5$ & Progress feedback & Report goal progress \\
 
 Exactly one action per decision epoch. The ``no message'' action is critical
 for managing notification burden.
+
+Each action carries two scalar penalties in the config schema:
+\begin{itemize}[noitemsep]
+    \item \texttt{reward\_penalty} --- subtracted from the step-change reward at the current epoch.
+    \item \texttt{burden\_penalty} --- added to the user's cumulative burden (fatigue model).
+\end{itemize}
+The ``no message'' action has zero on both axes; all other actions have
+positive values. Penalties are configurable per action, allowing researchers
+to model different notification intensities (e.g. a walking suggestion may
+have higher burden cost than a motivational prompt).
 
 \textbf{Transition.} The transition function models the probability over next states:
 
@@ -144,11 +154,7 @@ where $\theta_{\text{user}}$ parameterises one of four behavioural archetypes:
 Burden evolves as:
 
 \[
-\text{burden}_{t+1} =
-\begin{cases}
-\text{burden}_t + 1 & \text{if } a_t \neq a_0 \\
-0 & \text{if } a_t = a_0
-\end{cases}
+\text{burden}_{t+1} = \max(0,\; \text{burden}_t + \text{burden\_penalty}_{a_t})
 \]
 
 When $\text{burden} > B_{\max}$, response probability decays linearly.
@@ -158,7 +164,7 @@ When $\text{burden} > B_{\max}$, response probability decays linearly.
 Immediate reward:
 \[
 R_t^{\text{immediate}} = \alpha \cdot \Delta\text{steps}_t
-- \beta \cdot \mathbf{1}_{\{a_t \neq a_0\}}
+- \beta \cdot \text{reward\_penalty}_{a_t}
 + \lambda \cdot \text{goal\_progress}_t
 \]
 
@@ -181,9 +187,10 @@ R_t^{\text{immediate}} & \text{otherwise}
 The compound reward (immediate + delayed) is a central research question.
 Weights $(\alpha, \beta, \lambda, \eta)$ are configurable experiment parameters.
 
-\textbf{Discount factor.} $\gamma \in [0.9, 0.95]$. A high discount factor
+\textbf{Discount factor.} $\gamma \in [0.9, 0.99]$. A high discount factor
 encourages long-term behaviour change over short-term step increases.
-Appropriate for health habit formation.
+Appropriate for health habit formation. The optimal range for PA interventions
+is an open question --- see Decision Log \S\ref{sec:decisions}.
 
 \textbf{Decision epoch.} Daily decisions. This aligns with typical intervention cadence,
 the 3-week body measure delay (3 epochs), and practical deployment
@@ -272,6 +279,8 @@ Is MDP formalisation reasonable? & Awaiting supervisor approval & Open \\
 Which datasets for Phase 2? & HeartSteps first, then All of Us, UK Biobank & Open \\
 What format for experiment output? & CSV, terminal table, JSON, or summary plots & Open \\
 Metrics for success? & Output metrics to evaluate agent performance (regret, reward, adherence) & Open \\
+What action penalties for which archetypes? & reward\_penalty and burden\_penalty per action, per archetype & Open \\
+What discount factor range is optimal? & $\gamma \in [0.9, 0.99]$ to be explored empirically & Open \\
 \bottomrule
 \end{tabular}
 \end{table}

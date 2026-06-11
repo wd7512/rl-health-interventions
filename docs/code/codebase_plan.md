@@ -4,7 +4,7 @@
 **Context:** Bristol x NUS summer internship, 8-week foundation phase
 **Stakeholders:** William Dennis (builder), Mengyan Zhang (Bristol data), Swapnil Mishra (NUS/MLGH)
 **Repo:** `rl-health-interventions`
-**MDP Design Doc:** `design.tex` (formalised from google doc)
+**MDP Design Doc:** `initial_design.tex` (formalised from google doc)
 
 ---
 

@@ -39,6 +39,24 @@ class ExperimentConfig(BaseModel):
     seeds: list[int]
 ```
 
+### Factory / Experiment boundary
+
+The `ExperimentFactory` constructs everything from config; the `Experiment`
+executes and owns runtime state:
+
+```python
+class ExperimentFactory:
+    @staticmethod
+    def build(config: ExperimentConfig) -> Experiment
+
+class Experiment:
+    def run(self) -> ExperimentResult
+```
+
+The factory is stateless — same config always gives the same wiring. The
+experiment owns episode counters, accumulators, checkpoints, and the
+results output.
+
 ### `ExperimentResult`
 ```python
 class ExperimentResult:

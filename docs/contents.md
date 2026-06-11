@@ -1,9 +1,10 @@
 # docs/
 
-## design.tex
+## initial_design.tex
 
-Full academic LaTeX design document covering problem statement, MDP formalisation,
-architecture, timeline, and future work.
+Initial academic LaTeX design document covering problem statement, MDP formalisation,
+architecture, timeline, and future work. This is the signed-off baseline spec;
+implementation docs in `code/` derive from it.
 
 ## code/
 

@@ -432,5 +432,5 @@ Pre-built synthetic RL environments designed specifically for offline RL algorit
 |------|---------|
 | `sources/data_sources.md` | Large-scale population dataset feasibility study |
 | This document | JITAI trial datasets and accessible sources |
-| `design.tex` | Formal MDP definition with state variables |
+| `initial_design.tex` | Formal MDP definition with state variables |
 | `code/codebase_plan.md` | Architecture and phased delivery plan |

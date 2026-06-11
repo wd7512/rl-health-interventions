@@ -31,14 +31,24 @@
 
 ### `MDPConfig`
 ```python
+class ActionSpec(BaseModel):
+    label: str
+    reward_penalty: float = Field(ge=0.0)
+    burden_penalty: float = Field(ge=0.0)
+
+
 class MDPConfig(BaseModel):
     state_variables: list[str]
     actions: list[ActionSpec]
     reward_weights: RewardWeights
     transition_model: str  # e.g. "rule_based"
-    gamma: float
+    gamma: float = Field(ge=0.9, le=0.99)
     body_measure_interval: int  # epochs
 ```
+
+The `gamma` range `[0.9, 0.99]` is a framework constraint — the MDP is designed
+for long-term behaviour change, not myopic optimisation. Reward weights
+(α, β, λ, η) follow the same bounded Pydantic convention.
 
 ### `Environment`
 ```python

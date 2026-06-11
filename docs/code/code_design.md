@@ -48,6 +48,7 @@ Rules:
       "rule_based": RuleBasedTransition,
   }
   ```
+- Keys are explicit snake_case aliases, **not** class names. This decouples config YAML from Python internals.
 - No auto-discovery. The `__init__.py` is the manifest.
 
 ---
@@ -132,8 +133,15 @@ no separate bridge module needed.
 ### Action Type
 
 Throughout the framework, actions are `int` indices into the action space
-defined in config. The config defines the label-to-index mapping. Components
-never use opaque `Action` objects.
+defined in config. Each action carries two scalar properties:
+
+| Property | Role |
+|----------|------|
+| `reward_penalty` | Subtracted from the step-change reward when this action is selected |
+| `burden_penalty` | Added to the user's cumulative burden when this action is selected |
+
+The no-op action (e.g. ``no message``) has zero on both axes. These penalties
+are configurable per action, allowing different notification intensities.
 
 A single factory that takes the full `ExperimentConfig` and returns a ready-to-run
 experiment:
@@ -150,6 +158,11 @@ Responsibilities:
 3. Wire components together
 4. Run one dummy `step()` to catch wiring errors before the main loop (layer 3)
 5. Return an `Experiment` object with a `run()` method
+
+The factory constructs; the experiment executes. This boundary means
+the factory is stateless (same config always yields a correctly-wired
+experiment), while the `Experiment` owns runtime state (episode counter,
+accumulator, checkpoint path).
 
 The factory is the single entry point. Configuration, instantiation, and wiring
 never leak outside it.
