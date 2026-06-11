@@ -14,7 +14,7 @@ A configurable simulation framework for testing RL-driven health interventions o
 
 **Phase 1:** Foundational framework — config-driven data layer, MDP environment, rule-based user simulation, RL agent library, experiment runner.
 
-**Phase 2 (stretch):** LLM-based user simulation, validation against real data, LLM-augmented experiments.
+**Phase 2:** Real-data validation — calibrate the user simulator and ground MDP dynamics against observed behavioural responses using HeartSteps V1/V2, All of Us Fitbit Dataset, and UK Biobank Accelerometer Dataset. Beyond Phase 2, stretch goals include LLM-based user simulation.
 
 The framework is the platform. The 5 gaps from the literature review are experiments run *on* the platform, not part of it.
 
@@ -30,7 +30,7 @@ Software-oriented deliverables:
 4. Config schema is stable across 2+ different dataset schemas and 2+ MDP designs (stretch)
 5. Public dataset feasibility report: evaluate All of Us and UK Biobank for simulator training
 
-Papers run *on* the framework later. Phase 2 (LLM simulation) is stretch — core deliverable is working infrastructure.
+Papers run *on* the framework later. Phase 2 (real-data validation) follows the foundation phase — core deliverable is working infrastructure.
 
 ---
 
@@ -70,9 +70,8 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 *Subphase 1D: Config-Driven Agent Library*
 - Agents parameterised from config
-- Baselines: Thompson Sampling, ε-greedy, LinUCB
-- RL: DQN, Double DQN, PPO
-- Offline: CQL, IQL
+- Baselines: Thompson Sampling
+- Deep RL (stretch): DQN, PPO
 - All share common interface
 - Minimise dependencies — implement from scratch where reasonable
 
@@ -130,7 +129,7 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 | 1 | Config format: YAML | Confirmed |
 | 2 | Interface: CLI + config files; web UI = stretch | Confirmed |
 | 3 | Language and package manager: Python 3.11 + uv | Confirmed |
-| 4 | Phase 1 data: synthetic (real data requires 4–8 week applications) | Confirmed |
+| 4 | Phase 1 data: synthetic (real data requires 4–8 week applications while arrangements are underway) | Open |
 | 5 | Baseline agent: Thompson Sampling | Confirmed |
 | 6 | Decision frequency: daily epochs | Confirmed |
 | 7 | Reward structure: multi-timescale (immediate + delayed) | Confirmed |
@@ -144,6 +143,11 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 | 15 | Success metrics: regret, reward, adherence | Open |
 | 16 | Action penalties (reward_penalty, burden_penalty) per archetype | Open |
 | 17 | Discount factor γ ∈ [0.9, 0.99]: optimal range for PA interventions | Open |
+| 18 | Decision epoch frequency: daily (base library of policies; per-user refinement within constraints). Hourly is an alternative. | Open |
+| 19 | Merge reward penalty and burden penalty: currently separate (different roles: direct reward vs. state-accumulator). Merging is possible if simpler. | Open |
+| 20 | Burden model: linear accumulator max(0, burden_t + penalty) with threshold decay. StepCountJITAI uses bounded [0,1] habituation. | Open |
+| 21 | Activity metric for immediate reward: steps (default). Active minutes, METs, or composites are configurable alternatives. | Open |
+| 22 | Sparse vs decaying delayed reward: 3-week sparse (current). Decaying formulation (η · BM · γ^{3k-t}) may improve credit assignment. | Open |
 
 ---
 
@@ -187,7 +191,7 @@ Project-wide observability concerns:
 
 ## Literature Review Reference
 
-Full review at `C:\Obsidian_Vaults\main\10 Research\Bristol x NUS RL\Literature Review\05 Master Literature Review.md`.
+See `initial_design.tex` §2 for the full literature review.
 
 5 major gaps identified (experiments *on* the framework, not *in* it):
 1. No LLM simulation validated for wearable health data

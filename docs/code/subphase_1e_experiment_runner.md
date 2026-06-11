@@ -12,7 +12,7 @@
 
 - [ ] CLI command `uv run rl-health-interventions --config experiment.yml` runs end-to-end
 - [ ] Experiment config defines: which agents to compare, number of trials, environment config
-- [ ] Results output: table comparing agent performance (mean reward, regret, engagement)
+- [ ] Results output: table comparing agent performance (mean reward, regret, adherence)
 - [ ] Reproducibility: seeds and config snapshot saved with each run
 - [ ] `uv run pytest` passes for all 1E tests
 - [ ] `uv run ruff check` and `uv run ty check` pass

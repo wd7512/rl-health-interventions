@@ -82,7 +82,7 @@ See [`sources/additional_data_sources.md`](sources/additional_data_sources.md) f
 
 ## Blocking Risks
 
-- **Real data timeline:** Both datasets require 4-8 week institutional applications. Phase 1 is designed around synthetic data — this is now the confirmed approach, not a fallback.
+- **Real data timeline:** Both datasets require 4-8 week institutional applications. Phase 1 uses synthetic data generators parameterised from published statistics while real data access is being arranged (status: open — see Decision Log in `initial_design.tex`).
 - **Archetype validity:** The 4 archetypes are theoretical. No guarantee they match real user behaviour. Document this as an explicit assumption.
 
 ---

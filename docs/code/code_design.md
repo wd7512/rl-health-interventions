@@ -278,6 +278,18 @@ before the main experiment loop starts.
 
 ## Interfaces
 
+### `Environment`
+
+```python
+class Environment(ABC):
+    @abstractmethod
+    def reset(self, seed: int | None = None) -> StateView: ...
+    @abstractmethod
+    def step(self, state: StateView, action: int) -> tuple[StateView, float, bool]: ...
+```
+
+Returns `(next_state, reward, done)` per the MDP tuple $(\mathcal{S}, \mathcal{A}, P, R, \gamma)$.
+
 ### `TransitionModel`
 
 ```python

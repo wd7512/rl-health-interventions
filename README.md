@@ -30,9 +30,9 @@ tests/                         # test suite
 
 Config-first design. Researchers define their dataset schema, MDP, agents, and experiments via config files — no source code changes needed.
 
-Phase 1 delivers: config-driven data layer, MDP environment, rule-based user simulation, RL agent library, and experiment runner. Phase 2 (stretch) adds LLM-based user simulation.
+Phase 1 delivers: config-driven data layer, MDP environment, rule-based user simulation, RL agent library, and experiment runner. Phase 2 validates the framework against real datasets (HeartSteps V1/V2, All of Us Fitbit Dataset, UK Biobank Accelerometer Dataset), calibrating the user simulator and grounding MDP dynamics on observed behavioural responses. Beyond Phase 2, stretch goals include LLM-based user simulation.
 
-See `docs/code/codebase_plan.md` for full architecture.
+See `docs/code/codebase_plan.md` and `docs/code/code_design.md` for full architecture.
 
 ## Milestones & Issues
 
@@ -56,35 +56,35 @@ See `docs/code/codebase_plan.md` for full architecture.
 │  □ DataConfig schema        │   │  □ MDPConfig schema               │   │  ☑ Investigate All of Us│
 │  □ Polars lazy reader       │   │  □ TransitionModel ABC +          │   │  ☑ Investigate UK Biobank│
 │  □ FeaturePipeline          │   │    RuleBasedTransition            │   │  ☑ Write report → sources/data_sources.md│
-│  □ Dataset + StateView      │   │  □ RewardHandler ABC +            │   └──────────┬─────────────┘
-│    .from_dataset() bridge   │   │    CompoundReward                 │              │
-│  □ SyntheticDataGenerator   │   │  □ FatigueTracker                 │              │
-└──────────┬──────────────────┘   │  □ Environment step/reset         │              │
-           │                      │  □ Multi-timescale reward         │              │
-           │                      └──────────┬────────────────────────┘              │
-           │                                 │                                        │
-           │                                 │ (interface only)                       │
-           │                                 ├──────────┐                             │
-           │                                 │          │                             │
-           │                                 ▼          ▼                             │
-           │                          ┌─ 1D: Agent Lib ────┐                          │
-           │                          │  □ Agent ABC        │                          │
-           │                          │  □ ThompsonSampling │                          │
-           │                          └─────────────────────┘                          │
-           │                                                                          │
-           └────────────────────────────┬─────────────────────────────────────────────┘
-                                        ▼
-                         ┌─ 1C: User Simulation ────────────────────────┐
-                         │  □ UserProfile schema + 4 archetypes        │
-                         │  □ ResponseModel ABC                        │
-                         │  □ Backlash / fatigue mechanism              │
-                         └──────────────────────┬───────────────────────┘
-                                                ▼
-                         ┌─ 1E: Experiment Runner ──────────────────────┐
-                         │  □ ExperimentConfig + full config parsing    │
-                         │  □ CLI → ExperimentFactory wiring + e2e test│
-                         │  □ Results table + reproducibility          │
-                         └──────────────────────────────────────────────┘
+│  □ Dataset + StateView      │   │  □ RewardHandler ABC +            │   └─────────────────────────┘
+│    .from_dataset() bridge   │   │    CompoundReward                 │
+│  □ SyntheticDataGenerator   │   │  □ FatigueTracker                 │
+└─────────────────────────────┘   │  □ Environment step/reset         │
+                                   │  □ Multi-timescale reward         │
+                                   └──────────┬────────────────────────┘
+                                              │
+                                              │ (interface only)
+                                              ├──────────┐
+                                              │          │
+                                              ▼          ▼
+                                       ┌─ 1D: Agent Lib ────┐
+                                       │  □ Agent ABC        │
+                                       │  □ ThompsonSampling │
+                                       └─────────────────────┘
+                                              │
+                                              │
+                                              ▼
+                            ┌─ 1C: User Simulation ────────────────────┐
+                            │  □ UserProfile schema + 4 archetypes    │
+                            │  □ ResponseModel ABC                    │
+                            │  □ Backlash / fatigue mechanism          │
+                            └─────────────────┬───────────────────────┘
+                                              ▼
+                            ┌─ 1E: Experiment Runner ──────────────────┐
+                            │  □ ExperimentConfig + full config parsing│
+                            │  □ CLI → ExperimentFactory wiring + e2e  │
+                            │  □ Results table + reproducibility      │
+                            └──────────────────────────────────────────┘
 ```
 
 Each `□` is a GitHub issue. Milestones gate on all their issues closed and CI passing.
