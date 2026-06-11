@@ -47,6 +47,30 @@ agent \cite{karine2024stepcountjitai,klasnja2019heartsteps}. Deep RL agents
 (DQN, PPO) will be added if time permits. All
 components share a common ABC + registry interface for extensibility.
 
+\section{Literature Review}
+\label{sec:lit}
+
+Reinforcement learning has been applied to health interventions through
+micro-randomized trials (MRTs), most notably HeartSteps V1 and V2, which
+delivered contextually-tailored activity suggestions and demonstrated the
+feasibility of RL-in-the-loop policy learning \cite{klasnja2019heartsteps,
+klasnja2022heartsteps}. These trials provide the only available source of
+real action-to-response mappings for calibrating user behaviour models.
+
+Existing simulation environments for RL-driven health interventions tend to
+be tied to specific datasets or tasks. StepCountJITAI \cite{karine2024stepcountjitai}
+provides a simulation environment for physical activity JITAIs but is scoped
+to a single dataset and action set. Health Gym \cite{gateno2023healthgym}
+offers synthetic health environments but does not support configurable MDP
+specifications. Open wearable benchmark datasets such as ExtraSensory
+\cite{vaizman2017extrasensory} and WISDM \cite{kwapisz2011wisdm} are
+valuable for pipeline testing but lack intervention response data.
+
+The gap we address is a config-first simulation framework where the dataset
+schema, MDP dynamics, user behaviour, and agent configurations are specified
+entirely through config files, enabling systematic cross-dataset and
+cross-policy comparisons without bespoke engineering.
+
 \section{MDP Formalisation}
 \label{sec:mdp}
 
@@ -179,6 +203,26 @@ step increases. Appropriate for health habit formation.
 \textbf{Daily} decisions. This aligns with typical intervention cadence,
 the 3-week body measure delay (3 epochs), and practical deployment
 constraints.
+
+\section{Data Sources}
+\label{sec:data}
+
+This project targets two tiers of data. \textbf{Phase 1} uses synthetic data
+generators parameterised from published population statistics (e.g., NHANES
+step counts, All of Us sleep distributions). This avoids the 4-8 week lead
+time required for real dataset access while allowing pipeline development and
+agent benchmarking.
+
+\textbf{Phase 2} targets three real datasets for validation:
+HeartSteps V1/V2 \cite{klasnja2019heartsteps,klasnja2022heartsteps}
+provide MRT data with intervention response mappings for calibrating the
+user simulator. The All of Us Fitbit Dataset \cite{patten2026allofus}
+offers 59,000+ participants with wearable data and EHR linkage. The UK
+Biobank Accelerometer Dataset \cite{williamson2024ukbiobank} provides
+700,000+ person-days of raw accelerometer data.
+
+Detailed feasibility studies are in \texttt{docs/sources/data\_sources.md}
+and \texttt{docs/sources/additional\_data\_sources.md}.
 
 \section{Decision Log}
 \label{sec:decisions}
