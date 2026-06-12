@@ -148,7 +148,15 @@ def _simulate_episode_proposed(
         epsilon = float(rng.normal(0, np.sqrt(generative_model.noise_variance)))
         reward = R_base + R_treat + epsilon
 
-        agent.step(g, f, action, pi=pi_param, reward=reward, available=available, anti_sedentary=anti_sedentary)
+        agent.step(
+            g,
+            f,
+            action,
+            pi=pi_param,
+            reward=reward,
+            available=available,
+            anti_sedentary=anti_sedentary,
+        )
         total_reward += reward
 
     return total_reward
