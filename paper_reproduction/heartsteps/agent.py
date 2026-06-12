@@ -130,6 +130,7 @@ class ThompsonSamplingAgent:
         pi: float,
         reward: float,
         available: bool = True,
+        anti_sedentary: bool = False,
     ) -> None:
         """Update model and dosage tracker after one decision time.
 
@@ -140,12 +141,14 @@ class ThompsonSamplingAgent:
             pi: Randomization probability.
             reward: Observed reward R_t.
             available: Whether participant was available.
+            anti_sedentary: Whether an anti-sedentary suggestion was delivered.
         """
         self.model.update(g, f, action, pi, reward, available=available)
 
         treatment_delivered = available and (action == 1)
         self.dosage_tracker.update(
             treatment_delivered=treatment_delivered,
+            anti_sedentary_delivered=anti_sedentary,
         )
 
         logger.debug(

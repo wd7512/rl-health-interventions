@@ -137,6 +137,9 @@ def _simulate_episode_proposed(
 
         action, _ = agent.select_action(g, f, pi=pi_param, available=available)
 
+        # Anti-sedentary suggestion (external to RL, probability p_sed)
+        anti_sedentary = rng.binomial(1, generative_model.p_sed) == 1
+
         alpha_0 = generative_model.alpha[: generative_model.g_dim]
         alpha_1 = generative_model.alpha[generative_model.g_dim :]
         R_base = float(g @ alpha_0 + f @ alpha_1)
@@ -145,7 +148,7 @@ def _simulate_episode_proposed(
         epsilon = float(rng.normal(0, np.sqrt(generative_model.noise_variance)))
         reward = R_base + R_treat + epsilon
 
-        agent.step(g, f, action, pi=pi_param, reward=reward, available=available)
+        agent.step(g, f, action, pi=pi_param, reward=reward, available=available, anti_sedentary=anti_sedentary)
         total_reward += reward
 
     return total_reward
@@ -250,14 +253,14 @@ def _extract_bandit_prior(
 
 
 def run_simulation(
-    n_participants: int = 9,
+    n_participants: int = 30,
     n_folds: int = 3,
     n_source_days: int = 7,
-    n_days: int = 30,
+    n_days: int = 90,
     n_windows: int = 10,
-    n_re_runs: int = 3,
-    gamma_values: tuple[float, ...] = (0, 0.5, 0.9),
-    w_values: tuple[float, ...] = (0, 0.5, 1.0),
+    n_re_runs: int = 10,
+    gamma_values: tuple[float, ...] = (0, 0.25, 0.5, 0.75, 0.9, 0.95),
+    w_values: tuple[float, ...] = (0, 0.1, 0.25, 0.5, 0.75, 1.0),
     seed: int = 42,
 ) -> SimulationResults:
     """Run the full simulation study end-to-end.

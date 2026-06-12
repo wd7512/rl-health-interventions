@@ -83,6 +83,9 @@ def _simulate_episode(
 
         action, _ = agent.select_action(g, f, pi=pi_param, available=available)
 
+        # Anti-sedentary suggestion (external to RL, probability p_sed)
+        anti_sedentary = rng.binomial(1, generative_model.p_sed) == 1
+
         alpha_0 = generative_model.alpha[: generative_model.g_dim]
         alpha_1 = generative_model.alpha[generative_model.g_dim :]
         R_base = float(g @ alpha_0 + f @ alpha_1)
@@ -91,7 +94,7 @@ def _simulate_episode(
         epsilon = float(rng.normal(0, np.sqrt(generative_model.noise_variance)))
         reward = R_base + R_treat + epsilon
 
-        agent.step(g, f, action, pi=pi_param, reward=reward, available=available)
+        agent.step(g, f, action, pi=pi_param, reward=reward, available=available, anti_sedentary=anti_sedentary)
         total_reward += reward
 
     return total_reward
