@@ -3,10 +3,17 @@
 Tests SyntheticNHANESGenerator data properties and NHANESLoader interface.
 """
 
+from __future__ import annotations
+
 import numpy as np
+import pandas as pd
 import pytest
 
-from paper_reproduction.data.nhanes_loader import NHANESLoader, SyntheticNHANESGenerator
+from paper_reproduction.data.nhanes_loader import (
+    NHANESLoader,
+    RealNHANESLoader,
+    SyntheticNHANESGenerator,
+)
 
 
 class TestSyntheticNHANESGeneratorOutput:
@@ -128,8 +135,211 @@ class TestNHANESLoaderInterface:
         )
         np.testing.assert_array_equal(l1.load(), l2.load())
 
-    def test_loader_real_not_implemented(self):
-        """NHANESLoader with real source raises NotImplementedError."""
+    def test_loader_real_no_path_raises(self):
+        """NHANESLoader with real source and no data_path raises ValueError."""
         loader = NHANESLoader(data_source="real")
-        with pytest.raises(NotImplementedError, match="real"):
+        with pytest.raises(ValueError, match="data_path"):
             loader.load()
+
+    def test_loader_real_with_path(self, small_nhanes_csv):
+        """NHANESLoader dispatches to RealNHANESLoader with data_path."""
+        loader = NHANESLoader(
+            data_source="real",
+            n_participants=3,
+            n_days=5,
+            seed=42,
+            data_path=small_nhanes_csv,
+        )
+        data = loader.load()
+        assert isinstance(data, np.ndarray)
+        assert data.shape == (3, 5, 10)
+
+
+class TestRealNHANESLoader:
+    """Tests for RealNHANESLoader with a small synthetic CSV."""
+
+    def test_loader_shape(self, small_nhanes_csv):
+        """RealNHANESLoader returns correct shape."""
+        loader = RealNHANESLoader(
+            data_path=small_nhanes_csv,
+            n_participants=3,
+            n_days=5,
+            n_windows=10,
+            seed=42,
+        )
+        data = loader.load()
+        assert data.shape == (3, 5, 10)
+
+    def test_non_negative(self, small_nhanes_csv):
+        """All step counts are non-negative."""
+        loader = RealNHANESLoader(
+            data_path=small_nhanes_csv,
+            n_participants=3,
+            n_days=5,
+            n_windows=10,
+            seed=42,
+        )
+        data = loader.load()
+        assert np.all(data >= 0)
+
+    def test_no_nan(self, small_nhanes_csv):
+        """No NaN values in output."""
+        loader = RealNHANESLoader(
+            data_path=small_nhanes_csv,
+            n_participants=3,
+            n_days=5,
+            n_windows=10,
+            seed=42,
+        )
+        data = loader.load()
+        assert not np.any(np.isnan(data))
+
+    def test_deterministic_same_seed(self, small_nhanes_csv):
+        """Same seed produces identical results."""
+        l1 = RealNHANESLoader(
+            data_path=small_nhanes_csv,
+            n_participants=3,
+            n_days=5,
+            n_windows=10,
+            seed=42,
+        )
+        l2 = RealNHANESLoader(
+            data_path=small_nhanes_csv,
+            n_participants=3,
+            n_days=5,
+            n_windows=10,
+            seed=42,
+        )
+        np.testing.assert_array_equal(l1.load(), l2.load())
+
+    def test_missing_file_fallback(self, tmp_path):
+        """Non-existent path falls back to synthetic data."""
+        fake_path = str(tmp_path / "nonexistent.csv")
+        loader = RealNHANESLoader(
+            data_path=fake_path,
+            n_participants=10,
+            n_days=7,
+            n_windows=10,
+            seed=42,
+        )
+        data = loader.load()
+        assert data.shape == (10, 7, 10)
+        assert np.all(data >= 0)
+
+    def test_partial_data(self, tmp_path):
+        """Loader handles participants with fewer days than requested."""
+        filepath = tmp_path / "partial.csv"
+        rng = np.random.default_rng(42)
+
+        rows = []
+        for participant in [1, 2]:
+            for day in range(1, 6):
+                row_data = {
+                    "SEQN": participant,
+                    "PAXDAYM": day,
+                    "PAXDAYWM": (day % 7) + 1,
+                }
+                for minute in range(1, 1441):
+                    row_data[f"min_{minute}"] = max(0, int(rng.poisson(5)))
+                rows.append(row_data)
+
+        df = pd.DataFrame(rows)
+        df.to_csv(filepath, index=False)
+
+        loader = RealNHANESLoader(
+            data_path=str(filepath),
+            n_participants=2,
+            n_days=5,
+            n_windows=10,
+            seed=42,
+        )
+        data = loader.load()
+        assert data.shape == (2, 5, 10)
+
+    def test_insufficient_valid_days(self, tmp_path):
+        """Participant with insufficient valid days is skipped."""
+        filepath = tmp_path / "insufficient.csv"
+        rng = np.random.default_rng(42)
+
+        rows = []
+        for participant in [1, 2, 3]:
+            for day in range(1, 4):
+                row_data = {
+                    "SEQN": participant,
+                    "PAXDAYM": day,
+                    "PAXDAYWM": (day % 7) + 1,
+                }
+                for minute in range(1, 1441):
+                    row_data[f"min_{minute}"] = max(0, int(rng.poisson(5)))
+                rows.append(row_data)
+
+        df = pd.DataFrame(rows)
+        df.to_csv(filepath, index=False)
+
+        loader = RealNHANESLoader(
+            data_path=str(filepath),
+            n_participants=3,
+            n_days=5,
+            n_windows=10,
+            seed=42,
+        )
+        data = loader.load()
+        assert data.shape[0] < 3  # fewer participants than requested
+
+    def test_min_valid_minutes_filter(self, tmp_path):
+        """Loader respects min_valid_minutes threshold."""
+        filepath = tmp_path / "valid_filter.csv"
+        rng = np.random.default_rng(42)
+
+        rows = []
+        for participant in [1, 2]:
+            for day in range(1, 3):
+                row_data = {
+                    "SEQN": participant,
+                    "PAXDAYM": day,
+                    "PAXDAYWM": (day % 7) + 1,
+                }
+                for minute in range(1, 1441):
+                    row_data[f"min_{minute}"] = max(0, int(rng.poisson(5)))
+                rows.append(row_data)
+
+        df = pd.DataFrame(rows)
+        df.to_csv(filepath, index=False)
+
+        loader = RealNHANESLoader(
+            data_path=str(filepath),
+            n_participants=2,
+            n_days=2,
+            n_windows=10,
+            min_valid_minutes=1440,
+            seed=42,
+        )
+        # All have 1440 valid minutes, so should work
+        data = loader.load()
+        assert data.shape == (2, 2, 10)
+
+
+@pytest.fixture
+def small_nhanes_csv(tmp_path):
+    """Create a minimal NHANES CSV for testing RealNHANESLoader."""
+    filepath = tmp_path / "test_nhanes.csv"
+    rng = np.random.default_rng(42)
+
+    rows: list[dict[str, object]] = []
+    for participant in [100, 200, 300]:
+        for day in range(1, 6):
+            row_data: dict[str, object] = {
+                "SEQN": participant,
+                "PAXDAYM": day,
+                "PAXDAYWM": (day % 7) + 1,
+            }
+            for minute in range(1, 1441):
+                if minute <= 120 and day == 5:
+                    row_data[f"min_{minute}"] = None
+                else:
+                    row_data[f"min_{minute}"] = max(0, int(rng.poisson(5)))
+            rows.append(row_data)
+
+    df = pd.DataFrame(rows)
+    df.to_csv(filepath, index=False)
+    return str(filepath)

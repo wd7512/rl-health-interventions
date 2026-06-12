@@ -17,7 +17,7 @@ import numpy as np
 
 from paper_reproduction.baselines.ts_bandit import TSBandit
 from paper_reproduction.data.generative_model import GenerativeModel
-from paper_reproduction.data.nhanes_loader import SyntheticNHANESGenerator
+from paper_reproduction.data.nhanes_loader import NHANESLoader, SyntheticNHANESGenerator
 from paper_reproduction.heartsteps.agent import ThompsonSamplingAgent
 from paper_reproduction.heartsteps.bayesian_regression import BayesianRewardModel
 from paper_reproduction.heartsteps.dosage import DosageTracker
@@ -270,6 +270,8 @@ def run_simulation(
     gamma_values: tuple[float, ...] = (0, 0.25, 0.5, 0.75, 0.9, 0.95),
     w_values: tuple[float, ...] = (0, 0.1, 0.25, 0.5, 0.75, 1.0),
     seed: int = 42,
+    data_source: str = "synthetic",
+    data_path: str | None = None,
 ) -> SimulationResults:
     """Run the full simulation study end-to-end.
 
@@ -311,13 +313,23 @@ def run_simulation(
         w_values,
     )
 
-    # --- Step 1: Generate synthetic step data ---
-    step_gen = SyntheticNHANESGenerator(seed=int(rng.integers(0, 2**31)))
-    step_data = step_gen.generate(
-        n_participants=n_participants,
-        n_days=n_source_days,
-        n_windows=n_windows,
-    )
+    # --- Step 1: Load step data ---
+    if data_source == "real" and data_path is not None:
+        loader = NHANESLoader(
+            data_source="real",
+            n_participants=n_participants,
+            n_days=n_source_days,
+            seed=int(rng.integers(0, 2**31)),
+            data_path=data_path,
+        )
+        step_data = loader.load()
+    else:
+        step_gen = SyntheticNHANESGenerator(seed=int(rng.integers(0, 2**31)))
+        step_data = step_gen.generate(
+            n_participants=n_participants,
+            n_days=n_source_days,
+            n_windows=n_windows,
+        )
 
     # Reward model parameters matching the paper setup
     alpha = np.array([1.0, 0.5, 0.3, 0.1, 0.2, 0.1])
@@ -340,6 +352,7 @@ def run_simulation(
         "gamma_values": list(gamma_values),
         "w_values": list(w_values),
         "seed": seed,
+        "data_source": data_source,
         "alpha": alpha.tolist(),
         "beta": beta.tolist(),
     }
