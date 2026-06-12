@@ -14,7 +14,7 @@ def step_data():
 
 @pytest.fixture
 def alpha():
-    return np.array([1.0, 0.5, 0.3, 0.1, 0.2, 0.1, 0.05, 0.05, 0.2, 0.15, 0.1, 0.05])
+    return np.array([1.0, 0.5, 0.3, 0.1, 0.2, 0.1, 0.2, 0.15, 0.1, 0.05])
 
 
 @pytest.fixture
@@ -24,12 +24,12 @@ def beta():
 
 @pytest.fixture
 def prior_mean():
-    return np.zeros(16)
+    return np.zeros(14)
 
 
 @pytest.fixture
 def prior_cov():
-    return np.eye(16)
+    return np.eye(14)
 
 
 class TestGridSearchCompletes:
@@ -43,7 +43,7 @@ class TestGridSearchCompletes:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=8,
+            g_dim=6,
             f_dim=4,
             seed=42,
         )
@@ -59,7 +59,7 @@ class TestGridSearchCompletes:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=8,
+            g_dim=6,
             f_dim=4,
             seed=42,
         )
@@ -76,7 +76,7 @@ class TestGridSearchCompletes:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=8,
+            g_dim=6,
             f_dim=4,
             seed=42,
         )
@@ -94,7 +94,7 @@ class TestSelectedParameters:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=8,
+            g_dim=6,
             f_dim=4,
             seed=42,
         )
@@ -110,7 +110,7 @@ class TestSelectedParameters:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=8,
+            g_dim=6,
             f_dim=4,
             seed=42,
         )
@@ -128,7 +128,7 @@ class TestSelectedParameters:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=8,
+            g_dim=6,
             f_dim=4,
             seed=42,
         )
@@ -148,7 +148,7 @@ class TestDeterminism:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=8,
+            g_dim=6,
             f_dim=4,
             seed=42,
         )
@@ -160,7 +160,7 @@ class TestDeterminism:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=8,
+            g_dim=6,
             f_dim=4,
             seed=42,
         )
@@ -180,7 +180,7 @@ class TestDeterminism:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=8,
+            g_dim=6,
             f_dim=4,
             seed=42,
         )
@@ -192,7 +192,7 @@ class TestDeterminism:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=8,
+            g_dim=6,
             f_dim=4,
             seed=99,
         )

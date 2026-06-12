@@ -42,7 +42,7 @@ class GenerativeModel:
         step_data: np.ndarray,
         alpha: np.ndarray,
         beta: np.ndarray,
-        g_dim: int = 8,
+        g_dim: int = 6,
         noise_variance: float = 1.0,
         p_avail: float = 0.85,
         p_sed: float = 0.2,
@@ -167,20 +167,18 @@ class GenerativeModel:
         time_of_day_cos = np.cos(2.0 * np.pi * time_slot / 5.0)
         day_of_week_sin = np.sin(2.0 * np.pi * (day % 7) / 7.0)
 
+        step_var_norm = min(step_var / 100.0, 1.0)
+
         g = np.array(
             [
                 steps_30min_norm,
-                steps_1hr_norm,
-                steps_2hr_norm,
-                steps_24hr_norm,
                 daily_norm,
                 time_of_day_sin,
                 time_of_day_cos,
                 day_of_week_sin,
+                step_var_norm,
             ]
         )
-
-        step_var_norm = min(step_var / 100.0, 1.0)
 
         f = np.array(
             [
