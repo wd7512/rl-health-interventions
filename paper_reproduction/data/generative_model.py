@@ -42,7 +42,7 @@ class GenerativeModel:
         step_data: np.ndarray,
         alpha: np.ndarray,
         beta: np.ndarray,
-        g_dim: int = 4,
+        g_dim: int = 8,
         noise_variance: float = 1.0,
         p_avail: float = 0.85,
         p_sed: float = 0.2,
@@ -64,6 +64,7 @@ class GenerativeModel:
         self.alpha = alpha
         self.beta = beta
         self.g_dim = g_dim
+        self.f_dim = len(beta)
         self.noise_variance = noise_variance
         self.p_avail = p_avail
         self.p_sed = p_sed
@@ -108,36 +109,87 @@ class GenerativeModel:
         return np.concatenate([source, extra_days], axis=0)
 
     def _construct_features(
-        self, steps_30min: float, daily_steps: float, time_slot: int, day: int
+        self, steps: np.ndarray, t: int, daily_steps_t: float, time_slot: int, day: int
     ) -> tuple[np.ndarray, np.ndarray]:
         """Construct baseline and treatment feature vectors.
 
-        Baseline features g(s): [prior_30min_steps, daily_steps, time_slot, day]
-        Treatment features f(s): [dosage, step_variation, time_slot]
+        Baseline features g(s) (8 dims):
+          1. steps_30min_norm:   current 30-min steps / 500
+          2. steps_1hr_norm:     rolling 1hr average / 500
+          3. steps_2hr_norm:     rolling 2hr average / 500
+          4. steps_24hr_norm:    rolling 24hr average / 10000
+          5. daily_steps_norm:   cumulative daily steps / 10000
+          6. time_of_day_sin:    sin(2*pi*time_slot/5)
+          7. time_of_day_cos:    cos(2*pi*time_slot/5)
+          8. day_of_week_sin:    sin(2*pi*(day%7)/7)
 
-        Note: This is a simplified feature set for the reproduction.
-        The full HeartSteps V2 feature set includes location, temperature,
-        app engagement, etc.
+        Treatment features f(s) (4 dims):
+          1. steps_30min_norm:   current steps (captures immediate response)
+          2. step_variability:   std of last 6 windows / 100
+          3. time_of_day_sin:    sin encoding
+          4. daily_total_norm:   daily total / 10000
 
         Args:
-            steps_30min: 30-minute step count.
-            daily_steps: Total daily steps so far.
+            steps: Full flattened step array.
+            t: Current time index.
+            daily_steps_t: Cumulative daily steps estimate.
             time_slot: Decision time slot (0-4).
             day: Study day (0-89).
 
         Returns:
             Tuple of (g_features, f_features) as numpy arrays.
         """
-        # Normalise features to [0, 1] range
-        steps_norm = min(steps_30min / 500.0, 1.0)
-        daily_norm = min(daily_steps / 10000.0, 1.0)
-        time_norm = time_slot / 4.0
-        day_norm = day / 89.0
+        steps_30min = float(steps[t])
 
-        g = np.array([steps_norm, daily_norm, time_norm, day_norm])
-        # f features: [time_slot, step_variation] — dosage is tracked externally
-        step_variation = 0.5  # simplified — constant
-        f = np.array([time_norm, step_variation])
+        # Rolling step averages
+        lookback_1hr = max(0, t - 1)
+        lookback_2hr = max(0, t - 3)
+        lookback_24hr = max(0, t - 47)
+
+        steps_1hr = float(np.mean(steps[lookback_1hr : t + 1]))
+        steps_2hr = float(np.mean(steps[lookback_2hr : t + 1]))
+        steps_24hr = float(np.mean(steps[lookback_24hr : t + 1]))
+
+        # Step variability (std of last 6 windows)
+        lookback_var = max(0, t - 5)
+        n_var = t - lookback_var + 1
+        step_var = float(np.std(steps[lookback_var : t + 1])) if n_var >= 2 else 0.0
+
+        # Normalise to [0, 1]
+        steps_30min_norm = min(steps_30min / 500.0, 1.0)
+        steps_1hr_norm = min(steps_1hr / 500.0, 1.0)
+        steps_2hr_norm = min(steps_2hr / 500.0, 1.0)
+        steps_24hr_norm = min(steps_24hr / 10000.0, 1.0)
+        daily_norm = min(daily_steps_t / 10000.0, 1.0)
+
+        # Cyclical encodings
+        time_of_day_sin = np.sin(2.0 * np.pi * time_slot / 5.0)
+        time_of_day_cos = np.cos(2.0 * np.pi * time_slot / 5.0)
+        day_of_week_sin = np.sin(2.0 * np.pi * (day % 7) / 7.0)
+
+        g = np.array(
+            [
+                steps_30min_norm,
+                steps_1hr_norm,
+                steps_2hr_norm,
+                steps_24hr_norm,
+                daily_norm,
+                time_of_day_sin,
+                time_of_day_cos,
+                day_of_week_sin,
+            ]
+        )
+
+        step_var_norm = min(step_var / 100.0, 1.0)
+
+        f = np.array(
+            [
+                steps_30min_norm,
+                step_var_norm,
+                time_of_day_sin,
+                daily_norm,
+            ]
+        )
 
         return g, f
 
@@ -191,7 +243,7 @@ class GenerativeModel:
                 daily_steps[t] = daily_steps[max(t - n_windows, 0)]
 
             # Construct features
-            g, f = self._construct_features(steps[t], daily_steps[t], time_slot, day)
+            g, f = self._construct_features(steps, t, daily_steps[t], time_slot, day)
 
             # Generate action (simple rule: 30% probability when available)
             if availabilities[t]:

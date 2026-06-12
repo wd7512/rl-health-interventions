@@ -26,8 +26,10 @@ class TestEstimateNoiseVariance:
         )
         gm = GenerativeModel(
             step_data=step_data,
-            alpha=np.array([1.0, 0.5, 0.3, 0.1, 0.2, 0.1]),
-            beta=np.array([0.5, 0.3]),
+            alpha=np.array(
+                [1.0, 0.5, 0.3, 0.1, 0.2, 0.1, 0.05, 0.05, 0.2, 0.15, 0.1, 0.05]
+            ),
+            beta=np.array([0.5, 0.3, 0.2, 0.1]),
             noise_variance=1.0,
             seed=42,
         )
@@ -43,7 +45,7 @@ class TestEstimateNoiseVariance:
 
 class TestExtractBanditPrior:
     def test_correct_shapes(self):
-        g_dim, f_dim = 4, 2
+        g_dim, f_dim = 8, 4
         total_action = g_dim + 2 * f_dim
         prior_mean = np.arange(total_action, dtype=float)
         prior_cov = np.diag(np.arange(1, total_action + 1, dtype=float))
@@ -59,7 +61,7 @@ class TestExtractBanditPrior:
         assert bandit_cov.shape == (g_dim + f_dim, g_dim + f_dim)
 
     def test_alpha_extracted_correctly(self):
-        g_dim, f_dim = 4, 2
+        g_dim, f_dim = 8, 4
         total = g_dim + 2 * f_dim
         prior_mean = np.arange(total, dtype=float)
         prior_cov = np.eye(total)

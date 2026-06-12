@@ -129,7 +129,8 @@ def _simulate_episode_proposed(
             daily_steps[t] = daily_steps[max(t - n_windows, 0)]
 
         g, f = generative_model._construct_features(
-            steps[t],
+            steps,
+            t,
             daily_steps[t],
             time_slot,
             day,
@@ -210,7 +211,8 @@ def _simulate_episode_ts_bandit(
             daily_steps[t] = daily_steps[max(t - n_windows, 0)]
 
         g, f = generative_model._construct_features(
-            steps[t],
+            steps,
+            t,
             daily_steps[t],
             time_slot,
             day,
@@ -235,8 +237,8 @@ def _simulate_episode_ts_bandit(
 def _extract_bandit_prior(
     prior_mean_action_centered: np.ndarray,
     prior_cov_action_centered: np.ndarray,
-    g_dim: int = 4,
-    f_dim: int = 2,
+    g_dim: int = 8,
+    f_dim: int = 4,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Extract TS Bandit prior from action-centered prior.
 
@@ -331,9 +333,9 @@ def run_simulation(
             n_windows=n_windows,
         )
 
-    # Reward model parameters matching the paper setup
-    alpha = np.array([1.0, 0.5, 0.3, 0.1, 0.2, 0.1])
-    beta = np.array([1.5, 2.5])
+    # Reward model parameters matching the enriched feature setup
+    alpha = np.array([1.0, 0.5, 0.3, 0.1, 0.2, 0.1, 0.05, 0.05, 0.2, 0.15, 0.1, 0.05])
+    beta = np.array([1.5, 2.5, 1.0, 0.5])
 
     # --- Step 2: Create CV folds ---
     folds = create_folds(
@@ -373,7 +375,7 @@ def run_simulation(
             step_data=step_data,
             alpha=alpha,
             beta=beta,
-            g_dim=4,
+            g_dim=8,
             noise_variance=1.0,
             p_avail=0.85,
             p_sed=0.2,
@@ -384,8 +386,8 @@ def run_simulation(
         prior_mean, prior_cov = construct_prior(
             training_indices=train_indices.tolist(),
             generative_model=gm,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
             n_days=n_days,
             pi_param=0.3,
             rng=np.random.default_rng(int(rng.integers(0, 2**31))),
@@ -408,8 +410,8 @@ def run_simulation(
             beta=beta,
             prior_mean=prior_mean,
             prior_cov=prior_cov,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
             n_re_runs=n_re_runs,
             n_days=n_days,
             n_windows=n_windows,
@@ -439,8 +441,8 @@ def run_simulation(
         bandit_prior_mean, bandit_prior_cov = _extract_bandit_prior(
             prior_mean,
             prior_cov,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
         )
 
         # Steps 3d-g: Evaluate on test participants
@@ -457,8 +459,8 @@ def run_simulation(
 
                 # --- Proposed algorithm run ---
                 model_proposed = BayesianRewardModel(
-                    g_dim=4,
-                    f_dim=2,
+                    g_dim=8,
+                    f_dim=4,
                     prior_mean=prior_mean.copy(),
                     prior_cov=prior_cov.copy(),
                     noise_variance=noise_var,
@@ -499,8 +501,8 @@ def run_simulation(
 
                 # --- TS Bandit run ---
                 bandit = TSBandit(
-                    g_dim=4,
-                    f_dim=2,
+                    g_dim=8,
+                    f_dim=4,
                     prior_mean=bandit_prior_mean.copy(),
                     prior_cov=bandit_prior_cov.copy(),
                     noise_variance=noise_var,

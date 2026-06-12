@@ -53,14 +53,15 @@ def _compute_daily_steps(
 
 
 def _construct_features(
-    steps_t: float, daily_steps_t: float, time_slot: int, day: int
+    steps: np.ndarray, t: int, daily_steps_t: float, time_slot: int, day: int
 ) -> tuple[np.ndarray, np.ndarray]:
     """Construct baseline (g) and treatment (f) feature vectors.
 
     Matches the construction logic in GenerativeModel._construct_features.
 
     Args:
-        steps_t: Step count in the current 30-minute window.
+        steps: Full flattened step array.
+        t: Current time index.
         daily_steps_t: Cumulative daily steps estimate.
         time_slot: Decision time slot (0-4).
         day: Study day (0-89).
@@ -68,13 +69,54 @@ def _construct_features(
     Returns:
         Tuple of (g_features, f_features) as numpy arrays.
     """
-    steps_norm = min(steps_t / 500.0, 1.0)
+    steps_30min = float(steps[t])
+
+    lookback_1hr = max(0, t - 1)
+    lookback_2hr = max(0, t - 3)
+    lookback_24hr = max(0, t - 47)
+
+    steps_1hr = float(np.mean(steps[lookback_1hr : t + 1]))
+    steps_2hr = float(np.mean(steps[lookback_2hr : t + 1]))
+    steps_24hr = float(np.mean(steps[lookback_24hr : t + 1]))
+
+    lookback_var = max(0, t - 5)
+    n_var = t - lookback_var + 1
+    step_var = float(np.std(steps[lookback_var : t + 1])) if n_var >= 2 else 0.0
+
+    steps_30min_norm = min(steps_30min / 500.0, 1.0)
+    steps_1hr_norm = min(steps_1hr / 500.0, 1.0)
+    steps_2hr_norm = min(steps_2hr / 500.0, 1.0)
+    steps_24hr_norm = min(steps_24hr / 10000.0, 1.0)
     daily_norm = min(daily_steps_t / 10000.0, 1.0)
-    time_norm = time_slot / 4.0
-    day_norm = day / 89.0
-    g = np.array([steps_norm, daily_norm, time_norm, day_norm])
-    step_variation = 0.5
-    f = np.array([time_norm, step_variation])
+
+    time_of_day_sin = np.sin(2.0 * np.pi * time_slot / 5.0)
+    time_of_day_cos = np.cos(2.0 * np.pi * time_slot / 5.0)
+    day_of_week_sin = np.sin(2.0 * np.pi * (day % 7) / 7.0)
+
+    g = np.array(
+        [
+            steps_30min_norm,
+            steps_1hr_norm,
+            steps_2hr_norm,
+            steps_24hr_norm,
+            daily_norm,
+            time_of_day_sin,
+            time_of_day_cos,
+            day_of_week_sin,
+        ]
+    )
+
+    step_var_norm = min(step_var / 100.0, 1.0)
+
+    f = np.array(
+        [
+            steps_30min_norm,
+            step_var_norm,
+            time_of_day_sin,
+            daily_norm,
+        ]
+    )
+
     return g, f
 
 
@@ -104,11 +146,9 @@ def _fit_ols(X: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.n
         residuals = y - X @ beta
         sigma2 = np.sum(residuals**2) / max(n - p, 1)
 
+        # Use pseudo-inverse for numerical stability with correlated features
         XtX = X.T @ X
-        try:
-            XtX_inv = np.linalg.inv(XtX)
-        except np.linalg.LinAlgError:
-            XtX_inv = np.linalg.pinv(XtX)
+        XtX_inv = np.linalg.pinv(XtX)
 
         se = np.sqrt(sigma2 * np.abs(np.diag(XtX_inv)))
         z_stats = np.where(se > 1e-15, beta / se, 0.0)
@@ -167,7 +207,8 @@ def _extract_observations(
         time_slot = t % n_windows // 2
 
         g, f = _construct_features(
-            float(traj["steps"][t]),
+            traj["steps"],
+            t,
             float(daily_steps[t]),
             time_slot,
             day,

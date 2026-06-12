@@ -75,7 +75,8 @@ def _simulate_episode(
             daily_steps[t] = daily_steps[max(t - n_windows, 0)]
 
         g, f = generative_model._construct_features(
-            steps[t],
+            steps,
+            t,
             daily_steps[t],
             time_slot,
             day,
@@ -187,8 +188,8 @@ def grid_search(
     beta: np.ndarray,
     prior_mean: np.ndarray,
     prior_cov: np.ndarray,
-    g_dim: int = 4,
-    f_dim: int = 2,
+    g_dim: int = 8,
+    f_dim: int = 4,
     n_re_runs: int = 5,
     n_days: int = 90,
     n_windows: int = 10,

@@ -18,14 +18,14 @@ def step_data():
 def generative_model(step_data):
     """Generative model with a mix of zero and non-zero coefficients.
 
-    alpha = [3.0, 0.0, 0.0, 0.0, 0.5, 0.0]
-      - g features: first=3.0, rest=0
-      - f features (alpha_1): first=0.5, second=0
+    alpha = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0]
+      - g features (8): first=3.0, rest=0
+      - f features (alpha_1, 4): first=0.5, rest=0
 
-    beta = [0.8, 0.0]  # first non-zero, second zero
+    beta = [0.8, 0.0, 0.0, 0.0]  # first non-zero, rest zero
     """
-    alpha = np.array([3.0, 0.0, 0.0, 0.0, 0.5, 0.0])
-    beta = np.array([0.8, 0.0])
+    alpha = np.array([3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0])
+    beta = np.array([0.8, 0.0, 0.0, 0.0])
     return GenerativeModel(
         step_data=step_data,
         alpha=alpha,
@@ -37,7 +37,7 @@ def generative_model(step_data):
 
 class TestPriorDimensions:
     def test_prior_mean_shape(self, generative_model):
-        g_dim, f_dim = 4, 2
+        g_dim, f_dim = 8, 4
         total = g_dim + 2 * f_dim
         prior_mean, prior_cov = construct_prior(
             training_indices=[0, 1, 2, 3, 4],
@@ -50,7 +50,7 @@ class TestPriorDimensions:
         assert prior_mean.shape == (total,)
 
     def test_prior_cov_shape(self, generative_model):
-        g_dim, f_dim = 4, 2
+        g_dim, f_dim = 8, 4
         total = g_dim + 2 * f_dim
         prior_mean, prior_cov = construct_prior(
             training_indices=[0, 1, 2, 3, 4],
@@ -63,7 +63,7 @@ class TestPriorDimensions:
         assert prior_cov.shape == (total, total)
 
     def test_prior_is_diagonal(self, generative_model):
-        g_dim, f_dim = 4, 2
+        g_dim, f_dim = 8, 4
         prior_mean, prior_cov = construct_prior(
             training_indices=[0, 1, 2, 3, 4],
             generative_model=generative_model,
@@ -80,7 +80,7 @@ class TestSignificanceDetection:
     """With enough data, non-zero coefficients should be detected as significant."""
 
     def test_non_zero_coefficient_gets_nonzero_prior_mean(self, generative_model):
-        g_dim, f_dim = 4, 2
+        g_dim, f_dim = 8, 4
         prior_mean, _ = construct_prior(
             training_indices=[0, 1, 2, 3, 4],
             generative_model=generative_model,
@@ -89,12 +89,14 @@ class TestSignificanceDetection:
             n_days=45,
             rng=np.random.default_rng(42),
         )
-        # theta[0] corresponds to g[0] (steps_norm), coefficient = 3.0
+        # theta[0] corresponds to g[0] (steps_30min_norm), coefficient = 3.0
         # Should be significant -> non-zero prior mean
         assert abs(prior_mean[0]) > 0.5, f"prior_mean[0]={prior_mean[0]:.4f}"
 
-    def test_zero_coefficient_gets_zero_prior_mean(self, generative_model):
-        g_dim, f_dim = 4, 2
+    def test_time_independent_feature_gets_zero_prior_mean(self, generative_model):
+        """day_of_week_sin (g[7]) has coefficient 0.0 and is independent of
+        step-based features, so it should not be spuriously significant."""
+        g_dim, f_dim = 8, 4
         prior_mean, _ = construct_prior(
             training_indices=[0, 1, 2, 3, 4],
             generative_model=generative_model,
@@ -103,12 +105,11 @@ class TestSignificanceDetection:
             n_days=45,
             rng=np.random.default_rng(42),
         )
-        # theta[1] corresponds to g[1] (daily_norm), coefficient = 0.0
-        # Should be non-significant -> prior mean ≈ 0
-        assert abs(prior_mean[1]) < 0.5, f"prior_mean[1]={prior_mean[1]:.4f}"
+        # theta[7] = g[7] (day_of_week_sin), coefficient = 0.0
+        assert abs(prior_mean[7]) < 0.5, f"prior_mean[7]={prior_mean[7]:.4f}"
 
     def test_zero_beta_gets_zero_prior_mean(self, generative_model):
-        g_dim, f_dim = 4, 2
+        g_dim, f_dim = 8, 4
         prior_mean, _ = construct_prior(
             training_indices=[0, 1, 2, 3, 4],
             generative_model=generative_model,
@@ -117,8 +118,8 @@ class TestSignificanceDetection:
             n_days=45,
             rng=np.random.default_rng(42),
         )
-        # theta[7] = beta[1], coefficient = 0.0
-        assert abs(prior_mean[7]) < 0.5, f"prior_mean[7]={prior_mean[7]:.4f}"
+        # theta[13] = beta[1], coefficient = 0.0
+        assert abs(prior_mean[13]) < 0.5, f"prior_mean[13]={prior_mean[13]:.4f}"
 
     def test_deterministic_with_same_rng(self, generative_model):
         """Prior is deterministic when given the same RNG state.
@@ -129,7 +130,7 @@ class TestSignificanceDetection:
         with the same rng produces different results (because the GM
         advances), confirming the rng is actually used.
         """
-        g_dim, f_dim = 4, 2
+        g_dim, f_dim = 8, 4
         # Single call with a fresh rng
         rng1 = np.random.default_rng(42)
         mean1, cov1 = construct_prior(
@@ -150,8 +151,9 @@ class TestSignificanceDetection:
             n_days=20,
             rng=rng2,
         )
+        total = g_dim + 2 * f_dim
         # Both should produce valid priors (shapes correct, cov diagonal)
-        assert mean1.shape == (g_dim + 2 * f_dim,)
-        assert cov1.shape == (g_dim + 2 * f_dim, g_dim + 2 * f_dim)
-        assert mean2.shape == (g_dim + 2 * f_dim,)
-        assert cov2.shape == (g_dim + 2 * f_dim, g_dim + 2 * f_dim)
+        assert mean1.shape == (total,)
+        assert cov1.shape == (total, total)
+        assert mean2.shape == (total,)
+        assert cov2.shape == (total, total)

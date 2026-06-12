@@ -14,22 +14,22 @@ def step_data():
 
 @pytest.fixture
 def alpha():
-    return np.array([1.0, 0.5, 0.3, 0.1, 0.2, 0.1])
+    return np.array([1.0, 0.5, 0.3, 0.1, 0.2, 0.1, 0.05, 0.05, 0.2, 0.15, 0.1, 0.05])
 
 
 @pytest.fixture
 def beta():
-    return np.array([0.5, 0.3])
+    return np.array([0.5, 0.3, 0.2, 0.1])
 
 
 @pytest.fixture
 def prior_mean():
-    return np.zeros(8)
+    return np.zeros(16)
 
 
 @pytest.fixture
 def prior_cov():
-    return np.eye(8)
+    return np.eye(16)
 
 
 class TestGridSearchCompletes:
@@ -43,8 +43,8 @@ class TestGridSearchCompletes:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
             seed=42,
         )
         assert isinstance(result, dict)
@@ -59,8 +59,8 @@ class TestGridSearchCompletes:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
             seed=42,
         )
         expected_keys = {"best_gamma", "best_w", "best_reward", "grid_results"}
@@ -76,8 +76,8 @@ class TestGridSearchCompletes:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
             seed=42,
         )
         assert len(result["grid_results"]) == 36
@@ -94,8 +94,8 @@ class TestSelectedParameters:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
             seed=42,
         )
         assert result["best_gamma"] in {0, 0.25, 0.5, 0.75, 0.9, 0.95}
@@ -110,8 +110,8 @@ class TestSelectedParameters:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
             seed=42,
         )
         assert result["best_w"] in {0, 0.1, 0.25, 0.5, 0.75, 1.0}
@@ -128,8 +128,8 @@ class TestSelectedParameters:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
             seed=42,
         )
         key = (result["best_gamma"], result["best_w"])
@@ -148,8 +148,8 @@ class TestDeterminism:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
             seed=42,
         )
         r2 = grid_search(
@@ -160,8 +160,8 @@ class TestDeterminism:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
             seed=42,
         )
         assert r1["best_gamma"] == r2["best_gamma"]
@@ -180,8 +180,8 @@ class TestDeterminism:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
             seed=42,
         )
         r2 = grid_search(
@@ -192,8 +192,8 @@ class TestDeterminism:
             prior_mean=prior_mean,
             prior_cov=prior_cov,
             n_re_runs=2,
-            g_dim=4,
-            f_dim=2,
+            g_dim=8,
+            f_dim=4,
             seed=99,
         )
         different = (
