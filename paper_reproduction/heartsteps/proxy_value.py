@@ -114,9 +114,7 @@ class ProxyValueFunction:
         """
         return int(np.argmin(np.abs(self.grid - x)))
 
-    def _transition_outcomes(
-        self, x: float, a: int
-    ) -> list[tuple[float, float]]:
+    def _transition_outcomes(self, x: float, a: int) -> list[tuple[float, float]]:
         """Get possible next dosage values and their probabilities.
 
         Args:
@@ -154,8 +152,7 @@ class ProxyValueFunction:
                 for x_next, prob in self._transition_outcomes(x, a):
                     j = self._grid_index(x_next)
                     H_a += prob * (
-                        self.p_avail * V[j, 1]
-                        + (1.0 - self.p_avail) * V[j, 0]
+                        self.p_avail * V[j, 1] + (1.0 - self.p_avail) * V[j, 0]
                     )
                 H_vals.append(H_a)
 
@@ -167,9 +164,7 @@ class ProxyValueFunction:
 
         return V_new
 
-    def solve(
-        self, tol: float = 1e-6, max_iter: int = 1000
-    ) -> dict:
+    def solve(self, tol: float = 1e-6, max_iter: int = 1000) -> dict:
         """Run value iteration on the dosage grid until convergence.
 
         Args:
@@ -196,8 +191,7 @@ class ProxyValueFunction:
                 break
         else:
             logger.warning(
-                "Value iteration did not converge in %d iterations, "
-                "residual=%.2e",
+                "Value iteration did not converge in %d iterations, residual=%.2e",
                 max_iter,
                 residual,
             )
@@ -209,8 +203,7 @@ class ProxyValueFunction:
                 for x_next, prob in self._transition_outcomes(x, a):
                     j = self._grid_index(x_next)
                     H_a += prob * (
-                        self.p_avail * V[j, 1]
-                        + (1.0 - self.p_avail) * V[j, 0]
+                        self.p_avail * V[j, 1] + (1.0 - self.p_avail) * V[j, 0]
                     )
                 self._H_current[i, a] = H_a
 
@@ -247,18 +240,14 @@ class ProxyValueFunction:
             Delayed effect value.
         """
         i = self._grid_index(x)
-        return self.gamma * (
-            self._H_current[i, 0] - self._H_current[i, 1]
-        )
+        return self.gamma * (self._H_current[i, 0] - self._H_current[i, 1])
 
     def update(self) -> None:
         """Weighted update blending H_1 (initial proxy) with current H*.
 
         H = (1 - w) * H_1 + w * H_current
         """
-        self._H_current = (
-            (1.0 - self.w) * self._H1 + self.w * self._H_current
-        )
+        self._H_current = (1.0 - self.w) * self._H1 + self.w * self._H_current
         logger.debug(
             "Proxy value updated: w=%.2f, H range=[%.4f, %.4f]",
             self.w,

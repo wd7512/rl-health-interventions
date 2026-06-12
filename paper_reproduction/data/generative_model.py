@@ -141,9 +141,7 @@ class GenerativeModel:
 
         return g, f
 
-    def generate_trajectory(
-        self, participant_idx: int, n_days: int = 90
-    ) -> dict:
+    def generate_trajectory(self, participant_idx: int, n_days: int = 90) -> dict:
         """Generate a single trajectory for a participant.
 
         Produces a 90-day sequence of (context, availability, actions, rewards)
@@ -193,9 +191,7 @@ class GenerativeModel:
                 daily_steps[t] = daily_steps[max(t - n_windows, 0)]
 
             # Construct features
-            g, f = self._construct_features(
-                steps[t], daily_steps[t], time_slot, day
-            )
+            g, f = self._construct_features(steps[t], daily_steps[t], time_slot, day)
 
             # Generate action (simple rule: 30% probability when available)
             if availabilities[t]:

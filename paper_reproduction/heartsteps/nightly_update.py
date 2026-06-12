@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import logging
 
-import numpy as np
 
 from paper_reproduction.heartsteps.bayesian_regression import BayesianRewardModel
 from paper_reproduction.heartsteps.proxy_value import ProxyValueFunction

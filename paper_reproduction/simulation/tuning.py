@@ -65,7 +65,9 @@ def _simulate_episode(
         window = t % n_windows
 
         is_night = window < 1 or window >= 9
-        available = False if is_night else rng.binomial(1, generative_model.p_avail) == 1
+        available = (
+            False if is_night else rng.binomial(1, generative_model.p_avail) == 1
+        )
 
         if time_slot == 0:
             daily_steps[t] = steps[max(0, t - n_windows) : t].sum()
@@ -73,7 +75,10 @@ def _simulate_episode(
             daily_steps[t] = daily_steps[max(t - n_windows, 0)]
 
         g, f = generative_model._construct_features(
-            steps[t], daily_steps[t], time_slot, day,
+            steps[t],
+            daily_steps[t],
+            time_slot,
+            day,
         )
 
         action, _ = agent.select_action(g, f, pi=pi_param, available=available)
@@ -285,7 +290,9 @@ def grid_search(
                 )
                 participant_rewards.append(avg)
 
-            mean_reward = float(np.mean(participant_rewards)) if participant_rewards else 0.0
+            mean_reward = (
+                float(np.mean(participant_rewards)) if participant_rewards else 0.0
+            )
             grid_results[(gamma, w_val)] = mean_reward
 
             if mean_reward > best_reward:

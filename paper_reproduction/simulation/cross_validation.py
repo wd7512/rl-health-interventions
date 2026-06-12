@@ -50,9 +50,7 @@ def create_folds(
     result: list[tuple[np.ndarray, np.ndarray]] = []
     for i in range(n_folds):
         test_indices = folds[i]
-        train_indices = np.concatenate(
-            [folds[j] for j in range(n_folds) if j != i]
-        )
+        train_indices = np.concatenate([folds[j] for j in range(n_folds) if j != i])
         result.append((train_indices, test_indices))
 
     logger.debug(

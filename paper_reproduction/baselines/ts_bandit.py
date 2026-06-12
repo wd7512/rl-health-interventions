@@ -76,7 +76,9 @@ class TSBandit:
             tau,
         )
 
-    def _construct_features(self, g: np.ndarray, f: np.ndarray, action: int) -> np.ndarray:
+    def _construct_features(
+        self, g: np.ndarray, f: np.ndarray, action: int
+    ) -> np.ndarray:
         return np.concatenate([g, action * f])
 
     def select_action(
@@ -89,7 +91,8 @@ class TSBandit:
             return 0, 0.0
 
         theta_sample = self._rng.multivariate_normal(
-            self._posterior_mean, self._posterior_cov,
+            self._posterior_mean,
+            self._posterior_cov,
         )
 
         alpha_sample = theta_sample[: self.g_dim]

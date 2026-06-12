@@ -44,7 +44,9 @@ class DosageTracker:
             raise ValueError(msg)
         self.decay = decay
         self._value = initial_value
-        logger.debug("DosageTracker initialised: decay=%.2f, initial=%.4f", decay, initial_value)
+        logger.debug(
+            "DosageTracker initialised: decay=%.2f, initial=%.4f", decay, initial_value
+        )
 
     @property
     def value(self) -> float:

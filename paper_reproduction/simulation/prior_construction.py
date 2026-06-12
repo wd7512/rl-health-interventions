@@ -78,9 +78,7 @@ def _construct_features(
     return g, f
 
 
-def _fit_ols(
-    X: np.ndarray, y: np.ndarray
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def _fit_ols(X: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Fit ordinary least squares regression.
 
     Fits y = X @ beta + epsilon without an intercept (the model already
@@ -114,10 +112,12 @@ def _fit_ols(
 
         se = np.sqrt(sigma2 * np.abs(np.diag(XtX_inv)))
         z_stats = np.where(se > 1e-15, beta / se, 0.0)
-        p_values = np.array([
-            2.0 * (1.0 - 0.5 * (1.0 + math.erf(abs(z) / math.sqrt(2.0))))
-            for z in z_stats
-        ])
+        p_values = np.array(
+            [
+                2.0 * (1.0 - 0.5 * (1.0 + math.erf(abs(z) / math.sqrt(2.0))))
+                for z in z_stats
+            ]
+        )
         p_values = np.clip(p_values, 0.0, 1.0)
 
         return beta, se, p_values
@@ -238,9 +238,7 @@ def construct_prior(
     per_participant_y: dict[int, np.ndarray] = {}
 
     for idx in training_indices:
-        X_i, y_i = _extract_observations(
-            generative_model, idx, n_days, pi_param
-        )
+        X_i, y_i = _extract_observations(generative_model, idx, n_days, pi_param)
         all_X.append(X_i)
         all_y.append(y_i)
         per_participant_X[idx] = X_i
@@ -287,9 +285,7 @@ def construct_prior(
 
     if new_feature_indices:
         existing_stds = [
-            prior_std[k]
-            for k in range(total_params)
-            if k not in new_feature_indices
+            prior_std[k] for k in range(total_params) if k not in new_feature_indices
         ]
         avg_std = np.mean(existing_stds) if existing_stds else 1.0
         for k in new_feature_indices:

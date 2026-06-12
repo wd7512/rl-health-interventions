@@ -95,7 +95,9 @@ class SyntheticNHANESGenerator:
             participant_mean = max(participant_mean, 500.0)
 
             # Per-window baseline = participant_mean / n_windows * time_weight
-            window_base = (participant_mean / n_windows) * self._time_weights[:n_windows]
+            window_base = (participant_mean / n_windows) * self._time_weights[
+                :n_windows
+            ]
 
             # Generate days with autocorrelation
             prev_residual = 0.0
