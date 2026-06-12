@@ -30,7 +30,9 @@ class ProxyValueFunction:
         tau(x' | x, 0) = p_sed * 1{x' = lambda * x + 1}
                         + (1 - p_sed) * 1{x' = lambda * x}
 
-    The reward is r(x, a) = treat_benefit * a - burden_coef * a * x.
+    The reward is r(x, a) = a * treat_benefit * max(0, 1 - burden_coef * x).
+    At low dosage, sending produces a positive treatment effect. As dosage
+    accumulates, the effect diminishes (habituation).
 
     Value iteration solves the Bellman equation on a discretised dosage grid.
     The proxy H(x, a) is the expected next-state value, and the delayed effect
@@ -70,7 +72,6 @@ class ProxyValueFunction:
         self.w = w
         self.treat_benefit = treat_benefit
         self.burden_coef = burden_coef
-        self.base_reward = 0.5  # baseline reward even without treatment
 
         self.grid = np.arange(0, grid_max + grid_step, grid_step)
         self.n_grid = len(self.grid)
@@ -91,8 +92,14 @@ class ProxyValueFunction:
     def _reward(self, x: float, a: int) -> float:
         """Marginal reward r(x, a) depending only on dosage and action.
 
-        Includes a baseline reward (even without treatment, some activity occurs)
-        and a treatment benefit that decreases with dosage.
+        Models the dosage-dependent treatment benefit:
+            r(x, 1) = treat_benefit * max(0, 1 - burden_coef * x)
+            r(x, 0) = 0
+
+        At low dosage, sending a suggestion produces a positive treatment
+        effect. As dosage accumulates, the effect diminishes (habituation).
+        At high dosage (x > 1/burden_coef), the treatment effect is zero
+        and sending is wasteful.
 
         Args:
             x: Current dosage.
@@ -101,7 +108,10 @@ class ProxyValueFunction:
         Returns:
             Reward value.
         """
-        return self.base_reward + a * (self.treat_benefit - self.burden_coef * x)
+        if a == 0:
+            return 0.0
+        treatment_effect = self.treat_benefit * max(0.0, 1.0 - self.burden_coef * x)
+        return treatment_effect
 
     def _grid_index(self, x: float) -> int:
         """Find nearest grid index for a dosage value.

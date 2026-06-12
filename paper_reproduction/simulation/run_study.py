@@ -321,7 +321,7 @@ def run_simulation(
 
     # Reward model parameters matching the paper setup
     alpha = np.array([1.0, 0.5, 0.3, 0.1, 0.2, 0.1])
-    beta = np.array([0.5, 0.3])
+    beta = np.array([1.5, 2.5])
 
     # --- Step 2: Create CV folds ---
     folds = create_folds(
@@ -460,7 +460,7 @@ def run_simulation(
                     grid_max=20.0,
                     grid_step=0.5,
                     treat_benefit=2.0,
-                    burden_coef=0.5,
+                    burden_coef=0.3,
                 )
                 proxy.solve()
 

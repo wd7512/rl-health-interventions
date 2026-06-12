@@ -274,7 +274,7 @@ def grid_search(
                 grid_max=20.0,
                 grid_step=0.5,
                 treat_benefit=2.0,
-                burden_coef=0.5,
+                burden_coef=0.3,
             )
             proxy.solve()
 
