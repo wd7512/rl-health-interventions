@@ -111,15 +111,21 @@ class TestDeterminism:
 class TestNHANESLoaderInterface:
     def test_loader_synthetic_default(self):
         """NHANESLoader with synthetic source returns correct type."""
-        loader = NHANESLoader(data_source="synthetic", n_participants=20, n_days=7, seed=42)
+        loader = NHANESLoader(
+            data_source="synthetic", n_participants=20, n_days=7, seed=42
+        )
         data = loader.load()
         assert isinstance(data, np.ndarray)
         assert data.shape == (20, 7, 10)
 
     def test_loader_synthetic_deterministic(self):
         """NHANESLoader is deterministic with same seed."""
-        l1 = NHANESLoader(data_source="synthetic", n_participants=15, n_days=7, seed=123)
-        l2 = NHANESLoader(data_source="synthetic", n_participants=15, n_days=7, seed=123)
+        l1 = NHANESLoader(
+            data_source="synthetic", n_participants=15, n_days=7, seed=123
+        )
+        l2 = NHANESLoader(
+            data_source="synthetic", n_participants=15, n_days=7, seed=123
+        )
         np.testing.assert_array_equal(l1.load(), l2.load())
 
     def test_loader_real_not_implemented(self):

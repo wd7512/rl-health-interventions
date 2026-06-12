@@ -10,7 +10,6 @@ Reference:
 """
 
 import numpy as np
-import pytest
 
 from paper_reproduction.heartsteps.agent import ThompsonSamplingAgent
 from paper_reproduction.heartsteps.bayesian_regression import BayesianRewardModel
@@ -41,7 +40,10 @@ class TestActionSelection:
         rng = np.random.default_rng(42)
         model, dosage, proxy = make_default_components(rng)
         agent = ThompsonSamplingAgent(
-            model=model, dosage_tracker=dosage, proxy_value=proxy, rng=rng,
+            model=model,
+            dosage_tracker=dosage,
+            proxy_value=proxy,
+            rng=rng,
         )
         g = np.array([1.0, 0.5])
         f = np.array([0.8])
@@ -54,7 +56,10 @@ class TestActionSelection:
         rng = np.random.default_rng(42)
         model, dosage, proxy = make_default_components(rng)
         agent = ThompsonSamplingAgent(
-            model=model, dosage_tracker=dosage, proxy_value=proxy, rng=rng,
+            model=model,
+            dosage_tracker=dosage,
+            proxy_value=proxy,
+            rng=rng,
         )
         g = np.array([1.0, 0.5])
         f = np.array([0.8])
@@ -85,7 +90,10 @@ class TestActionSelection:
         rng = np.random.default_rng(42)
         model, dosage, proxy = make_default_components(rng)
         agent = ThompsonSamplingAgent(
-            model=model, dosage_tracker=dosage, proxy_value=proxy, rng=rng,
+            model=model,
+            dosage_tracker=dosage,
+            proxy_value=proxy,
+            rng=rng,
         )
         g = np.array([1.0, 0.5])
         f = np.array([0.8])
@@ -102,12 +110,20 @@ class TestActionSelection:
         model, dosage, proxy = make_default_components(rng)
         mean_before = model.posterior_mean.copy()
         agent = ThompsonSamplingAgent(
-            model=model, dosage_tracker=dosage, proxy_value=proxy, rng=rng,
+            model=model,
+            dosage_tracker=dosage,
+            proxy_value=proxy,
+            rng=rng,
         )
         g = np.array([1.0, 0.5])
         f = np.array([0.8])
         agent.step(
-            g=g, f=f, action=1, pi=0.3, reward=5.0, available=True,
+            g=g,
+            f=f,
+            action=1,
+            pi=0.3,
+            reward=5.0,
+            available=True,
         )
         # Posterior should have changed
         assert not np.allclose(model.posterior_mean, mean_before)
@@ -117,13 +133,21 @@ class TestActionSelection:
         rng = np.random.default_rng(42)
         model, dosage, proxy = make_default_components(rng)
         agent = ThompsonSamplingAgent(
-            model=model, dosage_tracker=dosage, proxy_value=proxy, rng=rng,
+            model=model,
+            dosage_tracker=dosage,
+            proxy_value=proxy,
+            rng=rng,
         )
         dosage_before = dosage.value
         g = np.array([1.0, 0.5])
         f = np.array([0.8])
         agent.step(
-            g=g, f=f, action=1, pi=0.3, reward=5.0, available=True,
+            g=g,
+            f=f,
+            action=1,
+            pi=0.3,
+            reward=5.0,
+            available=True,
         )
         # Dosage should have changed (treatment delivered)
         assert dosage.value != dosage_before
@@ -133,7 +157,10 @@ class TestActionSelection:
         rng = np.random.default_rng(42)
         model, dosage, proxy = make_default_components(rng)
         agent = ThompsonSamplingAgent(
-            model=model, dosage_tracker=dosage, proxy_value=proxy, rng=rng,
+            model=model,
+            dosage_tracker=dosage,
+            proxy_value=proxy,
+            rng=rng,
         )
         g = np.array([1.0, 0.5])
         f = np.array([0.8])

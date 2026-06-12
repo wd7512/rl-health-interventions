@@ -9,7 +9,6 @@ Reference:
 """
 
 import numpy as np
-import pytest
 
 from paper_reproduction.heartsteps.proxy_value import ProxyValueFunction
 

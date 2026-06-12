@@ -116,7 +116,9 @@ class TestSelectedParameters:
         )
         assert result["best_w"] in {0, 0.1, 0.25, 0.5, 0.75, 1.0}
 
-    def test_best_reward_matches_grid(self, step_data, alpha, beta, prior_mean, prior_cov):
+    def test_best_reward_matches_grid(
+        self, step_data, alpha, beta, prior_mean, prior_cov
+    ):
         train_idx = np.array([0, 1])
         result = grid_search(
             step_data=step_data,
@@ -166,7 +168,9 @@ class TestDeterminism:
         assert r1["best_w"] == r2["best_w"]
         assert r1["best_reward"] == pytest.approx(r2["best_reward"])
 
-    def test_different_seeds_differ(self, step_data, alpha, beta, prior_mean, prior_cov):
+    def test_different_seeds_differ(
+        self, step_data, alpha, beta, prior_mean, prior_cov
+    ):
         train_idx = np.array([0, 1])
         r1 = grid_search(
             step_data=step_data,

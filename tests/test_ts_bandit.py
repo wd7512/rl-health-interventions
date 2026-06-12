@@ -23,8 +23,8 @@ def _make_bandit(g_dim=4, f_dim=2, rng=None, seed=42):
         tau=1.0,
         epsilon_0=0.2,
         epsilon_1=0.1,
-    rng=rng,
-)
+        rng=rng,
+    )
 
 
 class TestActionSelection:
@@ -95,8 +95,9 @@ class TestImmediateRewardOnly:
         f = np.array([0.8])
 
         q0 = float(g @ bandit._posterior_mean[:g_dim])
-        q1 = float(g @ bandit._posterior_mean[:g_dim]
-                   + f @ bandit._posterior_mean[g_dim:])
+        q1 = float(
+            g @ bandit._posterior_mean[:g_dim] + f @ bandit._posterior_mean[g_dim:]
+        )
         assert q1 > q0
 
         actions = [bandit.select_action(g, f, available=True)[0] for _ in range(200)]

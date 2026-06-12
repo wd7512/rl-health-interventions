@@ -1,7 +1,6 @@
 """Tests for 3-fold cross-validation (Task 3.1)."""
 
 import numpy as np
-import pytest
 
 from paper_reproduction.simulation.cross_validation import create_folds
 
@@ -48,8 +47,5 @@ class TestCreateFolds:
         folds1 = create_folds(30, n_folds=3, rng=np.random.default_rng(42))
         folds2 = create_folds(30, n_folds=3, rng=np.random.default_rng(99))
         # At least one fold should differ
-        same = all(
-            np.array_equal(t1, t2)
-            for (t1, _), (t2, _) in zip(folds1, folds2)
-        )
+        same = all(np.array_equal(t1, t2) for (t1, _), (t2, _) in zip(folds1, folds2))
         assert not same

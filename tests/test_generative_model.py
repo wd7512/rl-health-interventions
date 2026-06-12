@@ -18,9 +18,17 @@ def step_data():
 
 @pytest.fixture
 def model(step_data):
-    alpha = np.array([1.0, 0.5, 0.3, 0.1,  # g features
-                      0.2, 0.1])            # f features (alpha_1)
-    beta = np.array([0.5, 0.3])              # treatment effect
+    alpha = np.array(
+        [
+            1.0,
+            0.5,
+            0.3,
+            0.1,  # g features
+            0.2,
+            0.1,
+        ]
+    )  # f features (alpha_1)
+    beta = np.array([0.5, 0.3])  # treatment effect
     return GenerativeModel(
         step_data=step_data,
         alpha=alpha,

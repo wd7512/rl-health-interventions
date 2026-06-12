@@ -52,8 +52,8 @@ class TestFeatureConstruction:
             prior_cov=np.eye(4),
             noise_variance=1.0,
         )
-        g = np.array([1.0, 0.5])       # baseline features
-        f = np.array([0.8])              # treatment features
+        g = np.array([1.0, 0.5])  # baseline features
+        f = np.array([0.8])  # treatment features
         A = 1
         pi = 0.3
 
@@ -78,12 +78,12 @@ class TestFeatureConstruction:
 
         phi = model.construct_features(g, f, A, pi)
         # phi = [g, pi*f, (A-pi)*f] = [1.0, 0.5, 0.4, 0.15, 0.0, 0.0]
-        assert phi[0] == pytest.approx(1.0)   # g[0]
-        assert phi[1] == pytest.approx(0.5)   # g[1]
-        assert phi[2] == pytest.approx(0.4)   # pi * f[0] = 0.5 * 0.8
+        assert phi[0] == pytest.approx(1.0)  # g[0]
+        assert phi[1] == pytest.approx(0.5)  # g[1]
+        assert phi[2] == pytest.approx(0.4)  # pi * f[0] = 0.5 * 0.8
         assert phi[3] == pytest.approx(0.15)  # pi * f[1] = 0.5 * 0.3
-        assert phi[4] == pytest.approx(0.0)   # (A-pi) * f[0] = 0
-        assert phi[5] == pytest.approx(0.0)   # (A-pi) * f[1] = 0
+        assert phi[4] == pytest.approx(0.0)  # (A-pi) * f[0] = 0
+        assert phi[5] == pytest.approx(0.0)  # (A-pi) * f[1] = 0
 
 
 class TestPosteriorUpdate:
@@ -105,15 +105,15 @@ class TestPosteriorUpdate:
         g = np.array([1.0, 0.0])
         f = np.array([1.0])
         A, pi, R = 1, 0.3, 5.0
-        I = 1  # available
-
         phi = model.construct_features(g, f, A, pi)
 
         # Manual computation of posterior
         Sigma_prior_inv = np.eye(total)
         outer = np.outer(phi, phi)
         Sigma_post = np.linalg.inv(Sigma_prior_inv + (1 / sigma2) * outer)
-        mu_post = Sigma_post @ ((1 / sigma2) * phi * R + Sigma_prior_inv @ np.zeros(total))
+        mu_post = Sigma_post @ (
+            (1 / sigma2) * phi * R + Sigma_prior_inv @ np.zeros(total)
+        )
 
         # Update model
         model.update(g, f, A, pi, R, available=True)
