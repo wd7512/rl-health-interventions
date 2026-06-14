@@ -28,10 +28,10 @@ related: "PR-R1 through PR-R8 (eight recreation reports)"
 | R6 | Russo & Van Roy 2018 (TS bounds) | O(√(dT log T)) Bayesian regret | Recreation report written; theoretical justification for TS |
 | R7 | Liao 2019 (HeartSteps V2) | 78.4% improved, +29.75 mean | Recreation report written; PR #85 reproduction gap quantified |
 | R8 | Patten 2026 + Williamson 2024 (All of Us + UK Biobank) | ~5-9K steps/day, n=159K combined | Recreation report written; multi-source validation reference |
+| R4 | Chowdhury-Gopalan 2017 (kernelized bandits) | O(√(d_eff T log T)) | Recreation report written; equivalent to R6 for linear case; needed only for kernel extensions |
+| R9 | Klasnja 2022 (V2 journal version) | TBD — paper not yet accessed | Placeholder report; DOI/pages missing from references.bib; gap to fill |
 
-(R4 was deferred to R6 — the Russo-Van Roy 2018 paper is the
-more relevant TS theory paper; the Liao 2019 paper does not
-contribute additional theoretical guarantees beyond R6.)
+All 9 papers covered: 8 with verified numbers, 1 placeholder.
 
 ---
 
