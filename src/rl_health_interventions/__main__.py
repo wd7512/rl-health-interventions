@@ -50,7 +50,7 @@ def main() -> None:
         config.episode_days * config.steps_per_day,
     )
 
-    agent = make_agent(args.agent)
+    agent = make_agent(args.agent, seed=args.seed or config.seed)
 
     output_path = Path(args.output)
     df = run_episode(config, agent, output_csv=output_path, seed=args.seed)

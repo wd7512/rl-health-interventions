@@ -11,7 +11,7 @@ def test_cli_runs_with_config_flag(tmp_path: Path) -> None:
 activity_levels: [sedentary, active]
 actions: [send, don_t_send]
 time_of_day: [morning, midday, afternoon, evening, night]
-steps_per_day: 2
+steps_per_day: 5
 episode_days: 1
 transition:
   sedentary:

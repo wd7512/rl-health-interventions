@@ -54,3 +54,24 @@ class MDPConfig(BaseModel):
     reward_active: float = 1.0
     reward_sedentary: float = 0.0
     seed: int = 42
+
+    @model_validator(mode="after")
+    def _check_time_of_day_count(self):
+        if len(self.time_of_day) != self.steps_per_day:
+            raise ValueError(
+                f"time_of_day has {len(self.time_of_day)} entries "
+                f"but steps_per_day is {self.steps_per_day}; must match"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _check_transition_covers_all_pairs(self):
+        for state in self.activity_levels:
+            for action in self.actions:
+                if state not in self.transition.root:
+                    raise ValueError(f"Missing transition entry for state '{state.value}'")
+                if action not in self.transition.root[state]:
+                    raise ValueError(
+                        f"Missing transition entry for ({state.value}, {action.value})"
+                    )
+        return self

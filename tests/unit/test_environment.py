@@ -10,52 +10,32 @@ from rl_health_interventions.environment import Environment
 
 
 def _config(steps_per_day=5, episode_days=90) -> MDPConfig:
+    all_times = [
+        TimeOfDay.MORNING, TimeOfDay.MIDDAY, TimeOfDay.AFTERNOON,
+        TimeOfDay.EVENING, TimeOfDay.NIGHT,
+    ]
     return MDPConfig(
         activity_levels=[ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE],
         actions=[Action.SEND, Action.DON_T_SEND],
-        time_of_day=[
-            TimeOfDay.MORNING,
-            TimeOfDay.MIDDAY,
-            TimeOfDay.AFTERNOON,
-            TimeOfDay.EVENING,
-            TimeOfDay.NIGHT,
-        ],
+        time_of_day=all_times[:steps_per_day],
         steps_per_day=steps_per_day,
         episode_days=episode_days,
         transition=TransitionMatrix(
             root={
                 ActivityLevel.SEDENTARY: {
-                    Action.SEND: {
-                        ActivityLevel.SEDENTARY: 0.7,
-                        ActivityLevel.ACTIVE: 0.3,
-                    },
-                    Action.DON_T_SEND: {
-                        ActivityLevel.SEDENTARY: 0.9,
-                        ActivityLevel.ACTIVE: 0.1,
-                    },
+                    Action.SEND: {ActivityLevel.SEDENTARY: 0.7, ActivityLevel.ACTIVE: 0.3},
+                    Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.9, ActivityLevel.ACTIVE: 0.1},
                 },
                 ActivityLevel.ACTIVE: {
-                    Action.SEND: {
-                        ActivityLevel.SEDENTARY: 0.2,
-                        ActivityLevel.ACTIVE: 0.8,
-                    },
-                    Action.DON_T_SEND: {
-                        ActivityLevel.SEDENTARY: 0.4,
-                        ActivityLevel.ACTIVE: 0.6,
-                    },
+                    Action.SEND: {ActivityLevel.SEDENTARY: 0.2, ActivityLevel.ACTIVE: 0.8},
+                    Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.4, ActivityLevel.ACTIVE: 0.6},
                 },
             }
         ),
         masks=TimeOfDayMask(
             root={
                 t: {ActivityLevel.SEDENTARY: 0.0, ActivityLevel.ACTIVE: 0.0}
-                for t in [
-                    TimeOfDay.MORNING,
-                    TimeOfDay.MIDDAY,
-                    TimeOfDay.AFTERNOON,
-                    TimeOfDay.EVENING,
-                    TimeOfDay.NIGHT,
-                ]
+                for t in all_times[:steps_per_day]
             }
         ),
     )

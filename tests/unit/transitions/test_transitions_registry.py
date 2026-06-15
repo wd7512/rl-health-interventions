@@ -25,6 +25,7 @@ def test_make_returns_instance() -> None:
         activity_levels=[ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE],
         actions=[Action.SEND, Action.DON_T_SEND],
         time_of_day=[TimeOfDay.MORNING],
+        steps_per_day=1,
         transition=TransitionMatrix(
             root={
                 ActivityLevel.SEDENTARY: {

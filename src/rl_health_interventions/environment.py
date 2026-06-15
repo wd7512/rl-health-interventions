@@ -28,6 +28,7 @@ class Environment:
             time_of_day=time_of_day,
             day=0,
             step_of_day=0,
+            steps_per_day=self._config.steps_per_day,
         )
         logger.debug("Environment reset: %s", self._current_state)
         return self._current_state
@@ -53,6 +54,7 @@ class Environment:
             time_of_day=next_time_of_day,
             day=next_day,
             step_of_day=next_step_of_day,
+            steps_per_day=self._config.steps_per_day,
         )
 
         if self._step_count >= self._config.steps_per_day * self._config.episode_days:
