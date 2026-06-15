@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import random
+import random as _random
+import numpy as np
 
 from rl_health_interventions.agents._base import Agent
 from rl_health_interventions.config.schemas import Action
@@ -25,18 +26,19 @@ class EpsilonGreedyAgent(Agent):
             raise ValueError("epsilon must be between 0.0 and 1.0 inclusive.")
         self.n_actions = n_actions
         self.epsilon = epsilon
-        self._rng = random.Random(seed)
+        self._rng = np.random.default_rng(seed)
+        self._stdlib_rng = _random.Random(seed)
         self.q_values: dict[Action, float] = {action: 0.0 for action in Action}
         self.counts: dict[Action, int] = {action: 0 for action in Action}
 
     def select_action(self, state) -> Action:
         if self._rng.random() < self.epsilon:
             actions = list(self.q_values.keys())
-            idx = self._rng.randrange(len(actions))
+            idx = self._stdlib_rng.randrange(len(actions))
             return actions[idx]
         max_q = max(self.q_values.values())
         best = [a for a, q in self.q_values.items() if q == max_q]
-        return self._rng.choice(best)
+        return self._stdlib_rng.choice(best)
 
     def update(self, state, action: Action, reward: float, next_state) -> None:
         self.counts[action] += 1

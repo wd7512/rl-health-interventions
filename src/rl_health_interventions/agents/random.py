@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import random
+import random as _random
 
 from rl_health_interventions.agents._base import Agent
 from rl_health_interventions.config.schemas import Action
@@ -10,7 +10,7 @@ class RandomAgent(Agent):
     """Baseline: uniform random action selection. No learning."""
 
     def __init__(self, n_actions: int = 2, seed: int = 42) -> None:
-        self._rng = random.Random(seed)
+        self._rng = _random.Random(seed)
         self._actions = list(Action)[:n_actions]
 
     def select_action(self, state) -> Action:
