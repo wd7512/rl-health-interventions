@@ -51,7 +51,7 @@ def main() -> None:
     )
 
     env_seed = args.seed if args.seed is not None else config.seed
-    agent_seed = env_seed  # bandit agents ignore state, so correlation is harmless
+    agent_seed = hash((env_seed, "agent")) % (2**31)
 
     agent = make_agent(args.agent, seed=agent_seed)
 
