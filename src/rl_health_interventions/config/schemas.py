@@ -92,3 +92,15 @@ class MDPConfig(BaseModel):
                         f"Missing transition entry for ({state.value}, {action.value})"
                     )
         return self
+
+    @model_validator(mode="after")
+    def _check_masks_cover_all_pairs(self):
+        for tod in self.time_of_day:
+            if tod not in self.masks.root:
+                raise ValueError(f"Missing mask entry for time of day '{tod.value}'")
+            for state in self.activity_levels:
+                if state not in self.masks.root[tod]:
+                    raise ValueError(
+                        f"Missing mask entry for ({tod.value}, {state.value})"
+                    )
+        return self

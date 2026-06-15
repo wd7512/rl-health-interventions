@@ -53,7 +53,7 @@ def main() -> None:
     # Use config.seed for environment, config.seed + 1 for agent
     # to ensure independent random streams
     env_seed = args.seed if args.seed is not None else config.seed
-    agent_seed = (args.seed + 1) if args.seed is not None else config.seed + 1
+    agent_seed = env_seed
 
     agent = make_agent(args.agent, seed=agent_seed)
 
