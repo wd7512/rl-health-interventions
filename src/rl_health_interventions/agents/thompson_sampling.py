@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from rl_health_interventions.agents._base import Agent
-from rl_health_interventions.config.schemas import Action
+from rl_health_interventions.config.schemas import Action, ActivityLevel
 
 
 class ThompsonSamplingAgent(Agent):
@@ -17,6 +17,8 @@ class ThompsonSamplingAgent(Agent):
         self.n_actions = n_actions
         self.alpha_prior = alpha_prior
         self.beta_prior = beta_prior
+        if alpha_prior <= 0.0 or beta_prior <= 0.0:
+            raise ValueError("alpha_prior and beta_prior must be strictly positive.")
         self._rng = np.random.default_rng(seed)
         self.posteriors: dict[Action, list[float]] = {
             action: [alpha_prior, beta_prior] for action in Action
@@ -30,7 +32,11 @@ class ThompsonSamplingAgent(Agent):
         return max(samples, key=lambda a: samples[a])
 
     def update(self, state, action: Action, reward: float, next_state) -> None:
-        if reward == 1.0:
+        is_active = (
+            hasattr(next_state, "activity")
+            and next_state.activity == ActivityLevel.ACTIVE
+        )
+        if is_active:
             self.posteriors[action][0] += 1  # alpha
         else:
             self.posteriors[action][1] += 1  # beta

@@ -27,9 +27,14 @@ class TransitionMatrix(RootModel):
     root: dict[ActivityLevel, dict[Action, dict[ActivityLevel, float]]]
 
     @model_validator(mode="after")
-    def _check_probabilities_sum_to_one(self):
+    def _check_probabilities(self):
         for state, actions in self.root.items():
             for action, probs in actions.items():
+                for target, p in probs.items():
+                    if p < 0.0:
+                        raise ValueError(
+                            f"Probability for {state}->{target} under {action} cannot be negative: {p}"
+                        )
                 total = sum(probs.values())
                 if abs(total - 1.0) > 1e-6:
                     raise ValueError(
