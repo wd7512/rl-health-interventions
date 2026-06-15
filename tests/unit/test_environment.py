@@ -11,8 +11,11 @@ from rl_health_interventions.environment import Environment
 
 def _config(steps_per_day=5, episode_days=90) -> MDPConfig:
     all_times = [
-        TimeOfDay.MORNING, TimeOfDay.MIDDAY, TimeOfDay.AFTERNOON,
-        TimeOfDay.EVENING, TimeOfDay.NIGHT,
+        TimeOfDay.MORNING,
+        TimeOfDay.MIDDAY,
+        TimeOfDay.AFTERNOON,
+        TimeOfDay.EVENING,
+        TimeOfDay.NIGHT,
     ]
     return MDPConfig(
         activity_levels=[ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE],
@@ -23,12 +26,24 @@ def _config(steps_per_day=5, episode_days=90) -> MDPConfig:
         transition=TransitionMatrix(
             root={
                 ActivityLevel.SEDENTARY: {
-                    Action.SEND: {ActivityLevel.SEDENTARY: 0.7, ActivityLevel.ACTIVE: 0.3},
-                    Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.9, ActivityLevel.ACTIVE: 0.1},
+                    Action.SEND: {
+                        ActivityLevel.SEDENTARY: 0.7,
+                        ActivityLevel.ACTIVE: 0.3,
+                    },
+                    Action.DON_T_SEND: {
+                        ActivityLevel.SEDENTARY: 0.9,
+                        ActivityLevel.ACTIVE: 0.1,
+                    },
                 },
                 ActivityLevel.ACTIVE: {
-                    Action.SEND: {ActivityLevel.SEDENTARY: 0.2, ActivityLevel.ACTIVE: 0.8},
-                    Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.4, ActivityLevel.ACTIVE: 0.6},
+                    Action.SEND: {
+                        ActivityLevel.SEDENTARY: 0.2,
+                        ActivityLevel.ACTIVE: 0.8,
+                    },
+                    Action.DON_T_SEND: {
+                        ActivityLevel.SEDENTARY: 0.4,
+                        ActivityLevel.ACTIVE: 0.6,
+                    },
                 },
             }
         ),

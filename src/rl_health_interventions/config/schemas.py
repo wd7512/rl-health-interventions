@@ -69,7 +69,9 @@ class MDPConfig(BaseModel):
         for state in self.activity_levels:
             for action in self.actions:
                 if state not in self.transition.root:
-                    raise ValueError(f"Missing transition entry for state '{state.value}'")
+                    raise ValueError(
+                        f"Missing transition entry for state '{state.value}'"
+                    )
                 if action not in self.transition.root[state]:
                     raise ValueError(
                         f"Missing transition entry for ({state.value}, {action.value})"
