@@ -1,6 +1,6 @@
 ---
 title: "Roadmap — rl-health-interventions"
-updated: "2026-06-11"
+updated: "2026-06-15"
 supersedes: "README.md roadmap section"
 source_inputs: "initial_design.tex · docs/code/* · Phase 1–2 audit findings"
 ---
