@@ -32,7 +32,7 @@ Rough guidance, not a release plan. Active work is tracked in
 GitHub issues with the `phase-1` label. This table describes the
 eventual shape of the framework, not the order it will be built in.
 
-|| ID | Name | Description | Prerequisite IDs | Definition of Done |
+| ID | Name | Description | Prerequisite IDs | Definition of Done |
 |----|------|-------------|-----------------|-------------------|
 | M-01 | Config Schema & Validation | Implement Pydantic schemas for all config types (DataConfig, MDPConfig, AgentConfig, ExperimentConfig) with 3-layer validation | — | All config types validated from YAML; invalid configs rejected with clear errors; 3-layer validation (schema → registry → dummy step) implemented |
 | M-02 | StateView & Environment | Implement StateView dataclass and Environment with step/reset API following MDP formalisation | M-01 | Environment.step(state, action) returns (StateView, float, bool); StateView.from_dataset() works; multi-timescale reward (immediate + 3-week delayed) functional |
