@@ -14,8 +14,11 @@ from rl_health_interventions.config.schemas import (
 )
 
 ALL_TIMES = [
-    TimeOfDay.MORNING, TimeOfDay.MIDDAY, TimeOfDay.AFTERNOON,
-    TimeOfDay.EVENING, TimeOfDay.NIGHT,
+    TimeOfDay.MORNING,
+    TimeOfDay.MIDDAY,
+    TimeOfDay.AFTERNOON,
+    TimeOfDay.EVENING,
+    TimeOfDay.NIGHT,
 ]
 
 
@@ -50,12 +53,24 @@ def valid_config() -> MDPConfig:
         transition=TransitionMatrix(
             root={
                 ActivityLevel.SEDENTARY: {
-                    Action.SEND: {ActivityLevel.SEDENTARY: 0.7, ActivityLevel.ACTIVE: 0.3},
-                    Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.9, ActivityLevel.ACTIVE: 0.1},
+                    Action.SEND: {
+                        ActivityLevel.SEDENTARY: 0.7,
+                        ActivityLevel.ACTIVE: 0.3,
+                    },
+                    Action.DON_T_SEND: {
+                        ActivityLevel.SEDENTARY: 0.9,
+                        ActivityLevel.ACTIVE: 0.1,
+                    },
                 },
                 ActivityLevel.ACTIVE: {
-                    Action.SEND: {ActivityLevel.SEDENTARY: 0.2, ActivityLevel.ACTIVE: 0.8},
-                    Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.4, ActivityLevel.ACTIVE: 0.6},
+                    Action.SEND: {
+                        ActivityLevel.SEDENTARY: 0.2,
+                        ActivityLevel.ACTIVE: 0.8,
+                    },
+                    Action.DON_T_SEND: {
+                        ActivityLevel.SEDENTARY: 0.4,
+                        ActivityLevel.ACTIVE: 0.6,
+                    },
                 },
             }
         ),
@@ -63,7 +78,13 @@ def valid_config() -> MDPConfig:
             root={
                 t: {ActivityLevel.SEDENTARY: 0.0, ActivityLevel.ACTIVE: 0.0}
                 for t in ALL_TIMES[:-1]
-            } | {TimeOfDay.NIGHT: {ActivityLevel.SEDENTARY: 1.0, ActivityLevel.ACTIVE: 1.0}}
+            }
+            | {
+                TimeOfDay.NIGHT: {
+                    ActivityLevel.SEDENTARY: 1.0,
+                    ActivityLevel.ACTIVE: 1.0,
+                }
+            }
         ),
         seed=42,
     )
@@ -80,16 +101,33 @@ def minimal_config() -> MDPConfig:
         transition=TransitionMatrix(
             root={
                 ActivityLevel.SEDENTARY: {
-                    Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
-                    Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
+                    Action.SEND: {
+                        ActivityLevel.SEDENTARY: 0.5,
+                        ActivityLevel.ACTIVE: 0.5,
+                    },
+                    Action.DON_T_SEND: {
+                        ActivityLevel.SEDENTARY: 0.5,
+                        ActivityLevel.ACTIVE: 0.5,
+                    },
                 },
                 ActivityLevel.ACTIVE: {
-                    Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
-                    Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
+                    Action.SEND: {
+                        ActivityLevel.SEDENTARY: 0.5,
+                        ActivityLevel.ACTIVE: 0.5,
+                    },
+                    Action.DON_T_SEND: {
+                        ActivityLevel.SEDENTARY: 0.5,
+                        ActivityLevel.ACTIVE: 0.5,
+                    },
                 },
             }
         ),
         masks=TimeOfDayMask(
-            root={TimeOfDay.MORNING: {ActivityLevel.SEDENTARY: 0.0, ActivityLevel.ACTIVE: 0.0}}
+            root={
+                TimeOfDay.MORNING: {
+                    ActivityLevel.SEDENTARY: 0.0,
+                    ActivityLevel.ACTIVE: 0.0,
+                }
+            }
         ),
     )
