@@ -56,7 +56,7 @@ All agents are contextual bandits in the MVP — state is accepted but not used 
 
 ## MDP formulation
 
-See `docs/mvp/design.tex` for the full MDP specification with transition probabilities, reward function, and agent formulations.
+See `docs/mvp/mvp_specification.tex` for the full MDP specification with transition probabilities, reward function, and agent formulations.
 
 **Initial results** (config/mvp.yaml, seed 42, 450 timesteps):
 
