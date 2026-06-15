@@ -11,11 +11,27 @@ from rl_health_interventions.experiment import run_episode
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="RL health interventions simulator")
-    parser.add_argument("--config", type=str, required=True, help="Path to MDP YAML config")
-    parser.add_argument("--agent", type=str, default="thompson_sampling", help="Agent name (default: thompson_sampling)")
-    parser.add_argument("--output", type=str, default="results.csv", help="Output CSV path (default: results.csv)")
-    parser.add_argument("--seed", type=int, default=None, help="Random seed (overrides config)")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable DEBUG logging")
+    parser.add_argument(
+        "--config", type=str, required=True, help="Path to MDP YAML config"
+    )
+    parser.add_argument(
+        "--agent",
+        type=str,
+        default="thompson_sampling",
+        help="Agent name (default: thompson_sampling)",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="results.csv",
+        help="Output CSV path (default: results.csv)",
+    )
+    parser.add_argument(
+        "--seed", type=int, default=None, help="Random seed (overrides config)"
+    )
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable DEBUG logging"
+    )
     args = parser.parse_args()
 
     log_level = logging.DEBUG if args.verbose else logging.INFO

@@ -19,8 +19,7 @@ class ThompsonSamplingAgent(Agent):
         self.beta_prior = beta_prior
         self._rng = np.random.default_rng(seed)
         self.posteriors: dict[Action, list[float]] = {
-            action: [alpha_prior, beta_prior]
-            for action in Action
+            action: [alpha_prior, beta_prior] for action in Action
         }
 
     def select_action(self, state) -> Action:

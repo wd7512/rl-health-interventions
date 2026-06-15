@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 from rl_health_interventions.config.schemas import (
-    ActivityLevel, Action, TimeOfDay, MDPConfig, TransitionMatrix, TimeOfDayMask,
+    ActivityLevel,
+    Action,
+    TimeOfDay,
+    MDPConfig,
+    TransitionMatrix,
+    TimeOfDayMask,
 )
 from rl_health_interventions.transitions import make as make_transition
 from rl_health_interventions.rewards import make as make_reward
@@ -15,11 +20,38 @@ def _minimal_config() -> MDPConfig:
         activity_levels=[ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE],
         actions=[Action.SEND, Action.DON_T_SEND],
         time_of_day=[TimeOfDay.MORNING],
-        transition=TransitionMatrix(root={
-            ActivityLevel.SEDENTARY: {Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5}, Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5}},
-            ActivityLevel.ACTIVE: {Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5}, Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5}},
-        }),
-        masks=TimeOfDayMask(root={TimeOfDay.MORNING: {ActivityLevel.SEDENTARY: 0.0, ActivityLevel.ACTIVE: 0.0}}),
+        transition=TransitionMatrix(
+            root={
+                ActivityLevel.SEDENTARY: {
+                    Action.SEND: {
+                        ActivityLevel.SEDENTARY: 0.5,
+                        ActivityLevel.ACTIVE: 0.5,
+                    },
+                    Action.DON_T_SEND: {
+                        ActivityLevel.SEDENTARY: 0.5,
+                        ActivityLevel.ACTIVE: 0.5,
+                    },
+                },
+                ActivityLevel.ACTIVE: {
+                    Action.SEND: {
+                        ActivityLevel.SEDENTARY: 0.5,
+                        ActivityLevel.ACTIVE: 0.5,
+                    },
+                    Action.DON_T_SEND: {
+                        ActivityLevel.SEDENTARY: 0.5,
+                        ActivityLevel.ACTIVE: 0.5,
+                    },
+                },
+            }
+        ),
+        masks=TimeOfDayMask(
+            root={
+                TimeOfDay.MORNING: {
+                    ActivityLevel.SEDENTARY: 0.0,
+                    ActivityLevel.ACTIVE: 0.0,
+                }
+            }
+        ),
     )
 
 

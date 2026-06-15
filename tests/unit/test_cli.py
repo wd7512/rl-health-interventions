@@ -37,10 +37,20 @@ masks:
 """)
     output_path = tmp_path / "results.csv"
     result = subprocess.run(
-        [sys.executable, "-m", "rl_health_interventions", "--config", str(config_path), "--output", str(output_path)],
+        [
+            sys.executable,
+            "-m",
+            "rl_health_interventions",
+            "--config",
+            str(config_path),
+            "--output",
+            str(output_path),
+        ],
         capture_output=True,
         text=True,
         check=False,
     )
-    assert result.returncode == 0, f"CLI failed:\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}"
+    assert result.returncode == 0, (
+        f"CLI failed:\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}"
+    )
     assert output_path.exists()

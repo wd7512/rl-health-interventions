@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from rl_health_interventions.config.schemas import ActivityLevel, Action, MDPConfig, TimeOfDay
+from rl_health_interventions.config.schemas import (
+    ActivityLevel,
+    Action,
+    MDPConfig,
+    TimeOfDay,
+)
 from rl_health_interventions.transitions._base import TransitionModel
 
 
