@@ -50,9 +50,8 @@ def main() -> None:
         config.episode_days * config.steps_per_day,
     )
 
-    # to ensure independent random streams
     env_seed = args.seed if args.seed is not None else config.seed
-    agent_seed = env_seed
+    agent_seed = env_seed  # bandit agents ignore state, so correlation is harmless
 
     agent = make_agent(args.agent, seed=agent_seed)
 
