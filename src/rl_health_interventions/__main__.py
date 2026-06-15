@@ -51,7 +51,7 @@ def main() -> None:
     )
 
     env_seed = args.seed if args.seed is not None else config.seed
-    agent_seed = hash((env_seed, "agent")) % (2**31)
+    agent_seed = (env_seed * 2654435761) % (2**31)
 
     agent = make_agent(args.agent, seed=agent_seed)
 
