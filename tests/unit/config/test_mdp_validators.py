@@ -2,40 +2,68 @@ import pytest
 from pydantic import ValidationError
 
 from rl_health_interventions.config.schemas import (
-    MDPConfig, ActivityLevel, Action, TimeOfDay,
-    TransitionMatrix, TimeOfDayMask,
+    MDPConfig,
+    ActivityLevel,
+    Action,
+    TimeOfDay,
+    TransitionMatrix,
+    TimeOfDayMask,
 )
 
 
-VALID_TRANSITION = TransitionMatrix(root={
-    ActivityLevel.SEDENTARY: {
-        Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
-        Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
-    },
-    ActivityLevel.ACTIVE: {
-        Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
-        Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
-    },
-})
+VALID_TRANSITION = TransitionMatrix(
+    root={
+        ActivityLevel.SEDENTARY: {
+            Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
+            Action.DON_T_SEND: {
+                ActivityLevel.SEDENTARY: 0.5,
+                ActivityLevel.ACTIVE: 0.5,
+            },
+        },
+        ActivityLevel.ACTIVE: {
+            Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
+            Action.DON_T_SEND: {
+                ActivityLevel.SEDENTARY: 0.5,
+                ActivityLevel.ACTIVE: 0.5,
+            },
+        },
+    }
+)
 
-VALID_MASKS = TimeOfDayMask(root={
-    TimeOfDay.MORNING: {ActivityLevel.SEDENTARY: 0.0, ActivityLevel.ACTIVE: 0.0},
-})
+VALID_MASKS = TimeOfDayMask(
+    root={
+        TimeOfDay.MORNING: {ActivityLevel.SEDENTARY: 0.0, ActivityLevel.ACTIVE: 0.0},
+    }
+)
 
 
 def test_negative_probability_rejected():
     """Negative probability caught at TransitionMatrix level."""
     with pytest.raises(ValidationError, match="cannot be negative"):
-        TransitionMatrix(root={
-            ActivityLevel.SEDENTARY: {
-                Action.SEND: {ActivityLevel.SEDENTARY: 2.0, ActivityLevel.ACTIVE: -0.5},
-                Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
-            },
-            ActivityLevel.ACTIVE: {
-                Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
-                Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
-            },
-        })
+        TransitionMatrix(
+            root={
+                ActivityLevel.SEDENTARY: {
+                    Action.SEND: {
+                        ActivityLevel.SEDENTARY: 2.0,
+                        ActivityLevel.ACTIVE: -0.5,
+                    },
+                    Action.DON_T_SEND: {
+                        ActivityLevel.SEDENTARY: 0.5,
+                        ActivityLevel.ACTIVE: 0.5,
+                    },
+                },
+                ActivityLevel.ACTIVE: {
+                    Action.SEND: {
+                        ActivityLevel.SEDENTARY: 0.5,
+                        ActivityLevel.ACTIVE: 0.5,
+                    },
+                    Action.DON_T_SEND: {
+                        ActivityLevel.SEDENTARY: 0.5,
+                        ActivityLevel.ACTIVE: 0.5,
+                    },
+                },
+            }
+        )
 
 
 def test_time_of_day_count_mismatch_rejected():
@@ -51,15 +79,20 @@ def test_time_of_day_count_mismatch_rejected():
 
 
 def test_missing_transition_entry_rejected():
-    bad_transition = TransitionMatrix(root={
-        ActivityLevel.SEDENTARY: {
-            Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
-        },
-        ActivityLevel.ACTIVE: {
-            Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
-            Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
-        },
-    })
+    bad_transition = TransitionMatrix(
+        root={
+            ActivityLevel.SEDENTARY: {
+                Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
+            },
+            ActivityLevel.ACTIVE: {
+                Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5},
+                Action.DON_T_SEND: {
+                    ActivityLevel.SEDENTARY: 0.5,
+                    ActivityLevel.ACTIVE: 0.5,
+                },
+            },
+        }
+    )
     with pytest.raises(ValidationError, match="Missing transition entry"):
         MDPConfig(
             activity_levels=[ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE],
