@@ -82,6 +82,9 @@ def test_load_synthetic_returns_dataframe() -> None:
     assert "steps" in df.columns
 
 
+@pytest.mark.skip(
+    reason="downloads real data from HuggingFace/PhysioNet — too slow for CI and local dev"
+)
 def test_load_all_returns_dict_with_all_datasets() -> None:
     results = load_all(data_dir="/tmp/nonexistent_data_dir_for_test")
     assert isinstance(results, dict)
