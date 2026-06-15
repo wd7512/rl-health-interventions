@@ -22,7 +22,9 @@ def test_update_increases_alpha_when_next_state_is_active():
 
 def test_update_increases_beta_when_next_state_is_sedentary():
     agent = ThompsonSamplingAgent(n_actions=2, seed=42, alpha_prior=1.0, beta_prior=1.0)
-    agent.update(_sv(), Action.DON_T_SEND, reward=0.0, next_state=_sv(ActivityLevel.SEDENTARY))
+    agent.update(
+        _sv(), Action.DON_T_SEND, reward=0.0, next_state=_sv(ActivityLevel.SEDENTARY)
+    )
     assert agent.posteriors[Action.DON_T_SEND][0] == 1.0  # alpha unchanged
     assert agent.posteriors[Action.DON_T_SEND][1] == 2.0  # beta
 
@@ -39,7 +41,9 @@ def test_thompson_sampling_converges_to_better_arm():
         is_active = rng.random() < arm_rewards[action]
         next_sv = StateView(
             ActivityLevel.ACTIVE if is_active else ActivityLevel.SEDENTARY,
-            TimeOfDay.MORNING, day=0, step_of_day=0,
+            TimeOfDay.MORNING,
+            day=0,
+            step_of_day=0,
         )
         agent.update(_sv(), action, 1.0 if is_active else 0.0, next_sv)
     # TS should have pulled SEND (the better arm) more often
