@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 REGISTRY: dict[str, Type[RewardHandler]] = {}
 
 
-def make(name: str) -> RewardHandler:
+def make(name: str, **kwargs) -> RewardHandler:
     if name not in REGISTRY:
         raise KeyError(f"Unknown reward handler: {name}. Known: {list(REGISTRY)}")
-    return REGISTRY[name]()
+    return REGISTRY[name](**kwargs)
 
 
 try:

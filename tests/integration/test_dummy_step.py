@@ -27,7 +27,7 @@ def test_layer2_component_compatibility() -> None:
     """All registered components can be instantiated via the factory."""
     config = _minimal_config()
     transition = make_transition("rule_based", config=config)
-    reward = make_reward("compound")
+    reward = make_reward("compound", config=config)
     agent = make_agent("thompson_sampling")
     response = make_response_model("rule_based")
     dataset = make_dataset("synthetic")
@@ -66,7 +66,7 @@ def test_layer3_dummy_step() -> None:
 
     config = _minimal_config()
     transition = make_transition("rule_based", config=config)
-    reward = make_reward("compound")
+    reward = make_reward("compound", config=config)
     agent = make_agent("thompson_sampling")
     response = make_response_model("rule_based")
 
