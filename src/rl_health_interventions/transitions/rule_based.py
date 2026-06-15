@@ -22,10 +22,9 @@ class RuleBasedTransition(TransitionModel):
         for state in self._config.activity_levels:
             for action in self._config.actions:
                 row = self._config.transition.root[state][action]
-                self._cache[(state, action)] = (
-                    list(row.keys()),
-                    np.array(list(row.values()), dtype=np.float64),
-                )
+                probs = np.array(list(row.values()), dtype=np.float64)
+                probs /= probs.sum()
+                self._cache[(state, action)] = (list(row.keys()), probs)
 
     def transition(
         self, state: ActivityLevel, action: Action, time_of_day: TimeOfDay
