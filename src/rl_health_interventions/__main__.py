@@ -50,7 +50,6 @@ def main() -> None:
         config.episode_days * config.steps_per_day,
     )
 
-    # Use config.seed for environment, config.seed + 1 for agent
     # to ensure independent random streams
     env_seed = args.seed if args.seed is not None else config.seed
     agent_seed = env_seed

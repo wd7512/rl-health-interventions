@@ -72,3 +72,31 @@ def test_epsilon_greedy_baseline_also_works(tmp_path: Path) -> None:
     assert output_path.exists()
     df = pd.read_csv(output_path)
     assert len(df) == 450
+
+
+def test_seed_reproducibility(tmp_path: Path) -> None:
+    """Same seed produces identical CSV output."""
+    config_path = Path(__file__).parent.parent.parent / "config" / "mvp.yaml"
+    out1 = tmp_path / "run1.csv"
+    out2 = tmp_path / "run2.csv"
+    for out in [out1, out2]:
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "rl_health_interventions",
+                "--config",
+                str(config_path),
+                "--output",
+                str(out),
+                "--seed",
+                "42",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert result.returncode == 0
+    df1 = pd.read_csv(out1)
+    df2 = pd.read_csv(out2)
+    pd.testing.assert_frame_equal(df1, df2)

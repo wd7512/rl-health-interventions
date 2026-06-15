@@ -34,6 +34,11 @@ def test_make_unknown_raises_keyerror():
         make("NonExistent")
 
 
+def test_make_with_unexpected_kwargs_raises():
+    with pytest.raises(TypeError):
+        make("random", nonexistent=123)
+
+
 def test_ts_negative_prior_raises():
     with pytest.raises(ValueError, match="strictly positive"):
         ThompsonSamplingAgent(alpha_prior=-1.0)
