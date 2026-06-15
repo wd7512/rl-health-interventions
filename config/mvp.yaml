@@ -1,0 +1,51 @@
+# Issue #101 MVP config — binary-action rule-based simulator
+# 450-step HeartSteps-style simulation: 90 days × 5 decision times/day
+activity_levels:
+  - sedentary
+  - active
+actions:
+  - send
+  - don_t_send
+time_of_day:
+  - morning
+  - midday
+  - afternoon
+  - evening
+  - night
+steps_per_day: 5
+episode_days: 90
+initial_state: sedentary
+reward_active: 1.0
+reward_sedentary: 0.0
+seed: 42
+transition:
+  sedentary:
+    send:
+      active: 0.3
+      sedentary: 0.7
+    don_t_send:
+      active: 0.1
+      sedentary: 0.9
+  active:
+    send:
+      active: 0.8
+      sedentary: 0.2
+    don_t_send:
+      active: 0.6
+      sedentary: 0.4
+masks:
+  morning:
+    sedentary: 0.0
+    active: 0.0
+  midday:
+    sedentary: 0.0
+    active: 0.0
+  afternoon:
+    sedentary: 0.0
+    active: 0.0
+  evening:
+    sedentary: 0.0
+    active: 0.0
+  night:
+    sedentary: 1.0
+    active: 1.0
