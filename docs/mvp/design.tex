@@ -1,0 +1,106 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,booktabs}
+\usepackage[margin=1in]{geometry}
+
+\title{MVP Simulator: MDP Formulation and Initial Results}
+\author{William Dennis}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+\section{MDP Formulation}
+
+The MVP simulator implements a finite-horizon MDP $(\mathcal{S}, \mathcal{A}, P, r, \gamma, T)$:
+
+\subsection{State Space}
+\[
+\mathcal{S} = \{\texttt{sedentary},\ \texttt{active}\} \times \mathcal{T}
+\]
+where $\mathcal{T} = \{\texttt{morning}, \texttt{midday}, \texttt{afternoon}, \texttt{evening}, \texttt{night}\}$ are the five daily decision points.
+
+\subsection{Action Space}
+\[
+\mathcal{A} = \{\texttt{send},\ \texttt{don\_t\_send}\}
+\]
+A binary intervention: send a motivational message or do not.
+
+\subsection{Transition Function}
+$P(s' \mid s, a, t)$ is defined by a configurable matrix:
+
+\begin{equation}
+P(\texttt{active} \mid \texttt{sedentary}, \texttt{send}) = 0.3, \quad
+P(\texttt{active} \mid \texttt{sedentary}, \texttt{don\_t\_send}) = 0.1
+\end{equation}
+
+\begin{equation}
+P(\texttt{active} \mid \texttt{active}, \texttt{send}) = 0.8, \quad
+P(\texttt{active} \mid \texttt{active}, \texttt{don\_t\_send}) = 0.6
+\end{equation}
+
+Time-of-day mask: at \texttt{night}, all transitions are suppressed (availability indicator per HeartSteps V2).
+
+\subsection{Reward}
+\[
+r(s, a) =
+\begin{cases}
+1.0 & \text{if } s'.\texttt{activity} = \texttt{active} \\
+0.0 & \text{otherwise}
+\end{cases}
+\]
+Single-timescale placeholder. Multi-timescale reward (immediate + delayed body measure) is deferred to Phase 2.
+
+\subsection{Episode Structure}
+$T = 90 \text{ days} \times 5 \text{ steps/day} = 450 \text{ timesteps}$.
+
+\section{Agents}
+
+All agents are contextual bandits: state is accepted but not used in action selection. For the stationary MVP transition matrix, $E[r \mid a]$ is the relevant quantity.
+
+\subsection{Thompson Sampling}
+Beta-Bernoulli TS with prior $\text{Beta}(1, 1)$ per action. Posterior update:
+\[
+\alpha_a \leftarrow \alpha_a + \mathbb{1}[s'.\texttt{activity} = \texttt{active}], \quad
+\beta_a \leftarrow \beta_a + \mathbb{1}[s'.\texttt{activity} = \texttt{sedentary}]
+\]
+Action selected by sampling $\theta_a \sim \text{Beta}(\alpha_a, \beta_a)$ and choosing $a^* = \arg\max_a \theta_a$.
+
+\subsection{Epsilon-Greedy}
+$\epsilon = 0.1$. With probability $\epsilon$, select uniformly at random; otherwise select $\arg\max_a Q(a)$. Q-values updated via incremental average:
+\[
+Q(a) \leftarrow Q(a) + \frac{r_t - Q(a)}{n_a}
+\]
+
+\subsection{Random Baseline}
+Uniform random action selection. No learning. Serves as lower bound.
+
+\section{Initial Results}
+
+All agents run on the same config (\texttt{config/mvp.yaml}), seed 42, 450 timesteps.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Agent & Total Reward & Mean Reward/Step \\
+\midrule
+Thompson Sampling & 252.0 & 0.5600 \\
+Epsilon-Greedy ($\epsilon=0.1$) & 253.0 & 0.5622 \\
+Random & 182.0 & 0.4044 \\
+\bottomrule
+\end{tabular}
+\caption{Results on \texttt{config/mvp.yaml} (seed 42, 450 timesteps). TS and $\epsilon$-greedy both learn the optimal policy; random serves as lower bound.}
+\end{table}
+
+\noindent\textbf{Note:} These are placeholder results from the CLI smoke test. Full multi-agent comparison with seeded reproducibility will be added in a follow-up.
+
+\section{Known Limitations}
+
+\begin{itemize}
+\item Agents are state-blind bandits, not state-aware RL. State-aware agents are Phase 2.
+\item Single-timescale reward only. Multi-timescale (immediate + 3-week delayed) is Phase 2.
+\item No user response model. The \texttt{RuleBasedResponse} module exists as a stub. Burden accumulation and 4 archetypes are Phase 2.
+\item Transition matrix is fixed and known. Learned transitions from real data are Phase 2.
+\end{itemize}
+
+\end{document}

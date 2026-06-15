@@ -7,6 +7,14 @@ from rl_health_interventions.config.schemas import Action
 
 
 class EpsilonGreedyAgent(Agent):
+    """Epsilon-greedy action selection with incremental Q-learning.
+
+    NOTE: This is a contextual bandit agent — state is accepted but not
+    used in action selection. Q-values are updated globally, not per-state.
+    For the MVP (Issue #101) this is correct. State-aware agents are
+    planned for Phase 2.
+    """
+
     def __init__(
         self,
         n_actions: int = 2,

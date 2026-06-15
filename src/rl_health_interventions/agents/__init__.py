@@ -5,6 +5,7 @@ from typing import Type
 
 from rl_health_interventions.agents._base import Agent
 from rl_health_interventions.agents import epsilon_greedy
+from rl_health_interventions.agents import random
 from rl_health_interventions.agents import thompson_sampling
 
 logger = logging.getLogger(__name__)
@@ -27,3 +28,9 @@ try:
     epsilon_greedy.register()
 except Exception:
     logger.exception("Failed to register epsilon_greedy agent")
+
+
+try:
+    random.register()
+except Exception:
+    logger.exception("Failed to register random agent")

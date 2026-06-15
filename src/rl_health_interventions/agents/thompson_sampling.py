@@ -7,6 +7,15 @@ from rl_health_interventions.config.schemas import Action, ActivityLevel
 
 
 class ThompsonSamplingAgent(Agent):
+    """Beta-Bernoulli Thompson Sampling for binary actions.
+
+    NOTE: This is a contextual bandit agent — state is accepted but not
+    used in action selection. The posterior is updated globally, not
+    per-state. For the MVP (Issue #101) this is correct: the simulator
+    uses a stationary transition matrix where E[r|a] is the relevant
+    quantity. State-aware agents are planned for Phase 2.
+    """
+
     def __init__(
         self,
         n_actions: int = 2,
