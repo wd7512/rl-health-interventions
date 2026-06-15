@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from rl_health_interventions.config.schemas import (
+    ActivityLevel, Action, TimeOfDay, MDPConfig, TransitionMatrix, TimeOfDayMask,
+)
 from rl_health_interventions.transitions import make as make_transition
 from rl_health_interventions.rewards import make as make_reward
 from rl_health_interventions.agents import make as make_agent
@@ -7,9 +10,23 @@ from rl_health_interventions.simulation import make as make_response_model
 from rl_health_interventions.data import make as make_dataset
 
 
+def _minimal_config() -> MDPConfig:
+    return MDPConfig(
+        activity_levels=[ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE],
+        actions=[Action.SEND, Action.DON_T_SEND],
+        time_of_day=[TimeOfDay.MORNING],
+        transition=TransitionMatrix(root={
+            ActivityLevel.SEDENTARY: {Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5}, Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5}},
+            ActivityLevel.ACTIVE: {Action.SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5}, Action.DON_T_SEND: {ActivityLevel.SEDENTARY: 0.5, ActivityLevel.ACTIVE: 0.5}},
+        }),
+        masks=TimeOfDayMask(root={TimeOfDay.MORNING: {ActivityLevel.SEDENTARY: 0.0, ActivityLevel.ACTIVE: 0.0}}),
+    )
+
+
 def test_layer2_component_compatibility() -> None:
     """All registered components can be instantiated via the factory."""
-    transition = make_transition("rule_based")
+    config = _minimal_config()
+    transition = make_transition("rule_based", config=config)
     reward = make_reward("compound")
     agent = make_agent("thompson_sampling")
     response = make_response_model("rule_based")
@@ -47,7 +64,8 @@ def test_layer2_unknown_component_fails() -> None:
 def test_layer3_dummy_step() -> None:
     from rl_health_interventions.config.schemas import ActivityLevel, TimeOfDay
 
-    transition = make_transition("rule_based")
+    config = _minimal_config()
+    transition = make_transition("rule_based", config=config)
     reward = make_reward("compound")
     agent = make_agent("thompson_sampling")
     response = make_response_model("rule_based")
@@ -61,4 +79,4 @@ def test_layer3_dummy_step() -> None:
     assert isinstance(resp, float)
     assert isinstance(rew, float)
     assert isinstance(done, bool)
-    assert next_state is state
+    assert next_state in (ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE)

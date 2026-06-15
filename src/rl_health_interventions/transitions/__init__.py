@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 REGISTRY: dict[str, Type[TransitionModel]] = {}
 
 
-def make(name: str) -> TransitionModel:
+def make(name: str, **kwargs) -> TransitionModel:
     if name not in REGISTRY:
         raise KeyError(f"Unknown transition model: {name}. Known: {list(REGISTRY)}")
-    return REGISTRY[name]()
+    return REGISTRY[name](**kwargs)
 
 
 try:
