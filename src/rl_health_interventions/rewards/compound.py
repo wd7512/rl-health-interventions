@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Any
-
+from rl_health_interventions.config.schemas import ActivityLevel, Action
 from rl_health_interventions.rewards._base import RewardHandler
 
 
 class CompoundReward(RewardHandler):
-    def reward(self, state: Any, action: int, profile: Any) -> tuple[float, bool]:
+    def reward(
+        self, state: ActivityLevel, action: Action
+    ) -> tuple[float, bool]:
         return 0.0, False
 
 

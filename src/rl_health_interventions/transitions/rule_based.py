@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Any
-
+from rl_health_interventions.config.schemas import ActivityLevel, Action, TimeOfDay
 from rl_health_interventions.transitions._base import TransitionModel
 
 
 class RuleBasedTransition(TransitionModel):
-    def transition(self, state: Any, action: int, profile: Any) -> Any:
+    def transition(
+        self, state: ActivityLevel, action: Action, time_of_day: TimeOfDay
+    ) -> ActivityLevel:
         return state
 
 

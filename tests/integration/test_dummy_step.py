@@ -45,18 +45,20 @@ def test_layer2_unknown_component_fails() -> None:
 
 
 def test_layer3_dummy_step() -> None:
+    from rl_health_interventions.config.schemas import ActivityLevel, TimeOfDay
+
     transition = make_transition("rule_based")
     reward = make_reward("compound")
     agent = make_agent("thompson_sampling")
     response = make_response_model("rule_based")
 
-    dummy_state = {"step": 0}
-    action = agent.select_action(dummy_state)
-    agent.update(dummy_state, action, 0.0, dummy_state)
-    next_state = transition.transition(dummy_state, action, None)
-    rew, done = reward.reward(dummy_state, action, None)
-    resp = response.response(dummy_state, action, None)
+    state = ActivityLevel.SEDENTARY
+    action = agent.select_action(state)
+    agent.update(state, action, 0.0, state)
+    next_state = transition.transition(state, action, TimeOfDay.MORNING)
+    rew, done = reward.reward(state, action)
+    resp = response.response(state, action)
     assert isinstance(resp, float)
     assert isinstance(rew, float)
     assert isinstance(done, bool)
-    assert next_state is dummy_state
+    assert next_state is state

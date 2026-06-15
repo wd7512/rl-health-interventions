@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+
+from rl_health_interventions.config.schemas import ActivityLevel, Action, TimeOfDay
 
 
 class TransitionModel(ABC):
     @abstractmethod
-    def transition(self, state: Any, action: int, profile: Any) -> Any: ...
+    def transition(
+        self, state: ActivityLevel, action: Action, time_of_day: TimeOfDay
+    ) -> ActivityLevel: ...
