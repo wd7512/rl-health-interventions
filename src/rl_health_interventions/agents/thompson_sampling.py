@@ -1,9 +1,16 @@
 from __future__ import annotations
 
+from typing import NamedTuple
+
 import numpy as np
 
 from rl_health_interventions.agents._base import Agent
-from rl_health_interventions.config.schemas import Action, ActivityLevel
+from rl_health_interventions.config.schemas import Action
+
+
+class Posterior(NamedTuple):
+    alpha: float
+    beta: float
 
 
 class ThompsonSamplingAgent(Agent):
@@ -18,37 +25,32 @@ class ThompsonSamplingAgent(Agent):
 
     def __init__(
         self,
-        n_actions: int = 2,
         alpha_prior: float = 1.0,
         beta_prior: float = 1.0,
         seed: int = 42,
     ) -> None:
-        self.n_actions = n_actions
         self.alpha_prior = alpha_prior
         self.beta_prior = beta_prior
         if alpha_prior <= 0.0 or beta_prior <= 0.0:
             raise ValueError("alpha_prior and beta_prior must be strictly positive.")
         self._rng = np.random.default_rng(seed)
-        self.posteriors: dict[Action, list[float]] = {
-            action: [alpha_prior, beta_prior] for action in Action
+        self.posteriors: dict[Action, Posterior] = {
+            action: Posterior(alpha=alpha_prior, beta=beta_prior) for action in Action
         }
 
     def select_action(self, state) -> Action:
         samples = {
-            action: self._rng.beta(posterior[0], posterior[1])
+            action: self._rng.beta(posterior.alpha, posterior.beta)
             for action, posterior in self.posteriors.items()
         }
         return max(samples, key=lambda a: samples[a])
 
     def update(self, state, action: Action, reward: float, next_state) -> None:
-        is_active = (
-            hasattr(next_state, "activity")
-            and next_state.activity == ActivityLevel.ACTIVE
-        )
-        if is_active:
-            self.posteriors[action][0] += 1  # alpha
+        p = self.posteriors[action]
+        if reward > 0.0:
+            self.posteriors[action] = Posterior(alpha=p.alpha + 1, beta=p.beta)
         else:
-            self.posteriors[action][1] += 1  # beta
+            self.posteriors[action] = Posterior(alpha=p.alpha, beta=p.beta + 1)
 
 
 def register() -> None:

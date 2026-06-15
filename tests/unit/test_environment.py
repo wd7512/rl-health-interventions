@@ -8,19 +8,20 @@ from rl_health_interventions.config.schemas import (
 )
 from rl_health_interventions.environment import Environment
 
+ALL_TIMES = [
+    TimeOfDay.MORNING,
+    TimeOfDay.MIDDAY,
+    TimeOfDay.AFTERNOON,
+    TimeOfDay.EVENING,
+    TimeOfDay.NIGHT,
+]
+
 
 def _config(steps_per_day=5, episode_days=90) -> MDPConfig:
-    all_times = [
-        TimeOfDay.MORNING,
-        TimeOfDay.MIDDAY,
-        TimeOfDay.AFTERNOON,
-        TimeOfDay.EVENING,
-        TimeOfDay.NIGHT,
-    ]
     return MDPConfig(
         activity_levels=[ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE],
         actions=[Action.SEND, Action.DON_T_SEND],
-        time_of_day=all_times[:steps_per_day],
+        time_of_day=ALL_TIMES[:steps_per_day],
         steps_per_day=steps_per_day,
         episode_days=episode_days,
         transition=TransitionMatrix(
@@ -50,14 +51,14 @@ def _config(steps_per_day=5, episode_days=90) -> MDPConfig:
         masks=TimeOfDayMask(
             root={
                 t: {ActivityLevel.SEDENTARY: 0.0, ActivityLevel.ACTIVE: 0.0}
-                for t in all_times[:steps_per_day]
+                for t in ALL_TIMES[:steps_per_day]
             }
         ),
     )
 
 
-def test_reset_returns_initial_state():
-    env = Environment(_config(), seed=42)
+def test_reset_returns_initial_state(valid_config):
+    env = Environment(valid_config, seed=42)
     state = env.reset()
     assert state.activity == ActivityLevel.SEDENTARY
     assert state.day == 0
@@ -65,8 +66,8 @@ def test_reset_returns_initial_state():
     assert state.time_of_day == TimeOfDay.MORNING
 
 
-def test_step_returns_tuple():
-    env = Environment(_config(), seed=42)
+def test_step_returns_tuple(valid_config):
+    env = Environment(valid_config, seed=42)
     env.reset()
     next_state, reward, done = env.step(Action.SEND)
     assert isinstance(next_state.activity, ActivityLevel)
@@ -113,3 +114,75 @@ def test_step_after_done_raises():
     env.step(Action.SEND)
     with pytest.raises(RuntimeError, match="Episode is done"):
         env.step(Action.SEND)
+
+
+def test_step_before_reset_raises():
+    import pytest
+
+    env = Environment(_config(), seed=42)
+    with pytest.raises(RuntimeError, match="Call reset"):
+        env.step(Action.SEND)
+
+
+def test_night_mask_suppresses_transitions():
+    from rl_health_interventions.config.schemas import (
+        ActivityLevel,
+        Action,
+        MDPConfig,
+        TimeOfDay,
+        TimeOfDayMask,
+        TransitionMatrix,
+    )
+
+    # All masks = 1.0: transitions suppressed at every time slot
+    config = MDPConfig(
+        activity_levels=[ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE],
+        actions=[Action.SEND, Action.DON_T_SEND],
+        time_of_day=[
+            TimeOfDay.MORNING,
+            TimeOfDay.MIDDAY,
+            TimeOfDay.AFTERNOON,
+            TimeOfDay.EVENING,
+            TimeOfDay.NIGHT,
+        ],
+        steps_per_day=5,
+        episode_days=10,
+        transition=TransitionMatrix(
+            root={
+                ActivityLevel.SEDENTARY: {
+                    Action.SEND: {
+                        ActivityLevel.SEDENTARY: 0.0,
+                        ActivityLevel.ACTIVE: 1.0,
+                    },
+                    Action.DON_T_SEND: {
+                        ActivityLevel.SEDENTARY: 0.0,
+                        ActivityLevel.ACTIVE: 1.0,
+                    },
+                },
+                ActivityLevel.ACTIVE: {
+                    Action.SEND: {
+                        ActivityLevel.SEDENTARY: 1.0,
+                        ActivityLevel.ACTIVE: 0.0,
+                    },
+                    Action.DON_T_SEND: {
+                        ActivityLevel.SEDENTARY: 1.0,
+                        ActivityLevel.ACTIVE: 0.0,
+                    },
+                },
+            }
+        ),
+        masks=TimeOfDayMask(
+            root={
+                t: {ActivityLevel.SEDENTARY: 1.0, ActivityLevel.ACTIVE: 1.0}
+                for t in TimeOfDay
+            }
+        ),
+    )
+    env = Environment(config, seed=42)
+    state = env.reset()
+    base_state = state.activity
+    # Transition matrix wants to flip state every step (P=1.0 for opposite),
+    # but masks suppress all transitions. State should stay the same.
+    for _ in range(49):
+        state, _, _ = env.step(Action.SEND)
+        assert state.activity == base_state

@@ -50,18 +50,21 @@ def main() -> None:
         config.episode_days * config.steps_per_day,
     )
 
-    agent = make_agent(
-        args.agent, seed=args.seed if args.seed is not None else config.seed
-    )
+    # Use config.seed for environment, config.seed + 1 for agent
+    # to ensure independent random streams
+    env_seed = args.seed if args.seed is not None else config.seed
+    agent_seed = (args.seed + 1) if args.seed is not None else config.seed + 1
+
+    agent = make_agent(args.agent, seed=agent_seed)
 
     output_path = Path(args.output)
-    df = run_episode(config, agent, output_csv=output_path, seed=args.seed)
+    df = run_episode(config, agent, output_csv=output_path, seed=env_seed)
 
-    print("\n=== Episode complete ===")
-    print(f"Total steps: {len(df)}")
-    print(f"Total reward: {df['reward'].sum():.2f}")
-    print(f"Mean reward per step: {df['reward'].mean():.4f}")
-    print(f"Results written to: {output_path}")
+    logger.info("=== Episode complete ===")
+    logger.info("Total steps: %d", len(df))
+    logger.info("Total reward: %.2f", df["reward"].sum())
+    logger.info("Mean reward per step: %.4f", df["reward"].mean())
+    logger.info("Results written to: %s", output_path)
 
 
 if __name__ == "__main__":

@@ -46,6 +46,16 @@ class TransitionMatrix(RootModel):
 class TimeOfDayMask(RootModel):
     root: dict[TimeOfDay, dict[ActivityLevel, float]]
 
+    @model_validator(mode="after")
+    def _check_mask_values(self):
+        for tod, states in self.root.items():
+            for state, val in states.items():
+                if val not in (0.0, 1.0):
+                    raise ValueError(
+                        f"Mask value for ({tod.value}, {state.value}) must be 0.0 or 1.0, got {val}"
+                    )
+        return self
+
 
 class MDPConfig(BaseModel):
     activity_levels: list[ActivityLevel]
