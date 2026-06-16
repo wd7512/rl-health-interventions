@@ -58,13 +58,13 @@ All agents are contextual bandits in the MVP — state is accepted but not used 
 
 See `docs/mvp/mvp_specification.tex` for the full MDP specification with transition probabilities, reward function, and agent formulations.
 
-**Initial results** (config/mvp.yaml, seed 42, 450 timesteps):
+**Initial results** (config/mvp.yaml, 10 seeds, 450 timesteps each):
 
 | Agent | Total Reward | Mean Reward/Step |
 |-------|-------------|-----------------|
-| Thompson Sampling | 158.0 | 0.351 |
-| Epsilon-Greedy (ε=0.1) | 163.0 | 0.362 |
-| Random | 138.0 | 0.307 |
+| Thompson Sampling | 161.9 ± 15.4 | 0.360 ± 0.034 |
+| Epsilon-Greedy (ε=0.1) | 155.9 ± 17.7 | 0.346 ± 0.039 |
+| Random | 133.6 ± 14.8 | 0.297 ± 0.033 |
 
 ## Project structure
 

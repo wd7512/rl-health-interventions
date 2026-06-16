@@ -82,7 +82,7 @@ Uniform random action selection. No learning. Serves as lower bound.
 
 \section{Initial Results}
 
-All agents run on the same config (\texttt{config/mvp.yaml}), seed 42, 450 timesteps.
+All agents run on the same config (\texttt{config/mvp.yaml}) over 10 random seeds (1--10), 450 timesteps each. Results are reported as mean $\pm$ standard deviation across seeds.
 
 \begin{table}[h]
 \centering
@@ -90,12 +90,12 @@ All agents run on the same config (\texttt{config/mvp.yaml}), seed 42, 450 times
 \toprule
 Agent & Total Reward & Mean Reward/Step \\
 \midrule
-Thompson Sampling & 158.0 & 0.3511 \\
-Epsilon-Greedy ($\epsilon=0.1$) & 163.0 & 0.3622 \\
-Random & 138.0 & 0.3067 \\
+Thompson Sampling & 161.9 $\pm$ 15.4 & 0.360 $\pm$ 0.034 \\
+Epsilon-Greedy ($\epsilon=0.1$) & 155.9 $\pm$ 17.7 & 0.346 $\pm$ 0.039 \\
+Random & 133.6 $\pm$ 14.8 & 0.297 $\pm$ 0.033 \\
 \bottomrule
 \end{tabular}
-\caption{Results on \texttt{config/mvp.yaml} (seed 42, 450 timesteps). TS and $\epsilon$-greedy outperform random despite Reactance effect.}
+\caption{Results on \texttt{config/mvp.yaml} (10 seeds, 450 timesteps each). TS and $\epsilon$-greedy outperform random despite Reactance effect. TS shows the highest mean and lowest variance among learning agents.}
 \end{table}
 
 \section{Known Limitations}
