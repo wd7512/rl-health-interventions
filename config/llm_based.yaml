@@ -1,3 +1,5 @@
+# placeholder for LLM-based transition model configuration
+
 episode_days: 90
 steps_per_day: 5
 seed: 42
