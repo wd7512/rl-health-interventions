@@ -1,27 +1,28 @@
 episode_days: 90
 steps_per_day: 5
 seed: 42
+initial_state: sedentary
 
 states_and_rewards:
   sedentary: 0.0
   active: 1.0
 
 actions:
-  - send
-  - no_send
+  - nudge
+  - idle
 
 transition_probabilities:
   sedentary:
-    send:
+    nudge:
       active: 0.3
       sedentary: 0.7
-    no_send:
+    idle:
       active: 0.1
       sedentary: 0.9
   active:
-    send:
+    nudge:
       active: 0.5
       sedentary: 0.5
-    no_send:
+    idle:
       active: 0.6
       sedentary: 0.4
