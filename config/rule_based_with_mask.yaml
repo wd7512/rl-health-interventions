@@ -1,0 +1,29 @@
+episode_days: 90
+steps_per_day: 5
+seed: 42
+
+states_and_rewards:
+  sedentary: 0.0
+  active: 1.0
+
+actions:
+  - send
+  - no_send
+
+transition_probabilities:
+  sedentary:
+    send:
+      active: 0.3
+      sedentary: 0.7
+    no_send:
+      active: 0.1
+      sedentary: 0.9
+  active:
+    send:
+      active: 0.5
+      sedentary: 0.5
+    no_send:
+      active: 0.6
+      sedentary: 0.4
+
+daily_reward_multipliers: [1, 1, 1, 1, 0]
