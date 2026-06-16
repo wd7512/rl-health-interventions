@@ -48,7 +48,8 @@ def run_episode(
 
     df = pd.DataFrame.from_records(records)
     if output_csv is not None:
-        output_csv.parent.mkdir(parents=True, exist_ok=True)
-        df.to_csv(output_csv, index=False, encoding="utf-8")
-        logger.info("Wrote %d rows to %s", len(df), output_csv)
+        output_path = Path(output_csv)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(output_path, index=False, encoding="utf-8")
+        logger.info("Wrote %d rows to %s", len(df), output_path)
     return df

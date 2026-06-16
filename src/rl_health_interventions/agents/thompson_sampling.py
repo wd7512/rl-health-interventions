@@ -46,6 +46,12 @@ class ThompsonSamplingAgent(Agent):
         return max(samples, key=lambda a: samples[a])
 
     def update(self, state, action: Action, reward: float, next_state) -> None:
+        """Update posterior with observed reward.
+
+        Assumes reward > 0.0 means "success" (active state). This works for
+        the MVP where rewards are binary (0.0/1.0). For non-binary rewards
+        in Phase 2, this should be parameterized with a success threshold.
+        """
         p = self.posteriors[action]
         if reward > 0.0:
             self.posteriors[action] = Posterior(alpha=p.alpha + 1, beta=p.beta)
