@@ -77,6 +77,13 @@ $\epsilon = 0.1$. With probability $\epsilon$, select uniformly at random; other
 Q(a) \leftarrow Q(a) + \frac{r_t - Q(a)}{n_a}
 \]
 
+\subsection{UCB1}
+Upper Confidence Bound with exploration parameter $c = 2.0$. Selects:
+\[
+a^* = \arg\max_a \left[ Q(a) + c \sqrt{\frac{\ln N}{N_a}} \right]
+\]
+where $N$ is total steps and $N_a$ is the number of times action $a$ was chosen. The confidence bonus shrinks as $N_a$ grows, naturally shifting from exploration to exploitation. Each action is pulled once before UCB is applied.
+
 \subsection{Random Baseline}
 Uniform random action selection. No learning. Serves as lower bound.
 
@@ -92,10 +99,11 @@ Agent & Total Reward & Mean Reward/Step \\
 \midrule
 Thompson Sampling & 161.9 $\pm$ 15.4 & 0.360 $\pm$ 0.034 \\
 Epsilon-Greedy ($\epsilon=0.1$) & 155.9 $\pm$ 17.7 & 0.346 $\pm$ 0.039 \\
+UCB ($c=2.0$) & 148.5 $\pm$ 20.1 & 0.330 $\pm$ 0.045 \\
 Random & 133.6 $\pm$ 14.8 & 0.297 $\pm$ 0.033 \\
 \bottomrule
 \end{tabular}
-\caption{Results on \texttt{config/mvp.yaml} (10 seeds, 450 timesteps each). TS and $\epsilon$-greedy outperform random despite Reactance effect. TS shows the highest mean and lowest variance among learning agents.}
+\caption{Results on \texttt{config/mvp.yaml} (10 seeds, 450 timesteps each). TS leads with the highest mean and lowest variance among learning agents. UCB outperforms random but shows higher variance than TS and $\epsilon$-greedy.}
 \end{table}
 
 \section{Known Limitations}

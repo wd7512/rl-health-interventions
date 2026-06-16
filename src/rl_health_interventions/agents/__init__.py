@@ -7,6 +7,7 @@ from rl_health_interventions.agents._base import Agent
 from rl_health_interventions.agents import epsilon_greedy
 from rl_health_interventions.agents import random
 from rl_health_interventions.agents import thompson_sampling
+from rl_health_interventions.agents import ucb
 
 logger = logging.getLogger(__name__)
 
@@ -34,3 +35,8 @@ try:
     random.register()
 except Exception:
     logger.exception("Failed to register random agent")
+
+try:
+    ucb.register()
+except Exception:
+    logger.exception("Failed to register ucb agent")

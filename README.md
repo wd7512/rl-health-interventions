@@ -50,6 +50,7 @@ Change the YAML to change the experiment. No code changes needed.
 |-------|------|----------|----------|
 | Thompson Sampling | Beta-Bernoulli bandit | Yes (posterior update) | `--agent thompson_sampling` |
 | Epsilon-Greedy | Q-learning bandit | Yes (incremental average) | `--agent epsilon_greedy` |
+| UCB1 | Upper Confidence Bound | Yes (confidence interval) | `--agent ucb` |
 | Random | Uniform random | No | `--agent random` |
 
 All agents are contextual bandits in the MVP — state is accepted but not used in action selection. State-aware agents are planned for Phase 2.
