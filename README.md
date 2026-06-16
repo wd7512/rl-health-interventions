@@ -36,7 +36,7 @@ transition:
     send: {active: 0.3, sedentary: 0.7}
     don_t_send: {active: 0.1, sedentary: 0.9}
   active:
-    send: {active: 0.8, sedentary: 0.2}
+    send: {active: 0.5, sedentary: 0.5}
     don_t_send: {active: 0.6, sedentary: 0.4}
 masks:
   night: {sedentary: 1.0, active: 1.0}  # no transitions at night
@@ -62,9 +62,9 @@ See `docs/mvp/mvp_specification.tex` for the full MDP specification with transit
 
 | Agent | Total Reward | Mean Reward/Step |
 |-------|-------------|-----------------|
-| Thompson Sampling | 252.0 | 0.560 |
-| Epsilon-Greedy (ε=0.1) | 253.0 | 0.562 |
-| Random | 182.0 | 0.404 |
+| Thompson Sampling | 158.0 | 0.351 |
+| Epsilon-Greedy (ε=0.1) | 163.0 | 0.362 |
+| Random | 138.0 | 0.307 |
 
 ## Project structure
 
