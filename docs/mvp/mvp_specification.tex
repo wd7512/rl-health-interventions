@@ -26,17 +26,23 @@ where $\mathcal{T} = \{\texttt{morning}, \texttt{midday}, \texttt{afternoon}, \t
 A binary intervention: send a motivational message or do not.
 
 \subsection{Transition Function}
-$P(s' \mid s, a, t)$ is defined by a configurable matrix:
 
-\begin{equation}
-P(\texttt{active} \mid \texttt{sedentary}, \texttt{send}) = 0.3, \quad
-P(\texttt{active} \mid \texttt{sedentary}, \texttt{don\_t\_send}) = 0.1
-\end{equation}
+$P(s' \mid s, a)$ is defined by a configurable matrix. The probabilities encode a Reactance effect: reminders help sedentary users but can backfire for users who are already active.
 
-\begin{equation}
-P(\texttt{active} \mid \texttt{active}, \texttt{send}) = 0.8, \quad
-P(\texttt{active} \mid \texttt{active}, \texttt{don\_t\_send}) = 0.6
-\end{equation}
+\begin{table}[h]
+\centering
+\begin{tabular}{llcc}
+\toprule
+Current state $s$ & Action $a$ & $P(\texttt{active})$ & $P(\texttt{sedentary})$ \\
+\midrule
+sedentary & send & 0.3 & 0.7 \\
+sedentary & don't send & 0.1 & 0.9 \\
+active & send & 0.5 & 0.5 \\
+active & don't send & 0.6 & 0.4 \\
+\bottomrule
+\end{tabular}
+\caption{Transition probabilities. Sending a reminder increases the probability of becoming active for sedentary users ($0.3 > 0.1$) but decreases it for active users ($0.5 < 0.6$), consistent with Reactance theory.}
+\end{table}
 
 Time-of-day mask: at \texttt{night}, all transitions are suppressed (availability indicator per HeartSteps V2).
 
@@ -84,15 +90,13 @@ All agents run on the same config (\texttt{config/mvp.yaml}), seed 42, 450 times
 \toprule
 Agent & Total Reward & Mean Reward/Step \\
 \midrule
-Thompson Sampling & 252.0 & 0.5600 \\
-Epsilon-Greedy ($\epsilon=0.1$) & 253.0 & 0.5622 \\
-Random & 182.0 & 0.4044 \\
+Thompson Sampling & 158.0 & 0.3511 \\
+Epsilon-Greedy ($\epsilon=0.1$) & 163.0 & 0.3622 \\
+Random & 138.0 & 0.3067 \\
 \bottomrule
 \end{tabular}
-\caption{Results on \texttt{config/mvp.yaml} (seed 42, 450 timesteps). TS and $\epsilon$-greedy both learn the optimal policy; random serves as lower bound.}
+\caption{Results on \texttt{config/mvp.yaml} (seed 42, 450 timesteps). TS and $\epsilon$-greedy outperform random despite Reactance effect.}
 \end{table}
-
-\noindent\textbf{Note:} These are placeholder results from the CLI smoke test. Full multi-agent comparison with seeded reproducibility will be added in a follow-up.
 
 \section{Known Limitations}
 
@@ -101,6 +105,7 @@ Random & 182.0 & 0.4044 \\
 \item Single-timescale reward only. Multi-timescale (immediate + 3-week delayed) is Phase 2.
 \item No user response model. The \texttt{RuleBasedResponse} module exists as a stub. Burden accumulation and 4 archetypes are Phase 2.
 \item Transition matrix is fixed and known. Learned transitions from real data are Phase 2.
+\item Transition probabilities are placeholder values informed by Reactance theory. Calibration against real data is Phase 2.
 \end{itemize}
 
 \end{document}

@@ -1,5 +1,9 @@
 # Issue #101 MVP config — binary-action rule-based simulator
 # 450-step HeartSteps-style simulation: 90 days × 5 decision times/day
+#
+# Transition probabilities encode Reactance theory:
+# - Reminder helps sedentary users (0.3 vs 0.1 baseline)
+# - Reminder hurts active users (0.5 vs 0.6 baseline) — Reactance effect
 activity_levels:
   - sedentary
   - active
@@ -28,8 +32,8 @@ transition:
       sedentary: 0.9
   active:
     send:
-      active: 0.8
-      sedentary: 0.2
+      active: 0.5
+      sedentary: 0.5
     don_t_send:
       active: 0.6
       sedentary: 0.4
