@@ -19,6 +19,9 @@ uv run rl-health-interventions --config config/mvp.yaml --agent epsilon_greedy -
 
 # Run with random baseline
 uv run rl-health-interventions --config config/mvp.yaml --agent random --output results.csv
+
+# Run with UCB1 baseline
+uv run rl-health-interventions --config config/mvp.yaml --agent ucb --output results.csv
 ```
 
 ## How it works
@@ -65,6 +68,7 @@ See `docs/mvp/mvp_specification.tex` for the full MDP specification with transit
 |-------|-------------|-----------------|
 | Thompson Sampling | 161.9 ± 15.4 | 0.360 ± 0.034 |
 | Epsilon-Greedy (ε=0.1) | 155.9 ± 17.7 | 0.346 ± 0.039 |
+| UCB (c=2.0) | 148.5 ± 20.1 | 0.330 ± 0.045 |
 | Random | 133.6 ± 14.8 | 0.297 ± 0.033 |
 
 ## Project structure
@@ -72,7 +76,7 @@ See `docs/mvp/mvp_specification.tex` for the full MDP specification with transit
 ```
 src/rl_health_interventions/
   config/        # MDPConfig, YAML loader
-  agents/        # Thompson Sampling, epsilon-greedy, random
+  agents/        # Thompson Sampling, epsilon-greedy, UCB1, random
   transitions/   # RuleBasedTransition (config-driven matrix)
   rewards/       # CompoundReward (config-driven)
   state.py       # StateView dataclass
@@ -80,7 +84,7 @@ src/rl_health_interventions/
   experiment.py  # run_episode + CSV output
 config/          # MVP YAML config
 docs/mvp/        # design.tex (MDP formulation + results)
-tests/           # 96 tests (unit + integration)
+tests/           # 118 tests (unit + integration)
 ```
 
 ## Development
