@@ -49,6 +49,8 @@ class AgentConfig(BaseModel):
             raise ValueError(f"Unknown agent type: {self.type}")
         if self.contextual and self.type != "thompson_sampling":
             raise ValueError("contextual is only supported for thompson_sampling")
+        if not self.contextual and self.context_feature is not None:
+            raise ValueError("context_feature is only supported when contextual=True")
         if self.type == "thompson_sampling":
             if self.alpha_prior is None or self.alpha_prior <= 0:
                 raise ValueError("alpha_prior must be > 0 for thompson_sampling")

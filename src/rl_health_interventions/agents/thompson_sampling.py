@@ -49,8 +49,15 @@ class ThompsonSamplingAgent(Agent):
         samples: dict[str, float] = {}
         if self.contextual:
             ctx_attr = self.context_feature
-            assert ctx_attr is not None
-            context_value = getattr(state, ctx_attr)
+            if ctx_attr is None:
+                raise ValueError("context_feature must be set when contextual=True")
+            if state is None:
+                raise ValueError("state cannot be None when selecting action contextually")
+            context_value = getattr(state, ctx_attr, None)
+            if context_value is None:
+                raise ValueError(
+                    f"state is missing required context feature '{ctx_attr}'"
+                )
             for action in self._actions:
                 key = (context_value, action)
                 if key not in self.posteriors:
@@ -72,8 +79,15 @@ class ThompsonSamplingAgent(Agent):
     def update(self, state, action: str, reward: float, next_state) -> None:
         if self.contextual:
             ctx_attr = self.context_feature
-            assert ctx_attr is not None
-            context_value = getattr(state, ctx_attr)
+            if ctx_attr is None:
+                raise ValueError("context_feature must be set when contextual=True")
+            if state is None:
+                raise ValueError("state cannot be None when updating contextually")
+            context_value = getattr(state, ctx_attr, None)
+            if context_value is None:
+                raise ValueError(
+                    f"state is missing required context feature '{ctx_attr}'"
+                )
             key: str | tuple[str, str] = (context_value, action)
             if key not in self.posteriors:
                 self.posteriors[key] = Posterior(
