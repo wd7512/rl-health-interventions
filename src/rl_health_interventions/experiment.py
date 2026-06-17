@@ -70,5 +70,10 @@ def run_experiment(config_path: str | Path) -> dict[str, float]:
         kwargs["seed"] = derive_agent_seed(config.seed, agent_index=i)
         agent = make_agent(agent_cfg.type, **kwargs)
         df = run_episode(config, agent, seed=config.seed)
-        results[agent_cfg.type] = float(df["reward"].sum())
+        key = agent_cfg.type
+        suffix = 1
+        while key in results:
+            key = f"{agent_cfg.type}_{suffix}"
+            suffix += 1
+        results[key] = float(df["reward"].sum())
     return results

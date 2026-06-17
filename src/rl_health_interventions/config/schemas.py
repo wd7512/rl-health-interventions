@@ -50,12 +50,38 @@ class AgentConfig(BaseModel):
                 raise ValueError("alpha_prior must be > 0 for thompson_sampling")
             if self.beta_prior is None or self.beta_prior <= 0:
                 raise ValueError("beta_prior must be > 0 for thompson_sampling")
+            if self.epsilon is not None or self.c is not None:
+                raise ValueError("thompson_sampling agent does not accept epsilon or c")
         if self.type == "epsilon_greedy":
             if self.epsilon is None or not (0 <= self.epsilon <= 1):
                 raise ValueError("epsilon must be in [0, 1] for epsilon_greedy")
+            if (
+                self.alpha_prior is not None
+                or self.beta_prior is not None
+                or self.c is not None
+            ):
+                raise ValueError(
+                    "epsilon_greedy agent does not accept alpha_prior, beta_prior, or c"
+                )
         if self.type == "ucb":
             if self.c is None or self.c <= 0:
                 raise ValueError("c must be > 0 for ucb")
+            if (
+                self.alpha_prior is not None
+                or self.beta_prior is not None
+                or self.epsilon is not None
+            ):
+                raise ValueError(
+                    "ucb agent does not accept alpha_prior, beta_prior, or epsilon"
+                )
+        if self.type == "random":
+            if (
+                self.alpha_prior is not None
+                or self.beta_prior is not None
+                or self.epsilon is not None
+                or self.c is not None
+            ):
+                raise ValueError("random agent does not accept any hyperparameters")
         return self
 
 
@@ -80,7 +106,14 @@ class MDPConfig(BaseModel):
         if is_schema_ref:
             return self
 
-        state_names = {k for k, v in self.states.items()}
+        if not isinstance(self.states, dict):
+            raise ValueError(
+                "states must be a dictionary mapping state names to their configurations"
+            )
+        if not isinstance(self.actions, list):
+            raise ValueError("actions must be a list of action names")
+
+        state_names = set(self.states.keys())
         action_names = set(self.actions)
 
         if not self.states:
@@ -99,12 +132,32 @@ class MDPConfig(BaseModel):
         if len(action_names) != len(self.actions):
             raise ValueError("actions contain duplicates")
 
+        if (
+            self.transition_model.type == "rule_based"
+            and self.transition_model.transition_probabilities is None
+        ):
+            raise ValueError(
+                "transition_probabilities must be provided for rule_based transition model"
+            )
+
         tprobs = self.transition_model.transition_probabilities
         if tprobs is not None:
             probs_root = tprobs.root
-            for state in probs_root:
-                if state not in state_names:
-                    raise ValueError(f"Transition state '{state}' not in states")
+            if set(probs_root.keys()) != state_names:
+                missing = state_names - set(probs_root.keys())
+                extra = set(probs_root.keys()) - state_names
+                parts = []
+                if missing:
+                    parts.append(
+                        f"missing from transition_probabilities: {sorted(missing)}"
+                    )
+                if extra:
+                    parts.append(
+                        f"in transition_probabilities but not in states: {sorted(extra)}"
+                    )
+                raise ValueError(
+                    f"Transition probabilities must cover exactly the declared states — {'; '.join(parts)}"
+                )
 
             for state, actions_dict in probs_root.items():
                 for action in self.actions:
