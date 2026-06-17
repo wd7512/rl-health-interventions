@@ -37,67 +37,49 @@ class ThompsonSamplingAgent(Agent):
         self._actions = actions or ["nudge", "idle"]
         self.contextual = contextual
         self.context_feature = context_feature
-        if contextual:
+        self._init_posteriors()
+
+    def _init_posteriors(self) -> None:
+        if self.contextual:
             self.posteriors: dict[str | tuple[str, str], Posterior] = {}
         else:
-            self.posteriors: dict[str | tuple[str, str], Posterior] = {
-                action: Posterior(alpha=alpha_prior, beta=beta_prior)
+            self.posteriors = {
+                action: Posterior(alpha=self.alpha_prior, beta=self.beta_prior)
                 for action in self._actions
             }
 
+    def _get_context_key(self, state, action: str) -> tuple[str, str] | str:
+        """Extract the posterior key from state, or raise on bad input."""
+        if not self.contextual:
+            return action
+        ctx_attr = self.context_feature
+        if ctx_attr is None:
+            raise ValueError("context_feature must be set when contextual=True")
+        if state is None:
+            raise ValueError("state cannot be None for contextual agent")
+        context_value = getattr(state, ctx_attr, None)
+        if context_value is None:
+            raise ValueError(f"state is missing required context feature '{ctx_attr}'")
+        return (context_value, action)
+
+    def _ensure_posterior(self, key: tuple[str, str] | str) -> Posterior:
+        if key not in self.posteriors:
+            self.posteriors[key] = Posterior(
+                alpha=self.alpha_prior, beta=self.beta_prior
+            )
+        return self.posteriors[key]
+
     def select_action(self, state) -> str:
         samples: dict[str, float] = {}
-        if self.contextual:
-            ctx_attr = self.context_feature
-            if ctx_attr is None:
-                raise ValueError("context_feature must be set when contextual=True")
-            if state is None:
-                raise ValueError(
-                    "state cannot be None when selecting action contextually"
-                )
-            context_value = getattr(state, ctx_attr, None)
-            if context_value is None:
-                raise ValueError(
-                    f"state is missing required context feature '{ctx_attr}'"
-                )
-            for action in self._actions:
-                key = (context_value, action)
-                if key not in self.posteriors:
-                    self.posteriors[key] = Posterior(
-                        alpha=self.alpha_prior, beta=self.beta_prior
-                    )
-                samples[action] = float(
-                    self._rng.beta(
-                        self.posteriors[(context_value, action)].alpha,
-                        self.posteriors[(context_value, action)].beta,
-                    )
-                )
-        else:
-            for action in self._actions:
-                p = self.posteriors[action]
-                samples[action] = float(self._rng.beta(p.alpha, p.beta))
+        for action in self._actions:
+            key = self._get_context_key(state, action)
+            p = self._ensure_posterior(key)
+            samples[action] = float(self._rng.beta(p.alpha, p.beta))
         return max(samples, key=lambda a: samples[a])
 
     def update(self, state, action: str, reward: float, next_state) -> None:
-        if self.contextual:
-            ctx_attr = self.context_feature
-            if ctx_attr is None:
-                raise ValueError("context_feature must be set when contextual=True")
-            if state is None:
-                raise ValueError("state cannot be None when updating contextually")
-            context_value = getattr(state, ctx_attr, None)
-            if context_value is None:
-                raise ValueError(
-                    f"state is missing required context feature '{ctx_attr}'"
-                )
-            key: str | tuple[str, str] = (context_value, action)
-            if key not in self.posteriors:
-                self.posteriors[key] = Posterior(
-                    alpha=self.alpha_prior, beta=self.beta_prior
-                )
-        else:
-            key = action
-        p = self.posteriors[key]
+        key = self._get_context_key(state, action)
+        p = self._ensure_posterior(key)
         if reward > 0.0:
             self.posteriors[key] = Posterior(alpha=p.alpha + 1, beta=p.beta)
         else:

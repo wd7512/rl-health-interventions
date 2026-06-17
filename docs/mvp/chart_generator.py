@@ -122,7 +122,7 @@ def main() -> None:
     ax2.set_ylim(0.25, 0.50)
 
     plt.tight_layout()
-    out = Path(__file__).parent / "learning_curves.pdf"
+    out = Path(__file__).parent / "images" / "learning_curves.pdf"
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved to {out}")

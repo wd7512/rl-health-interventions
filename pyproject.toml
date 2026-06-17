@@ -32,7 +32,7 @@ dev = [
 [tool.ruff]
 line-length = 88
 target-version = "py311"
-extend-exclude = ["docs/mvp"]
+extend-exclude = ["docs"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
