@@ -72,34 +72,10 @@ $T = \texttt{episode\_days} \times \texttt{steps\_per\_day}$ timesteps. Default:
 
 \section{Agents}
 
-All agents are bandits: they treat each decision step as an independent lever-pull and do not condition on the state.
-Because the transition matrix is stationary, each action $a$ induces a Markov chain whose
-stationary distribution $\pi_a$ follows from $P_a$:
-
-\[
-\pi_a(\text{active}) = \frac{P(\text{active} \mid \text{sedentary}, a)}
-{P(\text{active} \mid \text{sedentary}, a) + P(\text{sedentary} \mid \text{active}, a)},
-\qquad
-\pi_a(\text{sedentary}) = 1 - \pi_a(\text{active})
-\]
-
-The expected reward for always choosing action $a$ is:
-
-\[
-E[r \mid a] = \sum_{s'} \pi_a(s') \, r(s') = \pi_a(\text{active})
-\]
-
-From the MVP matrices:
-
-\[
-E[r \mid \text{nudge}] = \frac{0.3}{0.3 + 0.5} \approx 0.375, \qquad
-E[r \mid \text{idle}] = \frac{0.1}{0.1 + 0.4} = 0.20
-\]
-
-Nudge dominates idle in expectation, but a state-aware agent could improve further by
-conditioning on $s$ (nudge when sedentary, idle when active), yielding
-$\pi(\text{active}) \approx 0.429$. This limitation motivates the state-aware agents
-planned for Phase~2.
+All agents are bandits: they do not condition on state. From the transition matrix,
+$E[r \mid \text{nudge}] \approx 0.375$, $E[r \mid \text{idle}] = 0.20$, and a
+state-aware policy that nudges only when sedentary would achieve $\approx 0.429$.
+This gap motivates the state-aware agents planned for Phase~2.
 
 \subsection{Thompson Sampling}
 Beta-Bernoulli TS with prior $\text{Beta}(1, 1)$ per action. Posterior update:
