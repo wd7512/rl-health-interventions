@@ -1,0 +1,17 @@
+# placeholder for learned transition model configuration
+
+episode_days: 90
+steps_per_day: 5
+seed: 42
+initial_state: default
+
+states:
+  schema: heartsteps
+
+actions:
+  schema: heartsteps
+
+transition_model:
+  type: learned
+  model: monte-carlo
+  schema: heartsteps
