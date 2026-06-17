@@ -6,8 +6,8 @@ from typing import Any
 
 class Agent(ABC):
     @abstractmethod
-    def select_action(self, state: Any) -> int: ...
+    def select_action(self, state: Any) -> str: ...
 
     def update(
-        self, state: Any, action: int, reward: float, next_state: Any
+        self, state: Any, action: str, reward: float, next_state: Any
     ) -> None: ...
