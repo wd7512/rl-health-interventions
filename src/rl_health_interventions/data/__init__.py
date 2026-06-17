@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 REGISTRY: dict[str, Type] = {}
 
 
-def make(name: str) -> object:
+def make(name: str, **kwargs) -> object:
     if name not in REGISTRY:
         raise KeyError(f"Unknown data component: {name}. Known: {list(REGISTRY)}")
-    return REGISTRY[name]()
+    return REGISTRY[name](**kwargs)
 
 
 try:
