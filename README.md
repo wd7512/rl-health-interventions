@@ -1,10 +1,10 @@
 # rl-health-interventions
 
-A config-driven simulation framework for testing RL-driven health interventions. Define MDP, agents, and experiments in YAML — no code changes needed.
+A config-driven RL simulation framework for testing health interventions. Define MDP, agents, and experiments in YAML — no code changes needed.
 
 ## What this is
 
-A HeartSteps-style simulator that runs configurable episodes with binary interventions (send/don't send a motivational message) and compares agent performance. Currently implements the MVP (Issue #101): Thompson Sampling, epsilon-greedy, and random agents on a 90-day × 5 steps/day episode.
+A config-driven RL simulation framework for testing health interventions. Define MDP, agents, and experiments in YAML — no code changes needed. The MVP uses a binary state/action MDP (nudge/idle, sedentary/active) with configurable transition probabilities and per-step reward multipliers. Thompson Sampling, epsilon-greedy, UCB, and random agents on a 90-day × 5 steps/day episode. See `docs/design/initial_design.tex` for the long-term vision.
 
 ## Quickstart
 
@@ -12,16 +12,16 @@ A HeartSteps-style simulator that runs configurable episodes with binary interve
 uv sync --dev
 
 # Run with default config (Thompson Sampling, 450 steps)
-uv run rl-health-interventions --config config/mvp.yaml --output results.csv
+uv run rl-health-interventions --config config/rule_based.yaml --output results.csv
 
 # Run with epsilon-greedy baseline
-uv run rl-health-interventions --config config/mvp.yaml --agent epsilon_greedy --output results.csv
+uv run rl-health-interventions --config config/rule_based.yaml --agent epsilon_greedy --output results.csv
 
 # Run with random baseline
-uv run rl-health-interventions --config config/mvp.yaml --agent random --output results.csv
+uv run rl-health-interventions --config config/rule_based.yaml --agent random --output results.csv
 
 # Run with UCB1 baseline
-uv run rl-health-interventions --config config/mvp.yaml --agent ucb --output results.csv
+uv run rl-health-interventions --config config/rule_based.yaml --agent ucb --output results.csv
 ```
 
 ## How it works
@@ -29,20 +29,25 @@ uv run rl-health-interventions --config config/mvp.yaml --agent ucb --output res
 The MDP is defined entirely in YAML:
 
 ```yaml
-# config/mvp.yaml (simplified)
-activity_levels: [sedentary, active]
-actions: [send, don_t_send]
+# config/rule_based.yaml (simplified)
+states:
+  sedentary:
+    reward: 0.0
+  active:
+    reward: 1.0
+actions: [nudge, idle]
 steps_per_day: 5
 episode_days: 90
-transition:
-  sedentary:
-    send: {active: 0.3, sedentary: 0.7}
-    don_t_send: {active: 0.1, sedentary: 0.9}
-  active:
-    send: {active: 0.5, sedentary: 0.5}
-    don_t_send: {active: 0.6, sedentary: 0.4}
-masks:
-  night: {sedentary: 1.0, active: 1.0}  # no transitions at night
+transition_model:
+  type: rule_based
+  transition_probabilities:
+    sedentary:
+      nudge: {active: 0.3, sedentary: 0.7}
+      idle: {active: 0.1, sedentary: 0.9}
+    active:
+      nudge: {active: 0.5, sedentary: 0.5}
+      idle: {active: 0.6, sedentary: 0.4}
+# Optional: reward_multiplier_by_step: [1, 1, 1, 1, 0]
 ```
 
 Change the YAML to change the experiment. No code changes needed.
@@ -60,31 +65,31 @@ All agents are contextual bandits in the MVP — state is accepted but not used 
 
 ## MDP formulation
 
-See `docs/mvp/mvp_specification.tex` for the full MDP specification with transition probabilities, reward function, and agent formulations.
+See `docs/mvp/mvp_specification.tex` and `docs/design/initial_design.tex` for the full MDP formulation.
 
-**Initial results** (config/mvp.yaml, 10 seeds, 450 timesteps each):
+**Initial results** (config/rule_based.yaml, 10 seeds, 450 timesteps each):
 
 | Agent | Total Reward | Mean Reward/Step |
 |-------|-------------|-----------------|
-| Thompson Sampling | 161.9 ± 15.4 | 0.360 ± 0.034 |
-| Epsilon-Greedy (ε=0.1) | 155.9 ± 17.7 | 0.346 ± 0.039 |
-| UCB (c=2.0) | 148.5 ± 20.1 | 0.330 ± 0.045 |
-| Random | 133.6 ± 14.8 | 0.297 ± 0.033 |
+| Thompson Sampling | 160.3 ± 10.5 | 0.356 ± 0.023 |
+| Epsilon-Greedy (ε=0.1) | 160.8 ± 15.3 | 0.357 ± 0.034 |
+| UCB (c=2.0) | 148.2 ± 15.0 | 0.329 ± 0.033 |
+| Random | 135.6 ± 10.7 | 0.301 ± 0.024 |
 
 ## Project structure
 
 ```
 src/rl_health_interventions/
-  config/        # MDPConfig, YAML loader
-  agents/        # Thompson Sampling, epsilon-greedy, UCB1, random
+  config/        # MDPConfig, AgentConfig, YAML loader
+  agents/        # Thompson Sampling, epsilon-greedy, UCB, random
   transitions/   # RuleBasedTransition (config-driven matrix)
-  rewards/       # CompoundReward (config-driven)
+  rewards/       # CompoundReward (precomputed per-step reward)
   state.py       # StateView dataclass
   environment.py # step/reset simulation loop
-  experiment.py  # run_episode + CSV output
-config/          # MVP YAML config
-docs/mvp/        # design.tex (MDP formulation + results)
-tests/           # 118 tests (unit + integration)
+  experiment.py  # run_episode + run_experiment
+config/          # YAML config files
+docs/mvp/        # MDP formulation + results
+tests/           # 135 tests (unit + integration)
 ```
 
 ## Development
@@ -99,7 +104,7 @@ uv build
 
 ## Non-goals (current phase)
 
-Per `docs/ROADMAP.md`, these are deferred until after the MVP ships:
+Per `docs/plans/ROADMAP.md`, these are deferred until after the MVP ships:
 
 - Multi-timescale reward (immediate + delayed body measure)
 - 4 user archetypes (goal-driven, social, resistant, stable)
@@ -111,5 +116,5 @@ Per `docs/ROADMAP.md`, these are deferred until after the MVP ships:
 ## References
 
 - HeartSteps V2 (Klasnja et al., 2022)
-- Issue #101 (MVP spec)
-- `docs/ROADMAP.md` (backlog, rough guidance)
+- `docs/design/initial_design.tex` (MDP formalisation)
+- `docs/plans/ROADMAP.md` (backlog, rough guidance)
