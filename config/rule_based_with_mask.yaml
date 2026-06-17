@@ -32,3 +32,11 @@ transition_model:
         sedentary: 0.4
 
 reward_multiplier_by_step: [1, 1, 1, 1, 0]
+
+agents:
+  - type: random
+  - type: epsilon_greedy
+    epsilon: 0.1
+  - type: ucb
+    c: 2.0
+  - type: thompson_sampling

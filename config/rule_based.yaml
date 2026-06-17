@@ -30,3 +30,11 @@ transition_model:
       idle:
         active: 0.6
         sedentary: 0.4
+
+agents:
+  - type: random
+  - type: epsilon_greedy
+    epsilon: 0.1
+  - type: ucb
+    c: 2.0
+  - type: thompson_sampling

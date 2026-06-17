@@ -10,7 +10,7 @@
 
 **Single PR** — no follow-up split. Everything listed here ships together.
 **Target config format:** `rule_based.yaml` (states/actions/transition_model). `mvp.yaml` is deleted.
-**Base:** `main` → branch `feat/issue-101-mvp-simulator`
+**Branch:** `feat/issue-101-mvp-simulator` (PR #103 already open against `main`)
 
 ---
 
@@ -19,7 +19,7 @@
 | Item | Decision |
 |---|---|
 | `time_of_day` as state | **Removed.** `reward_multiplier_by_step` replaces it entirely |
-| Masking mechanism | **`reward_multiplier_by_step` is the mask.** A multiplier of `0` at a step signals "no reward here" — no separate mask class or block needed |
+| Masking mechanism | **`reward_multiplier_by_step` is the mask.** Optional field; absent means uniform `1.0` multiplier. A `0` signals "no reward here" — no separate mask class or block needed |
 | Config-first | **Yes** — string-keyed states/actions, enums removed, cross-reference validators added in same pass |
 | Swappable transition | **Yes** — `transition_model.type` already present; registry factory exists already |
 | `agents` in YAML | **Yes** — including hyperparams; YAML is the full experiment record |
@@ -27,10 +27,10 @@
 | `schemas.py` rename | **Not needed.** File stays `schemas.py`, contents rewritten (enums removed, new config model) |
 | `experiment.py` rename | **Not needed.** Stays `experiment.py` |
 | `mvp.yaml` | **Delete.** Deprecated new-format file |
-| `rule_based.yaml` | **Update.** Add `reward_multiplier_by_step` and `agents` block |
-| `rule_based_with_mask.yaml` | **Update.** Add `agents` block |
+| `rule_based.yaml` | **Update.** Add `agents` block |
+| `rule_based_with_mask.yaml` | **Update.** Add `reward_multiplier_by_step: [1,1,1,1,0]` + `agents` block |
 | `learned.yaml`, `llm_based.yaml` | **Keep.** Schema-reference mode stubs handle them gracefully |
-| `reward_multiplier_by_step` | **Precomputed in config.** Config builds a per-step reward array per state |
+| `reward_multiplier_by_step` | **Optional field.** Only active when present. Defaults to uniform `1.0` when absent. Precomputed in config. |
 | Cross-reference validators | **In scope.** Structural checks on states, actions, transition probs, agents |
 | Schema-reference mode stub | **In scope.** `NotImplementedError` seam |
 | Transition registry | **Already exists.** `environment.py` must use it instead of direct imports |
@@ -85,7 +85,7 @@ This touches every file that references the enums (~20 files) but each change is
 
 ### 3.1 `config/rule_based.yaml` — Baseline, no masking
 
-All steps are equally rewarded. Clean environment baseline.
+Clean environment baseline. No `reward_multiplier_by_step` — absent means uniform 1.0.
 
 ```yaml
 episode_days: 90
@@ -121,9 +121,6 @@ transition_model:
         active: 0.6
         sedentary: 0.4
 
-# All steps are equally rewarded in the base MVP.
-reward_multiplier_by_step: [1, 1, 1, 1, 1]
-
 agents:
   - type: random
   - type: epsilon_greedy
@@ -135,13 +132,12 @@ agents:
 
 ### 3.2 `config/rule_based_with_mask.yaml` — Step 4 masked
 
-Identical to `rule_based.yaml` except `reward_multiplier_by_step`. Step 4 represents end-of-day; nudging there yields no reward. Agents that learn will stop nudging at step 4.
+Identical to `rule_based.yaml` except with `reward_multiplier_by_step`. Step 4 represents end-of-day; nudging there yields no reward. Agents that learn will stop nudging at step 4.
 
 ```yaml
 # ... same as rule_based.yaml up to transition_model ...
 
 # Step 4 is end-of-day — zero multiplier acts as a soft mask.
-# Length must equal steps_per_day.
 reward_multiplier_by_step: [1, 1, 1, 1, 0]
 
 agents:
@@ -214,10 +210,9 @@ transition_model.transition_probabilities
   - each next-state dict must cover all declared states
   - each probability row sums to 1.0 (tolerance: 1e-6)
 
-reward_multiplier_by_step
-  - is a list
-  - len == steps_per_day
-  - all values are numeric
+reward_multiplier_by_step (optional)
+  - if present: is a list, len == steps_per_day, all values are numeric
+  - if absent: defaults to uniform [1.0, ..., 1.0]
 
 agents
   - each entry has a `type` field
@@ -234,13 +229,19 @@ When `states` contains a `schema` key, skip inline cross-reference checks and lo
 
 ## 5. `reward_multiplier_by_step` Integration
 
-The config model precomputes a `per_step_reward` array at load time:
+`reward_multiplier_by_step` is **optional**. When absent, the config model defaults to a uniform multiplier of `1.0` for all steps (no effect).
+
+When present, the config model precomputes a `per_step_reward` array via a Pydantic `@model_validator(mode='after')`:
 
 ```python
-self.per_step_reward = [
-    {state: data.reward * mult for state, data in self.states.items()}
-    for mult in self.reward_multiplier_by_step
-]
+@model_validator(mode='after')
+def _compute_per_step_reward(self) -> Self:
+    multiplier = self.reward_multiplier_by_step or [1.0] * self.steps_per_day
+    self.per_step_reward = [
+        {state: data.reward * mult for state, data in self.states.items()}
+        for mult in multiplier
+    ]
+    return self
 ```
 
 The reward handler receives `(state_name, step_idx)` and returns the precomputed value. No runtime multiplication or branching per step.
@@ -274,8 +275,14 @@ Both `make()` factories are already registered in the package `__init__.py`. The
 ### Update (config)
 | File | Changes |
 |---|---|
-| `config/rule_based.yaml` | Add `reward_multiplier_by_step: [1,1,1,1,1]` + `agents` block |
-| `config/rule_based_with_mask.yaml` | Add `agents` block |
+| `config/rule_based.yaml` | Add `agents` block |
+| `config/rule_based_with_mask.yaml` | Add `reward_multiplier_by_step: [1,1,1,1,0]` + `agents` block |
+
+### Keep (unchanged)
+| File | Reason |
+|---|---|
+| `config/learned.yaml` | Schema-ref stub handles it at load time |
+| `config/llm_based.yaml` | Schema-ref stub handles it at load time |
 
 ### Rewrite (source)
 | File | Changes |
@@ -294,7 +301,6 @@ Both `make()` factories are already registered in the package `__init__.py`. The
 | `src/rl_health_interventions/__main__.py` | Config path defaults to `rule_based.yaml` |
 | `tests/conftest.py` | Update fixtures |
 | `tests/unit/config/test_mdp_config.py` | New schema tests |
-| `tests/unit/config/test_mdp_validators.py` | Cross-reference validator tests |
 | `tests/unit/test_state.py` | Remove time_of_day tests |
 | `tests/unit/test_environment.py` | No time-of-day tests; add multiplier tests |
 | `tests/unit/test_experiment.py` | New config state |
@@ -306,6 +312,7 @@ Both `make()` factories are already registered in the package `__init__.py`. The
 ### Create
 | File | Purpose |
 |---|---|
+| `tests/unit/config/test_mdp_validators.py` | Cross-reference validator tests |
 | `tests/fixtures/mvp_expected_rewards.json` | Regression fixture (generated at seed 42) |
 | `scripts/generate_regression_fixture.py` | One-shot generator for the fixture |
 
@@ -361,8 +368,8 @@ Fixture shape (values populated by running the generator):
 ## 9. Merge Checklist
 
 - [ ] `config/mvp.yaml` deleted
-- [ ] `config/rule_based.yaml` updated with `reward_multiplier_by_step` + `agents`
-- [ ] `config/rule_based_with_mask.yaml` updated with `agents`
+- [ ] `config/rule_based.yaml` updated with `agents` block
+- [ ] `config/rule_based_with_mask.yaml` updated with `reward_multiplier_by_step` + `agents` block
 - [ ] `schemas.py` rewritten (enums removed, new config model, validators, stub)
 - [ ] `state.py` — `TimeOfDay` removed, `activity` is `str`
 - [ ] `environment.py` — no time-of-day, uses registry factories, passes step index
