@@ -1,54 +1,38 @@
+# Research Recreations
+
+This directory holds recreation reports for published papers relevant to the `rl-health-interventions` framework. Each report documents headline numbers from the original paper, what we can and cannot recreate given available data and code, and concrete next actions for the project.
+
+## Reports
+
+| Paper | Report | Status |
+|---|---|---|
+| HeartSteps V1 — Klasnja et al. (2015, UbiComp; 2019, *Annals of Behavioral Medicine*) | `heartsteps-v1.md` | Complete |
+| HeartSteps V2 — Liao et al. (2019, *UbiComp/ISWC*) | PR #85 (`paper_reproduction/`) | Blocked by review |
+| AHRQ Population Model | `recreate-ahrq-population/` (branch) | Planned |
+| Health Gym | `recreate-healthgym/` (branch) | Planned |
+| MyHeartCounts | `recreate-myheartcounts/` (branch) | Planned |
+| StepCountJITAI | `recreate-stepcountjitai/` (branch) | Planned |
+| TS Bounds | `recreate-ts-bounds/` (branch) | Planned |
+
+## Format
+
+Each recreation report follows the same structure:
+
+1. **Paper overview** — what the paper did and why it matters
+2. **Headline numbers table** — key quantitative results with section citations
+3. **Recreation methodology** — what can and cannot be recreated
+4. **Four-question loop** — theoretical limit, linkages, improvement, action
+5. **Validation assessment** — honest appraisal of what is validated
+6. **Open questions** — unresolved issues for the project
+7. **Citation block** — full BibTeX references
+8. **Next actions** — priority-ordered, specific, testable tasks
+
+## Related
+
+- Statistical Analysis Plan: `docs/research/statistical-analysis-plan.md`
+- PR #85 reproduction (HeartSteps V2): branch `pr-85`, `paper_reproduction/`
+- Framework design: `docs/initial_design.tex`
+
 ---
-title: "Paper Recreation Reports"
-status: "active"
-date: "2026-06-14"
-purpose: "One recreation report per paper in the literature review; each applies the four-question loop"
----
 
-# Paper Recreation Reports
-
-This directory holds recreation reports for each paper that the
-project cites or could cite. Each report:
-
-1. States the paper's headline result with exact numbers
-2. Applies the four-question loop:
-   - Is this at the theoretical limit?
-   - How does it link to other papers and this work?
-   - Is there still room for improvement?
-   - Take action (concrete next step)
-3. Is honest about what the recreation validates and what it does
-   not (e.g. we cannot "run" a theorem)
-
-The recreations are **research artefacts**, not implementations.
-They inform PRs and the paper's methodology section.
-
-## Reports in this directory
-
-| Paper | Status | PR/branch | Headline result |
-|---|---|---|---|
-| Klasnja et al. 2019 (HeartSteps V1) | pending (opencode) | research/recreate-heartsteps-v1 | ATE +13.9 steps/30min, NS, 72% availability |
-| Karine & Marlin 2024 (StepCountJITAI) | draft v0.1 | research/recreate-stepcountjitai | Gamma synthetic steps, habituation + disengagement model |
-| Russo & Van Roy 2018 (TS bounds) | draft v0.1 | research/recreate-ts-bounds | `O(√(dT log T))` Bayesian regret for TS |
-| (more forthcoming) | | | |
-
-## Conventions
-
-- No code, no `src/` changes
-- No edits to `initial_design.tex` (gated)
-- Use the same citation block format as in `docs/references.bib`
-- Each report's "Take action" section produces 3-5 concrete,
-  testable actions the project should take
-- Reports are honest: if a number cannot be verified, say so
-
-## Connection to other research docs
-
-- The **statistical analysis plan** (PR #86) sets the conventions
-  for how the project will report recreation results
-- The **simulator validation decision tree** (PR #87) determines
-  what "recreation" means for synthetic-data papers vs.
-  real-data papers
-- The **online/offline framing** (PR #88) determines whether a
-  recreation is a numerical reproduction (online framing) or a
-  validation exercise (offline framing)
-- The **PR #85 review** (PR #90) is the first recreation report
-  and sets the template for this directory
+*Last updated: 2026-06-15*

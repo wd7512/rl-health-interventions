@@ -11,10 +11,19 @@ logger = logging.getLogger(__name__)
 REGISTRY: dict[str, Type[RewardHandler]] = {}
 
 
-def make(name: str) -> RewardHandler:
+def make(name_or_config=None, **kwargs) -> RewardHandler:
+    if name_or_config is not None and not isinstance(name_or_config, str):
+        name = "compound"
+        kwargs.setdefault("config", name_or_config)
+    elif isinstance(name_or_config, str):
+        name = name_or_config
+    elif "name" in kwargs:
+        name = kwargs.pop("name")
+    else:
+        raise TypeError("make() requires either a config or name argument")
     if name not in REGISTRY:
         raise KeyError(f"Unknown reward handler: {name}. Known: {list(REGISTRY)}")
-    return REGISTRY[name]()
+    return REGISTRY[name](**kwargs)
 
 
 try:

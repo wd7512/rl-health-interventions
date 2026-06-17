@@ -1,0 +1,89 @@
+name: Thread Resolution Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+concurrency:
+  group: thread-check-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  check-resolved-threads:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check for resolved-without-reply threads
+        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            core.info(`Checking PR #${prNumber} for resolved-without-reply threads...`);
+
+            let allThreads = [];
+            let cursor = null;
+
+            // Paginate through all review threads
+            do {
+              const query = `
+                query($owner: String!, $repo: String!, $pr: Int!, $cursor: String) {
+                  repository(owner: $owner, name: $repo) {
+                    pullRequest(number: $pr) {
+                      reviewThreads(first: 100, after: $cursor) {
+                        nodes {
+                          id
+                          isResolved
+                          isOutdated
+                          comments(first: 1) {
+                            totalCount
+                          }
+                        }
+                        pageInfo {
+                          hasNextPage
+                          endCursor
+                        }
+                      }
+                    }
+                  }
+                }
+              `;
+
+              const result = await github.graphql(query, {
+                owner,
+                repo,
+                pr: prNumber,
+                cursor,
+              });
+
+              const threads = result.repository.pullRequest.reviewThreads;
+              allThreads.push(...threads.nodes);
+              cursor = threads.pageInfo.hasNextPage ? threads.pageInfo.endCursor : null;
+            } while (cursor);
+
+            core.info(`Found ${allThreads.length} review threads total.`);
+
+            // Filter: resolved, not outdated, only 1 comment (the original — no reply)
+            const resolvedNoReply = allThreads.filter(
+              t => t.isResolved && !t.isOutdated && t.comments.totalCount === 1
+            );
+
+            core.info(`${resolvedNoReply.length} thread(s) resolved without a reply.`);
+
+            if (resolvedNoReply.length > 0) {
+              for (const t of resolvedNoReply) {
+                core.warning(`Thread ${t.id} was resolved without any reply.`);
+              }
+              core.setFailed(
+                `${resolvedNoReply.length} review thread(s) were resolved without a comment. ` +
+                `Post a reply explaining the fix before resolving.`
+              );
+            } else {
+              core.info('All resolved threads have at least one reply. ✅');
+            }
