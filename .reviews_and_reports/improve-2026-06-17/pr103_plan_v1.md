@@ -123,8 +123,8 @@ transition_model:
 
 agents:
   - type: thompson_sampling
-    alpha_prior: 1.0
-    beta_prior: 1.0
+    alpha_prior: 1
+    beta_prior: 1
 ```
 
 ### 3.2 `config/rule_based_with_mask.yaml` — Step 4 masked
@@ -139,8 +139,8 @@ reward_multiplier_by_step: [1, 1, 1, 1, 0]
 
 agents:
   - type: thompson_sampling
-    alpha_prior: 1.0
-    beta_prior: 1.0
+    alpha_prior: 1
+    beta_prior: 1
 ```
 
 ### 3.3 Forward reference: `learned.yaml` / `heartsteps_learned.yaml`

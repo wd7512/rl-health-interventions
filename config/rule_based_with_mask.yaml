@@ -35,5 +35,5 @@ reward_multiplier_by_step: [1, 1, 1, 1, 0]
 
 agents:
   - type: thompson_sampling
-    alpha_prior: 1.0
-    beta_prior: 1.0
+    alpha_prior: 1
+    beta_prior: 1
