@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 REGISTRY: dict[str, Type[ResponseModel]] = {}
 
 
-def make(name: str) -> ResponseModel:
+def make(name: str, **kwargs) -> ResponseModel:
     if name not in REGISTRY:
         raise KeyError(f"Unknown response model: {name}. Known: {list(REGISTRY)}")
-    return REGISTRY[name]()
+    return REGISTRY[name](**kwargs)
 
 
 try:
