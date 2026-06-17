@@ -123,6 +123,8 @@ transition_model:
 
 agents:
   - type: thompson_sampling
+    alpha_prior: 1.0
+    beta_prior: 1.0
 ```
 
 ### 3.2 `config/rule_based_with_mask.yaml` — Step 4 masked
@@ -137,6 +139,8 @@ reward_multiplier_by_step: [1, 1, 1, 1, 0]
 
 agents:
   - type: thompson_sampling
+    alpha_prior: 1.0
+    beta_prior: 1.0
 ```
 
 ### 3.3 Forward reference: `learned.yaml` / `heartsteps_learned.yaml`
@@ -206,9 +210,10 @@ reward_multiplier_by_step (optional)
 
 agents
   - each entry has a `type` field
-  - known types: {random, epsilon_greedy, ucb, thompson_sampling}
-  - epsilon_greedy: requires epsilon ∈ (0, 1]
-  - ucb:            requires c > 0
+  - known types: {thompson_sampling, random, epsilon_greedy, ucb}
+  - thompson_sampling: requires alpha_prior > 0, beta_prior > 0
+  - epsilon_greedy:    requires epsilon ∈ (0, 1]
+  - ucb:               requires c > 0
 ```
 
 ### 4.3 Schema-reference mode

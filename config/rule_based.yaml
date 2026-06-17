@@ -33,3 +33,5 @@ transition_model:
 
 agents:
   - type: thompson_sampling
+    alpha_prior: 1.0
+    beta_prior: 1.0
