@@ -252,7 +252,7 @@ the simulation pipeline," not "RL deployed in a real MRT."
 
 | Category | Requirement | Feasibility |
 |----------|------------|-------------|
-| Data | Synthetic (Phase 1) or logged MRT data (Phase 2) | ✅ Phase 1: 7 open datasets available now |
+| Data | Synthetic (Phase 1) or logged MRT data (Phase 2) | ✅ Phase 1: synthetic data parameterised from 7 open datasets (NHANES, MMASH, etc.) |
 | MRT access | None required | ✅ |
 | Regulatory | Data use agreements for Phase 2 (HeartSteps) | ⚠️ Acceptable risk |
 | Safety | Constraint testing in simulation (M-10) | ⚠️ Planned |
