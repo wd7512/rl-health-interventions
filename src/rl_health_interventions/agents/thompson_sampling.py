@@ -13,7 +13,12 @@ class Posterior(NamedTuple):
 
 
 class ThompsonSamplingAgent(Agent):
-    """Beta-Bernoulli Thompson Sampling for binary actions."""
+    """Beta-Bernoulli Thompson Sampling for binary actions.
+
+    When *contextual* is ``True`` the agent maintains separate
+    ``(alpha, beta)`` posteriors for each ``(context_value, action)``
+    pair, keyed on ``state.<context_feature>``.
+    """
 
     def __init__(
         self,
@@ -21,6 +26,8 @@ class ThompsonSamplingAgent(Agent):
         alpha_prior: float = 1.0,
         beta_prior: float = 1.0,
         seed: int = 42,
+        contextual: bool = False,
+        context_feature: str | None = None,
     ) -> None:
         self.alpha_prior = alpha_prior
         self.beta_prior = beta_prior
@@ -28,24 +35,57 @@ class ThompsonSamplingAgent(Agent):
             raise ValueError("alpha_prior and beta_prior must be strictly positive.")
         self._rng = np.random.default_rng(seed)
         self._actions = actions or ["nudge", "idle"]
-        self.posteriors: dict[str, Posterior] = {
-            action: Posterior(alpha=alpha_prior, beta=beta_prior)
-            for action in self._actions
-        }
+        self.contextual = contextual
+        self.context_feature = context_feature
+        if contextual:
+            self.posteriors: dict[str | tuple[str, str], Posterior] = {}
+        else:
+            self.posteriors: dict[str | tuple[str, str], Posterior] = {
+                action: Posterior(alpha=alpha_prior, beta=beta_prior)
+                for action in self._actions
+            }
 
     def select_action(self, state) -> str:
-        samples = {
-            action: self._rng.beta(posterior.alpha, posterior.beta)
-            for action, posterior in self.posteriors.items()
-        }
+        samples: dict[str, float] = {}
+        if self.contextual:
+            ctx_attr = self.context_feature
+            assert ctx_attr is not None
+            context_value = getattr(state, ctx_attr)
+            for action in self._actions:
+                key = (context_value, action)
+                if key not in self.posteriors:
+                    self.posteriors[key] = Posterior(
+                        alpha=self.alpha_prior, beta=self.beta_prior
+                    )
+                samples[action] = float(
+                    self._rng.beta(
+                        self.posteriors[(context_value, action)].alpha,
+                        self.posteriors[(context_value, action)].beta,
+                    )
+                )
+        else:
+            for action in self._actions:
+                p = self.posteriors[action]
+                samples[action] = float(self._rng.beta(p.alpha, p.beta))
         return max(samples, key=lambda a: samples[a])
 
     def update(self, state, action: str, reward: float, next_state) -> None:
-        p = self.posteriors[action]
-        if reward > 0.0:
-            self.posteriors[action] = Posterior(alpha=p.alpha + 1, beta=p.beta)
+        if self.contextual:
+            ctx_attr = self.context_feature
+            assert ctx_attr is not None
+            context_value = getattr(state, ctx_attr)
+            key: str | tuple[str, str] = (context_value, action)
+            if key not in self.posteriors:
+                self.posteriors[key] = Posterior(
+                    alpha=self.alpha_prior, beta=self.beta_prior
+                )
         else:
-            self.posteriors[action] = Posterior(alpha=p.alpha, beta=p.beta + 1)
+            key = action
+        p = self.posteriors[key]
+        if reward > 0.0:
+            self.posteriors[key] = Posterior(alpha=p.alpha + 1, beta=p.beta)
+        else:
+            self.posteriors[key] = Posterior(alpha=p.alpha, beta=p.beta + 1)
 
 
 def register() -> None:

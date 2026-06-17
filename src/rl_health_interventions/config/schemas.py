@@ -40,11 +40,15 @@ class AgentConfig(BaseModel):
     beta_prior: float | None = None
     epsilon: float | None = None
     c: float | None = None
+    contextual: bool = False
+    context_feature: str | None = None
 
     @model_validator(mode="after")
     def _validate_agent(self) -> AgentConfig:
         if self.type not in _KNOWN_AGENT_TYPES:
             raise ValueError(f"Unknown agent type: {self.type}")
+        if self.contextual and self.type != "thompson_sampling":
+            raise ValueError("contextual is only supported for thompson_sampling")
         if self.type == "thompson_sampling":
             if self.alpha_prior is None or self.alpha_prior <= 0:
                 raise ValueError("alpha_prior must be > 0 for thompson_sampling")
@@ -52,6 +56,10 @@ class AgentConfig(BaseModel):
                 raise ValueError("beta_prior must be > 0 for thompson_sampling")
             if self.epsilon is not None or self.c is not None:
                 raise ValueError("thompson_sampling agent does not accept epsilon or c")
+            if self.contextual and self.context_feature is None:
+                raise ValueError(
+                    "context_feature must be provided when contextual=True"
+                )
         if self.type == "epsilon_greedy":
             if self.epsilon is None or not (0 <= self.epsilon <= 1):
                 raise ValueError("epsilon must be in [0, 1] for epsilon_greedy")
