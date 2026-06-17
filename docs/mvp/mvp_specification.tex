@@ -95,7 +95,10 @@ Uniform random action selection. No learning. Serves as lower bound.
 
 \section{Initial Results}
 
-All agents run on the same config (\texttt{config/rule\_based.yaml}) over 10 random seeds (1--10), 450 timesteps each. Results are reported as mean $\pm$ standard deviation across seeds.
+All agents run over 10 random seeds (1--10), 450 timesteps each. Results are reported as mean $\pm$ standard deviation across seeds.
+
+\subsection{Standard Config (\texttt{config/rule\_based.yaml})}
+No \texttt{reward\_multiplier\_by\_step} -- uniform 1.0 multiplier on all steps.
 
 \begin{table}[h]
 \centering
@@ -109,7 +112,25 @@ UCB ($c=2.0$) & 148.2 $\pm$ 15.0 & 0.329 $\pm$ 0.033 \\
 Random & 135.6 $\pm$ 10.7 & 0.301 $\pm$ 0.024 \\
 \bottomrule
 \end{tabular}
-\caption{Results on \texttt{config/rule\_based.yaml} (10 seeds, 450 timesteps each). TS and $\epsilon$-greedy perform similarly; TS has lower variance. UCB outperforms random but shows higher variance.}
+\caption{Results on \texttt{config/rule\_based.yaml} (10 seeds, 450 timesteps). TS and $\epsilon$-greedy perform similarly; TS has lower variance. UCB outperforms random but shows higher variance.}
+\end{table}
+
+\subsection{Masked Config (\texttt{config/rule\_based\_with\_mask.yaml})}
+\texttt{reward\_multiplier\_by\_step: [1, 1, 1, 1, 0]} -- step 4 (end of day) yields zero reward regardless of outcome. All agents drop proportionally to the masked fraction ($1/5$ of steps zeroed), confirming the multiplicative reward model.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Agent & Total Reward & Mean Reward/Step \\
+\midrule
+Thompson Sampling ($\alpha_0=\beta_0=1$) & 126.6 $\pm$ 6.8 & 0.281 $\pm$ 0.015 \\
+Epsilon-Greedy ($\epsilon=0.1$) & 127.3 $\pm$ 10.2 & 0.283 $\pm$ 0.023 \\
+UCB ($c=2.0$) & 116.9 $\pm$ 8.6 & 0.260 $\pm$ 0.019 \\
+Random & 107.8 $\pm$ 6.7 & 0.240 $\pm$ 0.015 \\
+\bottomrule
+\end{tabular}
+\caption{Results on \texttt{config/rule\_based\_with\_mask.yaml} (10 seeds, 450 timesteps). Reward drops $\approx 20\%$ across all agents, matching the $1/5$ masked fraction. Relative ordering is preserved.}
 \end{table}
 
 \section{Known Limitations}
