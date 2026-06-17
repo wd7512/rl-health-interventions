@@ -4,7 +4,7 @@ import argparse
 import logging
 from pathlib import Path
 
-from rl_health_interventions.agents import make as make_agent
+from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.experiment import run_episode
 
@@ -56,7 +56,7 @@ def main() -> None:
 
     agent_name = args.agent or (config.agents[0].type if config.agents else "random")
     env_seed = args.seed if args.seed is not None else config.seed
-    agent_seed = (env_seed * 2654435761) % (2**31)
+    agent_seed = derive_agent_seed(env_seed)
 
     agent = make_agent(agent_name, seed=agent_seed, actions=config.actions)
 

@@ -13,6 +13,17 @@ logger = logging.getLogger(__name__)
 
 REGISTRY: dict[str, Type[Agent]] = {}
 
+_KNUTH_MULT = 2654435761  # Knuth multiplicative hash constant
+
+
+def derive_agent_seed(base_seed: int, agent_index: int = 0) -> int:
+    """Deterministic, independent agent seed from a base seed.
+
+    Bandit agents ignore state, so correlation with environment RNG is harmless.
+    State-aware agents (Phase 2) will need independent seed management.
+    """
+    return (base_seed * _KNUTH_MULT + agent_index) % (2**31)
+
 
 def make(name: str, **kwargs) -> Agent:
     if name not in REGISTRY:

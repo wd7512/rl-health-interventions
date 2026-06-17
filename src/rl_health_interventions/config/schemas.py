@@ -51,8 +51,8 @@ class AgentConfig(BaseModel):
             if self.beta_prior is None or self.beta_prior <= 0:
                 raise ValueError("beta_prior must be > 0 for thompson_sampling")
         if self.type == "epsilon_greedy":
-            if self.epsilon is None or not (0 < self.epsilon <= 1):
-                raise ValueError("epsilon must be in (0, 1] for epsilon_greedy")
+            if self.epsilon is None or not (0 <= self.epsilon <= 1):
+                raise ValueError("epsilon must be in [0, 1] for epsilon_greedy")
         if self.type == "ucb":
             if self.c is None or self.c <= 0:
                 raise ValueError("c must be > 0 for ucb")
@@ -85,6 +85,11 @@ class MDPConfig(BaseModel):
 
         if not self.states:
             raise ValueError("states must be non-empty")
+        if self.initial_state not in state_names:
+            raise ValueError(
+                f"initial_state '{self.initial_state}' not in states: "
+                f"{sorted(state_names)}"
+            )
         for name, data in self.states.items():
             if not isinstance(data, dict) or "reward" not in data:
                 raise ValueError(f"State '{name}' must have a numeric 'reward' field")

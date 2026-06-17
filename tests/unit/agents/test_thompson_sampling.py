@@ -1,8 +1,9 @@
 from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
+from rl_health_interventions.state import StateView
 
 
-def _sv() -> dict:
-    return {"activity": "sedentary"}
+def _sv() -> StateView:
+    return StateView(activity="sedentary", day=0, step_of_day=0)
 
 
 def test_select_action_returns_string_action():

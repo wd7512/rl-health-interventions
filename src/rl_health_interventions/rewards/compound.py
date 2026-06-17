@@ -8,7 +8,11 @@ class CompoundReward(RewardHandler):
     def __init__(self, config: MDPConfig) -> None:
         p = config.per_step_reward
         if p is None:
-            raise ValueError("per_step_reward is None; config not fully initialized")
+            raise NotImplementedError(
+                "Schema-ref configs (states: {schema: ...}) are not yet supported. "
+                "Use inline state definitions with rule_based transition/reward. "
+                "See docs/ROADMAP.md for Phase 2 plans."
+            )
         self._per_step_reward = p
 
     def reward(self, state: str, action: str, step_idx: int) -> tuple[float, bool]:

@@ -6,7 +6,7 @@ from typing import Protocol
 
 import pandas as pd
 
-from rl_health_interventions.agents import make as make_agent
+from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.environment import Environment
@@ -67,7 +67,7 @@ def run_experiment(config_path: str | Path) -> dict[str, float]:
             if v is not None and k != "type"
         }
         kwargs["actions"] = config.actions
-        kwargs["seed"] = (config.seed + i * 2654435761) % (2**31)
+        kwargs["seed"] = derive_agent_seed(config.seed, agent_index=i)
         agent = make_agent(agent_cfg.type, **kwargs)
         df = run_episode(config, agent, seed=config.seed)
         results[agent_cfg.type] = float(df["reward"].sum())
