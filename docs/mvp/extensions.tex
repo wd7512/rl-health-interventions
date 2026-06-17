@@ -9,47 +9,25 @@
 \begin{document}
 \maketitle
 
-The MVP agents are state-blind bandits. Contextual Thompson Sampling conditions action selection on the current activity level, learning per-context intervention effectiveness.
+Extends the MVP bandits (\S5 of \texttt{mvp\_specification.tex}) by conditioning action selection on the current activity level.
 
 \section{Formulation}
 
-Context $c_t = s_t.\texttt{activity} \in \{\texttt{sedentary}, \texttt{active}\}$. Posterior pairs indexed by $(c, a)$:
+Context $c_t = s_t.\texttt{activity} \in \{\texttt{sedentary}, \texttt{active}\}$. Instead of one $(\alpha_a, \beta_a)$ per action, maintain $(\alpha_{c,a}, \beta_{c,a})$ for each context-action pair. Sample $\theta_{c_t, a} \sim \text{Beta}(\alpha_{c_t, a}, \beta_{c_t, a})$, pick $a^* = \arg\max_a \theta_{c_t, a}$. Update only the observed $(c_t, a_t)$ posterior.
 
-\[
-(\alpha_{c,a},\; \beta_{c,a}) \quad \forall\; c \in \mathcal{C},\; a \in \mathcal{A}
-\]
+\section{Optimal Policy}
 
-Action selection samples $\theta_{c_t, a} \sim \text{Beta}(\alpha_{c_t, a}, \beta_{c_t, a})$ and picks $a^* = \arg\max_a \theta_{c_t, a}$. Update applies only to the observed $(c_t, a_t)$ pair.
-
-\section{Theoretical Optimal}
-
-Under the rule-based transition probabilities:
-
-\[
-P_{\text{nudge}} =
-\begin{bmatrix}
-0.7 & 0.3 \\
-0.5 & 0.5
-\end{bmatrix}
-\qquad
-P_{\text{idle}} =
-\begin{bmatrix}
-0.9 & 0.1 \\
-0.4 & 0.6
-\end{bmatrix}
-\]
-
-the optimal contextual policy is: nudge when sedentary ($0.3 > 0.1$), idle when active ($0.6 > 0.5$). The stationary distribution under this policy satisfies $\pi_s = 4/7$, $\pi_a = 3/7$, giving:
+The optimal contextual policy (from the transition matrices in \S3) is: nudge when sedentary ($0.3 > 0.1$), idle when active ($0.6 > 0.5$). Stationary distribution: $\pi_s = 4/7$, $\pi_a = 3/7$.
 
 \[
 E[r] = \tfrac{4}{7} \cdot 0.3 + \tfrac{3}{7} \cdot 0.6 = \tfrac{3}{7} \approx 0.429 \text{ per step} \implies 192.9 \text{ total}
 \]
 
-For comparison, the best non-contextual policy (always nudge) achieves $E[r] = 0.375$ per step (168.8 total). The contextual upper bound is $14.3\%$ higher.
+Best non-contextual (always nudge): $E[r] = 0.375$, total $168.8$. The contextual bound is $14.3\%$ higher.
 
 \section{Results}
 
-50 seeds, 450 timesteps each.
+50 seeds, 450 timesteps. Full methodology follows \S6 of \texttt{mvp\_specification.tex}.
 
 \begin{table}[h]
 \centering
@@ -60,47 +38,18 @@ Agent & Total Reward & Per Step & vs Optimal \\
 Contextual TS & 176.7 $\pm$ 15.2 & 0.380 & $-11.4\%$ \\
 Standard TS & 158.5 $\pm$ 12.6 & 0.352 & --- \\
 \midrule
-Contextual optimal (theory) & 192.9 & 0.429 & --- \\
+Contextual optimal & 192.9 & 0.429 & --- \\
 Non-contextual optimal & 168.8 & 0.375 & --- \\
 \bottomrule
 \end{tabular}
-\caption{Contextual TS beats standard TS by 11.5\%. The 11.4\% gap to the contextual upper bound reflects incomplete convergence in 450 steps across 4 posterior pairs.}
 \end{table}
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{learning_curves.pdf}
-\caption{Left: cumulative reward over 450 steps (50 seeds, shaded $\pm$1 SD). Right: per-step reward (20-step rolling average). Contextual TS converges toward the contextual upper bound ($3/7 \approx 0.429$) by the final steps, while standard TS plateaus near the non-contextual optimal ($0.375$).}
+\caption{Left: cumulative reward (50 seeds, $\pm$1 SD). Right: per-step reward (20-step rolling avg). Contextual TS converges toward $3/7 \approx 0.429$; standard TS plateaus at $0.375$.}
 \end{figure}
 
-The right panel shows per-step convergence: contextual TS reaches $0.422$ in the last 50 steps (within $1.5\%$ of optimal), while standard TS plateaus at $0.369$. The learning curve confirms the agent is converging, not just lucky on average.
-
-\section{Implementation}
-
-Extended \texttt{ThompsonSamplingAgent} with \texttt{contextual} and \texttt{context\_feature} parameters. When \texttt{contextual=False} (default), behaviour is identical to standard TS. Config:
-
-\begin{verbatim}
-agents:
-  - type: thompson_sampling
-    alpha_prior: 1
-    beta_prior: 1
-    contextual: true
-    context_feature: activity
-\end{verbatim}
-
-\section{Design Decisions}
-
-\begin{table}[h]
-\centering
-\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}c}
-\toprule
-Question & Decision & Status \\
-\midrule
-Which context feature? & \texttt{activity} -- already in StateView, no state changes needed & Confirmed \\
-Why not \texttt{step\_of\_day}? & 5 values $\times$ 2 actions = 10 posteriors. Deferred. & Deferred \\
-ABC vector in/out? & Not yet. Discrete context works with current string-in/string-out ABC. & Deferred \\
-\bottomrule
-\end{tabular}
-\end{table}
+Per-step reward in the last 50 steps: contextual TS reaches $0.422$ ($1.5\%$ from optimal), standard TS at $0.369$. The agent converges within the episode.
 
 \end{document}
