@@ -122,11 +122,6 @@ transition_model:
         sedentary: 0.4
 
 agents:
-  - type: random
-  - type: epsilon_greedy
-    epsilon: 0.1
-  - type: ucb
-    c: 2.0
   - type: thompson_sampling
 ```
 
@@ -141,11 +136,6 @@ Identical to `rule_based.yaml` except with `reward_multiplier_by_step`. Step 4 r
 reward_multiplier_by_step: [1, 1, 1, 1, 0]
 
 agents:
-  - type: random
-  - type: epsilon_greedy
-    epsilon: 0.1
-  - type: ucb
-    c: 2.0
   - type: thompson_sampling
 ```
 
@@ -356,9 +346,6 @@ Path("tests/fixtures/mvp_expected_rewards.json").write_text(
 Fixture shape (values populated by running the generator):
 ```json
 {
-  "random": 0.0,
-  "epsilon_greedy": 0.0,
-  "ucb": 0.0,
   "thompson_sampling": 0.0
 }
 ```

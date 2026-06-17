@@ -32,9 +32,4 @@ transition_model:
         sedentary: 0.4
 
 agents:
-  - type: random
-  - type: epsilon_greedy
-    epsilon: 0.1
-  - type: ucb
-    c: 2.0
   - type: thompson_sampling
