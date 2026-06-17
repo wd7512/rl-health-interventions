@@ -27,6 +27,7 @@ They inform PRs and the paper's methodology section.
 | Paper | Status | PR/branch | Headline result |
 |---|---|---|---|
 | Klasnja et al. 2019 (HeartSteps V1) | pending (opencode) | research/recreate-heartsteps-v1 | ATE +13.9 steps/30min, NS, 72% availability |
+| Karine & Marlin 2024 (StepCountJITAI) | draft v0.1 | research/recreate-stepcountjitai | Gamma synthetic steps, habituation + disengagement model |
 | Russo & Van Roy 2018 (TS bounds) | draft v0.1 | research/recreate-ts-bounds | `O(√(dT log T))` Bayesian regret for TS |
 | (more forthcoming) | | | |
 

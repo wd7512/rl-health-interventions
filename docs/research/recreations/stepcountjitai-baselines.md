@@ -112,7 +112,7 @@ improvement. Possible directions:
 | PR #88 (online/offline framing) | StepCountJITAI is an *online-RL benchmark*. If the project reframes as offline-RL evaluation (PR #88's recommendation E), StepCountJITAI is no longer the primary comparison; Health Gym is. |
 | PR #85 (HeartSteps V2 reproduction) | HeartSteps V2 reward scale (+29.75) is ~1000× smaller than StepCountJITAI. The project should explicitly reconcile this. |
 | Health Gym recreation (PR-R3) | StepCountJITAI is online, Health Gym is offline. The project spans both. |
-| Russo-Van Roy recreation (PR-R6) | TS regret bound is `O(√T)`. At T=50, bound is ~7 reward units. The TS-Optimal gap (~2500) is much larger than the bound predicts — the gap is dominated by *misspecification* (TS doesn't model habituation), not by regret. |
+| Russo-Van Roy recreation (PR-R6) | TS regret bound is `O(√(dT log T))`. At T=50, bound is ~7 reward units. The TS-Optimal gap (~2500) is much larger than the bound predicts — the gap is dominated by *misspecification* (TS doesn't model habituation), not by regret. |
 
 ### 3.3 Is there still room for improvement?
 
