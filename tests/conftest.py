@@ -79,3 +79,10 @@ def minimal_config() -> MDPConfig:
         },
         agents=[],
     )
+
+
+@pytest.fixture
+def state_view():
+    from rl_health_interventions.state import StateView
+
+    return StateView(activity="sedentary", day=0, step_of_day=0)

@@ -177,3 +177,94 @@ class TestAgentValidation:
         raw["agents"] = [{"type": "unknown_agent"}]
         with pytest.raises(ValidationError, match="unknown"):
             MDPConfig.model_validate(raw)
+
+    def test_thompson_sampling_rejects_epsilon(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {
+                "type": "thompson_sampling",
+                "alpha_prior": 1,
+                "beta_prior": 1,
+                "epsilon": 0.1,
+            }
+        ]
+        with pytest.raises(ValidationError, match="does not accept epsilon"):
+            MDPConfig.model_validate(raw)
+
+    def test_epsilon_greedy_rejects_alpha_prior(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {
+                "type": "epsilon_greedy",
+                "epsilon": 0.1,
+                "alpha_prior": 1,
+                "beta_prior": 1,
+            }
+        ]
+        with pytest.raises(ValidationError, match="does not accept alpha_prior"):
+            MDPConfig.model_validate(raw)
+
+    def test_ucb_rejects_alpha_prior(self):
+        raw = _valid_raw()
+        raw["agents"] = [{"type": "ucb", "c": 2.0, "alpha_prior": 1, "beta_prior": 1}]
+        with pytest.raises(ValidationError, match="does not accept alpha_prior"):
+            MDPConfig.model_validate(raw)
+
+    def test_random_rejects_all_hyperparameters(self):
+        raw = _valid_raw()
+        raw["agents"] = [{"type": "random", "epsilon": 0.1}]
+        with pytest.raises(
+            ValidationError, match="does not accept any hyperparameters"
+        ):
+            MDPConfig.model_validate(raw)
+
+    def test_rule_based_requires_transition_probabilities(self):
+        raw = _valid_raw()
+        del raw["transition_model"]["transition_probabilities"]
+        with pytest.raises(ValidationError, match="must be provided for rule_based"):
+            MDPConfig.model_validate(raw)
+
+    def test_transition_probs_must_cover_all_states(self):
+        raw = _valid_raw()
+        del raw["transition_model"]["transition_probabilities"]["active"]
+        with pytest.raises(
+            ValidationError, match="missing from transition_probabilities"
+        ):
+            MDPConfig.model_validate(raw)
+
+    def test_states_must_be_dict(self):
+        raw = _valid_raw()
+        raw["states"] = ["sedentary", "active"]
+        with pytest.raises(ValidationError, match="must be a dictionary"):
+            MDPConfig.model_validate(raw)
+
+    def test_actions_must_be_list(self):
+        raw = _valid_raw()
+        raw["actions"] = {"nudge": 1, "idle": 0}
+        with pytest.raises(ValidationError, match="must be a list"):
+            MDPConfig.model_validate(raw)
+
+    def test_initial_state_not_in_states_rejected(self):
+        raw = _valid_raw()
+        raw["initial_state"] = "nonexistent"
+        with pytest.raises(ValidationError, match="initial_state.*not in states"):
+            MDPConfig.model_validate(raw)
+
+
+class TestSchemaRefActions:
+    def test_schema_ref_actions_skips_inline_checks(self):
+        raw = _valid_raw()
+        raw["states"] = {"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}}
+        raw["actions"] = {"schema": "heartsteps"}
+        del raw["transition_model"]["transition_probabilities"]
+        config = MDPConfig.model_validate(raw)
+        assert isinstance(config.actions, dict)
+        assert "schema" in config.actions
+
+
+class TestNonRuleBasedTransition:
+    def test_non_rule_based_without_probabilities_accepted(self):
+        raw = _valid_raw()
+        raw["transition_model"] = {"type": "learned"}
+        config = MDPConfig.model_validate(raw)
+        assert config.transition_model.type == "learned"
