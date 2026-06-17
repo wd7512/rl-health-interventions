@@ -164,7 +164,7 @@ Given the project's constraints (Phase 1 has synthetic data only; HeartSteps V2 
 
 3. **Adversarial stress tests:**
    - Set all action penalties to zero → all archetypes should show the *same* maximal response (the intervention effect is purely beneficial).
-   - Set burden decay rate to zero → response should decay to baseline within the episode length.
+   - Set burden decay rate to zero → response should remain suppressed (burden persists, no recovery to baseline).
    - Set all archetypes to the same parameters → the simulator should produce homogeneous behaviour indistinguishable from a single-group model.
    - Remove the "no message" action → burden should saturate all users; the step response should collapse.
 
