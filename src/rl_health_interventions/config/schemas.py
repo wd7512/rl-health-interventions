@@ -126,6 +126,10 @@ class MDPConfig(BaseModel):
         for name, data in self.states.items():
             if not isinstance(data, dict) or "reward" not in data:
                 raise ValueError(f"State '{name}' must have a numeric 'reward' field")
+            if not isinstance(data["reward"], (int, float)):
+                raise ValueError(
+                    f"State '{name}' reward must be numeric, got {type(data['reward']).__name__}"
+                )
 
         if not self.actions:
             raise ValueError("actions must be non-empty")

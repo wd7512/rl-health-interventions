@@ -61,6 +61,12 @@ class TestCrossReferenceValidators:
         with pytest.raises(ValidationError, match="reward"):
             MDPConfig.model_validate(raw)
 
+    def test_state_non_numeric_reward_rejected(self):
+        raw = _valid_raw()
+        raw["states"]["sedentary"] = {"reward": "not_a_number"}
+        with pytest.raises(ValidationError, match="numeric"):
+            MDPConfig.model_validate(raw)
+
     def test_empty_actions_rejected(self):
         raw = _valid_raw()
         raw["actions"] = []
