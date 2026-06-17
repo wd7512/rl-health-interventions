@@ -11,17 +11,14 @@ A config-driven RL simulation framework for testing health interventions. Define
 ```bash
 uv sync --dev
 
-# Run with default config (Thompson Sampling, 450 steps)
+# Run with default config (agent from YAML, Thompson Sampling, 450 steps)
 uv run rl-health-interventions --config config/rule_based.yaml --output results.csv
 
-# Run with epsilon-greedy baseline
+# Override agent from command line
 uv run rl-health-interventions --config config/rule_based.yaml --agent epsilon_greedy --output results.csv
 
-# Run with random baseline
-uv run rl-health-interventions --config config/rule_based.yaml --agent random --output results.csv
-
-# Run with UCB1 baseline
-uv run rl-health-interventions --config config/rule_based.yaml --agent ucb --output results.csv
+# Run with mask (step 4 zeroed out)
+uv run rl-health-interventions --config config/rule_based_with_mask.yaml --output results.csv
 ```
 
 ## How it works
@@ -29,15 +26,22 @@ uv run rl-health-interventions --config config/rule_based.yaml --agent ucb --out
 The MDP is defined entirely in YAML:
 
 ```yaml
-# config/rule_based.yaml (simplified)
+# config/rule_based.yaml
+episode_days: 90
+steps_per_day: 5
+seed: 42
+initial_state: sedentary
+
 states:
   sedentary:
     reward: 0.0
   active:
     reward: 1.0
-actions: [nudge, idle]
-steps_per_day: 5
-episode_days: 90
+
+actions:
+  - nudge
+  - idle
+
 transition_model:
   type: rule_based
   transition_probabilities:
@@ -47,7 +51,14 @@ transition_model:
     active:
       nudge: {active: 0.5, sedentary: 0.5}
       idle: {active: 0.6, sedentary: 0.4}
-# Optional: reward_multiplier_by_step: [1, 1, 1, 1, 0]
+
+# Optional mask: step 4 is end-of-day — zero multiplier means no reward.
+# reward_multiplier_by_step: [1, 1, 1, 1, 0]
+
+agents:
+  - type: thompson_sampling
+    alpha_prior: 1
+    beta_prior: 1
 ```
 
 Change the YAML to change the experiment. No code changes needed.
@@ -80,16 +91,21 @@ See `docs/mvp/mvp_specification.tex` and `docs/design/initial_design.tex` for th
 
 ```
 src/rl_health_interventions/
-  config/        # MDPConfig, AgentConfig, YAML loader
+  config/        # MDPConfig, AgentConfig, YAML loader + validators
   agents/        # Thompson Sampling, epsilon-greedy, UCB, random
   transitions/   # RuleBasedTransition (config-driven matrix)
   rewards/       # CompoundReward (precomputed per-step reward)
+  data/          # Synthetic data generation, dataset loaders
+  simulation/    # Rule-based user response model
   state.py       # StateView dataclass
   environment.py # step/reset simulation loop
   experiment.py  # run_episode + run_experiment
+  logging.py     # Stdlib logging setup
 config/          # YAML config files
 docs/mvp/        # MDP formulation + results
-tests/           # 135 tests (unit + integration)
+docs/sources/    # Dataset documentation (14 sources)
+docs/plans/      # Roadmap, sub-phase plans
+tests/           # Unit, integration, regression tests
 ```
 
 ## Development
