@@ -58,9 +58,11 @@ class AgentConfig(BaseModel):
                 raise ValueError("beta_prior must be > 0 for thompson_sampling")
             if self.epsilon is not None or self.c is not None:
                 raise ValueError("thompson_sampling agent does not accept epsilon or c")
-            if self.contextual and self.context_feature is None:
+            if self.contextual and (
+                self.context_feature is None or not self.context_feature.strip()
+            ):
                 raise ValueError(
-                    "context_feature must be provided when contextual=True"
+                    "context_feature must be a non-empty string when contextual=True"
                 )
         if self.type == "epsilon_greedy":
             if self.epsilon is None or not (0 <= self.epsilon <= 1):

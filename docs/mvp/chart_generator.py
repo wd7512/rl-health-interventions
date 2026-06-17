@@ -14,7 +14,7 @@ from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 
 
 def run_seeds(config_path: str, n_seeds: int = 50) -> np.ndarray:
-    """Run agent over n_seeds, return (n_seeds, 450) cumulative reward array."""
+    """Run agent over n_seeds, return per-step rewards with shape (n_seeds, n_steps)."""
     all_rewards = []
     config = load_config(config_path)
     agent_cfg = config.agents[0]
@@ -36,9 +36,10 @@ def run_seeds(config_path: str, n_seeds: int = 50) -> np.ndarray:
 def main() -> None:
     n_seeds = 50
     print(f"Running {n_seeds} seeds for each agent...")
+    repo_root = Path(__file__).resolve().parents[2]
 
-    baseline = run_seeds("config/rule_based.yaml", n_seeds)
-    contextual = run_seeds("config/contextual_thompson.yaml", n_seeds)
+    baseline = run_seeds(str(repo_root / "config" / "rule_based.yaml"), n_seeds)
+    contextual = run_seeds(str(repo_root / "config" / "contextual_thompson.yaml"), n_seeds)
 
     # Cumulative reward per step (mean across seeds)
     baseline_cum = np.cumsum(baseline, axis=1).mean(axis=0)
