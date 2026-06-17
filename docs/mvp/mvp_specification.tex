@@ -72,7 +72,7 @@ $T = \texttt{episode\_days} \times \texttt{steps\_per\_day}$ timesteps. Default:
 
 \section{Agents}
 
-All agents are contextual bandits: the state is observed but ignored during action selection.
+All agents are bandits: they treat each decision step as an independent lever-pull and do not condition on the state.
 Because the transition matrix is stationary, each action $a$ induces a Markov chain whose
 stationary distribution $\pi_a$ follows from $P_a$:
 
