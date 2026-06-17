@@ -15,15 +15,15 @@ The MVP simulator implements a finite-horizon MDP $(\mathcal{S}, \mathcal{A}, P,
 
 \subsection{State Space}
 \[
-\mathcal{S} = \{\texttt{sedentary},\ \texttt{active}\} \times \mathcal{T}
+\mathcal{S} = \{\texttt{sedentary},\ \texttt{active}\}
 \]
-where $\mathcal{T} = \{\texttt{morning}, \texttt{midday}, \texttt{afternoon}, \texttt{evening}, \texttt{night}\}$ are the five daily decision points.
+Two activity states with no additional time-of-day dimension. Time-dependent reward scaling is handled via \texttt{reward\_multiplier\_by\_step} (see \S\ref{sec:reward} below).
 
 \subsection{Action Space}
 \[
-\mathcal{A} = \{\texttt{send},\ \texttt{don\_t\_send}\}
+\mathcal{A} = \{\texttt{nudge},\ \texttt{idle}\}
 \]
-A binary intervention: send a motivational message or do not.
+A binary intervention: send a motivational message (\texttt{nudge}) or do not (\texttt{idle}).
 
 \subsection{Transition Function}
 
@@ -35,29 +35,35 @@ $P(s' \mid s, a)$ is defined by a configurable matrix. The probabilities encode 
 \toprule
 Current state $s$ & Action $a$ & $P(\texttt{active})$ & $P(\texttt{sedentary})$ \\
 \midrule
-sedentary & send & 0.3 & 0.7 \\
-sedentary & don't send & 0.1 & 0.9 \\
-active & send & 0.5 & 0.5 \\
-active & don't send & 0.6 & 0.4 \\
+sedentary & nudge & 0.3 & 0.7 \\
+sedentary & idle & 0.1 & 0.9 \\
+active & nudge & 0.5 & 0.5 \\
+active & idle & 0.6 & 0.4 \\
 \bottomrule
 \end{tabular}
-\caption{Transition probabilities. Sending a reminder increases the probability of becoming active for sedentary users ($0.3 > 0.1$) but decreases it for active users ($0.5 < 0.6$), consistent with Reactance theory.}
+\caption{Transition probabilities. Sending a reminder (nudge) increases the probability of becoming active for sedentary users ($0.3 > 0.1$) but decreases it for active users ($0.5 < 0.6$), consistent with Reactance theory.}
 \end{table}
 
-Time-of-day mask: at \texttt{night}, all transitions are suppressed (availability indicator per HeartSteps V2).
+Optional \texttt{reward\_multiplier\_by\_step}: a per-step scaling factor that can zero out rewards at certain daily steps (soft mask). When absent, all multipliers default to 1.0. The per-step reward is computed as $\text{base reward} \times \text{multiplier}[t]$ where $t$ is the step-of-day index.
 
-\subsection{Reward}
+\subsection{Reward}\label{sec:reward}
 \[
-r(s, a) =
-\begin{cases}
-1.0 & \text{if } s'.\texttt{activity} = \texttt{active} \\
-0.0 & \text{otherwise}
-\end{cases}
+r(s, a, t) = \texttt{per\_step\_reward}[t][s']
 \]
+where $s'$ is the next state after taking action $a$ in state $s$, and $t \in \{0, \dots, \texttt{steps\_per\_day} - 1\}$
+is the step-of-day index. The precomputed table is:
+\[
+\texttt{per\_step\_reward}[t][s] = \texttt{reward}[s] \times \texttt{reward\_multiplier\_by\_step}[t]
+\]
+with a default multiplier of 1.0 for all $t$ when not specified. Currently:
+\begin{align*}
+\texttt{reward}[\texttt{active}] &= 1.0 \\
+\texttt{reward}[\texttt{sedentary}] &= 0.0
+\end{align*}
 Single-timescale placeholder. Multi-timescale reward (immediate + delayed body measure) is deferred to Phase 2.
 
 \subsection{Episode Structure}
-$T = 90 \text{ days} \times 5 \text{ steps/day} = 450 \text{ timesteps}$.
+$T = \texttt{episode\_days} \times \texttt{steps\_per\_day}$ timesteps. Default: $T = 90 \text{ days} \times 5 \text{ steps/day} = 450$.
 
 \section{Agents}
 
@@ -89,7 +95,7 @@ Uniform random action selection. No learning. Serves as lower bound.
 
 \section{Initial Results}
 
-All agents run on the same config (\texttt{config/mvp.yaml}) over 10 random seeds (1--10), 450 timesteps each. Results are reported as mean $\pm$ standard deviation across seeds.
+All agents run on the same config (\texttt{config/rule\_based.yaml}) over 10 random seeds (1--10), 450 timesteps each. Results are reported as mean $\pm$ standard deviation across seeds.
 
 \begin{table}[h]
 \centering
@@ -97,13 +103,13 @@ All agents run on the same config (\texttt{config/mvp.yaml}) over 10 random seed
 \toprule
 Agent & Total Reward & Mean Reward/Step \\
 \midrule
-Thompson Sampling & 161.9 $\pm$ 15.4 & 0.360 $\pm$ 0.034 \\
-Epsilon-Greedy ($\epsilon=0.1$) & 155.9 $\pm$ 17.7 & 0.346 $\pm$ 0.039 \\
-UCB ($c=2.0$) & 148.5 $\pm$ 20.1 & 0.330 $\pm$ 0.045 \\
-Random & 133.6 $\pm$ 14.8 & 0.297 $\pm$ 0.033 \\
+Thompson Sampling ($\alpha_0=\beta_0=1$) & 160.3 $\pm$ 10.5 & 0.356 $\pm$ 0.023 \\
+Epsilon-Greedy ($\epsilon=0.1$) & 160.8 $\pm$ 15.3 & 0.357 $\pm$ 0.034 \\
+UCB ($c=2.0$) & 148.2 $\pm$ 15.0 & 0.329 $\pm$ 0.033 \\
+Random & 135.6 $\pm$ 10.7 & 0.301 $\pm$ 0.024 \\
 \bottomrule
 \end{tabular}
-\caption{Results on \texttt{config/mvp.yaml} (10 seeds, 450 timesteps each). TS leads with the highest mean and lowest variance among learning agents. UCB outperforms random but shows higher variance than TS and $\epsilon$-greedy.}
+\caption{Results on \texttt{config/rule\_based.yaml} (10 seeds, 450 timesteps each). TS and $\epsilon$-greedy perform similarly; TS has lower variance. UCB outperforms random but shows higher variance.}
 \end{table}
 
 \section{Known Limitations}
@@ -111,7 +117,7 @@ Random & 133.6 $\pm$ 14.8 & 0.297 $\pm$ 0.033 \\
 \begin{itemize}
 \item Agents are state-blind bandits, not state-aware RL. State-aware agents are Phase 2.
 \item Single-timescale reward only. Multi-timescale (immediate + 3-week delayed) is Phase 2.
-\item No user response model. The \texttt{RuleBasedResponse} module exists as a stub. Burden accumulation and 4 archetypes are Phase 2.
+\item No user response model. Burden accumulation and 4 archetypes are Phase 2.
 \item Transition matrix is fixed and known. Learned transitions from real data are Phase 2.
 \item Transition probabilities are placeholder values informed by Reactance theory. Calibration against real data is Phase 2.
 \end{itemize}
