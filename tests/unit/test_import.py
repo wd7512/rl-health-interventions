@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import logging
-
-import pytest
+import sys
 
 from rl_health_interventions.__main__ import main
 
@@ -11,11 +9,12 @@ def test_main_callable() -> None:
     assert callable(main)
 
 
-def test_main_logs(caplog: pytest.LogCaptureFixture) -> None:
-    with caplog.at_level(logging.INFO, logger="rl_health_interventions.__main__"):
+def test_main_runs_with_default_config(tmp_path) -> None:
+    """Calling main() without --config uses default and succeeds."""
+    old_argv = sys.argv
+    output_file = tmp_path / "results.csv"
+    try:
+        sys.argv = ["rl-health-interventions", "--output", str(output_file)]
         main()
-    assert any(
-        record.message == "Hello from rl-health-interventions!"
-        and record.levelname == "INFO"
-        for record in caplog.records
-    )
+    finally:
+        sys.argv = old_argv
