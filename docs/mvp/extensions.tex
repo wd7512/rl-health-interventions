@@ -2,55 +2,76 @@
 \usepackage{amsmath,amssymb,booktabs}
 \usepackage[margin=1in]{geometry}
 
-\title{MVP Extensions: Contextual Thompson Sampling}
+\title{Extension: Contextual Thompson Sampling}
 \author{William Dennis}
 \date{June 2026}
 
 \begin{document}
 \maketitle
 
-\section{Motivation}
-
-The MVP agents (Thompson Sampling, $\epsilon$-greedy, UCB, random) are bandits---they select actions based on reward history alone, ignoring the current state. This means the agent learns ``nudge is good on average'' but cannot learn ``nudge is effective when the user is sedentary but pointless when they are already active.''
-
-Contextual Thompson Sampling addresses this by conditioning action selection on state features. The agent maintains separate posterior distributions for each context-action pair, enabling it to learn context-dependent intervention effectiveness.
+The MVP agents are state-blind bandits. Contextual Thompson Sampling conditions action selection on the current activity level, learning per-context intervention effectiveness.
 
 \section{Formulation}
 
-\subsection{Context}
-
-The context feature is the current activity level $c_t \in \{\texttt{sedentary}, \texttt{active}\}$, already present in \texttt{StateView}. This gives $|\mathcal{C}| = 2$ contexts.
-
-\subsection{Posterior Structure}
-
-Instead of a single $(\alpha_a, \beta_a)$ pair per action, the contextual agent maintains:
+Context $c_t = s_t.\texttt{activity} \in \{\texttt{sedentary}, \texttt{active}\}$. Posterior pairs indexed by $(c, a)$:
 
 \[
 (\alpha_{c,a},\; \beta_{c,a}) \quad \forall\; c \in \mathcal{C},\; a \in \mathcal{A}
 \]
 
-With 2 contexts and 2 actions, this yields 4 posterior pairs (vs.\ 2 for standard TS).
+Action selection samples $\theta_{c_t, a} \sim \text{Beta}(\alpha_{c_t, a}, \beta_{c_t, a})$ and picks $a^* = \arg\max_a \theta_{c_t, a}$. Update applies only to the observed $(c_t, a_t)$ pair.
 
-\subsection{Action Selection}
+\section{Theoretical Optimal}
 
-Given state $s_t$ with activity $c_t = s_t.\texttt{activity}$:
-
-\[
-a^* = \arg\max_{a \in \mathcal{A}} \theta_{c_t, a}, \qquad \theta_{c_t, a} \sim \text{Beta}(\alpha_{c_t, a},\; \beta_{c_t, a})
-\]
-
-\subsection{Posterior Update}
-
-After observing reward $r_t$:
+Under the rule-based transition probabilities:
 
 \[
-\alpha_{c_t, a_t} \leftarrow \alpha_{c_t, a_t} + \mathbb{1}[r_t > 0], \qquad
-\beta_{c_t, a_t} \leftarrow \beta_{c_t, a_t} + \mathbb{1}[r_t = 0]
+P_{\text{nudge}} =
+\begin{bmatrix}
+0.7 & 0.3 \\
+0.5 & 0.5
+\end{bmatrix}
+\qquad
+P_{\text{idle}} =
+\begin{bmatrix}
+0.9 & 0.1 \\
+0.4 & 0.6
+\end{bmatrix}
 \]
 
-Only the posterior for the observed $(c_t, a_t)$ pair is updated. Other context-action pairs are unaffected.
+the optimal contextual policy is: nudge when sedentary ($0.3 > 0.1$), idle when active ($0.6 > 0.5$). The stationary distribution under this policy satisfies $\pi_s = 4/7$, $\pi_a = 3/7$, giving:
 
-\subsection{Config}
+\[
+E[r] = \tfrac{4}{7} \cdot 0.3 + \tfrac{3}{7} \cdot 0.6 = \tfrac{3}{7} \approx 0.429 \text{ per step} \implies 192.9 \text{ total}
+\]
+
+For comparison, the best non-contextual policy (always nudge) achieves $E[r] = 0.375$ per step (168.8 total). The contextual upper bound is $14.3\%$ higher.
+
+\section{Results}
+
+10 seeds, 450 timesteps each.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Agent & Total Reward & Per Step & vs Optimal \\
+\midrule
+Contextual TS & 170.8 $\pm$ 15.6 & 0.380 & $-11.4\%$ \\
+Standard TS & 157.8 $\pm$ 14.8 & 0.351 & --- \\
+\midrule
+Contextual optimal (theory) & 192.9 & 0.429 & --- \\
+Non-contextual optimal & 168.8 & 0.375 & --- \\
+\bottomrule
+\end{tabular}
+\caption{Contextual TS beats standard TS by 8.2\%. The 11.4\% gap to the contextual upper bound reflects incomplete convergence in 450 steps across 4 posterior pairs.}
+\end{table}
+
+The contextual agent learns that nudging sedentary users is effective while nudging active users wastes intervention budget. Standard TS cannot represent this distinction.
+
+\section{Implementation}
+
+Extended \texttt{ThompsonSamplingAgent} with \texttt{contextual} and \texttt{context\_feature} parameters. When \texttt{contextual=False} (default), behaviour is identical to standard TS. Config:
 
 \begin{verbatim}
 agents:
@@ -61,48 +82,6 @@ agents:
     context_feature: activity
 \end{verbatim}
 
-When \texttt{contextual} is omitted or \texttt{false}, behaviour is identical to standard Thompson Sampling. Backward compatible.
-
-\section{Results}
-
-All agents run over 10 random seeds (1--10), 450 timesteps each (90 days $\times$ 5 steps/day). Results are mean $\pm$ standard deviation across seeds.
-
-\begin{table}[h]
-\centering
-\begin{tabular}{lrr}
-\toprule
-Agent & Total Reward & Mean Reward/Step \\
-\midrule
-Thompson Sampling (standard) & 157.8 $\pm$ 14.8 & 0.351 $\pm$ 0.033 \\
-Thompson Sampling (contextual) & 170.8 $\pm$ 15.6 & 0.380 $\pm$ 0.035 \\
-\midrule
-Improvement & +13.0 & +8.2\% \\
-\bottomrule
-\end{tabular}
-\caption{Contextual vs.\ standard Thompson Sampling on \texttt{config/rule\_based.yaml} (10 seeds, 450 timesteps). Contextual TS improves by 8.2\% by learning that nudges are more effective for sedentary users.}
-\end{table}
-
-The improvement is modest but consistent. The contextual agent discovers that nudging sedentary users has higher expected reward than nudging active users---a distinction the standard bandit cannot represent.
-
-\section{Implementation}
-
-\subsection{Files Modified}
-
-\begin{itemize}
-\item \texttt{src/rl\_health\_interventions/agents/thompson\_sampling.py} -- Extended \texttt{ThompsonSamplingAgent} with \texttt{contextual} and \texttt{context\_feature} parameters
-\item \texttt{src/rl\_health\_interventions/config/schemas.py} -- Added optional \texttt{contextual} and \texttt{context\_feature} fields to \texttt{AgentConfig} with validation
-\item \texttt{tests/unit/agents/test\_thompson\_sampling.py} -- 4 new tests: schema acceptance, regression, context-dependent learning, uniform reward convergence
-\end{itemize}
-
-\subsection{Validation}
-
-\begin{itemize}
-\item 165 tests pass (1 skipped -- existing data loader skip)
-\item \texttt{ruff check} clean
-\item \texttt{ruff format --check} clean
-\item Backward compatible: existing configs without \texttt{contextual} field produce identical results
-\end{itemize}
-
 \section{Design Decisions}
 
 \begin{table}[h]
@@ -111,21 +90,11 @@ The improvement is modest but consistent. The contextual agent discovers that nu
 \toprule
 Question & Decision & Status \\
 \midrule
-Which context feature? & \texttt{activity} (sedentary/active) -- already in StateView, no state changes needed & Confirmed \\
-Why not \texttt{step\_of\_day}? & 5 discrete values $\times$ 2 actions = 10 posteriors. Manageable but less interpretable than activity. Can be added later. & Deferred \\
-Why not continuous features? & Requires widened StateView + feature pipeline (Phase 2). Binary context is the minimal viable extension. & Deferred \\
-Should the ABC widen to vector in/out? & Not yet. Current string-in/string-out ABC works for discrete contexts. Vector ABC is a Phase 2 concern. & Deferred \\
+Which context feature? & \texttt{activity} -- already in StateView, no state changes needed & Confirmed \\
+Why not \texttt{step\_of\_day}? & 5 values $\times$ 2 actions = 10 posteriors. Deferred. & Deferred \\
+ABC vector in/out? & Not yet. Discrete context works with current string-in/string-out ABC. & Deferred \\
 \bottomrule
 \end{tabular}
-\caption{Design decisions for contextual Thompson Sampling.}
 \end{table}
-
-\section{Next Steps}
-
-\begin{itemize}
-\item \textbf{Additional context features:} \texttt{step\_of\_day} (5 values) would give 10 posterior pairs. Requires only a config change.
-\item \textbf{Continuous context:} Requires widened \texttt{StateView} (heart rate, step count as floats), widened \texttt{TransitionModel} ABC (vector in/out), and feature pipeline. This is Phase 2 work.
-\item \textbf{Learned transitions:} The contextual bandit learns which actions work in which contexts. The next step is learning the transition function itself from data---a separate project requiring real intervention response data (HeartSteps V2, All of Us).
-\end{itemize}
 
 \end{document}
