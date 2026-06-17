@@ -135,7 +135,7 @@ drafted to be drop-in to a "Related work" paragraph.
 > OHDSI provides a large ecosystem of patient-level prediction
 > tools on the OMOP common data model. These are observational,
 > not RL. Mentioned only because reviewers from the clinical
->informatics community will ask "why not OMOP?" The answer is
+> informatics community will ask "why not OMOP?" The answer is
 > scope: OMOP is for observational prediction, not
 > sequential-decision evaluation. Our framework could
 > interoperate with OMOP cohorts as data sources in Phase 2 but
