@@ -27,39 +27,44 @@ A binary intervention: send a motivational message (\texttt{nudge}) or do not (\
 
 \subsection{Transition Function}
 
-$P(s' \mid s, a)$ is defined by a configurable matrix. The probabilities encode a Reactance effect: reminders help sedentary users but can backfire for users who are already active.
+$P(s' \mid s, a)$ is a configurable $2 \times 2 \times 2$ tensor. Rows index current state $s \in \{\text{sedentary}, \text{active}\}$ and columns index next state $s'$ in the same order:
 
-\begin{table}[h]
-\centering
-\begin{tabular}{llcc}
-\toprule
-Current state $s$ & Action $a$ & $P(\texttt{active})$ & $P(\texttt{sedentary})$ \\
-\midrule
-sedentary & nudge & 0.3 & 0.7 \\
-sedentary & idle & 0.1 & 0.9 \\
-active & nudge & 0.5 & 0.5 \\
-active & idle & 0.6 & 0.4 \\
-\bottomrule
-\end{tabular}
-\caption{Transition probabilities. Sending a reminder (nudge) increases the probability of becoming active for sedentary users ($0.3 > 0.1$) but decreases it for active users ($0.5 < 0.6$), consistent with Reactance theory.}
-\end{table}
+\[
+P_{\text{nudge}} =
+\begin{bmatrix}
+0.7 & 0.3 \\[2pt]
+0.5 & 0.5
+\end{bmatrix}
+\qquad
+P_{\text{idle}} =
+\begin{bmatrix}
+0.9 & 0.1 \\[2pt]
+0.4 & 0.6
+\end{bmatrix}
+\]
+
+Sending a reminder increases $P(\text{active} \mid \text{sedentary})$ from $0.1$ to $0.3$ but decreases $P(\text{active} \mid \text{active})$ from $0.6$ to $0.5$, consistent with Reactance theory (reminders can backfire for already-active users).
 
 Optional \texttt{reward\_multiplier\_by\_step}: a per-step scaling factor that can zero out rewards at certain daily steps (soft mask). When absent, all multipliers default to 1.0. The per-step reward is computed as $\text{base reward} \times \text{multiplier}[t]$ where $t$ is the step-of-day index.
 
 \subsection{Reward}\label{sec:reward}
+
+The base reward is a vector indexed by next state:
+
 \[
-r(s, a, t) = \texttt{per\_step\_reward}[t][s']
+r = [0.0,\; 1.0]^\top \quad (\text{sedentary},\; \text{active})
 \]
-where $s'$ is the next state after taking action $a$ in state $s$, and $t \in \{0, \dots, \texttt{steps\_per\_day} - 1\}$
-is the step-of-day index. The precomputed table is:
+
+The per-step reward at time $t$ scales by the multiplier:
+
 \[
-\texttt{per\_step\_reward}[t][s] = \texttt{reward}[s] \times \texttt{reward\_multiplier\_by\_step}[t]
+r(s, a, t) = m[t \bmod S] \cdot r(s')
 \]
-with a default multiplier of 1.0 for all $t$ when not specified. Currently:
-\begin{align*}
-\texttt{reward}[\texttt{active}] &= 1.0 \\
-\texttt{reward}[\texttt{sedentary}] &= 0.0
-\end{align*}
+
+where $S = \texttt{steps\_per\_day}$, $m \in \mathbb{R}^S$ is \texttt{reward\_multiplier\_by\_step}
+(default $m_i = 1.0$), and $s'$ is the next state after taking action $a$ in state $s$.
+Currently $m_i = 1.0$ for all $i$, so $r(s, a, t) = r(s')$.
+
 Single-timescale placeholder. Multi-timescale reward (immediate + delayed body measure) is deferred to Phase 2.
 
 \subsection{Episode Structure}
@@ -67,7 +72,34 @@ $T = \texttt{episode\_days} \times \texttt{steps\_per\_day}$ timesteps. Default:
 
 \section{Agents}
 
-All agents are contextual bandits: state is accepted but not used in action selection. For the stationary MVP transition matrix, $E[r \mid a]$ is the relevant quantity.
+All agents are contextual bandits: the state is observed but ignored during action selection.
+Because the transition matrix is stationary, each action $a$ induces a Markov chain whose
+stationary distribution $\pi_a$ follows from $P_a$:
+
+\[
+\pi_a(\text{active}) = \frac{P(\text{active} \mid \text{sedentary}, a)}
+{P(\text{active} \mid \text{sedentary}, a) + P(\text{sedentary} \mid \text{active}, a)},
+\qquad
+\pi_a(\text{sedentary}) = 1 - \pi_a(\text{active})
+\]
+
+The expected reward for always choosing action $a$ is:
+
+\[
+E[r \mid a] = \sum_{s'} \pi_a(s') \, r(s') = \pi_a(\text{active})
+\]
+
+From the MVP matrices:
+
+\[
+E[r \mid \text{nudge}] = \frac{0.3}{0.3 + 0.5} \approx 0.375, \qquad
+E[r \mid \text{idle}] = \frac{0.1}{0.1 + 0.4} = 0.20
+\]
+
+Nudge dominates idle in expectation, but a state-aware agent could improve further by
+conditioning on $s$ (nudge when sedentary, idle when active), yielding
+$\pi(\text{active}) \approx 0.429$. This limitation motivates the state-aware agents
+planned for Phase~2.
 
 \subsection{Thompson Sampling}
 Beta-Bernoulli TS with prior $\text{Beta}(1, 1)$ per action. Posterior update:
