@@ -6,8 +6,9 @@ This is a generic Python project template using `uv`, `ruff`, `ty`, and `pytest`
 
 - Install dependencies: `uv sync --dev`
 - Format: `uv run ruff format`
+- Format check (CI): `uv run ruff format --check .`
 - Lint: `uv run ruff check`
-- Type check: `uv run ty check`
+- Type check: `uv run ty check --exclude tests/`
 - Test: `uv run pytest`
 - Build: `uv build`
 
@@ -16,7 +17,7 @@ This is a generic Python project template using `uv`, `ruff`, `ty`, and `pytest`
 - Use `uv` for dependency management and command execution.
 - Keep changes small and focused.
 - Add or update tests for behavior changes.
-- Run `uv run ruff check`, `uv run ty check`, and `uv run pytest` before finishing code changes.
+- Run `uv run ruff format --check`, `uv run ruff check`, `uv run ty check`, and `uv run pytest` before finishing code changes.
 - Do not add runtime dependencies unless they are required by package behavior.
 - Prefer clear, boring Python over clever abstractions.
 - Use `logging` (stdlib) for all output — never `print()`. Configure via `logging.basicConfig()` in entry points.
