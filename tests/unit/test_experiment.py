@@ -46,3 +46,37 @@ def test_run_episode_reproducible_with_seed(valid_config):
     df2 = run_episode(valid_config, agent2, seed=42)
     assert df1["action"].tolist() == df2["action"].tolist()
     assert df1["reward"].tolist() == df2["reward"].tolist()
+
+
+def test_run_experiment_returns_rewards(valid_config, tmp_path):
+    from rl_health_interventions.experiment import run_experiment
+
+    config_path = tmp_path / "test_config.yaml"
+    import yaml
+
+    raw = {
+        "episode_days": 1,
+        "steps_per_day": 1,
+        "seed": 42,
+        "initial_state": "sedentary",
+        "states": {"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
+        "actions": ["nudge", "idle"],
+        "transition_model": {
+            "type": "rule_based",
+            "transition_probabilities": {
+                "sedentary": {
+                    "nudge": {"active": 0.5, "sedentary": 0.5},
+                    "idle": {"active": 0.5, "sedentary": 0.5},
+                },
+                "active": {
+                    "nudge": {"active": 0.5, "sedentary": 0.5},
+                    "idle": {"active": 0.5, "sedentary": 0.5},
+                },
+            },
+        },
+        "agents": [{"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1}],
+    }
+    config_path.write_text(yaml.dump(raw))
+    results = run_experiment(str(config_path))
+    assert "thompson_sampling" in results
+    assert isinstance(results["thompson_sampling"], float)

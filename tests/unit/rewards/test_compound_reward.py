@@ -51,3 +51,20 @@ def test_per_step_reward_uses_step_index():
     assert r.reward("active", "nudge", step_idx=0) == (1.0, False)
     assert r.reward("active", "nudge", step_idx=1) == (0.5, False)
     assert r.reward("active", "nudge", step_idx=2) == (0.0, False)
+
+
+def test_schema_ref_config_raises_not_implemented():
+    import pytest
+    from rl_health_interventions.config.schemas import MDPConfig
+
+    config = MDPConfig(
+        episode_days=1,
+        steps_per_day=1,
+        seed=42,
+        initial_state="sedentary",
+        states={"schema": "heartsteps"},
+        actions={"schema": "heartsteps"},
+        transition_model={"type": "learned"},
+    )
+    with pytest.raises(NotImplementedError, match="Schema-ref"):
+        CompoundReward(config)

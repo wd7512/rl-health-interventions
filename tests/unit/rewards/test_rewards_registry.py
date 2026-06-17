@@ -19,3 +19,15 @@ def test_make_returns_instance(minimal_config) -> None:
 def test_make_unknown_raises_keyerror() -> None:
     with pytest.raises(KeyError, match="NonExistent"):
         make("NonExistent")
+
+
+def test_make_with_config_as_first_arg(minimal_config) -> None:
+    """make() accepts config as positional first argument."""
+    instance = make(minimal_config)
+    assert isinstance(instance, CompoundReward)
+
+
+def test_make_without_config_or_name_raises() -> None:
+    """make() raises TypeError when neither config nor name is given."""
+    with pytest.raises(TypeError):
+        make()

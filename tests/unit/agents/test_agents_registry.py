@@ -54,3 +54,22 @@ def test_ts_negative_prior_raises():
 def test_eg_out_of_range_epsilon_raises():
     with pytest.raises(ValueError, match="between 0.0 and 1.0"):
         EpsilonGreedyAgent(epsilon=1.5)
+
+
+def test_make_passes_kwargs_to_constructor():
+    agent = make("epsilon_greedy", epsilon=0.5, seed=99)
+    assert isinstance(agent, EpsilonGreedyAgent)
+    assert agent.epsilon == 0.5
+
+
+def test_make_ts_with_explicit_priors():
+    agent = make("thompson_sampling", alpha_prior=2.0, beta_prior=3.0, seed=42)
+    assert isinstance(agent, ThompsonSamplingAgent)
+    assert agent.alpha_prior == 2.0
+    assert agent.beta_prior == 3.0
+
+
+def test_make_ucb_with_custom_c():
+    agent = make("ucb", c=1.5, seed=42)
+    assert isinstance(agent, UCBAgent)
+    assert agent.c == 1.5
