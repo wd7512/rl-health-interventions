@@ -89,9 +89,7 @@ class TestCrossReferenceValidators:
 
     def test_transition_target_not_in_states_rejected(self):
         raw = _valid_raw()
-        raw["transition_model"]["transition_probabilities"]["sedentary"][
-            "nudge"
-        ] = {
+        raw["transition_model"]["transition_probabilities"]["sedentary"]["nudge"] = {
             "unknown": 0.7,
             "active": 0.3,
         }
@@ -100,9 +98,7 @@ class TestCrossReferenceValidators:
 
     def test_incomplete_target_distribution_rejected(self):
         raw = _valid_raw()
-        raw["transition_model"]["transition_probabilities"]["sedentary"][
-            "nudge"
-        ] = {
+        raw["transition_model"]["transition_probabilities"]["sedentary"]["nudge"] = {
             "active": 1.0,
         }
         with pytest.raises(ValidationError, match="cover"):
@@ -158,7 +154,9 @@ class TestAgentValidation:
 
     def test_thompson_sampling_requires_positive_priors(self):
         raw = _valid_raw()
-        raw["agents"] = [{"type": "thompson_sampling", "alpha_prior": 0, "beta_prior": 1}]
+        raw["agents"] = [
+            {"type": "thompson_sampling", "alpha_prior": 0, "beta_prior": 1}
+        ]
         with pytest.raises(ValidationError, match="alpha_prior"):
             MDPConfig.model_validate(raw)
 

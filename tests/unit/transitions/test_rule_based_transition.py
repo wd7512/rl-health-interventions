@@ -11,9 +11,7 @@ def test_transition_probabilities_match_config_over_many_samples(valid_config):
     t = RuleBasedTransition(valid_config, seed=42)
     n_samples = 10_000
     n_active = sum(
-        1
-        for _ in range(n_samples)
-        if t.transition("sedentary", "nudge") == "active"
+        1 for _ in range(n_samples) if t.transition("sedentary", "nudge") == "active"
     )
     observed_freq = n_active / n_samples
     assert abs(observed_freq - 0.3) < 0.02

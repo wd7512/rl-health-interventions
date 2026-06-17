@@ -74,9 +74,9 @@ class MDPConfig(BaseModel):
     @model_validator(mode="after")
     def _cross_reference_validators(self) -> MDPConfig:
         """Schema-ref mode: skip inline checks when states/actions have a schema key."""
-        is_schema_ref = (
-            isinstance(self.states, dict) and "schema" in self.states
-        ) or (isinstance(self.actions, dict) and "schema" in self.actions)
+        is_schema_ref = (isinstance(self.states, dict) and "schema" in self.states) or (
+            isinstance(self.actions, dict) and "schema" in self.actions
+        )
         if is_schema_ref:
             return self
 

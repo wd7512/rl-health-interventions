@@ -4,6 +4,7 @@
 Run from the project root:
     uv run python scripts/generate_regression_fixture.py
 """
+
 from __future__ import annotations
 
 import json
