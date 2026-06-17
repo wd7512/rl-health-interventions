@@ -1,0 +1,155 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,booktabs}
+\usepackage[margin=1in]{geometry}
+
+\title{MVP Simulator: MDP Formulation and Initial Results}
+\author{William Dennis}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+\section{MDP Formulation}
+
+The MVP simulator implements a finite-horizon MDP $(\mathcal{S}, \mathcal{A}, P, r, \gamma, T)$:
+
+\subsection{State Space}
+\[
+\mathcal{S} = \{\texttt{sedentary},\ \texttt{active}\}
+\]
+Two activity states with no additional time-of-day dimension. Time-dependent reward scaling is handled via \texttt{reward\_multiplier\_by\_step} (see \S\ref{sec:reward} below).
+
+\subsection{Action Space}
+\[
+\mathcal{A} = \{\texttt{nudge},\ \texttt{idle}\}
+\]
+A binary intervention: send a motivational message (\texttt{nudge}) or do not (\texttt{idle}).
+
+\subsection{Transition Function}
+
+$P(s' \mid s, a)$ is a configurable $2 \times 2 \times 2$ tensor. Rows index current state $s \in \{\text{sedentary}, \text{active}\}$ and columns index next state $s'$ in the same order:
+
+\[
+P_{\text{nudge}} =
+\begin{bmatrix}
+0.7 & 0.3 \\[2pt]
+0.5 & 0.5
+\end{bmatrix}
+\qquad
+P_{\text{idle}} =
+\begin{bmatrix}
+0.9 & 0.1 \\[2pt]
+0.4 & 0.6
+\end{bmatrix}
+\]
+
+Sending a reminder increases $P(\text{active} \mid \text{sedentary})$ from $0.1$ to $0.3$ but decreases $P(\text{active} \mid \text{active})$ from $0.6$ to $0.5$, consistent with Reactance theory (reminders can backfire for already-active users).
+
+Optional \texttt{reward\_multiplier\_by\_step}: a per-step scaling factor that can zero out rewards at certain daily steps (soft mask). When absent, all multipliers default to 1.0. The per-step reward is computed as $\text{base reward} \times \text{multiplier}[t]$ where $t$ is the step-of-day index.
+
+\subsection{Reward}\label{sec:reward}
+
+The base reward is a vector indexed by next state:
+
+\[
+r = [0.0,\; 1.0]^\top \quad (\text{sedentary},\; \text{active})
+\]
+
+The per-step reward at time $t$ scales by the multiplier:
+
+\[
+r(s, a, t) = m[t \bmod S] \cdot r(s')
+\]
+
+where $S = \texttt{steps\_per\_day}$, $m \in \mathbb{R}^S$ is \texttt{reward\_multiplier\_by\_step}
+(default $m_i = 1.0$), and $s'$ is the next state after taking action $a$ in state $s$.
+Currently $m_i = 1.0$ for all $i$, so $r(s, a, t) = r(s')$.
+
+Single-timescale placeholder. Multi-timescale reward (immediate + delayed body measure) is deferred to Phase 2.
+
+\subsection{Episode Structure}
+$T = \texttt{episode\_days} \times \texttt{steps\_per\_day}$ timesteps. Default: $T = 90 \text{ days} \times 5 \text{ steps/day} = 450$.
+
+\section{Agents}
+
+All agents are bandits: they do not condition on state. From the transition matrix,
+$E[r \mid \text{nudge}] \approx 0.375$, $E[r \mid \text{idle}] = 0.20$, and a
+state-aware policy that nudges only when sedentary would achieve $\approx 0.429$.
+This gap motivates the state-aware agents planned for Phase~2.
+
+\subsection{Thompson Sampling}
+Beta-Bernoulli TS with prior $\text{Beta}(1, 1)$ per action. Posterior update:
+\[
+\alpha_a \leftarrow \alpha_a + \mathbb{1}[s'.\texttt{activity} = \texttt{active}], \quad
+\beta_a \leftarrow \beta_a + \mathbb{1}[s'.\texttt{activity} = \texttt{sedentary}]
+\]
+Action selected by sampling $\theta_a \sim \text{Beta}(\alpha_a, \beta_a)$ and choosing $a^* = \arg\max_a \theta_a$.
+
+\subsection{Epsilon-Greedy}
+$\epsilon = 0.1$. With probability $\epsilon$, select uniformly at random; otherwise select $\arg\max_a Q(a)$. Q-values updated via incremental average:
+\[
+Q(a) \leftarrow Q(a) + \frac{r_t - Q(a)}{n_a}
+\]
+
+\subsection{UCB1}
+Upper Confidence Bound with exploration parameter $c = 2.0$. Selects:
+\[
+a^* = \arg\max_a \left[ Q(a) + c \sqrt{\frac{\ln N}{N_a}} \right]
+\]
+where $N$ is total steps and $N_a$ is the number of times action $a$ was chosen. The confidence bonus shrinks as $N_a$ grows, naturally shifting from exploration to exploitation. Each action is pulled once before UCB is applied.
+
+\subsection{Random Baseline}
+Uniform random action selection. No learning. Serves as lower bound.
+The mixture chain $P_{\text{random}} = \tfrac{1}{2}(P_{\text{nudge}} + P_{\text{idle}})$ gives $E[r] \approx 0.308$ per step, matching the empirical $0.301 \pm 0.024$ within one standard deviation.
+
+\section{Initial Results}
+
+All agents run over 10 random seeds (1--10), 450 timesteps each. Results are reported as mean $\pm$ standard deviation across seeds.
+
+\subsection{Standard Config (\texttt{config/rule\_based.yaml})}
+No \texttt{reward\_multiplier\_by\_step} -- uniform 1.0 multiplier on all steps.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Agent & Total Reward & Mean Reward/Step \\
+\midrule
+Thompson Sampling ($\alpha_0=\beta_0=1$) & 160.3 $\pm$ 10.5 & 0.356 $\pm$ 0.023 \\
+Epsilon-Greedy ($\epsilon=0.1$) & 160.8 $\pm$ 15.3 & 0.357 $\pm$ 0.034 \\
+UCB ($c=2.0$) & 148.2 $\pm$ 15.0 & 0.329 $\pm$ 0.033 \\
+Random & 135.6 $\pm$ 10.7 & 0.301 $\pm$ 0.024 \\
+\bottomrule
+\end{tabular}
+\caption{Results on \texttt{config/rule\_based.yaml} (10 seeds, 450 timesteps). TS and $\epsilon$-greedy perform similarly; TS has lower variance. UCB outperforms random but shows higher variance.}
+\end{table}
+
+\subsection{Masked Config (\texttt{config/rule\_based\_with\_mask.yaml})}
+\texttt{reward\_multiplier\_by\_step: [1, 1, 1, 1, 0]} -- step 4 (end of day) yields zero reward regardless of outcome. All agents drop proportionally to the masked fraction ($1/5$ of steps zeroed), confirming the multiplicative reward model.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Agent & Total Reward & Mean Reward/Step \\
+\midrule
+Thompson Sampling ($\alpha_0=\beta_0=1$) & 126.6 $\pm$ 6.8 & 0.281 $\pm$ 0.015 \\
+Epsilon-Greedy ($\epsilon=0.1$) & 127.3 $\pm$ 10.2 & 0.283 $\pm$ 0.023 \\
+UCB ($c=2.0$) & 116.9 $\pm$ 8.6 & 0.260 $\pm$ 0.019 \\
+Random & 107.8 $\pm$ 6.7 & 0.240 $\pm$ 0.015 \\
+\bottomrule
+\end{tabular}
+\caption{Results on \texttt{config/rule\_based\_with\_mask.yaml} (10 seeds, 450 timesteps). Reward drops $\approx 20\%$ across all agents, matching the $1/5$ masked fraction. Relative ordering is preserved.}
+\end{table}
+
+\section{Known Limitations}
+
+\begin{itemize}
+\item Agents are state-blind bandits, not state-aware RL. State-aware agents are Phase 2.
+\item Single-timescale reward only. Multi-timescale (immediate + 3-week delayed) is Phase 2.
+\item No user response model. Burden accumulation and 4 archetypes are Phase 2.
+\item Transition matrix is fixed and known. Learned transitions from real data are Phase 2.
+\item Transition probabilities are placeholder values informed by Reactance theory. Calibration against real data is Phase 2.
+\end{itemize}
+
+\end{document}
