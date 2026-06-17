@@ -16,16 +16,17 @@ from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 def run_seeds(config_path: str, n_seeds: int = 50) -> np.ndarray:
     """Run agent over n_seeds, return (n_seeds, 450) cumulative reward array."""
     all_rewards = []
+    config = load_config(config_path)
+    agent_cfg = config.agents[0]
+    base_kwargs = {
+        k: v
+        for k, v in agent_cfg.model_dump().items()
+        if v is not None and k != "type"
+    }
+    base_kwargs["actions"] = config.actions
     for seed in range(1, n_seeds + 1):
-        config = load_config(config_path)
-        agent_cfg = config.agents[0]
-        kwargs = {
-            k: v
-            for k, v in agent_cfg.model_dump().items()
-            if v is not None and k != "type"
-        }
-        kwargs["actions"] = config.actions
-        kwargs["seed"] = derive_agent_seed(config.seed, agent_index=0)
+        kwargs = base_kwargs.copy()
+        kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
         agent = make_agent(agent_cfg.type, **kwargs)
         df = run_episode(config, agent, seed=seed)
         all_rewards.append(df["reward"].values)
@@ -123,6 +124,7 @@ def main() -> None:
 
     plt.tight_layout()
     out = Path(__file__).parent / "images" / "learning_curves.pdf"
+    out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved to {out}")
