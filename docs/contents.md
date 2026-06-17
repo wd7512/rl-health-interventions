@@ -12,6 +12,18 @@
 |------|-------------|
 | `mvp_specification.tex` | MDP formulation for the current binary-state, binary-action simulator with transition probabilities, reward function, agent formulations, and 10-seed results table. |
 
+## learned/
+
+| File | Description |
+|------|-------------|
+| `learned_specification.tex` | Placeholder — learned transition models from real wearable data. See `config/learned.yaml`. |
+
+## llm/
+
+| File | Description |
+|------|-------------|
+| `llm_specification.tex` | Placeholder — LLM-based user simulation. See `config/llm_based.yaml`. |
+
 ## plans/
 
 | File | Description |
