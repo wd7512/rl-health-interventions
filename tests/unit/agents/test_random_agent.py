@@ -1,28 +1,24 @@
 from rl_health_interventions.agents.random import RandomAgent
-from rl_health_interventions.config.schemas import Action, ActivityLevel, TimeOfDay
-from rl_health_interventions.state import StateView
 
 
-def _sv() -> StateView:
-    return StateView(ActivityLevel.SEDENTARY, TimeOfDay.MORNING, day=0, step_of_day=0)
+def _sv() -> dict:
+    return {"activity": "sedentary"}
 
 
-def test_random_agent_returns_valid_action():
-    agent = RandomAgent(seed=42)
+def test_random_agent_returns_string_action():
+    agent = RandomAgent(actions=["nudge", "idle"], seed=42)
     action = agent.select_action(_sv())
-    assert action in (Action.SEND, Action.DON_T_SEND)
+    assert action in ("nudge", "idle")
 
 
 def test_random_agent_explores_both_actions():
-    """Over many calls, both actions should appear."""
-    agent = RandomAgent(seed=42)
+    agent = RandomAgent(actions=["nudge", "idle"], seed=42)
     seen = set()
     for _ in range(100):
         seen.add(agent.select_action(_sv()))
-    assert seen == {Action.SEND, Action.DON_T_SEND}
+    assert seen == {"nudge", "idle"}
 
 
 def test_random_agent_update_is_noop():
-    agent = RandomAgent(seed=42)
-    # Should not raise
-    agent.update(_sv(), Action.SEND, 1.0, _sv())
+    agent = RandomAgent(actions=["nudge", "idle"], seed=42)
+    agent.update(_sv(), "nudge", 1.0, _sv())

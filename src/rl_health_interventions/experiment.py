@@ -6,14 +6,16 @@ from typing import Protocol
 
 import pandas as pd
 
-from rl_health_interventions.config.schemas import Action, MDPConfig
+from rl_health_interventions.agents import make as make_agent
+from rl_health_interventions.config.loader import load_config
+from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.environment import Environment
 
 logger = logging.getLogger(__name__)
 
 
 class AgentLike(Protocol):
-    def select_action(self, state) -> Action: ...
+    def select_action(self, state) -> str: ...
     def update(self, state, action, reward, next_state) -> None: ...
 
 
@@ -37,9 +39,8 @@ def run_episode(
                 "step": state.global_step,
                 "day": state.day,
                 "step_of_day": state.step_of_day,
-                "time_of_day": state.time_of_day.value,
-                "state": state.activity.value,
-                "action": action.value,
+                "state": state.activity,
+                "action": action,
                 "reward": reward,
             }
         )
@@ -53,3 +54,21 @@ def run_episode(
         df.to_csv(output_path, index=False, encoding="utf-8")
         logger.info("Wrote %d rows to %s", len(df), output_path)
     return df
+
+
+def run_experiment(config_path: str | Path) -> dict[str, float]:
+    """Run all agents defined in the config, return {agent_type: total_reward}."""
+    config = load_config(config_path)
+    results: dict[str, float] = {}
+    for i, agent_cfg in enumerate(config.agents):
+        kwargs = {
+            k: v
+            for k, v in agent_cfg.model_dump().items()
+            if v is not None and k != "type"
+        }
+        kwargs["actions"] = config.actions
+        kwargs["seed"] = (config.seed + i * 2654435761) % (2**31)
+        agent = make_agent(agent_cfg.type, **kwargs)
+        df = run_episode(config, agent, seed=config.seed)
+        results[agent_cfg.type] = float(df["reward"].sum())
+    return results

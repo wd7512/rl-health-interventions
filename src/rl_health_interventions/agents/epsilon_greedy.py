@@ -3,20 +3,14 @@ from __future__ import annotations
 import numpy as np
 
 from rl_health_interventions.agents._base import Agent
-from rl_health_interventions.config.schemas import Action
 
 
 class EpsilonGreedyAgent(Agent):
-    """Epsilon-greedy action selection with incremental Q-learning.
-
-    NOTE: This is a contextual bandit agent — state is accepted but not
-    used in action selection. Q-values are updated globally, not per-state.
-    For the MVP (Issue #101) this is correct. State-aware agents are
-    planned for Phase 2.
-    """
+    """Epsilon-greedy action selection with incremental Q-learning."""
 
     def __init__(
         self,
+        actions: list[str] | None = None,
         epsilon: float = 0.1,
         seed: int = 42,
     ) -> None:
@@ -24,11 +18,11 @@ class EpsilonGreedyAgent(Agent):
             raise ValueError("epsilon must be between 0.0 and 1.0 inclusive.")
         self.epsilon = epsilon
         self._rng = np.random.default_rng(seed)
-        self._actions = list(Action)
-        self.q_values: dict[Action, float] = {action: 0.0 for action in Action}
-        self.counts: dict[Action, int] = {action: 0 for action in Action}
+        self._actions = actions or ["nudge", "idle"]
+        self.q_values: dict[str, float] = {a: 0.0 for a in self._actions}
+        self.counts: dict[str, int] = {a: 0 for a in self._actions}
 
-    def select_action(self, state) -> Action:
+    def select_action(self, state) -> str:
         if self._rng.random() < self.epsilon:
             idx = self._rng.integers(len(self._actions))
             return self._actions[idx]
@@ -37,7 +31,7 @@ class EpsilonGreedyAgent(Agent):
         idx = self._rng.integers(len(best))
         return best[idx]
 
-    def update(self, state, action: Action, reward: float, next_state) -> None:
+    def update(self, state, action: str, reward: float, next_state) -> None:
         self.counts[action] += 1
         n = self.counts[action]
         self.q_values[action] += (reward - self.q_values[action]) / n

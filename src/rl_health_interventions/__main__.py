@@ -8,17 +8,22 @@ from rl_health_interventions.agents import make as make_agent
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.experiment import run_episode
 
+logger = logging.getLogger(__name__)
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="RL health interventions simulator")
     parser.add_argument(
-        "--config", type=str, required=True, help="Path to MDP YAML config"
+        "--config",
+        type=str,
+        default="config/rule_based.yaml",
+        help="Path to MDP YAML config (default: config/rule_based.yaml)",
     )
     parser.add_argument(
         "--agent",
         type=str,
-        default="thompson_sampling",
-        help="Agent name (default: thompson_sampling)",
+        default=None,
+        help="Agent name (default: first agent from config)",
     )
     parser.add_argument(
         "--output",
@@ -39,7 +44,6 @@ def main() -> None:
         level=log_level,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
-    logger = logging.getLogger(__name__)
 
     config = load_config(args.config)
     logger.info("Loaded config from %s", args.config)
@@ -50,10 +54,11 @@ def main() -> None:
         config.episode_days * config.steps_per_day,
     )
 
+    agent_name = args.agent or (config.agents[0].type if config.agents else "random")
     env_seed = args.seed if args.seed is not None else config.seed
     agent_seed = (env_seed * 2654435761) % (2**31)
 
-    agent = make_agent(args.agent, seed=agent_seed)
+    agent = make_agent(agent_name, seed=agent_seed, actions=config.actions)
 
     output_path = Path(args.output)
     df = run_episode(config, agent, output_csv=output_path, seed=env_seed)

@@ -6,10 +6,11 @@ from pathlib import Path
 
 import pandas as pd
 
+ASSETS = Path(__file__).parent.parent / "assets"
+
 
 def test_mvp_end_to_end(tmp_path: Path) -> None:
-    """Run the MVP config through the CLI, verify output."""
-    config_path = Path(__file__).parent.parent.parent / "config" / "mvp.yaml"
+    config_path = ASSETS / "test_integration_config.yaml"
     output_path = tmp_path / "results.csv"
 
     result = subprocess.run(
@@ -21,8 +22,6 @@ def test_mvp_end_to_end(tmp_path: Path) -> None:
             str(config_path),
             "--output",
             str(output_path),
-            "--agent",
-            "thompson_sampling",
         ],
         capture_output=True,
         text=True,
@@ -34,23 +33,20 @@ def test_mvp_end_to_end(tmp_path: Path) -> None:
     assert output_path.exists()
 
     df = pd.read_csv(output_path)
-    assert len(df) == 450  # 90 days x 5 steps/day
+    assert len(df) == 5  # 1 day x 5 steps/day
     assert set(df.columns) >= {
         "step",
         "day",
         "step_of_day",
-        "time_of_day",
         "state",
         "action",
         "reward",
     }
-    # Verify reward is 0 or 1
     assert df["reward"].isin([0.0, 1.0]).all()
 
 
 def test_epsilon_greedy_baseline_also_works(tmp_path: Path) -> None:
-    """Same as above but with epsilon-greedy agent."""
-    config_path = Path(__file__).parent.parent.parent / "config" / "mvp.yaml"
+    config_path = ASSETS / "test_integration_config.yaml"
     output_path = tmp_path / "results_eg.csv"
     result = subprocess.run(
         [
@@ -71,12 +67,11 @@ def test_epsilon_greedy_baseline_also_works(tmp_path: Path) -> None:
     assert result.returncode == 0
     assert output_path.exists()
     df = pd.read_csv(output_path)
-    assert len(df) == 450
+    assert len(df) == 5
 
 
 def test_seed_reproducibility(tmp_path: Path) -> None:
-    """Same seed produces identical CSV output."""
-    config_path = Path(__file__).parent.parent.parent / "config" / "mvp.yaml"
+    config_path = ASSETS / "test_integration_config.yaml"
     out1 = tmp_path / "run1.csv"
     out2 = tmp_path / "run2.csv"
     for out in [out1, out2]:

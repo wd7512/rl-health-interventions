@@ -2,38 +2,31 @@ from __future__ import annotations
 
 import numpy as np
 
-from rl_health_interventions.config.schemas import (
-    ActivityLevel,
-    Action,
-    MDPConfig,
-    TimeOfDay,
-)
+from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.transitions._base import TransitionModel
 
 
 class RuleBasedTransition(TransitionModel):
     def __init__(self, config: MDPConfig, seed: int = 42) -> None:
-        self._config = config
         self._rng = np.random.default_rng(seed)
-        self._cache: dict[tuple, tuple[list[ActivityLevel], np.ndarray]] = {}
-        self._build_cache()
+        self._cache: dict[tuple[str, str], tuple[list[str], np.ndarray]] = {}
+        self._build_cache(config)
 
-    def _build_cache(self) -> None:
-        for state in self._config.activity_levels:
-            for action in self._config.actions:
-                row = self._config.transition.root[state][action]
-                probs = np.array(list(row.values()), dtype=np.float64)
-                probs /= probs.sum()
-                self._cache[(state, action)] = (list(row.keys()), probs)
+    def _build_cache(self, config: MDPConfig) -> None:
+        prob_config = config.transition_model.transition_probabilities
+        if prob_config is None:
+            raise ValueError("rule_based transition requires transition_probabilities")
+        for state, actions in prob_config.root.items():
+            for action, probs in actions.items():
+                targets = list(probs.keys())
+                prob_values = np.array(list(probs.values()), dtype=np.float64)
+                prob_values /= prob_values.sum()
+                self._cache[(state, action)] = (targets, prob_values)
 
-    def transition(
-        self, state: ActivityLevel, action: Action, time_of_day: TimeOfDay
-    ) -> ActivityLevel:
-        if self._config.masks.root[time_of_day][state] == 1.0:
-            return state
-        states, probs = self._cache[(state, action)]
-        idx = self._rng.choice(len(states), p=probs)
-        return states[idx]
+    def transition(self, state: str, action: str) -> str:
+        targets, probs = self._cache[(state, action)]
+        idx = self._rng.choice(len(targets), p=probs)
+        return targets[idx]
 
 
 def register() -> None:

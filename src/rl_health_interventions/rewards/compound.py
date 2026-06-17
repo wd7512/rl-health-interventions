@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from rl_health_interventions.config.schemas import ActivityLevel, Action, MDPConfig
+from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.rewards._base import RewardHandler
 
 
 class CompoundReward(RewardHandler):
     def __init__(self, config: MDPConfig) -> None:
-        self._config = config
+        p = config.per_step_reward
+        if p is None:
+            raise ValueError("per_step_reward is None; config not fully initialized")
+        self._per_step_reward = p
 
-    def reward(self, state: ActivityLevel, action: Action) -> tuple[float, bool]:
-        if state == ActivityLevel.ACTIVE:
-            return self._config.reward_active, False
-        return self._config.reward_sedentary, False
+    def reward(self, state: str, action: str, step_idx: int) -> tuple[float, bool]:
+        return self._per_step_reward[step_idx][state], False
 
 
 def register() -> None:

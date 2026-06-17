@@ -4,31 +4,12 @@ import pathlib
 
 import pytest
 
-from rl_health_interventions.config.schemas import (
-    ActivityLevel,
-    Action,
-    MDPConfig,
-    TimeOfDay,
-    TimeOfDayMask,
-    TransitionMatrix,
-)
-
-ALL_TIMES = [
-    TimeOfDay.MORNING,
-    TimeOfDay.MIDDAY,
-    TimeOfDay.AFTERNOON,
-    TimeOfDay.EVENING,
-    TimeOfDay.NIGHT,
-]
+from rl_health_interventions.config.schemas import MDPConfig
 
 
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
-    """Auto-apply markers based on test file location.
-
-    Respects explicit markers — if a test already has a marker, don't override.
-    """
     unit_dir = (pathlib.Path(__file__).parent / "unit").resolve()
     integration_dir = (pathlib.Path(__file__).parent / "integration").resolve()
     for item in items:
@@ -45,89 +26,56 @@ def pytest_collection_modifyitems(
 @pytest.fixture
 def valid_config() -> MDPConfig:
     return MDPConfig(
-        activity_levels=[ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE],
-        actions=[Action.SEND, Action.DON_T_SEND],
-        time_of_day=ALL_TIMES,
-        steps_per_day=5,
         episode_days=90,
-        transition=TransitionMatrix(
-            root={
-                ActivityLevel.SEDENTARY: {
-                    Action.SEND: {
-                        ActivityLevel.SEDENTARY: 0.7,
-                        ActivityLevel.ACTIVE: 0.3,
-                    },
-                    Action.DON_T_SEND: {
-                        ActivityLevel.SEDENTARY: 0.9,
-                        ActivityLevel.ACTIVE: 0.1,
-                    },
-                },
-                ActivityLevel.ACTIVE: {
-                    Action.SEND: {
-                        ActivityLevel.SEDENTARY: 0.2,
-                        ActivityLevel.ACTIVE: 0.8,
-                    },
-                    Action.DON_T_SEND: {
-                        ActivityLevel.SEDENTARY: 0.4,
-                        ActivityLevel.ACTIVE: 0.6,
-                    },
-                },
-            }
-        ),
-        masks=TimeOfDayMask(
-            root={
-                t: {ActivityLevel.SEDENTARY: 0.0, ActivityLevel.ACTIVE: 0.0}
-                for t in ALL_TIMES[:-1]
-            }
-            | {
-                TimeOfDay.NIGHT: {
-                    ActivityLevel.SEDENTARY: 1.0,
-                    ActivityLevel.ACTIVE: 1.0,
-                }
-            }
-        ),
+        steps_per_day=5,
         seed=42,
+        initial_state="sedentary",
+        states={
+            "sedentary": {"reward": 0.0},
+            "active": {"reward": 1.0},
+        },
+        actions=["nudge", "idle"],
+        transition_model={
+            "type": "rule_based",
+            "transition_probabilities": {
+                "sedentary": {
+                    "nudge": {"active": 0.3, "sedentary": 0.7},
+                    "idle": {"active": 0.1, "sedentary": 0.9},
+                },
+                "active": {
+                    "nudge": {"active": 0.5, "sedentary": 0.5},
+                    "idle": {"active": 0.6, "sedentary": 0.4},
+                },
+            },
+        },
+        agents=[{"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1}],
     )
 
 
 @pytest.fixture
 def minimal_config() -> MDPConfig:
     return MDPConfig(
-        activity_levels=[ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE],
-        actions=[Action.SEND, Action.DON_T_SEND],
-        time_of_day=[TimeOfDay.MORNING],
-        steps_per_day=1,
         episode_days=1,
-        transition=TransitionMatrix(
-            root={
-                ActivityLevel.SEDENTARY: {
-                    Action.SEND: {
-                        ActivityLevel.SEDENTARY: 0.5,
-                        ActivityLevel.ACTIVE: 0.5,
-                    },
-                    Action.DON_T_SEND: {
-                        ActivityLevel.SEDENTARY: 0.5,
-                        ActivityLevel.ACTIVE: 0.5,
-                    },
+        steps_per_day=1,
+        seed=42,
+        initial_state="sedentary",
+        states={
+            "sedentary": {"reward": 0.0},
+            "active": {"reward": 1.0},
+        },
+        actions=["nudge", "idle"],
+        transition_model={
+            "type": "rule_based",
+            "transition_probabilities": {
+                "sedentary": {
+                    "nudge": {"active": 0.5, "sedentary": 0.5},
+                    "idle": {"active": 0.5, "sedentary": 0.5},
                 },
-                ActivityLevel.ACTIVE: {
-                    Action.SEND: {
-                        ActivityLevel.SEDENTARY: 0.5,
-                        ActivityLevel.ACTIVE: 0.5,
-                    },
-                    Action.DON_T_SEND: {
-                        ActivityLevel.SEDENTARY: 0.5,
-                        ActivityLevel.ACTIVE: 0.5,
-                    },
+                "active": {
+                    "nudge": {"active": 0.5, "sedentary": 0.5},
+                    "idle": {"active": 0.5, "sedentary": 0.5},
                 },
-            }
-        ),
-        masks=TimeOfDayMask(
-            root={
-                TimeOfDay.MORNING: {
-                    ActivityLevel.SEDENTARY: 0.0,
-                    ActivityLevel.ACTIVE: 0.0,
-                }
-            }
-        ),
+            },
+        },
+        agents=[],
     )

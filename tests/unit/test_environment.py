@@ -1,76 +1,44 @@
-from rl_health_interventions.config.schemas import (
-    Action,
-    ActivityLevel,
-    MDPConfig,
-    TimeOfDay,
-    TimeOfDayMask,
-    TransitionMatrix,
-)
+from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.environment import Environment
-
-ALL_TIMES = [
-    TimeOfDay.MORNING,
-    TimeOfDay.MIDDAY,
-    TimeOfDay.AFTERNOON,
-    TimeOfDay.EVENING,
-    TimeOfDay.NIGHT,
-]
 
 
 def _config(steps_per_day=5, episode_days=90) -> MDPConfig:
     return MDPConfig(
-        activity_levels=[ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE],
-        actions=[Action.SEND, Action.DON_T_SEND],
-        time_of_day=ALL_TIMES[:steps_per_day],
-        steps_per_day=steps_per_day,
         episode_days=episode_days,
-        transition=TransitionMatrix(
-            root={
-                ActivityLevel.SEDENTARY: {
-                    Action.SEND: {
-                        ActivityLevel.SEDENTARY: 0.7,
-                        ActivityLevel.ACTIVE: 0.3,
-                    },
-                    Action.DON_T_SEND: {
-                        ActivityLevel.SEDENTARY: 0.9,
-                        ActivityLevel.ACTIVE: 0.1,
-                    },
+        steps_per_day=steps_per_day,
+        seed=42,
+        initial_state="sedentary",
+        states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
+        actions=["nudge", "idle"],
+        transition_model={
+            "type": "rule_based",
+            "transition_probabilities": {
+                "sedentary": {
+                    "nudge": {"active": 0.3, "sedentary": 0.7},
+                    "idle": {"active": 0.1, "sedentary": 0.9},
                 },
-                ActivityLevel.ACTIVE: {
-                    Action.SEND: {
-                        ActivityLevel.SEDENTARY: 0.2,
-                        ActivityLevel.ACTIVE: 0.8,
-                    },
-                    Action.DON_T_SEND: {
-                        ActivityLevel.SEDENTARY: 0.4,
-                        ActivityLevel.ACTIVE: 0.6,
-                    },
+                "active": {
+                    "nudge": {"active": 0.5, "sedentary": 0.5},
+                    "idle": {"active": 0.6, "sedentary": 0.4},
                 },
-            }
-        ),
-        masks=TimeOfDayMask(
-            root={
-                t: {ActivityLevel.SEDENTARY: 0.0, ActivityLevel.ACTIVE: 0.0}
-                for t in ALL_TIMES[:steps_per_day]
-            }
-        ),
+            },
+        },
     )
 
 
 def test_reset_returns_initial_state(valid_config):
     env = Environment(valid_config, seed=42)
     state = env.reset()
-    assert state.activity == ActivityLevel.SEDENTARY
+    assert state.activity == "sedentary"
     assert state.day == 0
     assert state.step_of_day == 0
-    assert state.time_of_day == TimeOfDay.MORNING
 
 
 def test_step_returns_tuple(valid_config):
     env = Environment(valid_config, seed=42)
     env.reset()
-    next_state, reward, done = env.step(Action.SEND)
-    assert isinstance(next_state.activity, ActivityLevel)
+    next_state, reward, done = env.step("nudge")
+    assert isinstance(next_state.activity, str)
     assert isinstance(reward, float)
     assert isinstance(done, bool)
 
@@ -81,7 +49,7 @@ def test_episode_terminates_after_correct_length():
     done = False
     steps = 0
     while not done:
-        _, _, done = env.step(Action.SEND)
+        _, _, done = env.step("nudge")
         steps += 1
         if steps > 100:
             break
@@ -89,31 +57,15 @@ def test_episode_terminates_after_correct_length():
     assert done is True
 
 
-def test_time_of_day_cycles_within_day():
-    env = Environment(_config(steps_per_day=5, episode_days=1), seed=42)
-    state = env.reset()
-    expected_times = [
-        TimeOfDay.MORNING,
-        TimeOfDay.MIDDAY,
-        TimeOfDay.AFTERNOON,
-        TimeOfDay.EVENING,
-        TimeOfDay.NIGHT,
-    ]
-    for i, expected in enumerate(expected_times):
-        assert state.time_of_day == expected, f"step {i}"
-        if i < 4:
-            state, _, _ = env.step(Action.SEND)
-
-
 def test_step_after_done_raises():
     import pytest
 
     env = Environment(_config(steps_per_day=2, episode_days=1), seed=42)
     env.reset()
-    env.step(Action.SEND)
-    env.step(Action.SEND)
+    env.step("nudge")
+    env.step("nudge")
     with pytest.raises(RuntimeError, match="Episode is done"):
-        env.step(Action.SEND)
+        env.step("nudge")
 
 
 def test_step_before_reset_raises():
@@ -121,68 +73,40 @@ def test_step_before_reset_raises():
 
     env = Environment(_config(), seed=42)
     with pytest.raises(RuntimeError, match="Call reset"):
-        env.step(Action.SEND)
+        env.step("nudge")
 
 
-def test_night_mask_suppresses_transitions():
-    from rl_health_interventions.config.schemas import (
-        ActivityLevel,
-        Action,
-        MDPConfig,
-        TimeOfDay,
-        TimeOfDayMask,
-        TransitionMatrix,
-    )
+def test_reward_multiplier_affects_reward():
+    from rl_health_interventions.config.schemas import MDPConfig
 
-    # All masks = 1.0: transitions suppressed at every time slot
+    # Deterministic transitions: always go to "active"
     config = MDPConfig(
-        activity_levels=[ActivityLevel.SEDENTARY, ActivityLevel.ACTIVE],
-        actions=[Action.SEND, Action.DON_T_SEND],
-        time_of_day=[
-            TimeOfDay.MORNING,
-            TimeOfDay.MIDDAY,
-            TimeOfDay.AFTERNOON,
-            TimeOfDay.EVENING,
-            TimeOfDay.NIGHT,
-        ],
-        steps_per_day=5,
-        episode_days=10,
-        transition=TransitionMatrix(
-            root={
-                ActivityLevel.SEDENTARY: {
-                    Action.SEND: {
-                        ActivityLevel.SEDENTARY: 0.0,
-                        ActivityLevel.ACTIVE: 1.0,
-                    },
-                    Action.DON_T_SEND: {
-                        ActivityLevel.SEDENTARY: 0.0,
-                        ActivityLevel.ACTIVE: 1.0,
-                    },
+        episode_days=1,
+        steps_per_day=3,
+        seed=42,
+        initial_state="sedentary",
+        states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
+        actions=["nudge", "idle"],
+        transition_model={
+            "type": "rule_based",
+            "transition_probabilities": {
+                "sedentary": {
+                    "nudge": {"active": 1.0, "sedentary": 0.0},
+                    "idle": {"active": 1.0, "sedentary": 0.0},
                 },
-                ActivityLevel.ACTIVE: {
-                    Action.SEND: {
-                        ActivityLevel.SEDENTARY: 1.0,
-                        ActivityLevel.ACTIVE: 0.0,
-                    },
-                    Action.DON_T_SEND: {
-                        ActivityLevel.SEDENTARY: 1.0,
-                        ActivityLevel.ACTIVE: 0.0,
-                    },
+                "active": {
+                    "nudge": {"active": 1.0, "sedentary": 0.0},
+                    "idle": {"active": 1.0, "sedentary": 0.0},
                 },
-            }
-        ),
-        masks=TimeOfDayMask(
-            root={
-                t: {ActivityLevel.SEDENTARY: 1.0, ActivityLevel.ACTIVE: 1.0}
-                for t in TimeOfDay
-            }
-        ),
+            },
+        },
+        reward_multiplier_by_step=[1.0, 1.0, 0.0],
     )
     env = Environment(config, seed=42)
-    state = env.reset()
-    base_state = state.activity
-    # Transition matrix wants to flip state every step (P=1.0 for opposite),
-    # but masks suppress all transitions. State should stay the same.
-    for _ in range(49):
-        state, _, _ = env.step(Action.SEND)
-        assert state.activity == base_state
+    env.reset()
+    _, reward_0, _ = env.step("nudge")  # step_idx=0, always active → 1.0 * 1.0
+    _, reward_1, _ = env.step("nudge")  # step_idx=1, always active → 1.0 * 1.0
+    _, reward_2, _ = env.step("nudge")  # step_idx=2, always active → 1.0 * 0.0
+    assert reward_0 == 1.0
+    assert reward_1 == 1.0
+    assert reward_2 == 0.0
