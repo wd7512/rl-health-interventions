@@ -52,7 +52,9 @@ class ThompsonSamplingAgent(Agent):
             if ctx_attr is None:
                 raise ValueError("context_feature must be set when contextual=True")
             if state is None:
-                raise ValueError("state cannot be None when selecting action contextually")
+                raise ValueError(
+                    "state cannot be None when selecting action contextually"
+                )
             context_value = getattr(state, ctx_attr, None)
             if context_value is None:
                 raise ValueError(
