@@ -61,7 +61,7 @@ Change the YAML to change the experiment. No code changes needed.
 | UCB1 | Upper Confidence Bound | Yes (confidence interval) | `--agent ucb` |
 | Random | Uniform random | No | `--agent random` |
 
-All agents are contextual bandits in the MVP — state is accepted but not used in action selection. State-aware agents are planned for Phase 2.
+All agents are bandits in the MVP — they do not condition on state. State-aware agents are planned for Phase 2.
 
 ## MDP formulation
 
