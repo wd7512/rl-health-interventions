@@ -86,7 +86,20 @@
       "gh repo *": "deny",
       "chmod *": "deny",
       "chown *": "deny",
-      "sudo *": "deny"
+      "sudo *": "deny",
+      "curl *": "deny",
+      "wget *": "deny",
+      "ssh *": "deny",
+      "scp *": "deny",
+      "rsync *": "deny",
+      "git reset *": "deny",
+      "git rebase *": "deny",
+      "git clean *": "deny",
+      "git stash *": "deny",
+      "git checkout *": "allow",
+      "git worktree *": "allow",
+      "git branch -d *": "deny",
+      "git branch -D *": "deny"
     },
     "skill": "allow"
   },
