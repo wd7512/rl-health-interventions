@@ -36,11 +36,9 @@ Best non-contextual (always nudge): $E[r] = 0.375$, total $168.8$. The contextua
 Each agent was grid-searched over its key parameters (both standard and contextual variants, 50 seeds, 450 timesteps). The grid was widened after an initial pass found optimal values at search boundaries.\footnote{The contextual hyperparameter sweeps are used for the chart analysis in Figures~\ref{fig:hyperparam-eg} and~\ref{fig:hyperparam-ucb}; the table below reports standard (non-contextual) results to match \S5 of the MVP specification.}
 
 \[
-\begin{aligned}
-\text{EG:} &\quad \epsilon \in \{0.01, 0.02, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5\} \\
-\text{DEC:} &\quad \epsilon_{\text{start}} \in \{0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8\}, \quad T_{\text{decay}} \in \{50, 75, 100, 150, 200, 250, 300, 400, 500\} \\
-\text{UCB:} &\quad c \in \{0.1, 0.2, 0.3, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 5.0, 7.0, 10.0\}
-\end{aligned}
+\text{EG:} \; \epsilon \in [0.01, 0.50], \Delta 0.05 \qquad
+\text{DEC:} \; \epsilon_{\text{start}} \in [0.2, 0.8], \Delta 0.1; \; T_{\text{decay}} \in [50, 500], \Delta 50 \qquad
+\text{UCB:} \; c \in [0.1, 10.0], \Delta 0.5
 \]
 
 \begin{table}[h]
@@ -87,26 +85,27 @@ UCB $c=10.0$ & 137.3 $\pm$ 13.2 & 0.305 & 0.306 & over-explore \\
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth]{images/hyperparam_eg.pdf}
-\caption{Epsilon-greedy: epsilon vs total reward for standard and contextual variants (50 seeds, $\pm$1 SD). The contextual variant achieves higher reward across all epsilon values by exploiting per-activity Q-tables.}
-\label{fig:hyperparam-eg}
+\begin{minipage}{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{images/hyperparam_eg.pdf}
+  \caption*{\small EG: $\epsilon$ vs reward}
+  \label{fig:hyperparam-eg}
+\end{minipage}\hfill
+\begin{minipage}{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{images/hyperparam_ucb.pdf}
+  \caption*{\small UCB: $c$ vs reward}
+  \label{fig:hyperparam-ucb}
+\end{minipage}\hfill
+\begin{minipage}{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{images/hyperparam_dec_heatmap.pdf}
+  \caption*{\small DEC: heatmap}
+  \label{fig:hyperparam-dec-heatmap}
+\end{minipage}
+\caption{Hyperparameter sensitivity: EG (left), UCB (centre), DEC heatmap (right). All 50 seeds, $\pm$1~SD where applicable.}
+\label{fig:hyperparam-all}
 \end{figure}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{images/hyperparam_ucb.pdf}
-\caption{UCB: exploration constant $c$ vs total reward for standard and contextual variants (50 seeds, $\pm$1 SD). Optimal $c$ lies near 0.3--0.5 for both variants.}
-\label{fig:hyperparam-ucb}
-\end{figure}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{images/hyperparam_dec_heatmap.pdf}
-\caption{Standard DEC: 2D heatmap of total reward across epsilon\_start (rows) and decay\_steps (columns). Darker (higher) values concentrate at high epsilon\_start and moderate-to-long decay.}
-\label{fig:hyperparam-dec-heatmap}
-\end{figure}
-
-\paragraph{Boundary analysis.}
 The widened grid fully resolves all boundary concerns:
 \begin{itemize}
   \item \textbf{EG:} The optimum ($\epsilon=0.15$, total 160.7) is interior --- values on either side ($0.10$, $0.20$) are both lower. Not at a boundary.
