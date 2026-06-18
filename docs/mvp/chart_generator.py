@@ -1,4 +1,4 @@
-"""Generate learning curve chart for contextual Thompson Sampling.
+"""Generate learning curve charts for all contextual bandit agents.
 
 Excluded from ty/ruff via pyproject.toml tool settings.
 """
@@ -12,22 +12,25 @@ from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.experiment import run_episode
 from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 
+# Agent definitions: (label, config_type, kwargs, color, linestyle)
+AGENTS = [
+    ("Standard TS", "thompson_sampling", {"alpha_prior": 1, "beta_prior": 1}, "#2196F3", "-"),
+    ("Contextual TS", "thompson_sampling", {"alpha_prior": 1, "beta_prior": 1, "contextual": True, "context_feature": "activity"}, "#4CAF50", "-"),
+    ("Standard EG", "epsilon_greedy", {"epsilon": 0.1}, "#FF9800", "-"),
+    ("Contextual EG", "epsilon_greedy", {"epsilon": 0.1, "contextual": True, "context_feature": "activity"}, "#E91E63", "-"),
+    ("Standard UCB", "ucb", {"c": 2.0}, "#9C27B0", "-"),
+    ("Contextual UCB", "ucb", {"c": 2.0, "contextual": True, "context_feature": "activity"}, "#00BCD4", "-"),
+]
 
-def run_seeds(config_path: str, n_seeds: int = 50) -> np.ndarray:
-    """Run agent over n_seeds, return per-step rewards with shape (n_seeds, n_steps)."""
+
+def run_seeds(agent_type: str, agent_kwargs: dict, config, n_seeds: int) -> np.ndarray:
+    """Run agent over n_seeds, return per-step rewards (n_seeds, n_steps)."""
     all_rewards = []
-    config = load_config(config_path)
-    agent_cfg = config.agents[0]
-    base_kwargs = {
-        k: v
-        for k, v in agent_cfg.model_dump().items()
-        if v is not None and k != "type"
-    }
-    base_kwargs["actions"] = config.actions
     for seed in range(1, n_seeds + 1):
-        kwargs = base_kwargs.copy()
+        kwargs = agent_kwargs.copy()
         kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
-        agent = make_agent(agent_cfg.type, **kwargs)
+        kwargs["actions"] = config.actions
+        agent = make_agent(agent_type, **kwargs)
         df = run_episode(config, agent, seed=seed)
         all_rewards.append(df["reward"].values)
     return np.array(all_rewards)
@@ -35,91 +38,51 @@ def run_seeds(config_path: str, n_seeds: int = 50) -> np.ndarray:
 
 def main() -> None:
     n_seeds = 50
-    print(f"Running {n_seeds} seeds for each agent...")
-    repo_root = Path(__file__).resolve().parents[2]
-
-    baseline = run_seeds(str(repo_root / "config" / "rule_based.yaml"), n_seeds)
-    contextual = run_seeds(str(repo_root / "config" / "contextual_thompson.yaml"), n_seeds)
-
-    # Cumulative reward per step (mean across seeds)
-    baseline_cum = np.cumsum(baseline, axis=1).mean(axis=0)
-    contextual_cum = np.cumsum(contextual, axis=1).mean(axis=0)
-
-    # Per-step rolling average (window=20) for smoother curves
     window = 20
-    baseline_step = np.convolve(
-        baseline.mean(axis=0), np.ones(window) / window, mode="valid"
-    )
-    contextual_step = np.convolve(
-        contextual.mean(axis=0), np.ones(window) / window, mode="valid"
-    )
+    repo_root = Path(__file__).resolve().parents[2]
+    config = load_config(str(repo_root / "config" / "contextual_thompson.yaml"))
 
-    # Theoretical upper bounds (constant per-step rates)
-    steps = np.arange(1, 451)
-    contextual_optimal = steps * (3 / 7)  # 0.4286 per step
-    noncontextual_optimal = steps * 0.375  # always nudge
+    all_data: dict[str, np.ndarray] = {}
+    for label, agent_type, kwargs, _color, _ls in AGENTS:
+        print(f"Running {label} ({n_seeds} seeds)...")
+        all_data[label] = run_seeds(agent_type, kwargs, config, n_seeds)
 
-    # Confidence bands (std across seeds)
-    baseline_cum_std = np.cumsum(baseline, axis=1).std(axis=0)
-    contextual_cum_std = np.cumsum(contextual, axis=1).std(axis=0)
+    n_steps = all_data[list(all_data.keys())[0]].shape[1]
+    steps = np.arange(1, n_steps + 1)
 
-    # --- Figure 1: Cumulative reward over time ---
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    # Theoretical bounds
+    contextual_optimal = steps * (3 / 7)
+    noncontextual_optimal = steps * 0.375
 
-    ax1.fill_between(
-        steps,
-        baseline_cum - baseline_cum_std,
-        baseline_cum + baseline_cum_std,
-        alpha=0.15,
-        color="#2196F3",
-    )
-    ax1.fill_between(
-        steps,
-        contextual_cum - contextual_cum_std,
-        contextual_cum + contextual_cum_std,
-        alpha=0.15,
-        color="#4CAF50",
-    )
-    ax1.plot(steps, baseline_cum, label="Standard TS", color="#2196F3", linewidth=1.5)
-    ax1.plot(
-        steps, contextual_cum, label="Contextual TS", color="#4CAF50", linewidth=1.5
-    )
-    ax1.plot(
-        steps,
-        noncontextual_optimal,
-        label="Non-contextual optimal",
-        color="#2196F3",
-        linewidth=1,
-        linestyle="--",
-        alpha=0.6,
-    )
-    ax1.plot(
-        steps,
-        contextual_optimal,
-        label="Contextual optimal",
-        color="#4CAF50",
-        linewidth=1,
-        linestyle="--",
-        alpha=0.6,
-    )
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+
+    for label, _type, _kwargs, color, ls in AGENTS:
+        rewards = all_data[label]
+        cum_mean = np.cumsum(rewards, axis=1).mean(axis=0)
+        cum_std = np.cumsum(rewards, axis=1).std(axis=0)
+
+        ax1.fill_between(steps, cum_mean - cum_std, cum_mean + cum_std, alpha=0.1, color=color)
+        ax1.plot(steps, cum_mean, label=label, color=color, linewidth=1.5, linestyle=ls)
+
+        step_mean = rewards.mean(axis=0)
+        step_smooth = np.convolve(step_mean, np.ones(window) / window, mode="valid")
+        window_steps = np.arange(window, n_steps + 1)
+        ax2.plot(window_steps, step_smooth, label=label, color=color, linewidth=1.5, linestyle=ls)
+
+    ax1.plot(steps, noncontextual_optimal, label="Non-ctx optimal", color="#2196F3", linewidth=1, linestyle="--", alpha=0.5)
+    ax1.plot(steps, contextual_optimal, label="Ctx optimal", color="#4CAF50", linewidth=1, linestyle="--", alpha=0.5)
     ax1.set_xlabel("Step")
     ax1.set_ylabel("Cumulative Reward")
     ax1.set_title("Cumulative Reward")
-    ax1.legend(fontsize=8)
+    ax1.legend(fontsize=7, loc="upper left")
     ax1.grid(True, alpha=0.3)
 
-    # --- Figure 2: Per-step reward (rolling average) ---
-    window_steps = np.arange(window, 451)
-    ax2.plot(window_steps, baseline_step, label="Standard TS", color="#2196F3", linewidth=1.5)
-    ax2.plot(
-        window_steps, contextual_step, label="Contextual TS", color="#4CAF50", linewidth=1.5
-    )
-    ax2.axhline(y=3 / 7, color="#4CAF50", linestyle="--", alpha=0.6, label="Contextual optimal")
-    ax2.axhline(y=0.375, color="#2196F3", linestyle="--", alpha=0.6, label="Non-contextual optimal")
+    ax2.axhline(y=3 / 7, color="#4CAF50", linestyle="--", alpha=0.5, label="Ctx optimal")
+    ax2.axhline(y=0.375, color="#2196F3", linestyle="--", alpha=0.5, label="Non-ctx optimal")
     ax2.set_xlabel("Step")
     ax2.set_ylabel("Reward per Step (rolling avg)")
     ax2.set_title(f"Per-Step Reward (window={window})")
-    ax2.legend(fontsize=8)
+    ax2.legend(fontsize=7, loc="upper left")
     ax2.grid(True, alpha=0.3)
     ax2.set_ylim(0.25, 0.50)
 
@@ -131,14 +94,20 @@ def main() -> None:
     print(f"Saved to {out}")
 
     # Print summary
-    print(f"\nFinal cumulative reward (step 450):")
-    print(f"  Standard TS:    {baseline_cum[-1]:.1f} +/- {baseline_cum_std[-1]:.1f}")
-    print(f"  Contextual TS:  {contextual_cum[-1]:.1f} +/- {contextual_cum_std[-1]:.1f}")
-    print(f"  Contextual opt: {contextual_optimal[-1]:.1f}")
-    print(f"\nPer-step reward (last 50 steps average):")
-    print(f"  Standard TS:    {baseline.mean(axis=0)[-50:].mean():.4f}")
-    print(f"  Contextual TS:  {contextual.mean(axis=0)[-50:].mean():.4f}")
-    print(f"  Contextual opt: {3/7:.4f}")
+    print(f"\nFinal cumulative reward (step {n_steps}):")
+    for label in all_data:
+        r = all_data[label]
+        cum = np.cumsum(r, axis=1).mean(axis=0)
+        cum_std = np.cumsum(r, axis=1).std(axis=0)
+        print(f"  {label:<20} {cum[-1]:>6.1f} +/- {cum_std[-1]:.1f}")
+    print(f"  {'Ctx optimal':<20} {contextual_optimal[-1]:>6.1f}")
+    print(f"  {'Non-ctx optimal':<20} {noncontextual_optimal[-1]:>6.1f}")
+
+    print(f"\nPer-step reward (last {window} steps average):")
+    for label in all_data:
+        r = all_data[label]
+        print(f"  {label:<20} {r[:, -window:].mean():.4f}")
+    print(f"  {'Ctx optimal':<20} {3/7:.4f}")
 
 
 if __name__ == "__main__":
