@@ -31,23 +31,15 @@ def make(name: str, **kwargs) -> Agent:
     return REGISTRY[name](**kwargs)
 
 
-try:
-    thompson_sampling.register()
-except Exception:
-    logger.exception("Failed to register thompson_sampling agent")
+_AGENT_MODULES = [
+    thompson_sampling,
+    epsilon_greedy,
+    random,
+    ucb,
+]
 
-try:
-    epsilon_greedy.register()
-except Exception:
-    logger.exception("Failed to register epsilon_greedy agent")
-
-
-try:
-    random.register()
-except Exception:
-    logger.exception("Failed to register random agent")
-
-try:
-    ucb.register()
-except Exception:
-    logger.exception("Failed to register ucb agent")
+for _mod in _AGENT_MODULES:
+    try:
+        _mod.register()
+    except Exception:
+        logger.exception("Failed to register %s", _mod.__name__)

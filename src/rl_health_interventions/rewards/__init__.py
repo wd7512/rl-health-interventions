@@ -26,7 +26,10 @@ def make(name_or_config=None, **kwargs) -> RewardHandler:
     return REGISTRY[name](**kwargs)
 
 
-try:
-    compound.register()
-except Exception:
-    logger.exception("Failed to register compound reward handler")
+_REWARD_MODULES = [compound]
+
+for _mod in _REWARD_MODULES:
+    try:
+        _mod.register()
+    except Exception:
+        logger.exception("Failed to register %s", _mod.__name__)
