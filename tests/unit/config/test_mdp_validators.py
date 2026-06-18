@@ -369,7 +369,12 @@ class TestDecayingEpsilonGreedy:
     def test_valid_config_accepted(self):
         raw = _valid_raw()
         raw["agents"] = [
-            {"type": "decaying_epsilon_greedy", "epsilon_start": 0.5, "epsilon_min": 0.01, "decay_steps": 200}
+            {
+                "type": "decaying_epsilon_greedy",
+                "epsilon_start": 0.5,
+                "epsilon_min": 0.01,
+                "decay_steps": 200,
+            }
         ]
         config = MDPConfig.model_validate(raw)
         assert config.agents[0].type == "decaying_epsilon_greedy"
@@ -377,15 +382,19 @@ class TestDecayingEpsilonGreedy:
     def test_epsilon_min_exceeding_start_rejected(self):
         raw = _valid_raw()
         raw["agents"] = [
-            {"type": "decaying_epsilon_greedy", "epsilon_start": 0.1, "epsilon_min": 0.5}
+            {
+                "type": "decaying_epsilon_greedy",
+                "epsilon_start": 0.1,
+                "epsilon_min": 0.5,
+            }
         ]
-        with pytest.raises(ValidationError, match="epsilon_min must not exceed epsilon_start"):
+        with pytest.raises(
+            ValidationError, match="epsilon_min must not exceed epsilon_start"
+        ):
             MDPConfig.model_validate(raw)
 
     def test_epsilon_start_out_of_range_rejected(self):
         raw = _valid_raw()
-        raw["agents"] = [
-            {"type": "decaying_epsilon_greedy", "epsilon_start": 1.5}
-        ]
+        raw["agents"] = [{"type": "decaying_epsilon_greedy", "epsilon_start": 1.5}]
         with pytest.raises(ValidationError, match="epsilon_start must be in"):
             MDPConfig.model_validate(raw)
