@@ -6,9 +6,12 @@ Excluded from ty/ruff via pyproject.toml.
 from __future__ import annotations
 
 import argparse
+import logging
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.config.schemas import AgentConfig
@@ -52,14 +55,14 @@ def main() -> None:
     n_seeds = args.seeds
     window = min(20, n_steps)
 
-    print(f"Config: {config_path}")
-    print(f"MDP: {config.episode_days} days x {config.steps_per_day} steps = {n_steps} steps")
-    print(f"Seeds: {n_seeds}\n")
+    logger.info("Config: %s", config_path)
+    logger.info("MDP: %d days x %d steps = %d steps", config.episode_days, config.steps_per_day, n_steps)
+    logger.info("Seeds: %d\n", n_seeds)
 
     all_data: dict[str, np.ndarray] = {}
     for label, agent_dict, _color, _ls in AGENT_VARIANTS:
         agent_cfg = AgentConfig.model_validate(agent_dict)
-        print(f"Running {label}...")
+        logger.info("Running %s...", label)
         all_data[label] = run_agent(config, agent_cfg, n_seeds)
 
     steps = np.arange(1, n_steps + 1)
@@ -103,8 +106,9 @@ def main() -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
-    print(f"\nSaved to {out}")
+    logger.info("\nSaved to %s", out)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     main()
