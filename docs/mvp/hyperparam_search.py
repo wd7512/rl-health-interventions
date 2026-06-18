@@ -26,9 +26,9 @@ from rl_health_interventions.experiment import run_episode
 logger = logging.getLogger(__name__)
 
 EPSILON_VALUES = [0.01, 0.02, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5]
-DEC_EPSILON_START_VALUES = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+DEC_EPSILON_START_VALUES = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 C_VALUES = [0.1, 0.2, 0.3, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 5.0, 7.0, 10.0]
-DECAY_STEPS_VALUES = [50, 75, 100, 150, 200, 250, 300, 400, 500]
+DECAY_STEPS_VALUES = [25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700]
 N_SEEDS = 50
 
 OUTPUT_PATH = Path(__file__).parent / "hyperparam_results.csv"

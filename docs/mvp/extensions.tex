@@ -33,12 +33,14 @@ E[r] = \tfrac{4}{7} \cdot 0.3 + \tfrac{3}{7} \cdot 0.6 = \tfrac{3}{7} \approx 0.
 Best non-contextual (always nudge): $E[r] = 0.375$, total $168.8$. The contextual bound is $14.3\%$ higher.
 
 \section{Hyperparameter Optimisation}
-Each agent was grid-searched over its key parameters (both standard and contextual variants, 50 seeds, 450 timesteps). The grid was widened after an initial pass found optimal values at search boundaries.\footnote{The contextual hyperparameter sweeps are used for the chart analysis in Figures~\ref{fig:hyperparam-eg} and~\ref{fig:hyperparam-ucb}; the table below reports standard (non-contextual) results to match \S5 of the MVP specification.}
+Each agent was grid-searched over its key parameters (both standard and contextual variants, 50 seeds, 450 timesteps).\\footnote{The contextual hyperparameter sweeps are used for the chart analysis in Figures~\ref{fig:hyperparam-eg} and~\ref{fig:hyperparam-ucb}; the table below reports standard (non-contextual) results to match \S5 of the MVP specification.}
 
 \[
-\text{EG:} \; \epsilon \in [0.01, 0.50], \Delta 0.05 \qquad
-\text{DEC:} \; \epsilon_{\text{start}} \in [0.2, 0.8], \Delta 0.1; \; T_{\text{decay}} \in [50, 500], \Delta 50 \qquad
-\text{UCB:} \; c \in [0.1, 10.0], \Delta 0.5
+\begin{aligned}
+\text{EG:} &\quad \epsilon \in [0.01, 0.50], \; \Delta 0.05 \\
+\text{DEC:} &\quad \epsilon_{\text{start}} \in [0.1, 1.0], \; \Delta 0.1; \quad T_{\text{decay}} \in [25, 700], \; \Delta 25 \\
+\text{UCB:} &\quad c \in [0.1, 10.0], \; \Delta 0.5
+\end{aligned}
 \]
 
 \begin{table}[h]
@@ -106,12 +108,11 @@ UCB $c=10.0$ & 137.3 $\pm$ 13.2 & 0.305 & 0.306 & over-explore \\
 \caption{Hyperparameter sensitivity: EG (left), UCB (centre), DEC heatmap (right). All 50 seeds, $\pm$1~SD where applicable.}
 \label{fig:hyperparam-all}
 \end{figure}
-The widened grid fully resolves all boundary concerns:
+
 \begin{itemize}
-  \item \textbf{EG:} The optimum ($\epsilon=0.15$, total 160.7) is interior --- values on either side ($0.10$, $0.20$) are both lower. Not at a boundary.
-  \item \textbf{UCB:} The optimum ($c=0.5$, total 163.6) is interior --- $c=0.3$ yields 163.5 and $c=0.7$ yields 159.8. Not at a boundary.
-  \item \textbf{DEC (standard):} The new optimum ($\epsilon_{\text{start}}=0.6$, $T_{\text{decay}}=150$, total 163.9) is interior --- the grid now extends to $\epsilon_{\text{start}}=0.8$ and $T_{\text{decay}}=500$, with both directions showing diminishing returns. Gains above 162.0 are modest.
-  \item \textbf{DEC (contextual):} The new optimum ($\epsilon_{\text{start}}=0.7$, $T_{\text{decay}}=75$, total 180.4) is also interior, with $\epsilon_{\text{start}}=0.8$ and longer/shorter decay windows all yielding lower totals.
+  \item \textbf{EG:} The optimum ($\epsilon=0.15$, total 160.7) is interior --- values on either side ($0.10$, $0.20$) are both lower.
+  \item \textbf{UCB:} The optimum ($c=0.5$, total 163.6) is interior --- $c=0.3$ yields 163.5 and $c=0.7$ yields 159.8.
+  \item \textbf{DEC:} The optimum is at $\epsilon_{\text{start}}=1.0$, the theoretical maximum for a probability ($\Pr(\text{explore}) = \min(1, \epsilon)$). This is not a search limitation --- $\epsilon_{\text{start}} > 1.0$ is equivalent to $\epsilon_{\text{start}} = 1.0$ since the agent explores with certainty when $\epsilon \geq 1$. The result confirms that maximum initial exploration followed by linear decay is the preferred strategy. Decay steps are well-characterised (optimum at 50--150).
 \end{itemize}
 
 \paragraph{Variance: $\epsilon=0.05$ vs $\epsilon=0.10$ for EG.}
