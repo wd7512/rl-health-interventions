@@ -118,6 +118,14 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "epsilon_min must be in [0, 1] for decaying_epsilon_greedy"
                 )
+            if (
+                self.epsilon_min is not None
+                and self.epsilon_start is not None
+                and self.epsilon_min > self.epsilon_start
+            ):
+                raise ValueError(
+                    "epsilon_min must not exceed epsilon_start for decaying_epsilon_greedy"
+                )
             if self.decay_steps is not None and self.decay_steps <= 0:
                 raise ValueError("decay_steps must be > 0 for decaying_epsilon_greedy")
             if (
