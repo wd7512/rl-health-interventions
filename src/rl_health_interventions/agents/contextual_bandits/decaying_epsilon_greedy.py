@@ -25,6 +25,17 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
         contextual: bool = False,
         context_feature: str | None = None,
     ) -> None:
+        """
+        Initialize a DecayingEpsilonGreedyAgent.
+        
+        Parameters:
+            epsilon_start (float): Initial exploration probability, in [0.0, 1.0].
+            epsilon_min (float): Minimum exploration probability, in [0.0, 1.0].
+            decay_steps (int): Number of steps over which epsilon decays linearly.
+        
+        Raises:
+            ValueError: If epsilon_start or epsilon_min are not in [0.0, 1.0], if epsilon_min exceeds epsilon_start, or if decay_steps is not positive.
+        """
         super().__init__(
             actions=actions,
             seed=seed,
@@ -46,6 +57,11 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
         self._init_params()
 
     def _init_params(self) -> None:
+        """
+        Initialize Q-value and count storage for the agent.
+        
+        In non-contextual mode, pre-populates all actions with initial Q-values of 0.0 and visit counts of 0. In contextual mode, initializes empty dictionaries for lazy population during action selection and updates.
+        """
         self.q_values: dict = {}
         self.counts: dict = {}
         if not self.contextual:
@@ -53,15 +69,35 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
             self.counts = {a: 0 for a in self._actions}
 
     def _ensure_params(self, key: str | tuple[str, str]) -> None:
+        """
+        Ensure Q-value and count entries are initialized for the given key.
+        
+        Parameters:
+            key (str | tuple[str, str]): The parameter key; either an action string or a (context_value, action) tuple.
+        """
         if key not in self.q_values:
             self.q_values[key] = 0.0
             self.counts[key] = 0
 
     def _current_epsilon(self) -> float:
+        """
+        Compute the current exploration rate with linear decay.
+        
+        Returns:
+            float: The exploration rate (epsilon) for the current step, between epsilon_min and epsilon_start.
+        """
         decayed = self.epsilon_start * (1 - self._step / self.decay_steps)
         return max(self.epsilon_min, decayed)
 
     def select_action(self, state) -> str:
+        """
+        Select an action according to the epsilon-greedy policy with linearly decaying exploration.
+        
+        With probability epsilon, explores by selecting a uniformly random action. Otherwise, exploits by selecting uniformly at random among actions with the maximum Q-value.
+        
+        Returns:
+            str: The selected action.
+        """
         epsilon = self._current_epsilon()
         self._step += 1
         if self._rng.random() < epsilon:
@@ -78,6 +114,9 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
         return best[idx]
 
     def update(self, state, action: str, reward: float, next_state) -> None:
+        """
+        Update the Q-value estimate and observation count for a state-action pair based on the received reward.
+        """
         key = self._get_context_key(state, action)
         self._ensure_params(key)
         self.counts[key] += 1
