@@ -1,62 +1,74 @@
 """Generate learning curve charts for all contextual bandit agents.
 
-Excluded from ty/ruff via pyproject.toml tool settings.
+Loads a base MDP config, swaps out the agent section for each variant.
+Excluded from ty/ruff via pyproject.toml.
 """
 from __future__ import annotations
 
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
 from rl_health_interventions.config.loader import load_config
+from rl_health_interventions.config.schemas import AgentConfig
 from rl_health_interventions.experiment import run_episode
 from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 
-# Agent definitions: (label, config_type, kwargs, color, linestyle)
-AGENTS = [
-    ("Standard TS", "thompson_sampling", {"alpha_prior": 1, "beta_prior": 1}, "#2196F3", "-"),
-    ("Contextual TS", "thompson_sampling", {"alpha_prior": 1, "beta_prior": 1, "contextual": True, "context_feature": "activity"}, "#4CAF50", "-"),
-    ("Standard EG", "epsilon_greedy", {"epsilon": 0.1}, "#FF9800", "-"),
-    ("Contextual EG", "epsilon_greedy", {"epsilon": 0.1, "contextual": True, "context_feature": "activity"}, "#E91E63", "-"),
-    ("Standard UCB", "ucb", {"c": 2.0}, "#9C27B0", "-"),
-    ("Contextual UCB", "ucb", {"c": 2.0, "contextual": True, "context_feature": "activity"}, "#00BCD4", "-"),
+AGENT_VARIANTS = [
+    ("Standard TS", {"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1}, "#2196F3", "-"),
+    ("Contextual TS", {"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1, "contextual": True, "context_feature": "activity"}, "#4CAF50", "-"),
+    ("Standard EG", {"type": "epsilon_greedy", "epsilon": 0.1}, "#FF9800", "-"),
+    ("Contextual EG", {"type": "epsilon_greedy", "epsilon": 0.1, "contextual": True, "context_feature": "activity"}, "#E91E63", "-"),
+    ("Standard UCB", {"type": "ucb", "c": 2.0}, "#9C27B0", "-"),
+    ("Contextual UCB", {"type": "ucb", "c": 2.0, "contextual": True, "context_feature": "activity"}, "#00BCD4", "-"),
 ]
 
 
-def run_seeds(agent_type: str, agent_kwargs: dict, config, n_seeds: int) -> np.ndarray:
-    """Run agent over n_seeds, return per-step rewards (n_seeds, n_steps)."""
-    all_rewards = []
+def run_agent(config, agent_cfg: AgentConfig, n_seeds: int) -> np.ndarray:
+    """Run one agent variant over n_seeds. Returns per-step rewards (n_seeds, n_steps)."""
+    rewards = []
     for seed in range(1, n_seeds + 1):
-        kwargs = agent_kwargs.copy()
-        kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
+        kwargs = {k: v for k, v in agent_cfg.model_dump().items() if v is not None and k != "type"}
         kwargs["actions"] = config.actions
-        agent = make_agent(agent_type, **kwargs)
+        kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
+        agent = make_agent(agent_cfg.type, **kwargs)
         df = run_episode(config, agent, seed=seed)
-        all_rewards.append(df["reward"].values)
-    return np.array(all_rewards)
+        rewards.append(df["reward"].values)
+    return np.array(rewards)
 
 
 def main() -> None:
-    n_seeds = 50
-    window = 20
+    parser = argparse.ArgumentParser(description="Generate learning curve charts")
+    parser.add_argument("--seeds", type=int, default=50, help="Number of random seeds (default: 50)")
+    parser.add_argument("--config", type=str, default=None, help="Base MDP config (default: config/rule_based.yaml)")
+    args = parser.parse_args()
+
     repo_root = Path(__file__).resolve().parents[2]
-    config = load_config(str(repo_root / "config" / "contextual_thompson.yaml"))
+    config_path = args.config or str(repo_root / "config" / "rule_based.yaml")
+    config = load_config(config_path)
+
+    n_steps = config.episode_days * config.steps_per_day
+    n_seeds = args.seeds
+    window = 20
+
+    print(f"Config: {config_path}")
+    print(f"MDP: {config.episode_days} days x {config.steps_per_day} steps = {n_steps} steps")
+    print(f"Seeds: {n_seeds}\n")
 
     all_data: dict[str, np.ndarray] = {}
-    for label, agent_type, kwargs, _color, _ls in AGENTS:
-        print(f"Running {label} ({n_seeds} seeds)...")
-        all_data[label] = run_seeds(agent_type, kwargs, config, n_seeds)
+    for label, agent_dict, _color, _ls in AGENT_VARIANTS:
+        agent_cfg = AgentConfig.model_validate(agent_dict)
+        print(f"Running {label}...")
+        all_data[label] = run_agent(config, agent_cfg, n_seeds)
 
-    n_steps = all_data[list(all_data.keys())[0]].shape[1]
     steps = np.arange(1, n_steps + 1)
-
-    # Theoretical bounds
     contextual_optimal = steps * (3 / 7)
     noncontextual_optimal = steps * 0.375
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-    for label, _type, _kwargs, color, ls in AGENTS:
+    for label, _agent_dict, color, ls in AGENT_VARIANTS:
         rewards = all_data[label]
         cum_mean = np.cumsum(rewards, axis=1).mean(axis=0)
         cum_std = np.cumsum(rewards, axis=1).std(axis=0)
@@ -91,23 +103,7 @@ def main() -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
-    print(f"Saved to {out}")
-
-    # Print summary
-    print(f"\nFinal cumulative reward (step {n_steps}):")
-    for label in all_data:
-        r = all_data[label]
-        cum = np.cumsum(r, axis=1).mean(axis=0)
-        cum_std = np.cumsum(r, axis=1).std(axis=0)
-        print(f"  {label:<20} {cum[-1]:>6.1f} +/- {cum_std[-1]:.1f}")
-    print(f"  {'Ctx optimal':<20} {contextual_optimal[-1]:>6.1f}")
-    print(f"  {'Non-ctx optimal':<20} {noncontextual_optimal[-1]:>6.1f}")
-
-    print(f"\nPer-step reward (last {window} steps average):")
-    for label in all_data:
-        r = all_data[label]
-        print(f"  {label:<20} {r[:, -window:].mean():.4f}")
-    print(f"  {'Ctx optimal':<20} {3/7:.4f}")
+    print(f"\nSaved to {out}")
 
 
 if __name__ == "__main__":
