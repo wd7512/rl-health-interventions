@@ -13,10 +13,10 @@
 
 ## Testing
 
-- [ ] Run `ruff format --check`
-- [ ] Run `ruff check`
-- [ ] Run `ty check --exclude tests/`
-- [ ] Run `pytest`
+- [ ] `uv run ruff format --check .`
+- [ ] `uv run ruff check --fix`
+- [ ] `uv run ty check --exclude tests/`
+- [ ] `uv run pytest`
 - [ ] Added / updated tests for this change
 
 ## Related Issues

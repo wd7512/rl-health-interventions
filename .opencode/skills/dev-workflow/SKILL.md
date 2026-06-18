@@ -54,7 +54,7 @@ EXISTING=$(gh pr list --head "$BRANCH" --state open --json headRefName 2>/dev/nu
 **Resume existing work** (branch or PR exists):
 
 ```bash
-git worktree add "$WORKTREE_PATH" "$BRANCH"
+git worktree add -b "$BRANCH" "$WORKTREE_PATH" "origin/$BRANCH"
 ```
 
 **New work** (neither branch nor PR exists):
@@ -77,7 +77,7 @@ Include in the prompt:
 - The full worktree path (`$WORKTREE_PATH`)
 - The specific files to change (use absolute paths under `$WORKTREE_PATH`)
 - The behavior to implement and what tests to write
-- To run `uv run ruff format --check .`, `uv run ruff check`, `uv run ty check --exclude tests/`, `uv run pytest` on completion
+- To run `uv run ruff format --check .`, `uv run ruff check --fix`, `uv run ty check --exclude tests/`, `uv run pytest` on completion
 - To delegate back to you when done with a summary
 
 #### Config / docs / Markdown → implement directly
@@ -92,7 +92,8 @@ Run inside the worktree (`workdir: $WORKTREE_PATH`):
 
 ```bash
 uv run ruff format --check .
-uv run ruff check
+uv run ruff check --fix
+uv run ty check --exclude tests/
 uv run pytest
 uv build
 ```
@@ -131,7 +132,7 @@ Capture the PR URL from the output for the summary.
 git worktree remove "$WORKTREE_PATH"
 ```
 
-(If removal fails due to unstanged changes, commit or resolve first.)
+(If removal fails due to unstaged changes, commit or resolve first.)
 
 The `$WORKTREE_ROOT/.gitignore` should prevent stale files from lingering.
 
@@ -146,7 +147,8 @@ Report to the user:
 
 ```bash
 uv run ruff format --check .
-uv run ruff check
+uv run ruff check --fix
+uv run ty check --exclude tests/
 uv run pytest
 uv build
 ```
