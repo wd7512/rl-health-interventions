@@ -9,32 +9,23 @@
 \begin{document}
 \maketitle
 
-Extends the MVP bandits (\S5 of \texttt{mvp\_specification.tex}) by conditioning action selection on the current activity level, and adds a decaying-epsilon variant with automated hyperparameter selection.
+Extends the MVP bandits (\S5 of \texttt{mvp\_specification.tex}) by conditioning action selection on activity level, and adds a decaying-epsilon variant.
 
 \section{Formulation}
-Context $c_t = s_t.\texttt{activity} \in \{\texttt{sedentary}, \texttt{active}\}$. Each algorithm maintains separate parameters per $(c, a)$ pair instead of global per-action parameters:
+Context $c_t = s_t.\texttt{activity} \in \{\texttt{sedentary}, \texttt{active}\}$. Each algorithm maintains separate parameters per $(c, a)$ pair:
 
 \begin{itemize}
   \item \textbf{Thompson Sampling:} $(\alpha_{c,a}, \beta_{c,a})$ posteriors. Sample $\theta_{c_t, a} \sim \text{Beta}(\alpha_{c_t, a}, \beta_{c_t, a})$, pick $a^* = \arg\max_a \theta_{c_t, a}$.
-  \item \textbf{Epsilon-Greedy:} $Q_{c,a}$ values. With probability $\epsilon$ explore, otherwise pick $a^* = \arg\max_a Q_{c_t, a}$.
-  \item \textbf{UCB:} $Q_{c,a}$ values with per-context counts. $a^* = \arg\max_a \left[ Q_{c_t, a} + c \sqrt{\ln(N_{c_t}) / n_{c_t, a}} \right]$ where $N_{c_t} = \sum_a n_{c_t, a}$ is the total visits to the current context.
-  \item \textbf{Decaying Epsilon-Greedy:} Same Q-learning as epsilon-greedy, but the exploration rate decays linearly each step: $\epsilon_t = \max(\epsilon_{\min},\; \epsilon_{\text{start}} (1 - t / T_{\text{decay}}))$. After $T_{\text{decay}}$ steps the agent relies almost entirely on exploitation (subject to $\epsilon_{\min}$).
+  \item \textbf{Epsilon-Greedy:} $Q_{c,a}$ values. With probability $\epsilon$ explore, otherwise $a^* = \arg\max_a Q_{c_t, a}$.
+  \item \textbf{UCB:} $a^* = \arg\max_a \left[ Q_{c_t, a} + c \sqrt{\ln(N_{c_t}) / n_{c_t, a}} \right]$ where $N_{c_t} = \sum_a n_{c_t, a}$.
+  \item \textbf{Decaying Epsilon-Greedy:} Linear decay: $\epsilon_t = \max(\epsilon_{\min},\; \epsilon_{\text{start}} (1 - t / T_{\text{decay}}))$.
 \end{itemize}
 
-Update only the observed $(c_t, a_t)$ pair.
-
 \section{Optimal Policy}
-The optimal contextual policy (from the transition matrices in \S3) is: nudge when sedentary ($0.3 > 0.1$), idle when active ($0.6 > 0.5$). Stationary distribution: $\pi_s = 4/7$, $\pi_a = 3/7$.
-
-\[
-E[r] = \tfrac{4}{7} \cdot 0.3 + \tfrac{3}{7} \cdot 0.6 = \tfrac{3}{7} \approx 0.429 \text{ per step} \implies 192.9 \text{ total}
-\]
-
-Best non-contextual (always nudge): $E[r] = 0.375$, total $168.8$. The contextual bound is $14.3\%$ higher.
+Nudge when sedentary ($0.3 > 0.1$), idle when active ($0.6 > 0.5$). Contextual bound: $E[r] = 3/7 \approx 0.429$ per step, $192.9$ total ($14.3\%$ above non-contextual optimal).
 
 \section{Hyperparameter Optimisation}
-Each agent was grid-searched over its key parameters (both standard and contextual variants, 50 seeds, 450 timesteps).\\footnote{The contextual hyperparameter sweeps are used for the chart analysis in Figures~\ref{fig:hyperparam-eg} and~\ref{fig:hyperparam-ucb}; the table below reports standard (non-contextual) results to match \S5 of the MVP specification.}
-
+Grid search over key parameters (50 seeds, 450 timesteps, both standard and contextual variants):
 \[
 \begin{aligned}
 \text{EG:} &\quad \epsilon \in [0.01, 0.50], \; \Delta 0.05 \\
@@ -42,48 +33,6 @@ Each agent was grid-searched over its key parameters (both standard and contextu
 \text{UCB:} &\quad c \in [0.1, 10.0], \; \Delta 0.5
 \end{aligned}
 \]
-
-\begin{table}[h]
-\centering
-\begin{tabular}{lrrrl}
-\toprule
-Config & Total Reward & Per Step & Last 50 Steps & Note \\
-\midrule
-EG $\epsilon=0.01$ & 146.6 $\pm$ 34.3 & 0.326 & 0.349 & under-explore \\
-EG $\epsilon=0.02$ & 147.7 $\pm$ 33.3 & 0.328 & 0.358 & -- \\
-EG $\epsilon=0.03$ & 149.8 $\pm$ 32.3 & 0.333 & 0.346 & -- \\
-EG $\epsilon=0.05$ & 158.1 $\pm$ 19.9 & 0.351 & 0.375 & -- \\
-EG $\epsilon=0.07$ & 154.8 $\pm$ 24.8 & 0.344 & 0.363 & -- \\
-EG $\epsilon=0.10$ & 158.1 $\pm$ 17.8 & 0.351 & 0.370 & same mean \\
-EG $\epsilon=0.15$ & \textbf{160.7 $\pm$ 16.3} & 0.357 & 0.373 & best EG \\
-EG $\epsilon=0.20$ & 157.6 $\pm$ 15.5 & 0.350 & 0.371 & -- \\
-EG $\epsilon=0.30$ & 155.5 $\pm$ 15.3 & 0.346 & 0.365 & -- \\
-EG $\epsilon=0.50$ & 151.7 $\pm$ 14.0 & 0.337 & 0.354 & over-explore \\
-\midrule
-DEC $0.6\times150$ & \textbf{163.9 $\pm$ 12.2} & 0.364 & 0.382 & best DEC \\
-DEC $0.5\times250$ & 162.7 $\pm$ 12.4 & 0.361 & 0.382 & -- \\
-DEC $0.5\times150$ & 162.0 $\pm$ 15.6 & 0.360 & 0.376 & -- \\
-DEC $0.2\times200$ & 161.7 $\pm$ 18.4 & 0.359 & 0.375 & -- \\
-DEC $0.6\times200$ & 161.7 $\pm$ 15.0 & 0.359 & 0.380 & -- \\
-DEC $0.8\times200$ & 161.2 $\pm$ 12.0 & 0.358 & 0.381 & -- \\
-\midrule
-UCB $c=0.1$ & 151.9 $\pm$ 26.7 & 0.338 & 0.349 & under-explore \\
-UCB $c=0.2$ & 161.7 $\pm$ 18.7 & 0.359 & 0.382 & -- \\
-UCB $c=0.3$ & 163.5 $\pm$ 12.9 & 0.363 & 0.383 & -- \\
-UCB $c=0.5$ & \textbf{163.6 $\pm$ 11.1} & 0.364 & 0.382 & best UCB \\
-UCB $c=0.7$ & 159.8 $\pm$ 13.5 & 0.355 & 0.380 & -- \\
-UCB $c=1.0$ & 156.1 $\pm$ 13.6 & 0.347 & 0.373 & -- \\
-UCB $c=1.5$ & 151.0 $\pm$ 14.0 & 0.336 & 0.354 & -- \\
-UCB $c=2.0$ & 148.4 $\pm$ 12.6 & 0.330 & 0.354 & default \\
-UCB $c=3.0$ & 141.1 $\pm$ 13.5 & 0.314 & 0.338 & -- \\
-UCB $c=5.0$ & 138.0 $\pm$ 13.2 & 0.307 & 0.316 & -- \\
-UCB $c=7.0$ & 136.3 $\pm$ 13.8 & 0.303 & 0.316 & over-explore \\
-UCB $c=10.0$ & 137.3 $\pm$ 13.2 & 0.305 & 0.306 & over-explore \\
-\bottomrule
-\end{tabular}
-\caption{Finer-grained hyperparameter grid search results (non-contextual, 50 seeds, 450 steps). Bold indicates best per-agent configs.}
-\label{tab:hyperparam}
-\end{table}
 
 \begin{figure}[h]
 \centering
@@ -105,21 +54,14 @@ UCB $c=10.0$ & 137.3 $\pm$ 13.2 & 0.305 & 0.306 & over-explore \\
   \caption*{\small DEC: heatmap}
   \label{fig:hyperparam-dec-heatmap}
 \end{minipage}
-\caption{Hyperparameter sensitivity: EG (left), UCB (centre), DEC heatmap (right). All 50 seeds, $\pm$1~SD where applicable.}
+\caption{Hyperparameter sensitivity (50 seeds, $\pm$1~SD). EG optimum $\epsilon=0.15$, UCB optimum $c=0.5$ (both interior). DEC optimum at $\epsilon_{\text{start}}=1.0$ --- the theoretical maximum, since $\Pr(\text{explore}) = \min(1, \epsilon)$.}
 \label{fig:hyperparam-all}
 \end{figure}
 
-\begin{itemize}
-  \item \textbf{EG:} The optimum ($\epsilon=0.15$, total 160.7) is interior --- values on either side ($0.10$, $0.20$) are both lower.
-  \item \textbf{UCB:} The optimum ($c=0.5$, total 163.6) is interior --- $c=0.3$ yields 163.5 and $c=0.7$ yields 159.8.
-  \item \textbf{DEC:} The optimum is at $\epsilon_{\text{start}}=1.0$, the theoretical maximum for a probability ($\Pr(\text{explore}) = \min(1, \epsilon)$). This is not a search limitation --- $\epsilon_{\text{start}} > 1.0$ is equivalent to $\epsilon_{\text{start}} = 1.0$ since the agent explores with certainty when $\epsilon \geq 1$. The result confirms that maximum initial exploration followed by linear decay is the preferred strategy. Decay steps are well-characterised (optimum at 50--150).
-\end{itemize}
-
-\paragraph{Variance: $\epsilon=0.05$ vs $\epsilon=0.10$ for EG.}
-Comparing the two values from the original grid: $\epsilon=0.05$ achieves total reward 158.1 $\pm$ 19.9 with last-50 mean 0.375; $\epsilon=0.10$ achieves 158.1 $\pm$ 17.8 with last-50 mean 0.370. The means are nearly identical, but $\epsilon=0.10$ has $\sim$11\% lower standard deviation. For deployment, $\epsilon=0.10$ offers a more consistent policy with equivalent cumulative reward, while $\epsilon=0.05$ extracts marginally better final-step performance at the cost of higher variance.
+$\epsilon=0.05$ vs $\epsilon=0.10$: identical means (158.1), but $\epsilon=0.10$ has $11\%$ lower variance.
 
 \section{Results}
-50 seeds, 450 timesteps. Hyperparameters from the grid search above: EG $\epsilon=0.05$, DEC $\epsilon_{\text{start}}=0.2$, $T_{\text{decay}}=200$, $\epsilon_{\min}=0.01$, UCB $c=0.5$.
+50 seeds, 450 timesteps. Optimised hyperparameters: EG $\epsilon=0.05$, DEC $\epsilon_{\text{start}}=0.2$, $T_{\text{decay}}=200$, $\epsilon_{\min}=0.01$, UCB $c=0.5$.
 
 \begin{table}[h]
 \centering
@@ -146,11 +88,9 @@ Non-contextual optimal & 168.8 & 0.375 & 0.375 & --- \\
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{images/learning_curves.pdf}
-\caption{Left: cumulative reward (50 seeds, $\pm$1 SD). Right: per-step reward (20-step rolling avg). Contextual agents converge toward $3/7 \approx 0.429$; standard agents plateau at lower rates. The decaying-epsilon variants (DEC) show higher variance during early exploration but narrow the gap with their fixed-epsilon counterparts.}
+\caption{Cumulative reward and per-step reward (50 seeds, $\pm$1 SD). Contextual agents converge toward $3/7 \approx 0.429$; standard agents plateau lower.}
 \end{figure}
 
-With optimised hyperparameters, contextual TS and contextual UCB both reach the per-context optimal reward by the last 50 steps ($0.429$ and $0.430$, within noise of the theoretical $3/7$). Contextual EG changes from $-11.0\%$ (with $\epsilon=0.1$) to $-13.6\%$ (with $\epsilon=0.05$) --- a small regression driven by higher variance --- while contextual DEC ($-13.4\%$) performs comparably. Standard UCB benefits most from the hyperparameter search, jumping from $-23.1\%$ (with $c=2.0$) to $-15.2\%$ (with $c=0.5$), outperforming standard TS and EG.
-
-The decaying-epsilon agent achieves slightly higher total reward than its fixed-epsilon counterpart in the non-contextual setting ($161.7$ vs $158.1$) by front-loading exploration. In the contextual setting the advantage disappears, likely because the per-context Q-values already provide sufficient exploration through their slower convergence.
+Contextual TS and UCB reach the per-context optimal ($0.429$) by the last 50 steps. Standard UCB benefits most from hyperparameter search ($-23.1\%$ to $-15.2\%$). DEC front-loads exploration, achieving $161.7$ vs EG's $158.1$ in the standard setting; the contextual advantage disappears as per-context Q-values already provide sufficient exploration.
 
 \end{document}
