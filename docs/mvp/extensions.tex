@@ -2,7 +2,7 @@
 \usepackage{amsmath,amssymb,booktabs,graphicx}
 \usepackage[margin=1in]{geometry}
 
-\title{Extension: Contextual Thompson Sampling}
+\title{Extension: Contextual Bandits}
 \author{William Dennis}
 \date{June 2026}
 
@@ -12,11 +12,17 @@
 Extends the MVP bandits (\S5 of \texttt{mvp\_specification.tex}) by conditioning action selection on the current activity level.
 
 \section{Formulation}
+Context $c_t = s_t.\texttt{activity} \in \{\texttt{sedentary}, \texttt{active}\}$. Each algorithm maintains separate parameters per $(c, a)$ pair instead of global per-action parameters:
 
-Context $c_t = s_t.\texttt{activity} \in \{\texttt{sedentary}, \texttt{active}\}$. Instead of one $(\alpha_a, \beta_a)$ per action, maintain $(\alpha_{c,a}, \beta_{c,a})$ for each context-action pair. Sample $\theta_{c_t, a} \sim \text{Beta}(\alpha_{c_t, a}, \beta_{c_t, a})$, pick $a^* = \arg\max_a \theta_{c_t, a}$. Update only the observed $(c_t, a_t)$ posterior.
+\begin{itemize}
+  \item \textbf{Thompson Sampling:} $(\alpha_{c,a}, \beta_{c,a})$ posteriors. Sample $\theta_{c_t, a} \sim \text{Beta}(\alpha_{c_t, a}, \beta_{c_t, a})$, pick $a^* = \arg\max_a \theta_{c_t, a}$.
+  \item \textbf{Epsilon-Greedy:} $Q_{c,a}$ values. With probability $\epsilon$ explore, otherwise pick $a^* = \arg\max_a Q_{c_t, a}$.
+  \item \textbf{UCB:} $Q_{c,a}$ values with per-context counts. $a^* = \arg\max_a \left[ Q_{c_t, a} + c \sqrt{\ln(N) / n_{c_t, a}} \right]$ where $N$ is global step count.
+\end{itemize}
+
+Update only the observed $(c_t, a_t)$ pair.
 
 \section{Optimal Policy}
-
 The optimal contextual policy (from the transition matrices in \S3) is: nudge when sedentary ($0.3 > 0.1$), idle when active ($0.6 > 0.5$). Stationary distribution: $\pi_s = 4/7$, $\pi_a = 3/7$.
 
 \[
@@ -26,20 +32,25 @@ E[r] = \tfrac{4}{7} \cdot 0.3 + \tfrac{3}{7} \cdot 0.6 = \tfrac{3}{7} \approx 0.
 Best non-contextual (always nudge): $E[r] = 0.375$, total $168.8$. The contextual bound is $14.3\%$ higher.
 
 \section{Results}
-
 50 seeds, 450 timesteps. Full methodology follows \S6 of \texttt{mvp\_specification.tex}.
 
 \begin{table}[h]
 \centering
-\begin{tabular}{lrrr}
+\begin{tabular}{lrrrr}
 \toprule
-Agent & Total Reward & Per Step & vs Contextual Opt \\
+Agent & Total Reward & Per Step & Last 50 Steps & vs Contextual Opt \\
 \midrule
-Contextual TS & 176.7 $\pm$ 15.2 & 0.393 & $-8.4\%$ \\
-Standard TS & 158.5 $\pm$ 12.6 & 0.352 & $-17.8\%$ \\
+Contextual TS & 178.7 $\pm$ 15.8 & 0.397 & 0.429 & $-7.4\%$ \\
+Standard TS & 159.6 $\pm$ 12.7 & 0.355 & 0.373 & $-17.2\%$ \\
 \midrule
-Contextual optimal & 192.9 & 0.429 & --- \\
-Non-contextual optimal & 168.8 & 0.375 & --- \\
+Contextual EG & 171.6 $\pm$ 20.1 & 0.381 & 0.414 & $-11.0\%$ \\
+Standard EG & 158.1 $\pm$ 17.8 & 0.351 & 0.370 & $-18.0\%$ \\
+\midrule
+Contextual UCB & 159.8 $\pm$ 13.3 & 0.355 & 0.384 & $-17.2\%$ \\
+Standard UCB & 148.4 $\pm$ 12.6 & 0.330 & 0.354 & $-23.1\%$ \\
+\midrule
+Contextual optimal & 192.9 & 0.429 & 0.429 & --- \\
+Non-contextual optimal & 168.8 & 0.375 & 0.375 & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -47,9 +58,9 @@ Non-contextual optimal & 168.8 & 0.375 & --- \\
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{images/learning_curves.pdf}
-\caption{Left: cumulative reward (50 seeds, $\pm$1 SD). Right: per-step reward (20-step rolling avg). Contextual TS converges toward $3/7 \approx 0.429$; standard TS plateaus at $0.375$.}
+\caption{Left: cumulative reward (50 seeds, $\pm$1 SD). Right: per-step reward (20-step rolling avg). Contextual agents converge toward $3/7 \approx 0.429$; standard agents plateau at lower rates.}
 \end{figure}
 
-Per-step reward in the last 50 steps: contextual TS reaches $0.422$ ($1.5\%$ from optimal), standard TS at $0.369$. The agent converges within the episode.
+Per-step reward in the last 50 steps: contextual TS reaches $0.429$ ($0.0\%$ from optimal), contextual EG reaches $0.414$ ($3.4\%$ from optimal), contextual UCB reaches $0.384$ ($10.4\%$ from optimal). All contextual agents outperform their standard counterparts. Thompson Sampling benefits most from context, followed by epsilon-greedy; UCB's exploration bonus is less effective in this small action space.
 
 \end{document}
