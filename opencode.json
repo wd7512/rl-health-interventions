@@ -146,6 +146,7 @@
       "git clean *": "deny",
       "git stash *": "deny",
       "git checkout *": "allow",
+      "git worktree *": "allow",
       "git branch -d *": "deny",
       "git branch -D *": "deny"
     },
