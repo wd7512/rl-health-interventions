@@ -4,6 +4,7 @@ import logging
 from typing import Type
 
 from rl_health_interventions.agents._base import Agent
+from rl_health_interventions.agents import decaying_epsilon_greedy
 from rl_health_interventions.agents import epsilon_greedy
 from rl_health_interventions.agents import random
 from rl_health_interventions.agents import thompson_sampling
@@ -36,6 +37,7 @@ _AGENT_MODULES = [
     epsilon_greedy,
     random,
     ucb,
+    decaying_epsilon_greedy,
 ]
 
 for _mod in _AGENT_MODULES:

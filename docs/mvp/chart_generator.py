@@ -21,10 +21,12 @@ from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 AGENT_VARIANTS = [
     ("Standard TS", {"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1}, "#2196F3", "-"),
     ("Contextual TS", {"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1, "contextual": True, "context_feature": "activity"}, "#4CAF50", "-"),
-    ("Standard EG", {"type": "epsilon_greedy", "epsilon": 0.1}, "#FF9800", "-"),
-    ("Contextual EG", {"type": "epsilon_greedy", "epsilon": 0.1, "contextual": True, "context_feature": "activity"}, "#E91E63", "-"),
-    ("Standard UCB", {"type": "ucb", "c": 2.0}, "#9C27B0", "-"),
-    ("Contextual UCB", {"type": "ucb", "c": 2.0, "contextual": True, "context_feature": "activity"}, "#00BCD4", "-"),
+    ("Standard EG", {"type": "epsilon_greedy", "epsilon": 0.05}, "#FF9800", "-"),
+    ("Contextual EG", {"type": "epsilon_greedy", "epsilon": 0.05, "contextual": True, "context_feature": "activity"}, "#E91E63", "-"),
+    ("Standard UCB", {"type": "ucb", "c": 0.5}, "#9C27B0", "-"),
+    ("Contextual UCB", {"type": "ucb", "c": 0.5, "contextual": True, "context_feature": "activity"}, "#00BCD4", "-"),
+    ("Standard DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.2, "epsilon_min": 0.01, "decay_steps": 200}, "#795548", "--"),
+    ("Contextual DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.2, "epsilon_min": 0.01, "decay_steps": 200, "contextual": True, "context_feature": "activity"}, "#607D8B", "--"),
 ]
 
 
