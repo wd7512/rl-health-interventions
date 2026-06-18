@@ -33,7 +33,7 @@ Each action needs two configurable penalties:
 ### Required changes
 
 1. **Config schema** (`config/schemas.py`):
-   - Add `ActionConfig` Pydantic model with fields: `name`, `reward_penalty` (default 0.0), `burden_penalty` (default 0.0)
+   - Add `ActionConfig` Pydantic model with fields: `name`, `reward_penalty` (default 0.0), `burden_penalty` (default 0)
    - Change `actions` field type from `list[str]` to `list[ActionConfig]` (backward-compatible with str parsing)
    - Update `MDPConfig` cross-reference validators to use action names extracted from configs
 

@@ -59,7 +59,6 @@ For a first iteration, add:
        day: int
        step_of_day: int
        steps_per_day: int
-       global_step: int = field(init=False)
        archetype: str = "unknown"
        burden: float = 0.0
        goal_progress: float = 0.0
@@ -81,7 +80,7 @@ For a first iteration, add:
      archetype_sampling: uniform  # or config-driven
    ```
 
-4. **Contextual bandits** — `_get_context_key` already uses `hasattr(state, self.context_feature)`. New fields are immediately usable by setting `context_feature: archetype` or `context_feature: burden` in agent config.
+4. **Contextual bandits** — `_get_context_key` already uses `hasattr(state, self.context_feature)`. New fields are immediately usable by setting `context_feature: archetype` in agent config. (Note: continuous fields like `burden` or `goal_progress` should be discretized before being used as context features to avoid state space explosion.)
 
 ## Deliverables
 

@@ -62,7 +62,7 @@ For each archetype, produce a `P(s' | s, a)` matrix. With the 2-state `{sedentar
    - `config/archetype_resistant.yaml`
    - `config/archetype_stable_maintainer.yaml`
 
-3. **Validation script** — Verify matrices sum to 1.0, match Reactance theory expectations, produce distinct behaviour distributions (ANOVA on simulated trajectories)
+3. **Validation script** — Verify matrices sum to 1.0, match Reactance theory expectations, produce distinct behaviour distributions (ANOVA on continuous summary metrics of simulated trajectories, e.g. mean active ratio per episode)
 
 4. **Results doc** — Run Thompson Sampling on each archetype config for 10 seeds, produce a `.tex` + `.pdf` in `docs/mvp/extensions.tex` showing per-archetype agent performance (similar pattern to `docs/mvp/mvp_specification.tex`)
 

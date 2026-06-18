@@ -27,6 +27,8 @@
     "edit": "allow",
     "bash": {
       "uv run *": "allow",
+      "uv sync *": "allow",
+      "uv build *": "allow",
       "git status": "allow",
       "git fetch *": "allow",
       "git log *": "allow",

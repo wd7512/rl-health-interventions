@@ -68,7 +68,7 @@ How do we test whether the simulator is valid?
 
 ### 6.6 Data gaps and mitigation
 
-- `goal_progress` and `burden` are state variables, not directly observable — must be simulated
+- `goal_progress` and `burden` are state variables that can be computed deterministically from action and step history
 - `body_measure` needs EHR linkage (All of Us has 46% linked)
 - Previous action/response must be tracked as internal state, not from data
 
