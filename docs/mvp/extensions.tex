@@ -17,7 +17,7 @@ Context $c_t = s_t.\texttt{activity} \in \{\texttt{sedentary}, \texttt{active}\}
 \begin{itemize}
   \item \textbf{Thompson Sampling:} $(\alpha_{c,a}, \beta_{c,a})$ posteriors. Sample $\theta_{c_t, a} \sim \text{Beta}(\alpha_{c_t, a}, \beta_{c_t, a})$, pick $a^* = \arg\max_a \theta_{c_t, a}$.
   \item \textbf{Epsilon-Greedy:} $Q_{c,a}$ values. With probability $\epsilon$ explore, otherwise pick $a^* = \arg\max_a Q_{c_t, a}$.
-  \item \textbf{UCB:} $Q_{c,a}$ values with per-context counts. $a^* = \arg\max_a \left[ Q_{c_t, a} + c \sqrt{\ln(N) / n_{c_t, a}} \right]$ where $N$ is global step count.
+  \item \textbf{UCB:} $Q_{c,a}$ values with per-context counts. $a^* = \arg\max_a \left[ Q_{c_t, a} + c \sqrt{\ln(N_{c_t}) / n_{c_t, a}} \right]$ where $N_{c_t} = \sum_a n_{c_t, a}$ is the total visits to the current context.
 \end{itemize}
 
 Update only the observed $(c_t, a_t)$ pair.

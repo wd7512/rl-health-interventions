@@ -1,0 +1,38 @@
+"""Tests for ContextualBanditAgent base class routing and error paths."""
+from __future__ import annotations
+
+import pytest
+from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
+from rl_health_interventions.state import StateView
+
+
+def _make_agent(**kwargs):
+    return ThompsonSamplingAgent(
+        actions=["nudge", "idle"], seed=42, alpha_prior=1.0, beta_prior=1.0, **kwargs
+    )
+
+
+def test_get_context_key_non_contextual_returns_action():
+    agent = _make_agent(contextual=False)
+    state = StateView(activity="sedentary", day=0, step_of_day=0)
+    assert agent._get_context_key(state, "nudge") == "nudge"
+
+
+def test_get_context_key_contextual_returns_tuple():
+    agent = _make_agent(contextual=True, context_feature="activity")
+    state = StateView(activity="sedentary", day=0, step_of_day=0)
+    assert agent._get_context_key(state, "nudge") == ("sedentary", "nudge")
+
+
+def test_get_context_key_contextual_raises_without_context_feature():
+    agent = _make_agent(contextual=True)
+    state = StateView(activity="sedentary", day=0, step_of_day=0)
+    with pytest.raises(ValueError, match="context_feature must be set"):
+        agent._get_context_key(state, "nudge")
+
+
+def test_get_context_key_contextual_raises_on_missing_attribute():
+    agent = _make_agent(contextual=True, context_feature="nonexistent")
+    state = StateView(activity="sedentary", day=0, step_of_day=0)
+    with pytest.raises(ValueError, match="State has no attribute"):
+        agent._get_context_key(state, "nudge")

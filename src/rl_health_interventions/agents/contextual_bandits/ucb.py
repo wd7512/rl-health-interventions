@@ -12,8 +12,8 @@ class UCBAgent(ContextualBanditAgent):
 
     When ``contextual=True``, maintains separate ``(q_value, count)``
     entries for each ``(context_value, action)`` pair rather than
-    per-action globally.  ``_total_steps`` remains global across all
-    contexts.
+    per-action globally.  The exploration bonus uses per-context
+    totals (each context is an independent bandit problem).
     """
 
     def __init__(

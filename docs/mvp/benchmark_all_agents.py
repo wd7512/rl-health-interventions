@@ -6,7 +6,6 @@ Reveals how ergonomic the experiment API is for real usage.
 from __future__ import annotations
 
 import argparse
-import copy
 import logging
 import numpy as np
 from pathlib import Path
