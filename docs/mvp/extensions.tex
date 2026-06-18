@@ -33,43 +33,85 @@ E[r] = \tfrac{4}{7} \cdot 0.3 + \tfrac{3}{7} \cdot 0.6 = \tfrac{3}{7} \approx 0.
 Best non-contextual (always nudge): $E[r] = 0.375$, total $168.8$. The contextual bound is $14.3\%$ higher.
 
 \section{Hyperparameter Optimisation}
-Each agent was grid-searched over its key parameters to identify the configuration that maximises mean total reward. All evaluations used the non-contextual variant (50 seeds, 450 timesteps).
+Each agent was grid-searched over its key parameters (both standard and contextual variants, 50 seeds, 450 timesteps). The grid was widened after an initial pass found optimal values at search boundaries.\footnote{The contextual hyperparameter sweeps are used for the chart analysis in Figures~\ref{fig:hyperparam-eg} and~\ref{fig:hyperparam-ucb}; the table below reports standard (non-contextual) results to match \S5 of the MVP specification.}
 
 \[
 \begin{aligned}
-\text{Epsilon-Greedy:} &\quad \epsilon \in \{0.01, 0.05, 0.1, 0.2, 0.5\} \\
-\text{Decaying EG:} &\quad \epsilon_{\text{start}} \in \{0.01, 0.05, 0.1, 0.2, 0.5\}, \quad T_{\text{decay}} \in \{50, 100, 200\} \\
-\text{UCB:} &\quad c \in \{0.5, 1.0, 2.0, 3.0, 5.0\}
+\text{EG:} &\quad \epsilon \in \{0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5\} \\
+\text{DEC:} &\quad \epsilon_{\text{start}} \in \{0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5\}, \quad T_{\text{decay}} \in \{25, 50, 75, 100, 150, 200, 300\} \\
+\text{UCB:} &\quad c \in \{0.1, 0.3, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0\}
 \end{aligned}
 \]
 
 \begin{table}[h]
 \centering
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrrl}
 \toprule
-Config & Total Reward & Per Step & Last 50 Steps & Parameter \\
+Config & Total Reward & Per Step & Last 50 Steps & Note \\
 \midrule
-EG $\epsilon=0.01$ & 146.6 $\pm$ 34.3 & 0.326 & 0.349 & low explore \\
-EG $\epsilon=0.05$ & 158.1 $\pm$ 19.9 & 0.351 & 0.375 & best EG \\
-EG $\epsilon=0.10$ & 158.1 $\pm$ 17.8 & 0.351 & 0.370 & same EG \\
+EG $\epsilon=0.01$ & 146.6 $\pm$ 34.3 & 0.326 & 0.349 & under-explore \\
+EG $\epsilon=0.03$ & 149.8 $\pm$ 32.3 & 0.333 & 0.346 & -- \\
+EG $\epsilon=0.05$ & 158.1 $\pm$ 19.9 & 0.351 & 0.375 & -- \\
+EG $\epsilon=0.07$ & 154.8 $\pm$ 24.8 & 0.344 & 0.363 & -- \\
+EG $\epsilon=0.10$ & 158.1 $\pm$ 17.8 & 0.351 & 0.370 & same mean \\
+EG $\epsilon=0.15$ & \textbf{160.7 $\pm$ 16.3} & 0.357 & 0.373 & best EG \\
 EG $\epsilon=0.20$ & 157.6 $\pm$ 15.5 & 0.350 & 0.371 & -- \\
-EG $\epsilon=0.50$ & 151.7 $\pm$ 14.0 & 0.337 & 0.354 & high explore \\
+EG $\epsilon=0.30$ & 155.5 $\pm$ 15.3 & 0.346 & 0.365 & -- \\
+EG $\epsilon=0.50$ & 151.7 $\pm$ 14.0 & 0.337 & 0.354 & over-explore \\
 \midrule
-DEC $0.2\times200$ & 161.7 $\pm$ 18.4 & 0.359 & 0.375 & best DEC \\
+DEC $0.5\times150$ & \textbf{162.0 $\pm$ 15.6} & 0.360 & 0.376 & best DEC \\
+DEC $0.2\times200$ & 161.7 $\pm$ 18.4 & 0.359 & 0.375 & -- \\
 DEC $0.5\times200$ & 161.3 $\pm$ 15.9 & 0.358 & 0.376 & -- \\
-DEC $0.5\times100$ & 157.1 $\pm$ 25.4 & 0.349 & 0.360 & -- \\
+DEC $0.5\times300$ & 161.0 $\pm$ 14.9 & 0.358 & 0.379 & -- \\
+DEC $0.2\times300$ & 160.9 $\pm$ 19.2 & 0.358 & 0.375 & -- \\
 \midrule
-UCB $c=0.5$ & 163.6 $\pm$ 11.1 & 0.364 & 0.382 & best UCB \\
+UCB $c=0.1$ & 151.9 $\pm$ 26.7 & 0.338 & 0.349 & under-explore \\
+UCB $c=0.3$ & 163.5 $\pm$ 12.9 & 0.363 & 0.383 & best UCB \\
+UCB $c=0.5$ & \textbf{163.6 $\pm$ 11.1} & 0.364 & 0.382 & best UCB (tie) \\
 UCB $c=1.0$ & 156.1 $\pm$ 13.6 & 0.347 & 0.373 & -- \\
 UCB $c=2.0$ & 148.4 $\pm$ 12.6 & 0.330 & 0.354 & default \\
 UCB $c=3.0$ & 141.1 $\pm$ 13.5 & 0.314 & 0.338 & -- \\
-UCB $c=5.0$ & 138.0 $\pm$ 13.2 & 0.307 & 0.316 & over-explore \\
+UCB $c=5.0$ & 138.0 $\pm$ 13.2 & 0.307 & 0.316 & -- \\
+UCB $c=7.0$ & 136.3 $\pm$ 13.8 & 0.303 & 0.316 & over-explore \\
+UCB $c=10.0$ & 137.3 $\pm$ 13.2 & 0.305 & 0.306 & over-explore \\
 \bottomrule
 \end{tabular}
-\caption{Hyperparameter grid search results (non-contextual, 50 seeds, 450 steps). Best per-agent configs used in the final benchmark.}
+\caption{Finer-grained hyperparameter grid search results (non-contextual, 50 seeds, 450 steps). Bold indicates best per-agent configs.}
+\label{tab:hyperparam}
 \end{table}
 
-The optimal configurations are: EG $\epsilon=0.05$ (no meaningful difference from $0.10$ on this domain), DEC $\epsilon_{\text{start}}=0.2$ with $T_{\text{decay}}=200$ (slow decay from moderate exploration), and UCB $c=0.5$ (the lowest value tested, suggesting the per-action Q values already capture most of the uncertainty).
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{images/hyperparam_eg.png}
+\caption{Epsilon-greedy: epsilon vs total reward for standard and contextual variants (50 seeds, $\pm$1 SD). The contextual variant achieves higher reward across all epsilon values by exploiting per-activity Q-tables.}
+\label{fig:hyperparam-eg}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{images/hyperparam_ucb.png}
+\caption{UCB: exploration constant $c$ vs total reward for standard and contextual variants (50 seeds, $\pm$1 SD). Optimal $c$ lies near 0.3--0.5 for both variants.}
+\label{fig:hyperparam-ucb}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{images/hyperparam_dec_heatmap.png}
+\caption{Standard DEC: 2D heatmap of total reward across epsilon\_start (rows) and decay\_steps (columns). Darker (higher) values concentrate at high epsilon\_start and moderate-to-long decay.}
+\label{fig:hyperparam-dec-heatmap}
+\end{figure}
+
+\paragraph{Boundary analysis.}
+The widened grid resolves boundary concerns for EG and UCB but not for DEC:
+\begin{itemize}
+  \item \textbf{EG:} The optimum ($\epsilon=0.15$, total 160.7) is interior --- values on either side ($0.10$, $0.20$) are both lower. Not at a boundary.
+  \item \textbf{UCB:} The optimum ($c=0.3$ or $0.5$) is interior --- $c=0.1$ yields only 151.9, and $c=0.3$ yields 163.5. Not at a boundary.
+  \item \textbf{DEC (standard):} $\epsilon_{\text{start}}=0.5$ is still the best value tested, with decay steps near 150--200. The upper boundary of $\epsilon_{\text{start}}$ is hit, suggesting very high initial exploration followed by long decay is preferred. Gains above 162.0 are diminishing. Decay steps is well-characterised (optimum at 150--200).
+  \item \textbf{DEC (contextual):} Similarly, $\epsilon_{\text{start}}=0.5$ with decay=200 is best (total 177.9), also hitting the $\epsilon_{\text{start}}$ boundary.
+\end{itemize}
+
+\paragraph{Variance: $\epsilon=0.05$ vs $\epsilon=0.10$ for EG.}
+Comparing the two values from the original grid: $\epsilon=0.05$ achieves total reward 158.1 $\pm$ 19.9 with last-50 mean 0.375; $\epsilon=0.10$ achieves 158.1 $\pm$ 17.8 with last-50 mean 0.370. The means are nearly identical, but $\epsilon=0.10$ has $\sim$11\% lower standard deviation. For deployment, $\epsilon=0.10$ offers a more consistent policy with equivalent cumulative reward, while $\epsilon=0.05$ extracts marginally better final-step performance at the cost of higher variance.
 
 \section{Results}
 50 seeds, 450 timesteps. Hyperparameters from the grid search above: EG $\epsilon=0.05$, DEC $\epsilon_{\text{start}}=0.2$, $T_{\text{decay}}=200$, $\epsilon_{\min}=0.01$, UCB $c=0.5$.

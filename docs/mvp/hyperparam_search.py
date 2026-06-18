@@ -1,12 +1,13 @@
 """Hyperparameter grid search for contextual bandit agents.
 
-Grid:
-  - epsilon_greedy:  epsilon [0.01, 0.05, 0.1, 0.2, 0.5]
-  - decaying_epsilon_greedy:  epsilon_start [0.01, 0.05, 0.1, 0.2, 0.5]
-                             x decay_steps [50, 100, 200]
-  - ucb:  c [0.5, 1.0, 2.0, 3.0, 5.0]
+Grid (widened from PR #129 review):
+  - epsilon_greedy:  epsilon [0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5]
+  - decaying_epsilon_greedy:  epsilon_start [0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5]
+                              x decay_steps [25, 50, 75, 100, 150, 200, 300]
+  - ucb:  c [0.1, 0.3, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0]
 
 Each combination: 50 seeds, record mean total reward + last-50-step mean.
+Runs both standard and contextual (context_feature="activity") variants.
 Output: CSV to docs/mvp/hyperparam_results.csv
 """
 from __future__ import annotations
@@ -24,30 +25,56 @@ from rl_health_interventions.experiment import run_episode
 
 logger = logging.getLogger(__name__)
 
-EPSILON_VALUES = [0.01, 0.05, 0.1, 0.2, 0.5]
-C_VALUES = [0.5, 1.0, 2.0, 3.0, 5.0]
-DECAY_STEPS_VALUES = [50, 100, 200]
+EPSILON_VALUES = [0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5]
+C_VALUES = [0.1, 0.3, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0]
+DECAY_STEPS_VALUES = [25, 50, 75, 100, 150, 200, 300]
 N_SEEDS = 50
 
 OUTPUT_PATH = Path(__file__).parent / "hyperparam_results.csv"
+CTX_KWARGS = {"contextual": True, "context_feature": "activity"}
+
+
+def _eg_grid(ctx: bool = False) -> list[tuple[dict, str]]:
+    """Return (params, label) pairs for epsilon_greedy."""
+    prefix = "ctx_" if ctx else ""
+    suffix_kwargs = CTX_KWARGS if ctx else {}
+    return [
+        ({"epsilon": e, **suffix_kwargs}, f"{prefix}eps={e}")
+        for e in EPSILON_VALUES
+    ]
+
+
+def _ucb_grid(ctx: bool = False) -> list[tuple[dict, str]]:
+    """Return (params, label) pairs for ucb."""
+    prefix = "ctx_" if ctx else ""
+    suffix_kwargs = CTX_KWARGS if ctx else {}
+    return [
+        ({"c": c, **suffix_kwargs}, f"{prefix}c={c}")
+        for c in C_VALUES
+    ]
+
+
+def _dec_grid(ctx: bool = False) -> list[tuple[dict, str]]:
+    """Return (params, label) pairs for decaying_epsilon_greedy."""
+    prefix = "ctx_" if ctx else ""
+    suffix_kwargs = CTX_KWARGS if ctx else {}
+    return [
+        (
+            {"epsilon_start": e, "epsilon_min": 0.01, "decay_steps": d, **suffix_kwargs},
+            f"{prefix}eps_start={e},decay={d}",
+        )
+        for e, d in itertools.product(EPSILON_VALUES, DECAY_STEPS_VALUES)
+    ]
+
 
 # (agent_type, param_sweep) — each yields (params_dict, label_suffix)
 AGENT_GRIDS = [
-    (
-        "epsilon_greedy",
-        [({"epsilon": e}, f"eps={e}") for e in EPSILON_VALUES],
-    ),
-    (
-        "decaying_epsilon_greedy",
-        [
-            ({"epsilon_start": e, "epsilon_min": 0.01, "decay_steps": d}, f"eps_start={e},decay={d}")
-            for e, d in itertools.product(EPSILON_VALUES, DECAY_STEPS_VALUES)
-        ],
-    ),
-    (
-        "ucb",
-        [({"c": c}, f"c={c}") for c in C_VALUES],
-    ),
+    ("epsilon_greedy", _eg_grid(ctx=False)),
+    ("epsilon_greedy", _eg_grid(ctx=True)),
+    ("decaying_epsilon_greedy", _dec_grid(ctx=False)),
+    ("decaying_epsilon_greedy", _dec_grid(ctx=True)),
+    ("ucb", _ucb_grid(ctx=False)),
+    ("ucb", _ucb_grid(ctx=True)),
 ]
 
 
