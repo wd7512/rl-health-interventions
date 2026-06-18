@@ -52,13 +52,13 @@ class AgentConfig(BaseModel):
     def _validate_agent(self) -> AgentConfig:
         """
         Validate agent configuration constraints.
-        
+
         Ensures the agent type is recognized, contextual mode is compatible with the agent type,
         context features are properly configured, and all hyperparameters are consistent with
         the selected agent type.
-        
+
         Returns:
-        	AgentConfig: The validated agent configuration.
+                AgentConfig: The validated agent configuration.
         """
         if self.type not in _KNOWN_AGENT_TYPES:
             raise ValueError(f"Unknown agent type: {self.type}")

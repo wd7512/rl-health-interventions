@@ -27,14 +27,19 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
     ) -> None:
         """
         Initialize a DecayingEpsilonGreedyAgent.
-        
+
         Parameters:
-            epsilon_start (float): Initial exploration probability, in [0.0, 1.0].
-            epsilon_min (float): Minimum exploration probability, in [0.0, 1.0].
-            decay_steps (int): Number of steps over which epsilon decays linearly.
-        
+            actions: Available action names. Passed to the base class.
+            epsilon_start: Initial exploration probability, in [0.0, 1.0].
+            epsilon_min: Minimum exploration probability, in [0.0, 1.0].
+            decay_steps: Number of steps over which epsilon decays linearly.
+            seed: RNG seed for reproducibility.
+            contextual: If True, maintain separate Q-values per (context, action).
+            context_feature: Name of the context feature column (required when contextual=True).
+
         Raises:
-            ValueError: If epsilon_start or epsilon_min are not in [0.0, 1.0], if epsilon_min exceeds epsilon_start, or if decay_steps is not positive.
+            ValueError: If epsilon_start or epsilon_min are not in [0.0, 1.0],
+                if epsilon_min exceeds epsilon_start, or if decay_steps is not positive.
         """
         super().__init__(
             actions=actions,
@@ -58,9 +63,11 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
 
     def _init_params(self) -> None:
         """
-        Initialize Q-value and count storage for the agent.
-        
-        In non-contextual mode, pre-populates all actions with initial Q-values of 0.0 and visit counts of 0. In contextual mode, initializes empty dictionaries for lazy population during action selection and updates.
+        Initialize Q-value and count storage.
+
+        In non-contextual mode, pre-populates all actions with initial
+        Q-values of 0.0 and visit counts of 0. In contextual mode,
+        initializes empty dictionaries for lazy population.
         """
         self.q_values: dict = {}
         self.counts: dict = {}
@@ -71,7 +78,7 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
     def _ensure_params(self, key: str | tuple[str, str]) -> None:
         """
         Ensure Q-value and count entries are initialized for the given key.
-        
+
         Parameters:
             key (str | tuple[str, str]): The parameter key; either an action string or a (context_value, action) tuple.
         """
@@ -82,7 +89,7 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
     def _current_epsilon(self) -> float:
         """
         Compute the current exploration rate with linear decay.
-        
+
         Returns:
             float: The exploration rate (epsilon) for the current step, between epsilon_min and epsilon_start.
         """
@@ -91,12 +98,17 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
 
     def select_action(self, state) -> str:
         """
-        Select an action according to the epsilon-greedy policy with linearly decaying exploration.
-        
-        With probability epsilon, explores by selecting a uniformly random action. Otherwise, exploits by selecting uniformly at random among actions with the maximum Q-value.
-        
+        Select an action according to the epsilon-greedy policy.
+
+        With probability epsilon, explores by selecting a uniformly random action.
+        Otherwise, exploits by selecting uniformly at random among actions with the
+        maximum Q-value.
+
+        Parameters:
+            state: Current environment state (used for contextual Q-value lookup).
+
         Returns:
-            str: The selected action.
+            The selected action name.
         """
         epsilon = self._current_epsilon()
         self._step += 1
@@ -115,7 +127,15 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
 
     def update(self, state, action: str, reward: float, next_state) -> None:
         """
-        Update the Q-value estimate and observation count for a state-action pair based on the received reward.
+        Update the Q-value estimate for a state-action pair.
+
+        Applies the incremental mean update: Q(s,a) += (reward - Q(s,a)) / n.
+
+        Parameters:
+            state: Current environment state.
+            action: The action that was taken.
+            reward: Scalar reward received from the environment.
+            next_state: Successor state (unused by this agent).
         """
         key = self._get_context_key(state, action)
         self._ensure_params(key)
