@@ -56,7 +56,9 @@ class UCBAgent(ContextualBanditAgent):
                 return action
 
         if self.contextual:
-            total = sum(self.counts[self._get_context_key(state, a)] for a in self._actions)
+            total = sum(
+                self.counts[self._get_context_key(state, a)] for a in self._actions
+            )
         else:
             total = self._total_steps
         ucb_values = {}
