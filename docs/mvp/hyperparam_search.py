@@ -84,7 +84,22 @@ def run_one_config(
     params: dict,
     n_seeds: int,
 ) -> tuple[float, float, float, float]:
-    """Run one agent config over n_seeds; return (total_mean, total_std, step_mean, last50_mean)."""
+    """
+    Evaluates an agent configuration across multiple seeded episodes and computes aggregate reward statistics.
+    
+    Parameters:
+    	config: Experiment configuration containing episode_days, steps_per_day, and actions.
+    	agent_type: Type of agent to instantiate (e.g., "epsilon_greedy", "ucb").
+    	params: Hyperparameter dictionary for the agent.
+    	n_seeds: Number of independent episodes to run.
+    
+    Returns:
+    	(total_mean, total_std, step_mean, last50_mean): A 4-tuple of floats representing:
+    		- total_mean: Mean of total episode reward across all seeds.
+    		- total_std: Standard deviation of total episode reward across seeds.
+    		- step_mean: Mean reward per step, averaged across all steps and seeds.
+    		- last50_mean: Mean reward over the final 50 steps across all seeds.
+    """
     n_steps = config.episode_days * config.steps_per_day
     all_rewards = []
     for seed in range(1, n_seeds + 1):
@@ -103,6 +118,14 @@ def run_one_config(
 
 
 def main() -> None:
+    """
+    Run grid search over contextual bandit agent hyperparameters and write results to CSV.
+    
+    Loads the MDP configuration from config/rule_based.yaml, iterates over predefined
+    agent types and parameter combinations, and executes each across multiple seeded
+    episodes. Aggregates reward statistics (total reward mean/std, per-step mean, and
+    mean of last 50 steps) and saves the results to CSV.
+    """
     repo_root = Path(__file__).resolve().parents[2]
     config_path = repo_root / "config" / "rule_based.yaml"
     config = load_config(str(config_path))
