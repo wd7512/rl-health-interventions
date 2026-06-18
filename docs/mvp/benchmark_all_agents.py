@@ -72,6 +72,9 @@ def main() -> None:
         }
 
     contextual_opt = 3 / 7
+    contextual_total_opt = contextual_opt * n_steps
+    noncontextual_opt = 0.375
+    noncontextual_total_opt = noncontextual_opt * n_steps
     logger.info("\n%s", "=" * 72)
     logger.info("%-20s %14s %10s %10s %12s", "Agent", "Total Reward", "Per Step", "Last 50", "vs Ctx Opt")
     logger.info("%s", "-" * 72)
@@ -80,8 +83,8 @@ def main() -> None:
         vs_opt = (r["step_mean"] - contextual_opt) / contextual_opt * 100
         logger.info("%-20s %8.1f ± %-5.1f %9.4f %10.4f %+10.1f%%", label, r["total_mean"], r["total_std"], r["step_mean"], r["last50_mean"], vs_opt)
     logger.info("%s", "-" * 72)
-    logger.info("%-20s %14.1f %10.4f %10.4f %12s", "Contextual optimal", 192.9, 0.4286, 0.4286, "---")
-    logger.info("%-20s %14.1f %10.4f %10.4f %12s", "Non-ctx optimal", 168.8, 0.3750, 0.3750, "---")
+    logger.info("%-20s %14.1f %10.4f %10.4f %12s", "Contextual optimal", contextual_total_opt, contextual_opt, contextual_opt, "---")
+    logger.info("%-20s %14.1f %10.4f %10.4f %12s", "Non-ctx optimal", noncontextual_total_opt, noncontextual_opt, noncontextual_opt, "---")
     logger.info("%s", "=" * 72)
 
 
