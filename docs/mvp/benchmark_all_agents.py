@@ -21,10 +21,12 @@ from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 AGENT_VARIANTS = [
     ("Standard TS", {"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1}),
     ("Contextual TS", {"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1, "contextual": True, "context_feature": "activity"}),
-    ("Standard EG", {"type": "epsilon_greedy", "epsilon": 0.1}),
-    ("Contextual EG", {"type": "epsilon_greedy", "epsilon": 0.1, "contextual": True, "context_feature": "activity"}),
-    ("Standard UCB", {"type": "ucb", "c": 2.0}),
-    ("Contextual UCB", {"type": "ucb", "c": 2.0, "contextual": True, "context_feature": "activity"}),
+    ("Standard EG", {"type": "epsilon_greedy", "epsilon": 0.05}),
+    ("Contextual EG", {"type": "epsilon_greedy", "epsilon": 0.05, "contextual": True, "context_feature": "activity"}),
+    ("Standard UCB", {"type": "ucb", "c": 0.5}),
+    ("Contextual UCB", {"type": "ucb", "c": 0.5, "contextual": True, "context_feature": "activity"}),
+    ("Standard DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.2, "epsilon_min": 0.01, "decay_steps": 200}),
+    ("Contextual DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.2, "epsilon_min": 0.01, "decay_steps": 200, "contextual": True, "context_feature": "activity"}),
 ]
 
 

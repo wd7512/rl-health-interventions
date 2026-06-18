@@ -31,7 +31,9 @@ class TransitionModelConfig(BaseModel):
     transition_probabilities: TransitionProbabilities | None = None
 
 
-_KNOWN_AGENT_TYPES = frozenset({"thompson_sampling", "random", "epsilon_greedy", "ucb"})
+_KNOWN_AGENT_TYPES = frozenset(
+    {"thompson_sampling", "random", "epsilon_greedy", "ucb", "decaying_epsilon_greedy"}
+)
 
 
 class AgentConfig(BaseModel):
@@ -39,19 +41,37 @@ class AgentConfig(BaseModel):
     alpha_prior: float | None = None
     beta_prior: float | None = None
     epsilon: float | None = None
+    epsilon_start: float | None = None
+    epsilon_min: float | None = None
+    decay_steps: int | None = None
     c: float | None = None
     contextual: bool = False
     context_feature: str | None = None
 
     @model_validator(mode="after")
     def _validate_agent(self) -> AgentConfig:
+        """
+        Validate agent configuration constraints.
+
+        Ensures the agent type is recognized, contextual mode is compatible with the agent type,
+        context features are properly configured, and all hyperparameters are consistent with
+        the selected agent type.
+
+        Returns:
+                AgentConfig: The validated agent configuration.
+        """
         if self.type not in _KNOWN_AGENT_TYPES:
             raise ValueError(f"Unknown agent type: {self.type}")
         if self.contextual:
-            if self.type not in ("thompson_sampling", "epsilon_greedy", "ucb"):
+            if self.type not in (
+                "thompson_sampling",
+                "epsilon_greedy",
+                "ucb",
+                "decaying_epsilon_greedy",
+            ):
                 raise ValueError(
                     f"contextual=True is only supported for thompson_sampling, "
-                    f"epsilon_greedy, and ucb, got {self.type}"
+                    f"epsilon_greedy, ucb, and decaying_epsilon_greedy, got {self.type}"
                 )
             if self.context_feature is None or not self.context_feature.strip():
                 raise ValueError(
@@ -99,6 +119,34 @@ class AgentConfig(BaseModel):
                 or self.c is not None
             ):
                 raise ValueError("random agent does not accept any hyperparameters")
+        if self.type == "decaying_epsilon_greedy":
+            if self.epsilon_start is None or not (0 <= self.epsilon_start <= 1):
+                raise ValueError(
+                    "epsilon_start must be in [0, 1] for decaying_epsilon_greedy"
+                )
+            if self.epsilon_min is not None and not (0 <= self.epsilon_min <= 1):
+                raise ValueError(
+                    "epsilon_min must be in [0, 1] for decaying_epsilon_greedy"
+                )
+            if (
+                self.epsilon_min is not None
+                and self.epsilon_start is not None
+                and self.epsilon_min > self.epsilon_start
+            ):
+                raise ValueError(
+                    "epsilon_min must not exceed epsilon_start for decaying_epsilon_greedy"
+                )
+            if self.decay_steps is not None and self.decay_steps <= 0:
+                raise ValueError("decay_steps must be > 0 for decaying_epsilon_greedy")
+            if (
+                self.alpha_prior is not None
+                or self.beta_prior is not None
+                or self.epsilon is not None
+                or self.c is not None
+            ):
+                raise ValueError(
+                    "decaying_epsilon_greedy agent does not accept alpha_prior, beta_prior, epsilon, or c"
+                )
         return self
 
 
