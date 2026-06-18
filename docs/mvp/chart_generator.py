@@ -95,7 +95,7 @@ def generate_eg_chart(results_path: Path) -> None:
     ax.legend()
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
-    out = IMAGES_DIR / "hyperparam_eg.png"
+    out = IMAGES_DIR / "hyperparam_eg.pdf"
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     logger.info("Saved %s", out)
@@ -117,7 +117,7 @@ def generate_ucb_chart(results_path: Path) -> None:
     ax.legend()
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
-    out = IMAGES_DIR / "hyperparam_ucb.png"
+    out = IMAGES_DIR / "hyperparam_ucb.pdf"
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     logger.info("Saved %s", out)
@@ -154,7 +154,7 @@ def generate_dec_heatmap(results_path: Path) -> None:
                     fontsize=7)
 
     plt.tight_layout()
-    out = IMAGES_DIR / "hyperparam_dec_heatmap.png"
+    out = IMAGES_DIR / "hyperparam_dec_heatmap.pdf"
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     logger.info("Saved %s", out)

@@ -37,9 +37,9 @@ Each agent was grid-searched over its key parameters (both standard and contextu
 
 \[
 \begin{aligned}
-\text{EG:} &\quad \epsilon \in \{0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5\} \\
-\text{DEC:} &\quad \epsilon_{\text{start}} \in \{0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5\}, \quad T_{\text{decay}} \in \{25, 50, 75, 100, 150, 200, 300\} \\
-\text{UCB:} &\quad c \in \{0.1, 0.3, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0\}
+\text{EG:} &\quad \epsilon \in \{0.01, 0.02, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5\} \\
+\text{DEC:} &\quad \epsilon_{\text{start}} \in \{0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8\}, \quad T_{\text{decay}} \in \{50, 75, 100, 150, 200, 250, 300, 400, 500\} \\
+\text{UCB:} &\quad c \in \{0.1, 0.2, 0.3, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 5.0, 7.0, 10.0\}
 \end{aligned}
 \]
 
@@ -50,6 +50,7 @@ Each agent was grid-searched over its key parameters (both standard and contextu
 Config & Total Reward & Per Step & Last 50 Steps & Note \\
 \midrule
 EG $\epsilon=0.01$ & 146.6 $\pm$ 34.3 & 0.326 & 0.349 & under-explore \\
+EG $\epsilon=0.02$ & 147.7 $\pm$ 33.3 & 0.328 & 0.358 & -- \\
 EG $\epsilon=0.03$ & 149.8 $\pm$ 32.3 & 0.333 & 0.346 & -- \\
 EG $\epsilon=0.05$ & 158.1 $\pm$ 19.9 & 0.351 & 0.375 & -- \\
 EG $\epsilon=0.07$ & 154.8 $\pm$ 24.8 & 0.344 & 0.363 & -- \\
@@ -59,16 +60,20 @@ EG $\epsilon=0.20$ & 157.6 $\pm$ 15.5 & 0.350 & 0.371 & -- \\
 EG $\epsilon=0.30$ & 155.5 $\pm$ 15.3 & 0.346 & 0.365 & -- \\
 EG $\epsilon=0.50$ & 151.7 $\pm$ 14.0 & 0.337 & 0.354 & over-explore \\
 \midrule
-DEC $0.5\times150$ & \textbf{162.0 $\pm$ 15.6} & 0.360 & 0.376 & best DEC \\
+DEC $0.6\times150$ & \textbf{163.9 $\pm$ 12.2} & 0.364 & 0.382 & best DEC \\
+DEC $0.5\times250$ & 162.7 $\pm$ 12.4 & 0.361 & 0.382 & -- \\
+DEC $0.5\times150$ & 162.0 $\pm$ 15.6 & 0.360 & 0.376 & -- \\
 DEC $0.2\times200$ & 161.7 $\pm$ 18.4 & 0.359 & 0.375 & -- \\
-DEC $0.5\times200$ & 161.3 $\pm$ 15.9 & 0.358 & 0.376 & -- \\
-DEC $0.5\times300$ & 161.0 $\pm$ 14.9 & 0.358 & 0.379 & -- \\
-DEC $0.2\times300$ & 160.9 $\pm$ 19.2 & 0.358 & 0.375 & -- \\
+DEC $0.6\times200$ & 161.7 $\pm$ 15.0 & 0.359 & 0.380 & -- \\
+DEC $0.8\times200$ & 161.2 $\pm$ 12.0 & 0.358 & 0.381 & -- \\
 \midrule
 UCB $c=0.1$ & 151.9 $\pm$ 26.7 & 0.338 & 0.349 & under-explore \\
-UCB $c=0.3$ & 163.5 $\pm$ 12.9 & 0.363 & 0.383 & best UCB \\
-UCB $c=0.5$ & \textbf{163.6 $\pm$ 11.1} & 0.364 & 0.382 & best UCB (tie) \\
+UCB $c=0.2$ & 161.7 $\pm$ 18.7 & 0.359 & 0.382 & -- \\
+UCB $c=0.3$ & 163.5 $\pm$ 12.9 & 0.363 & 0.383 & -- \\
+UCB $c=0.5$ & \textbf{163.6 $\pm$ 11.1} & 0.364 & 0.382 & best UCB \\
+UCB $c=0.7$ & 159.8 $\pm$ 13.5 & 0.355 & 0.380 & -- \\
 UCB $c=1.0$ & 156.1 $\pm$ 13.6 & 0.347 & 0.373 & -- \\
+UCB $c=1.5$ & 151.0 $\pm$ 14.0 & 0.336 & 0.354 & -- \\
 UCB $c=2.0$ & 148.4 $\pm$ 12.6 & 0.330 & 0.354 & default \\
 UCB $c=3.0$ & 141.1 $\pm$ 13.5 & 0.314 & 0.338 & -- \\
 UCB $c=5.0$ & 138.0 $\pm$ 13.2 & 0.307 & 0.316 & -- \\
@@ -82,32 +87,32 @@ UCB $c=10.0$ & 137.3 $\pm$ 13.2 & 0.305 & 0.306 & over-explore \\
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth]{images/hyperparam_eg.png}
+\includegraphics[width=\textwidth]{images/hyperparam_eg.pdf}
 \caption{Epsilon-greedy: epsilon vs total reward for standard and contextual variants (50 seeds, $\pm$1 SD). The contextual variant achieves higher reward across all epsilon values by exploiting per-activity Q-tables.}
 \label{fig:hyperparam-eg}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth]{images/hyperparam_ucb.png}
+\includegraphics[width=\textwidth]{images/hyperparam_ucb.pdf}
 \caption{UCB: exploration constant $c$ vs total reward for standard and contextual variants (50 seeds, $\pm$1 SD). Optimal $c$ lies near 0.3--0.5 for both variants.}
 \label{fig:hyperparam-ucb}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth]{images/hyperparam_dec_heatmap.png}
+\includegraphics[width=\textwidth]{images/hyperparam_dec_heatmap.pdf}
 \caption{Standard DEC: 2D heatmap of total reward across epsilon\_start (rows) and decay\_steps (columns). Darker (higher) values concentrate at high epsilon\_start and moderate-to-long decay.}
 \label{fig:hyperparam-dec-heatmap}
 \end{figure}
 
 \paragraph{Boundary analysis.}
-The widened grid resolves boundary concerns for EG and UCB but not for DEC:
+The widened grid fully resolves all boundary concerns:
 \begin{itemize}
   \item \textbf{EG:} The optimum ($\epsilon=0.15$, total 160.7) is interior --- values on either side ($0.10$, $0.20$) are both lower. Not at a boundary.
-  \item \textbf{UCB:} The optimum ($c=0.3$ or $0.5$) is interior --- $c=0.1$ yields only 151.9, and $c=0.3$ yields 163.5. Not at a boundary.
-  \item \textbf{DEC (standard):} $\epsilon_{\text{start}}=0.5$ is still the best value tested, with decay steps near 150--200. The upper boundary of $\epsilon_{\text{start}}$ is hit, suggesting very high initial exploration followed by long decay is preferred. Gains above 162.0 are diminishing. Decay steps is well-characterised (optimum at 150--200).
-  \item \textbf{DEC (contextual):} Similarly, $\epsilon_{\text{start}}=0.5$ with decay=200 is best (total 177.9), also hitting the $\epsilon_{\text{start}}$ boundary.
+  \item \textbf{UCB:} The optimum ($c=0.5$, total 163.6) is interior --- $c=0.3$ yields 163.5 and $c=0.7$ yields 159.8. Not at a boundary.
+  \item \textbf{DEC (standard):} The new optimum ($\epsilon_{\text{start}}=0.6$, $T_{\text{decay}}=150$, total 163.9) is interior --- the grid now extends to $\epsilon_{\text{start}}=0.8$ and $T_{\text{decay}}=500$, with both directions showing diminishing returns. Gains above 162.0 are modest.
+  \item \textbf{DEC (contextual):} The new optimum ($\epsilon_{\text{start}}=0.7$, $T_{\text{decay}}=75$, total 180.4) is also interior, with $\epsilon_{\text{start}}=0.8$ and longer/shorter decay windows all yielding lower totals.
 \end{itemize}
 
 \paragraph{Variance: $\epsilon=0.05$ vs $\epsilon=0.10$ for EG.}

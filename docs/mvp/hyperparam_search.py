@@ -1,10 +1,10 @@
 """Hyperparameter grid search for contextual bandit agents.
 
 Grid (widened from PR #129 review):
-  - epsilon_greedy:  epsilon [0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5]
-  - decaying_epsilon_greedy:  epsilon_start [0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5]
-                              x decay_steps [25, 50, 75, 100, 150, 200, 300]
-  - ucb:  c [0.1, 0.3, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0]
+  - epsilon_greedy:  epsilon [0.01, 0.02, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5]
+  - decaying_epsilon_greedy:  epsilon_start [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+                              x decay_steps [50, 75, 100, 150, 200, 250, 300, 400, 500]
+  - ucb:  c [0.1, 0.2, 0.3, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 5.0, 7.0, 10.0]
 
 Each combination: 50 seeds, record mean total reward + last-50-step mean.
 Runs both standard and contextual (context_feature="activity") variants.
@@ -25,9 +25,10 @@ from rl_health_interventions.experiment import run_episode
 
 logger = logging.getLogger(__name__)
 
-EPSILON_VALUES = [0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5]
-C_VALUES = [0.1, 0.3, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0]
-DECAY_STEPS_VALUES = [25, 50, 75, 100, 150, 200, 300]
+EPSILON_VALUES = [0.01, 0.02, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5]
+DEC_EPSILON_START_VALUES = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+C_VALUES = [0.1, 0.2, 0.3, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 5.0, 7.0, 10.0]
+DECAY_STEPS_VALUES = [50, 75, 100, 150, 200, 250, 300, 400, 500]
 N_SEEDS = 50
 
 OUTPUT_PATH = Path(__file__).parent / "hyperparam_results.csv"
@@ -63,7 +64,7 @@ def _dec_grid(ctx: bool = False) -> list[tuple[dict, str]]:
             {"epsilon_start": e, "epsilon_min": 0.01, "decay_steps": d, **suffix_kwargs},
             f"{prefix}eps_start={e},decay={d}",
         )
-        for e, d in itertools.product(EPSILON_VALUES, DECAY_STEPS_VALUES)
+        for e, d in itertools.product(DEC_EPSILON_START_VALUES, DECAY_STEPS_VALUES)
     ]
 
 
