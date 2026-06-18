@@ -40,6 +40,8 @@ class AgentConfig(BaseModel):
     beta_prior: float | None = None
     epsilon: float | None = None
     c: float | None = None
+    contextual: bool = False
+    context_feature: str | None = None
 
     @model_validator(mode="after")
     def _validate_agent(self) -> AgentConfig:
@@ -82,10 +84,25 @@ class AgentConfig(BaseModel):
                 or self.c is not None
             ):
                 raise ValueError("random agent does not accept any hyperparameters")
+            if self.contextual:
+                raise ValueError(
+                    "contextual=True is only supported for bandit agents "
+                    "(thompson_sampling, epsilon_greedy, ucb)"
+                )
+        if self.contextual:
+            if self.context_feature is None or not self.context_feature.strip():
+                raise ValueError(
+                    "context_feature must be a non-empty string when contextual=True"
+                )
+        else:
+            if self.context_feature is not None:
+                raise ValueError(
+                    "context_feature must not be provided when contextual=False"
+                )
         return self
 
 
-class MDPConfig(BaseModel):
+
     episode_days: int = Field(ge=1)
     steps_per_day: int = Field(ge=1)
     seed: int = 42
