@@ -50,7 +50,7 @@ def main() -> None:
 
     n_steps = config.episode_days * config.steps_per_day
     n_seeds = args.seeds
-    window = 20
+    window = min(20, n_steps)
 
     print(f"Config: {config_path}")
     print(f"MDP: {config.episode_days} days x {config.steps_per_day} steps = {n_steps} steps")
