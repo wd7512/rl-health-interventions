@@ -60,3 +60,29 @@ def test_c_validation():
         UCBAgent(c=0.0)
     with pytest.raises(ValueError, match="strictly positive"):
         UCBAgent(c=-1.0)
+
+
+def test_contextual_ucb_learns_per_context():
+    from rl_health_interventions.state import StateView
+
+    agent = UCBAgent(
+        actions=["nudge", "idle"],
+        c=0.1,
+        seed=42,
+        contextual=True,
+        context_feature="activity",
+    )
+
+    sed = StateView(activity="sedentary", day=0, step_of_day=0)
+    act = StateView(activity="active", day=0, step_of_day=0)
+
+    for _ in range(100):
+        agent.update(sed, "nudge", reward=0.0, next_state=sed)
+        agent.update(sed, "idle", reward=1.0, next_state=sed)
+        agent.update(act, "nudge", reward=1.0, next_state=act)
+        agent.update(act, "idle", reward=0.0, next_state=act)
+
+    assert (
+        agent.q_values[("sedentary", "idle")] > agent.q_values[("sedentary", "nudge")]
+    )
+    assert agent.q_values[("active", "nudge")] > agent.q_values[("active", "idle")]

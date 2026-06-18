@@ -47,10 +47,21 @@ class AgentConfig(BaseModel):
     def _validate_agent(self) -> AgentConfig:
         if self.type not in _KNOWN_AGENT_TYPES:
             raise ValueError(f"Unknown agent type: {self.type}")
-        if self.contextual and self.type != "thompson_sampling":
-            raise ValueError("contextual is only supported for thompson_sampling")
-        if not self.contextual and self.context_feature is not None:
-            raise ValueError("context_feature is only supported when contextual=True")
+        if self.contextual:
+            if self.type not in ("thompson_sampling", "epsilon_greedy", "ucb"):
+                raise ValueError(
+                    f"contextual=True is only supported for thompson_sampling, "
+                    f"epsilon_greedy, and ucb, got {self.type}"
+                )
+            if self.context_feature is None or not self.context_feature.strip():
+                raise ValueError(
+                    "context_feature must be a non-empty string when contextual=True"
+                )
+        else:
+            if self.context_feature is not None:
+                raise ValueError(
+                    "context_feature must not be provided when contextual=False"
+                )
         if self.type == "thompson_sampling":
             if self.alpha_prior is None or self.alpha_prior <= 0:
                 raise ValueError("alpha_prior must be > 0 for thompson_sampling")
@@ -58,12 +69,6 @@ class AgentConfig(BaseModel):
                 raise ValueError("beta_prior must be > 0 for thompson_sampling")
             if self.epsilon is not None or self.c is not None:
                 raise ValueError("thompson_sampling agent does not accept epsilon or c")
-            if self.contextual and (
-                self.context_feature is None or not self.context_feature.strip()
-            ):
-                raise ValueError(
-                    "context_feature must be a non-empty string when contextual=True"
-                )
         if self.type == "epsilon_greedy":
             if self.epsilon is None or not (0 <= self.epsilon <= 1):
                 raise ValueError("epsilon must be in [0, 1] for epsilon_greedy")
