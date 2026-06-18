@@ -26,7 +26,10 @@ def make(name_or_config=None, **kwargs) -> TransitionModel:
     return REGISTRY[name](**kwargs)
 
 
-try:
-    rule_based.register()
-except Exception:
-    logger.exception("Failed to register rule_based transition model")
+_TRANSITION_MODULES = [rule_based]
+
+for _mod in _TRANSITION_MODULES:
+    try:
+        _mod.register()
+    except Exception:
+        logger.exception("Failed to register %s", _mod.__name__)
