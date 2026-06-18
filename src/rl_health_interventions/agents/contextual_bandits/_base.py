@@ -35,11 +35,11 @@ class ContextualBanditAgent(Agent):
             return action
         if self.context_feature is None:
             raise ValueError("context_feature must be set when contextual=True")
-        value = getattr(state, self.context_feature, None)
-        if value is None:
+        if not hasattr(state, self.context_feature):
             raise ValueError(
                 f"State has no attribute '{self.context_feature}'. "
                 f"Available attributes: "
                 f"{[a for a in dir(state) if not a.startswith('_')]}"
             )
+        value = getattr(state, self.context_feature)
         return (value, action)
