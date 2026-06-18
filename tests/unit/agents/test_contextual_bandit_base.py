@@ -37,3 +37,9 @@ def test_get_context_key_contextual_raises_on_missing_attribute():
     state = StateView(activity="sedentary", day=0, step_of_day=0)
     with pytest.raises(ValueError, match="State has no attribute"):
         agent._get_context_key(state, "nudge")
+
+
+def test_get_context_key_contextual_raises_on_none_state():
+    agent = _make_agent(contextual=True, context_feature="activity")
+    with pytest.raises(ValueError, match="state cannot be None"):
+        agent._get_context_key(None, "nudge")

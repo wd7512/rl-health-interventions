@@ -33,6 +33,8 @@ class ContextualBanditAgent(Agent):
         """
         if not self.contextual:
             return action
+        if state is None:
+            raise ValueError("state cannot be None when contextual=True")
         if self.context_feature is None:
             raise ValueError("context_feature must be set when contextual=True")
         if not hasattr(state, self.context_feature):
