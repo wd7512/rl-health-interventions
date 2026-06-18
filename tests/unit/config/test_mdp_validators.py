@@ -216,6 +216,95 @@ class TestAgentValidation:
         with pytest.raises(ValidationError, match="does not accept alpha_prior"):
             MDPConfig.model_validate(raw)
 
+    def test_contextual_accepted_for_bandits(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {
+                "type": "thompson_sampling",
+                "alpha_prior": 1,
+                "beta_prior": 1,
+                "contextual": True,
+                "context_feature": "activity",
+            },
+            {
+                "type": "epsilon_greedy",
+                "epsilon": 0.1,
+                "contextual": True,
+                "context_feature": "activity",
+            },
+            {
+                "type": "ucb",
+                "c": 2.0,
+                "contextual": True,
+                "context_feature": "activity",
+            },
+        ]
+        config = MDPConfig.model_validate(raw)
+        assert len(config.agents) == 3
+        for agent_cfg in config.agents:
+            assert agent_cfg.contextual
+            assert agent_cfg.context_feature == "activity"
+
+    def test_contextual_rejected_for_random(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {"type": "random", "contextual": True, "context_feature": "activity"}
+        ]
+        with pytest.raises(ValidationError, match="contextual=True is only supported"):
+            MDPConfig.model_validate(raw)
+
+    def test_contextual_requires_context_feature(self):
+        raw = _valid_raw()
+        raw["agents"] = [{"type": "epsilon_greedy", "epsilon": 0.1, "contextual": True}]
+        with pytest.raises(
+            ValidationError, match="context_feature must be a non-empty string"
+        ):
+            MDPConfig.model_validate(raw)
+
+    def test_contextual_with_empty_context_feature_rejected(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {
+                "type": "epsilon_greedy",
+                "epsilon": 0.1,
+                "contextual": True,
+                "context_feature": "",
+            }
+        ]
+        with pytest.raises(
+            ValidationError, match="context_feature must be a non-empty string"
+        ):
+            MDPConfig.model_validate(raw)
+
+    def test_contextual_with_whitespace_context_feature_rejected(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {
+                "type": "epsilon_greedy",
+                "epsilon": 0.1,
+                "contextual": True,
+                "context_feature": "   ",
+            }
+        ]
+        with pytest.raises(
+            ValidationError, match="context_feature must be a non-empty string"
+        ):
+            MDPConfig.model_validate(raw)
+
+    def test_non_contextual_rejects_context_feature(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {
+                "type": "epsilon_greedy",
+                "epsilon": 0.1,
+                "context_feature": "activity",
+            }
+        ]
+        with pytest.raises(
+            ValidationError, match="context_feature must not be provided"
+        ):
+            MDPConfig.model_validate(raw)
+
     def test_random_rejects_all_hyperparameters(self):
         raw = _valid_raw()
         raw["agents"] = [{"type": "random", "epsilon": 0.1}]
@@ -274,3 +363,63 @@ class TestNonRuleBasedTransition:
         raw["transition_model"] = {"type": "learned"}
         config = MDPConfig.model_validate(raw)
         assert config.transition_model.type == "learned"
+
+
+class TestAgentConfigContextualDefaults:
+    """Tests for new contextual / context_feature fields on AgentConfig."""
+
+    def test_agent_config_contextual_default_is_false(self):
+        from rl_health_interventions.config.schemas import AgentConfig
+
+        cfg = AgentConfig(type="epsilon_greedy", epsilon=0.1)
+        assert cfg.contextual is False
+
+    def test_agent_config_context_feature_default_is_none(self):
+        from rl_health_interventions.config.schemas import AgentConfig
+
+        cfg = AgentConfig(type="epsilon_greedy", epsilon=0.1)
+        assert cfg.context_feature is None
+
+    def test_contextual_ucb_with_context_feature_valid(self):
+        from rl_health_interventions.config.schemas import AgentConfig
+
+        cfg = AgentConfig(
+            type="ucb", c=1.5, contextual=True, context_feature="activity"
+        )
+        assert cfg.contextual is True
+        assert cfg.context_feature == "activity"
+
+    def test_contextual_ts_with_empty_context_feature_rejected(self):
+        from pydantic import ValidationError
+        from rl_health_interventions.config.schemas import AgentConfig
+
+        with pytest.raises(ValidationError, match="context_feature must be a non-empty string"):
+            AgentConfig(
+                type="thompson_sampling",
+                alpha_prior=1,
+                beta_prior=1,
+                contextual=True,
+                context_feature="",
+            )
+
+    def test_non_contextual_ucb_rejects_context_feature(self):
+        from pydantic import ValidationError
+        from rl_health_interventions.config.schemas import AgentConfig
+
+        with pytest.raises(ValidationError, match="context_feature must not be provided"):
+            AgentConfig(type="ucb", c=2.0, context_feature="activity")
+
+    def test_contextual_requires_nonempty_context_feature_for_ucb(self):
+        from pydantic import ValidationError
+        from rl_health_interventions.config.schemas import AgentConfig
+
+        with pytest.raises(ValidationError, match="context_feature must be a non-empty string"):
+            AgentConfig(type="ucb", c=2.0, contextual=True)
+
+    def test_contextual_random_agent_rejected(self):
+        """random agent does not support contextual mode."""
+        from pydantic import ValidationError
+        from rl_health_interventions.config.schemas import AgentConfig
+
+        with pytest.raises(ValidationError, match="contextual=True is only supported"):
+            AgentConfig(type="random", contextual=True, context_feature="activity")
