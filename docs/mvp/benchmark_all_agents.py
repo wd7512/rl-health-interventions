@@ -7,8 +7,11 @@ from __future__ import annotations
 
 import argparse
 import copy
+import logging
 import numpy as np
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.config.schemas import AgentConfig
@@ -52,14 +55,14 @@ def main() -> None:
     n_steps = config.episode_days * config.steps_per_day
     n_seeds = args.seeds
 
-    print(f"Config: {config_path}")
-    print(f"MDP: {config.episode_days} days × {config.steps_per_day} steps = {n_steps} steps")
-    print(f"Seeds: {n_seeds}\n")
+    logger.info("Config: %s", config_path)
+    logger.info("MDP: %d days × %d steps = %d steps", config.episode_days, config.steps_per_day, n_steps)
+    logger.info("Seeds: %d\n", n_seeds)
 
     results: dict[str, dict] = {}
     for label, agent_dict in AGENT_VARIANTS:
         agent_cfg = AgentConfig.model_validate(agent_dict)
-        print(f"Running {label}...")
+        logger.info("Running %s...", label)
         rewards = run_agent(config, agent_cfg, n_seeds)
         results[label] = {
             "total_mean": rewards.sum(axis=1).mean(),
@@ -69,18 +72,19 @@ def main() -> None:
         }
 
     contextual_opt = 3 / 7
-    print(f"\n{'='*72}")
-    print(f"{'Agent':<20} {'Total Reward':>14} {'Per Step':>10} {'Last 50':>10} {'vs Ctx Opt':>12}")
-    print(f"{'-'*72}")
+    logger.info("\n%s", "=" * 72)
+    logger.info("%-20s %14s %10s %10s %12s", "Agent", "Total Reward", "Per Step", "Last 50", "vs Ctx Opt")
+    logger.info("%s", "-" * 72)
     for label, _ in AGENT_VARIANTS:
         r = results[label]
         vs_opt = (r["step_mean"] - contextual_opt) / contextual_opt * 100
-        print(f"{label:<20} {r['total_mean']:>8.1f} ± {r['total_std']:<5.1f} {r['step_mean']:>9.4f} {r['last50_mean']:>10.4f} {vs_opt:>+10.1f}%")
-    print(f"{'-'*72}")
-    print(f"{'Contextual optimal':<20} {192.9:>14} {0.4286:>10} {0.4286:>10} {'---':>12}")
-    print(f"{'Non-ctx optimal':<20} {168.8:>14} {0.3750:>10} {0.3750:>10} {'---':>12}")
-    print(f"{'='*72}")
+        logger.info("%-20s %8.1f ± %-5.1f %9.4f %10.4f %+10.1f%%", label, r["total_mean"], r["total_std"], r["step_mean"], r["last50_mean"], vs_opt)
+    logger.info("%s", "-" * 72)
+    logger.info("%-20s %14.1f %10.4f %10.4f %12s", "Contextual optimal", 192.9, 0.4286, 0.4286, "---")
+    logger.info("%-20s %14.1f %10.4f %10.4f %12s", "Non-ctx optimal", 168.8, 0.3750, 0.3750, "---")
+    logger.info("%s", "=" * 72)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     main()
