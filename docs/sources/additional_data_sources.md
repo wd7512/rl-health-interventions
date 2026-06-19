@@ -257,29 +257,40 @@ The largest publicly available step-count dataset. 14.7K participants with minut
 
 ---
 
-## Dataset 9: TILES (Tracking Individual Lives with Everyday Sensors)
+## Dataset 9: TILES-2018 (Tracking IndividuaL performancE with Sensors)
 
-**Source:** [Open Science Framework](https://osf.io/jm6du/)
-**Lead:** Laura Stroud (Northwestern)
+> **Correction note (2026-06-17):** A previous version of this section cited the dataset as "TILES" hosted on OSF (`osf.io/jm6du/`) and led by Laura Stroud (Northwestern), claiming it contained an "intervention arm with delivery logs." All three claims are incorrect. The OSF ID does not resolve to a TILES dataset (OSF API returns 404 on `/v2/nodes/jm6du/` and `/v2/registrations/jm6du/`). The canonical source is Mundnich et al. 2020, *Scientific Data* 7:354 (DOI `10.1038/s41597-020-00655-3`). The dataset is observational — it has no `a_t` variable, so it cannot be used to learn `P(s_{t+1} | s_t, a_t)`. It is retained here for its passive-sensing value (Fitbit steps/HR/sleep), not for transition learning. See `docs/plans/learned_transitions.md` for the dataset selection that resulted from this correction.
+
+**Source:** [tiles-data.isi.edu](https://tiles-data.isi.edu/)
+**Lead:** Karel Mundnich, Shrikanth Narayanan (USC / USC ISI)
+**Paper:** Mundnich et al. (2020), *Scientific Data* 7:354. DOI [10.1038/s41597-020-00655-3](https://doi.org/10.1038/s41597-020-00655-3)
 
 ### Overview
 
 | Property | Value |
 |----------|-------|
-| Type | Longitudinal passive sensing + intervention |
-| Participants | ~200 adults |
-| Duration | ~12 months |
-| Sensors | Fitbit (steps, sleep, HR), smartphone (accel, GPS, calls, texts) |
-| Intervention | Physical activity intervention arm with delivery logs |
-| Access | **Open** (OSF) |
+| Type | Longitudinal passive sensing (**observational only** — no intervention delivery) |
+| Participants | n = 212 hospital workers |
+| Duration | 10 weeks |
+| Sensors | Fitbit Charge 2 (steps, sleep, HR), OMsignal biometrics garment, Jelly smartphone (audio features + Bluetooth proximity), Owl-in-One Bluetooth data hubs, Minew environmental sensors (door motion, humidity, temperature, light) |
+| Surveys | Baseline + daily EMAs (job performance, health, personality, psychological flexibility, psychological capital) |
+| Access | **Open** (USC ISI hosting) |
 
 ### Why It Matters
 
-One of the few open-access datasets that combines (a) Fitbit wearable data, (b) intervention delivery logs, and (c) longitudinal (12-month) coverage. Directly relevant to our framework — contains the action → response mappings we need for 1C calibration, and it's freely available.
+Two-thousand-plus hours of Fitbit (steps + HR + sleep) from 212 participants in a real workplace. Useful for:
+
+- Parameterising synthetic step / HR / sleep distributions (with NHANES for steps, MMASH for HR-activity-sleep correlations).
+- Modelling non-stationary behaviour over 10 weeks at the population level.
+- Validating the data pipeline (1A) on long-duration Fitbit data.
+
+### Why It Does NOT Help With Transition Learning
+
+The dataset is observational. **There is no `a_t` variable** (no intervention delivered by an agent, no randomized arms). It cannot produce paired `(state, action, next_state)` tuples. For transition learning we use 4TU #1 "Collaboratively Setting Daily Step Goals" instead — see `docs/plans/learned_transitions.md`.
 
 ### Access
 
-- **Open access:** [OSF](https://osf.io/jm6du/)
+- **Open access:** [tiles-data.isi.edu](https://tiles-data.isi.edu/) (two records: Main Data Record + Audio Data Record)
 - **Format:** CSV
 
 ---
@@ -396,11 +407,11 @@ Pre-built synthetic RL environments designed specifically for offline RL algorit
 | Step count distributions | ✅ Large N | ⚠️ Small N | ✅ Activity-specific | ✅ NHANES 14.7K | ✅ Apple Watch | ✅ LiveWell (cam), LifeSnaps (Fitbit) |
 | Heart rate | ✅ All of Us | ❌ | ❌ | ✅ MMASH (beat-to-beat) | ✅ Apple Watch (continuous) | ✅ LiveWell (Fitbit+cam) |
 | Sleep | ✅ | ⚠️ V2 only | ❌ | ✅ MMASH, TILES | ✅ Apple Watch | ✅ LifeSnaps (Fitbit) |
-| Intervention response | ❌ | ✅ | ❌ | ✅ TILES | ⚠️ Custom (non-PA prompts) | ⚠️ LiveWell (eating cues) |
-| Engagement over time | ❌ | ✅ | ❌ | ✅ TILES (12 months) | ✅ 7-day studies | ✅ LifeSnaps (4 weeks × 4 phases) |
+| Intervention response | ❌ | ✅ | ❌ | ❌ (TILES is observational) | ⚠️ Custom (non-PA prompts) | ⚠️ LiveWell (eating cues) |
+| Engagement over time | ❌ | ✅ | ❌ | ✅ TILES (10 weeks) | ✅ 7-day studies | ✅ LifeSnaps (4 weeks × 4 phases) |
 | RL action selection data | ❌ | ✅ V2 | ❌ | ❌ | ❌ | ❌ |
-| Immediate availability | ❌ (4-8 week apps) | ⚠️ (data sharing) | ✅ (download now) | ✅ NHANES, MMASH (now) | ⚠️ (Stanford DUA) | ✅ LiveWell (Alshurafa lab), LifeSnaps (4TU open) |
-| Longitudinal (months+) | ✅ (years) | ✅ (42-90 days) | ❌ (days) | ✅ TILES (12 mo), GLOBEM (4 yr) | ❌ (7 days) | ⚠️ LiveWell (4 mo), LifeSnaps (4 wk) |
+| Immediate availability | ❌ (4-8 week apps) | ⚠️ (data sharing) | ✅ (download now) | ✅ NHANES, MMASH, TILES (now) | ⚠️ (Stanford DUA) | ✅ LiveWell (Alshurafa lab), LifeSnaps (4TU open) |
+| Longitudinal (months+) | ✅ (years) | ✅ (42-90 days) | ❌ (days) | ✅ GLOBEM (4 yr), TILES (10 wk — borderline) | ❌ (7 days) | ⚠️ LiveWell (4 mo), LifeSnaps (4 wk) |
 | Sensor variety | ✅ Fitbit | ✅ Fitbit | ✅ Phone + IMU | ✅ Mixed (Fitbit, ActiGraph, Polar) | ✅ Apple Watch | ✅ LiveWell (cam+Fitbit), LifeSnaps (Fitbit+phone) |
 
 ---
@@ -414,7 +425,8 @@ Pre-built synthetic RL environments designed specifically for offline RL algorit
 | 1 | NHANES Steps | Parameterise synthetic step distributions (14.7K participants, CC0) | Download now |
 | 2 | ExtraSensory / WISDM / PAMAP2 | Test data pipeline, validate schemas | Download now |
 | 3 | MMASH | Validate HR-activity-sleep correlations in synthetic data | Download now |
-| 4 | TILES | Open intervention response data for 1C calibration | Download now |
+| 4 | TILES-2018 | Passive Fitbit (steps/HR/sleep) for synthetic-distribution parameterisation; observational only — see `docs/plans/learned_transitions.md` | Download now |
+| 4b | 4TU #1 "Collaboratively Setting Daily Step Goals" | Open intervention-response data (step-goal proposals) for 1C calibration | Download now |
 | 5 | Health Gym | Test agent library (1D) with synthetic RL trajectories | Download now |
 | 6 | HeartSteps V1 | Best restricted intervention response data — start access request | Weeks-months |
 | 7 | HeartSteps V2 | RL-in-the-loop data for agent benchmark — start access request | Weeks-months |
@@ -424,11 +436,11 @@ Pre-built synthetic RL environments designed specifically for offline RL algorit
 
 1. **Subphase 1A (Data Layer):** NHANES (14.7K participants, CC0) provides the primary source for parameterising synthetic step distributions. PAMAP2 and WISDM validate the pipeline on real sensor data on Day 1. MMASH validates HR-activity-sleep correlations.
 
-2. **Subphase 1C (User Simulation):** TILES is the key find — an open-access dataset with intervention delivery logs, Fitbit data, and 12-month longitudinal coverage. This provides *action → response* mappings without needing to wait for HeartSteps access. HeartSteps V1/V2 remains the gold standard for burden/engagement calibration.
+2. **Subphase 1C (User Simulation):** 4TU #1 "Collaboratively Setting Daily Step Goals" (235 participants, 5-level RL-randomised goal proposal, prior-day step response) is the open-access intervention dataset for *action → response* mappings without needing HeartSteps access. TILES-2018 is observational and *cannot* supply intervention response data, despite an earlier version of this document claiming otherwise (see correction note in Dataset 9 above). HeartSteps V1/V2 remains the gold standard for burden/engagement calibration.
 
 3. **Subphase 1D (Agent Library):** Health Gym provides ready-made synthetic RL environments for testing agent implementations before PA-specific data is available. HeartSteps V2's Thompson Sampling is the real benchmark.
 
-4. **Synthetic data strategy:** Fit synthetic generators to NHANES step distributions (population baseline) + HeartSteps/TILES response distributions (treatment effects). MMASH grounds the HR-activity-sleep correlations.
+4. **Synthetic data strategy:** Fit synthetic generators to NHANES step distributions (population baseline) + HeartSteps / 4TU #1 response distributions (treatment effects). MMASH grounds the HR-activity-sleep correlations. TILES-2018 Fitbit (steps/HR/sleep) provides 10-week real-world distributions of passive wearable signals.
 
 ---
 
