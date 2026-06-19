@@ -27,6 +27,7 @@ class Environment:
             step_of_day=0,
             steps_per_day=self._config.steps_per_day,
         )
+        self._reward.reset()
         logger.debug("Environment reset: %s", self._current_state)
         return self._current_state
 

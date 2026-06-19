@@ -309,3 +309,45 @@ def test_scaled_bonus_zero_below_threshold():
     )
     assert rew == 0.0  # sedentary base + zero bonus
     assert done is False
+
+
+def test_reset_clears_active_count():
+    """reset() clears the active count between episodes."""
+    from rl_health_interventions.config.schemas import MDPConfig, RewardWeightsConfig
+
+    config = MDPConfig(
+        episode_days=10,
+        steps_per_day=1,
+        seed=42,
+        initial_state="sedentary",
+        states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
+        actions=["nudge", "idle"],
+        transition_model={
+            "type": "rule_based",
+            "transition_probabilities": {
+                "sedentary": {
+                    "nudge": {"active": 1.0, "sedentary": 0.0},
+                    "idle": {"active": 1.0, "sedentary": 0.0},
+                },
+                "active": {
+                    "nudge": {"active": 1.0, "sedentary": 0.0},
+                    "idle": {"active": 1.0, "sedentary": 0.0},
+                },
+            },
+        },
+        reward_weights=RewardWeightsConfig(
+            mode="multi_timescale",
+            delayed_reward_interval=3,
+            delayed_reward_value=10.0,
+            delayed_reward_scale=6.0,
+            delayed_reward_threshold=0.0,
+        ),
+    )
+    r = CompoundReward(config)
+    # First episode: 2 active steps
+    r.reward(_sv("active", step_of_day=1), "nudge", step_idx=0)
+    r.reward(_sv("active", step_of_day=2), "nudge", step_idx=0)
+    r.reset()
+    # Second episode: 0 active steps before boundary → rate=0/3=0
+    rew, _ = r.reward(_sv("sedentary", step_of_day=3), "nudge", step_idx=0)
+    assert rew == 0.0  # 0 base + 0 bonus (rate 0/3)

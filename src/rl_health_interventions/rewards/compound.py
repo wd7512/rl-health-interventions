@@ -59,6 +59,9 @@ class CompoundReward(RewardHandler):
 
         return base + bonus, False
 
+    def reset(self) -> None:
+        self._active_count = 0
+
 
 def register() -> None:
     from rl_health_interventions.rewards import REGISTRY

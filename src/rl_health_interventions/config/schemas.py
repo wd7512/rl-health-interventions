@@ -152,10 +152,10 @@ class AgentConfig(BaseModel):
 
 class RewardWeightsConfig(BaseModel):
     mode: str = "multi_timescale"
-    delayed_reward_interval: int = 21
-    delayed_reward_value: float = 10.0
-    delayed_reward_scale: float | None = None
-    delayed_reward_threshold: float | None = None
+    delayed_reward_interval: int = Field(ge=1, default=21)
+    delayed_reward_value: float = Field(ge=0.0, default=10.0)
+    delayed_reward_scale: float | None = Field(ge=0.0, default=None)
+    delayed_reward_threshold: float | None = Field(ge=0.0, le=1.0, default=None)
 
 
 class MDPConfig(BaseModel):

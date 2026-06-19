@@ -10,3 +10,6 @@ class RewardHandler(ABC):
     def reward(
         self, state: StateView, action: str, step_idx: int
     ) -> tuple[float, bool]: ...
+
+    @abstractmethod
+    def reset(self) -> None: ...
