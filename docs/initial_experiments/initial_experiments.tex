@@ -168,7 +168,7 @@ would be needed for the scaled bonus to take effect.
 \item The \texttt{delayed\_reward\_interval} and
 \texttt{delayed\_reward\_value} parameters are placeholders. Calibration
 against real-world user data would inform clinically meaningful values.
-\item The scaled bonus threshold (default~0.6) and scale (default~5.0) were
+\item The scaled bonus threshold (default~0.6) and scale (used as 5.0 in this run; schema default is \texttt{None}) were
 chosen arbitrarily. A grid search could identify regions where the delayed
 reward shapes agent behaviour without overwhelming the per-step signal.
 \item The flat vs.\ scaled choice is a config toggle today. A future extension
