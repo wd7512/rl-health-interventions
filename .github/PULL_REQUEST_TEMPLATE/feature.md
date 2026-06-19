@@ -7,7 +7,7 @@ Closes #
 ## Scope
 
 - [ ] Changes limited to `docs/`, `src/`, and `tests/` only
-- [ ] No config files, CI workflows, or unrelated files modified
+- [ ] No project config files (`pyproject.toml`, CI workflows) modified
 - [ ] PR targets the correct base branch for this work
 
 ## Issue
@@ -29,7 +29,9 @@ Closes #
 - [ ] Existing tests updated for any signature changes
 - [ ] Full suite passes locally (`uv run pytest tests/ -q`)
 - [ ] MVP regression test passes (`uv run pytest tests/integration/test_mvp_end_to_end.py -q`)
-- [ ] Ruff clean (`uv run ruff check .`)
+- [ ] Ruff format clean (`uv run ruff format --check .`)
+- [ ] Ruff lint clean (`uv run ruff check .`)
+- [ ] Type check clean (`uv run ty check --exclude tests/`)
 
 ## Experiments
 
