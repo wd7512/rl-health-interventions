@@ -69,7 +69,7 @@ class RuleBasedTransition(TransitionModel):
         wd = self._state_dynamics.weight
         meal_effect = wd.meal_effect.get(tod, 0.0)
         weekend_boost = wd.weekend_boost if dow in {0, 6} else 0.0
-        steps_delta = steps_mean + steps_noise
+        steps_delta = new_steps - (state.steps or 0.0)
         weight_noise = self._rng.normal(0, wd.noise_std)
         new_weight = (
             (state.weight or 0.0)
