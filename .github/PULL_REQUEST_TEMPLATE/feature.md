@@ -28,6 +28,7 @@ Closes #
 - [ ] New logic covered by unit tests (happy path + edge cases)
 - [ ] Existing tests updated for any signature changes
 - [ ] Full suite passes locally (`uv run pytest tests/ -q`)
+- [ ] MVP regression test passes (`uv run pytest tests/integration/test_mvp_end_to_end.py -q`)
 - [ ] Ruff clean (`uv run ruff check .`)
 
 ## Experiments
@@ -54,4 +55,3 @@ Closes #
 
 - [ ] CI passes (tests, lint)
 - [ ] All review threads resolved
-- [ ] At least one approval before merge
