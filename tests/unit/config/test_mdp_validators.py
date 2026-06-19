@@ -509,3 +509,15 @@ class TestExtendedActions:
         raw["actions"].append("no_message")
         with pytest.raises(ValidationError, match="dict"):
             MDPConfig.model_validate(raw)
+
+    def test_non_string_action_name_rejected(self):
+        raw = _valid_extended_raw()
+        raw["actions"][0]["name"] = 123
+        with pytest.raises(ValidationError, match="non-empty string"):
+            MDPConfig.model_validate(raw)
+
+    def test_empty_action_name_rejected(self):
+        raw = _valid_extended_raw()
+        raw["actions"][0]["name"] = ""
+        with pytest.raises(ValidationError, match="non-empty string"):
+            MDPConfig.model_validate(raw)

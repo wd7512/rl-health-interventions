@@ -9,10 +9,14 @@ def _normalize_actions(actions: Any) -> tuple[list[str], Any]:
     """Validate and normalize actions. Returns (action_names, raw_actions).
 
     Accepts:
-    - list[str]: MVP mode, returned as-is
-    - list[dict]: Extended mode, extracts 'name' from each dict
+    - list[str]: MVP mode, returned as-is (e.g. ``["nudge", "idle"]``).
+    - list[dict]: Extended mode, extracts 'name' from each dict.  Needed for
+      the 6-action design space from ``docs/design/initial_design.tex §3``
+      where actions carry per-action metadata (``reward_penalty``,
+      ``burden_penalty``).
 
-    Raises ValueError on missing name or duplicates.
+    Raises ValueError on missing name, non-string names, empty names, or
+    duplicates.
     """
     seen: set[str] = set()
     names: list[str] = []
@@ -21,8 +25,12 @@ def _normalize_actions(actions: Any) -> tuple[list[str], Any]:
             if "name" not in item:
                 raise ValueError("Each action dict must have a 'name' key")
             name = item["name"]
+            if not isinstance(name, str) or not name.strip():
+                raise ValueError("Each action dict 'name' must be a non-empty string")
         elif isinstance(item, str):
             name = item
+            if not name.strip():
+                raise ValueError("Action names must be non-empty strings")
         else:
             raise ValueError(
                 f"Actions must be strings or dicts with a 'name' key, got {type(item).__name__}"
