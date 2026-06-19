@@ -12,6 +12,15 @@
 |------|-------------|
 | `mvp_specification.tex` | MDP formulation for the current binary-state, binary-action simulator with transition probabilities, reward function, agent formulations, and 10-seed results table. |
 
+## initial_experiments/
+
+| File | Description |
+|------|-------------|
+| `initial_experiments.tex` | Scaffold for state space, action space, and reward function extensions bridging MVP to the full design vision. Sections to be filled by Issues #124, #126, #132. |
+| `chart_generator.py` | Stub — generate charts for initial experiments results. |
+| `benchmark_all_agents.py` | Stub — benchmark all agents on initial experiments configs. |
+| `images/` | Charts and figures for initial experiments. |
+
 ## learned/
 
 | File | Description |
