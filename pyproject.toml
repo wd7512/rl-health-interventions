@@ -22,6 +22,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "matplotlib>=3.7.0",
     "pytest>=8.4.0,<10",
     "pytest-timeout>=2.3.0,<3",
     "pytest-xdist>=3.8.0,<4",
@@ -32,6 +33,7 @@ dev = [
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+extend-exclude = ["docs"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

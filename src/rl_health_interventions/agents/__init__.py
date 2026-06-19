@@ -4,6 +4,7 @@ import logging
 from typing import Type
 
 from rl_health_interventions.agents._base import Agent
+from rl_health_interventions.agents import decaying_epsilon_greedy
 from rl_health_interventions.agents import epsilon_greedy
 from rl_health_interventions.agents import random
 from rl_health_interventions.agents import thompson_sampling
@@ -31,23 +32,16 @@ def make(name: str, **kwargs) -> Agent:
     return REGISTRY[name](**kwargs)
 
 
-try:
-    thompson_sampling.register()
-except Exception:
-    logger.exception("Failed to register thompson_sampling agent")
+_AGENT_MODULES = [
+    thompson_sampling,
+    epsilon_greedy,
+    random,
+    ucb,
+    decaying_epsilon_greedy,
+]
 
-try:
-    epsilon_greedy.register()
-except Exception:
-    logger.exception("Failed to register epsilon_greedy agent")
-
-
-try:
-    random.register()
-except Exception:
-    logger.exception("Failed to register random agent")
-
-try:
-    ucb.register()
-except Exception:
-    logger.exception("Failed to register ucb agent")
+for _mod in _AGENT_MODULES:
+    try:
+        _mod.register()
+    except Exception:
+        logger.exception("Failed to register %s", _mod.__name__)

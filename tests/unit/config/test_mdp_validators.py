@@ -216,6 +216,95 @@ class TestAgentValidation:
         with pytest.raises(ValidationError, match="does not accept alpha_prior"):
             MDPConfig.model_validate(raw)
 
+    def test_contextual_accepted_for_bandits(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {
+                "type": "thompson_sampling",
+                "alpha_prior": 1,
+                "beta_prior": 1,
+                "contextual": True,
+                "context_feature": "activity",
+            },
+            {
+                "type": "epsilon_greedy",
+                "epsilon": 0.1,
+                "contextual": True,
+                "context_feature": "activity",
+            },
+            {
+                "type": "ucb",
+                "c": 2.0,
+                "contextual": True,
+                "context_feature": "activity",
+            },
+        ]
+        config = MDPConfig.model_validate(raw)
+        assert len(config.agents) == 3
+        for agent_cfg in config.agents:
+            assert agent_cfg.contextual
+            assert agent_cfg.context_feature == "activity"
+
+    def test_contextual_rejected_for_random(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {"type": "random", "contextual": True, "context_feature": "activity"}
+        ]
+        with pytest.raises(ValidationError, match="contextual=True is only supported"):
+            MDPConfig.model_validate(raw)
+
+    def test_contextual_requires_context_feature(self):
+        raw = _valid_raw()
+        raw["agents"] = [{"type": "epsilon_greedy", "epsilon": 0.1, "contextual": True}]
+        with pytest.raises(
+            ValidationError, match="context_feature must be a non-empty string"
+        ):
+            MDPConfig.model_validate(raw)
+
+    def test_contextual_with_empty_context_feature_rejected(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {
+                "type": "epsilon_greedy",
+                "epsilon": 0.1,
+                "contextual": True,
+                "context_feature": "",
+            }
+        ]
+        with pytest.raises(
+            ValidationError, match="context_feature must be a non-empty string"
+        ):
+            MDPConfig.model_validate(raw)
+
+    def test_contextual_with_whitespace_context_feature_rejected(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {
+                "type": "epsilon_greedy",
+                "epsilon": 0.1,
+                "contextual": True,
+                "context_feature": "   ",
+            }
+        ]
+        with pytest.raises(
+            ValidationError, match="context_feature must be a non-empty string"
+        ):
+            MDPConfig.model_validate(raw)
+
+    def test_non_contextual_rejects_context_feature(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {
+                "type": "epsilon_greedy",
+                "epsilon": 0.1,
+                "context_feature": "activity",
+            }
+        ]
+        with pytest.raises(
+            ValidationError, match="context_feature must not be provided"
+        ):
+            MDPConfig.model_validate(raw)
+
     def test_random_rejects_all_hyperparameters(self):
         raw = _valid_raw()
         raw["agents"] = [{"type": "random", "epsilon": 0.1}]
@@ -274,3 +363,38 @@ class TestNonRuleBasedTransition:
         raw["transition_model"] = {"type": "learned"}
         config = MDPConfig.model_validate(raw)
         assert config.transition_model.type == "learned"
+
+
+class TestDecayingEpsilonGreedy:
+    def test_valid_config_accepted(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {
+                "type": "decaying_epsilon_greedy",
+                "epsilon_start": 0.5,
+                "epsilon_min": 0.01,
+                "decay_steps": 200,
+            }
+        ]
+        config = MDPConfig.model_validate(raw)
+        assert config.agents[0].type == "decaying_epsilon_greedy"
+
+    def test_epsilon_min_exceeding_start_rejected(self):
+        raw = _valid_raw()
+        raw["agents"] = [
+            {
+                "type": "decaying_epsilon_greedy",
+                "epsilon_start": 0.1,
+                "epsilon_min": 0.5,
+            }
+        ]
+        with pytest.raises(
+            ValidationError, match="epsilon_min must not exceed epsilon_start"
+        ):
+            MDPConfig.model_validate(raw)
+
+    def test_epsilon_start_out_of_range_rejected(self):
+        raw = _valid_raw()
+        raw["agents"] = [{"type": "decaying_epsilon_greedy", "epsilon_start": 1.5}]
+        with pytest.raises(ValidationError, match="epsilon_start must be in"):
+            MDPConfig.model_validate(raw)

@@ -1902,6 +1902,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "matplotlib" },
     { name = "pytest" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -1925,6 +1926,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "matplotlib", specifier = ">=3.7.0" },
     { name = "pytest", specifier = ">=8.4.0,<10" },
     { name = "pytest-timeout", specifier = ">=2.3.0,<3" },
     { name = "pytest-xdist", specifier = ">=3.8.0,<4" },
