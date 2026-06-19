@@ -159,29 +159,36 @@ once all three extension PRs (1a, 1b, 1c) have been merged. Currently available:
 2~actions, 4~continuous states, simple reward) --- see \S\ref{sec:state}.
 \end{itemize}
 
-\paragraph{PR~1b Results (seed~42, one run).}
+\paragraph{PR~1b Results (50 seeds, all MVP agents).}
 
 \begin{center}
-\begin{tabular}{lrr}
+\begin{tabular}{lrrrr}
 \toprule
-Metric & Value \\
+Agent & Total Reward & Per Step & Weight (kg) & Steps \\
 \midrule
-Total reward (Thompson Sampling) & 169.0 \\
-Final weight (kg)                 & 66.86 \\
-Total steps taken                 & 62,268 \\
-Steps/step mean                   & 138.4 \\
+Standard TS & 161.8 $\pm$ 15.9 & 0.3596 & 68.57 $\pm$ 1.22 & 57977 $\pm$ 5667 \\
+Contextual TS & 178.8 $\pm$ 15.8 & 0.3974 & 69.50 $\pm$ 1.06 & 48702 $\pm$ 5210 \\
+Standard EG & 155.3 $\pm$ 29.0 & 0.3452 & 68.80 $\pm$ 1.82 & 55728 $\pm$ 14096 \\
+Contextual EG & 172.7 $\pm$ 26.9 & 0.3837 & 69.63 $\pm$ 1.62 & 47355 $\pm$ 10842 \\
+Standard UCB & 163.6 $\pm$ 15.6 & 0.3635 & 68.34 $\pm$ 1.19 & 60253 $\pm$ 5517 \\
+Contextual UCB & 179.2 $\pm$ 17.4 & 0.3982 & 69.51 $\pm$ 1.16 & 48626 $\pm$ 6131 \\
+Standard DEC & 157.2 $\pm$ 25.6 & 0.3494 & 68.70 $\pm$ 1.70 & 56673 $\pm$ 13265 \\
+Contextual DEC & 177.0 $\pm$ 28.8 & 0.3934 & 69.64 $\pm$ 1.45 & 47318 $\pm$ 9436 \\
 \bottomrule
 \end{tabular}
 \end{center}\vspace{2mm}
 
-Over a 90-day episode (450 steps), the agent collects roughly 97 rewarded
-steps (active states), averaging 0.37 reward per step. Weight drops from
-70.0~kg to 66.9~kg, driven by the cumulative $-$0.01 meal effect at hour~0
-(step\_of\_day~0) and the small negative steps coefficient. The
-\texttt{nudge} action, with response multiplier~200, produces a mean step
-increase of $200 \times \text{tod\_mod} \times \text{dow\_mod}$ per step;
-idle (multiplier~50) produces roughly one quarter of that. The total 62k
-steps over 90~days corresponds to about 690~steps per day, a plausible if
-modest activity level consistent with the MVP's \texttt{sedentary} bias.
+Over 90-day episodes (450 steps) across 50 seeds, contextual agents
+consistently outperform their non-contextual counterparts by $\sim$10--15
+reward points. Contextual UCB achieves the highest mean reward
+($179.2 \pm 17.4$) while contextual TS and DEC follow closely. Weight
+drops from 70.0~kg across all agents ($68.3$--$69.6$~kg), driven by the
+cumulative meal effects and the negative \texttt{steps\_coefficient}.
+Total steps range from 47k to 60k; contextual agents take fewer steps
+(47k--49k) yet achieve higher rewards, suggesting they learn to prefer
+\texttt{nudge} at higher-modulation hours. The per-step reward gap
+between contextual ($\sim$0.39) and non-contextual ($\sim$0.35) agents
+confirms that activity-based conditioning improves policy quality even
+with simple transition dynamics.
 
 \end{document}
