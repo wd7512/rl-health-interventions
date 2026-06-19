@@ -64,7 +64,7 @@ For each archetype, produce a `P(s' | s, a)` matrix. With the 2-state `{sedentar
 
 3. **Validation script** — Verify matrices sum to 1.0, match Reactance theory expectations, produce distinct behaviour distributions (ANOVA on continuous summary metrics of simulated trajectories, e.g. mean active ratio per episode)
 
-4. **Results doc** — Run Thompson Sampling on each archetype config for 10 seeds, produce a `.tex` + `.pdf` in `docs/mvp/extensions.tex` showing per-archetype agent performance (similar pattern to `docs/mvp/mvp_specification.tex`)
+4. **Results doc** — Run Thompson Sampling on each archetype config for 10 seeds, produce a `.tex` + `.pdf` in `docs/mvp/extensions.tex` showing per-archetype agent performance (similar pattern to `docs/mvp/mvp.tex`)
 
 ## Out of scope
 - Burden accumulation/decay dynamics in the Environment (requires M-04 code changes)
@@ -76,4 +76,4 @@ For each archetype, produce a `P(s' | s, a)` matrix. With the 2-state `{sedentar
 - `docs/plans/subphase_1c_user_simulation.md`
 - `docs/plans/ROADMAP.md` (M-04: User Simulation Engine)
 - Issue #1 (6-action space — matrices depend on full action set)
-- `docs/mvp/mvp_specification.tex` (reference for result doc format)
+- `docs/mvp/mvp.tex` (reference for result doc format)
