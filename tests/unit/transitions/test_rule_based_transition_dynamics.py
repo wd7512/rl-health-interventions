@@ -84,8 +84,8 @@ def test_weight_evolves_per_equation():
     assert abs(next_state.weight - expected) < 1e-10
 
 
-def test_time_of_day_computed_correctly():
-    """Extended mode computes time_of_day from step_of_day."""
+def test_time_of_day_not_set_by_transition():
+    """Transition model does not set time_of_day — environment handles it."""
     config = _extended_config()
     t = RuleBasedTransition(config, seed=42)
     state = StateView(
@@ -96,40 +96,15 @@ def test_time_of_day_computed_correctly():
         steps=5000.0,
         weight=70.0,
     )
-    # step_of_day=2 → time_of_day = int(2 * 24 / 5) = 9
     next_state = t.transition(state, "nudge")
-    assert next_state.time_of_day == 9
-
-    state2 = StateView(
-        activity="sedentary",
-        day=0,
-        step_of_day=4,
-        steps_per_day=5,
-        steps=5000.0,
-        weight=70.0,
-    )
-    next_state2 = t.transition(state2, "nudge")
-    assert next_state2.time_of_day == 19
+    assert next_state.time_of_day is None
 
 
-def test_day_of_week_computed_correctly():
-    """Extended mode computes day_of_week from day number."""
+def test_day_of_week_not_set_by_transition():
+    """Transition model does not set day_of_week — environment handles it."""
     config = _extended_config()
     t = RuleBasedTransition(config, seed=42)
-    # day=0 → dow=0
     state = StateView(
-        activity="sedentary",
-        day=0,
-        step_of_day=0,
-        steps_per_day=5,
-        steps=5000.0,
-        weight=70.0,
-    )
-    next_state = t.transition(state, "nudge")
-    assert next_state.day_of_week == 0
-
-    # day=6 → dow=6
-    state2 = StateView(
         activity="sedentary",
         day=6,
         step_of_day=0,
@@ -137,20 +112,8 @@ def test_day_of_week_computed_correctly():
         steps=5000.0,
         weight=70.0,
     )
-    next_state2 = t.transition(state2, "nudge")
-    assert next_state2.day_of_week == 6
-
-    # day=7 → dow=0
-    state3 = StateView(
-        activity="sedentary",
-        day=7,
-        step_of_day=0,
-        steps_per_day=5,
-        steps=5000.0,
-        weight=70.0,
-    )
-    next_state3 = t.transition(state3, "nudge")
-    assert next_state3.day_of_week == 0
+    next_state = t.transition(state, "nudge")
+    assert next_state.day_of_week is None
 
 
 def test_extended_mode_preserves_activity_transition():
@@ -216,3 +179,65 @@ def test_steps_delta_uses_clipped_value_for_weight():
     assert next_state.steps is not None
     assert next_state.steps >= 0.0
     assert next_state.steps - 0.0 >= 0.0  # delta always non-negative
+
+
+def test_clipping_path_with_noise():
+    """When noise is large enough to push steps negative, clipping activates.
+
+    Uses a config with high noise_std so that some transitions produce
+    negative raw steps. Verifies that (a) steps are clipped to >= 0 and
+    (b) weight uses the clipped delta, not the raw pre-clipping value.
+    """
+    config = MDPConfig(
+        episode_days=1,
+        steps_per_day=5,
+        seed=42,
+        initial_state="sedentary",
+        states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
+        actions=["nudge", "idle"],
+        transition_model={
+            "type": "rule_based",
+            "transition_probabilities": {
+                "sedentary": {
+                    "nudge": {"active": 0.3, "sedentary": 0.7},
+                    "idle": {"active": 0.1, "sedentary": 0.9},
+                },
+                "active": {
+                    "nudge": {"active": 0.5, "sedentary": 0.5},
+                    "idle": {"active": 0.6, "sedentary": 0.4},
+                },
+            },
+            "state_dynamics": {
+                "steps": {
+                    "response_multiplier": {"nudge": 0.0, "idle": 0.0},
+                    "tod_modulation": {0: 1.0},
+                    "dow_modulation": {0: 1.0},
+                    "noise_std": 50.0,  # moderate noise to trigger clipping
+                },
+                "weight": {
+                    "meal_effect": {0: 0.0},
+                    "weekend_boost": 0.0,
+                    "steps_coefficient": -0.0001,  # same as production
+                    "noise_std": 0.0,
+                },
+            },
+        },
+        agents=[{"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1}],
+    )
+    t = RuleBasedTransition(config, seed=42)
+    state = StateView(
+        activity="sedentary",
+        day=0,
+        step_of_day=0,
+        steps_per_day=5,
+        steps=0.0,
+        weight=70.0,
+    )
+    # Run many transitions — noise will sometimes push steps negative
+    # before clipping. With the fix, steps are always >= 0 after clipping.
+    for _ in range(100):
+        state = t.transition(state, "nudge")
+        assert state.steps is not None
+        assert state.steps >= 0.0, f"steps clipped to negative: {state.steps}"
+        assert state.weight is not None
+        assert -100 < state.weight < 200, f"weight diverged: {state.weight}"

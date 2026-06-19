@@ -44,17 +44,19 @@ class RuleBasedTransition(TransitionModel):
         state: StateView,
         action: str,
         next_activity: str,
-    ) -> tuple[float | None, float | None, int | None, int | None]:
+    ) -> tuple[float | None, float | None]:
         """Evolve continuous state fields using state_dynamics config.
 
-        Returns (new_steps, new_weight, new_time_of_day, new_day_of_week).
-        If state_dynamics is None, returns (None, None, tod, dow).
+        Returns (new_steps, new_weight).
+        tod and dow are computed by the caller (Environment) from the
+        incremented step counter, so we don't set them here.
+        If state_dynamics is None, returns (None, None).
         """
+        if self._state_dynamics is None:
+            return None, None
+
         tod = self._compute_time_of_day(state.step_of_day, state.steps_per_day)
         dow = self._compute_day_of_week(state.day)
-
-        if self._state_dynamics is None:
-            return None, None, tod, dow
 
         # Evolve steps
         sd = self._state_dynamics.steps
@@ -79,7 +81,7 @@ class RuleBasedTransition(TransitionModel):
             + weight_noise
         )
 
-        return new_steps, new_weight, tod, dow
+        return new_steps, new_weight
 
     def transition(self, state: StateView, action: str) -> StateView:
         # MVP mode: no state_dynamics
@@ -89,16 +91,12 @@ class RuleBasedTransition(TransitionModel):
 
         # Extended mode
         next_activity = self._sample_activity(state, action)
-        new_steps, new_weight, tod, dow = self._evolve_continuous(
-            state, action, next_activity
-        )
+        new_steps, new_weight = self._evolve_continuous(state, action, next_activity)
         return dataclasses.replace(
             state,
             activity=next_activity,
             steps=new_steps,
             weight=new_weight,
-            time_of_day=tod,
-            day_of_week=dow,
         )
 
 
