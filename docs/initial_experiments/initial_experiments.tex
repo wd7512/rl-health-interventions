@@ -38,26 +38,45 @@ References \texttt{docs/design/initial\_design.tex \S3} and Issue \#124.
 \label{sec:action}
 
 References \texttt{docs/design/initial\_design.tex \S3} and Issue \#126.
+\emph{Implementation: PR 1a (feat/1a-actions) --- merged.}
 
 
 \subsection{ActionConfig}
 
-% To be filled: reward_penalty, burden_penalty, 6-action set
+The \texttt{actions} field in \texttt{MDPConfig} accepts two formats:
+\begin{itemize}
+\item \texttt{list[str]}: MVP mode (backward compatible), e.g.\ \texttt{[nudge, idle]}.
+\item \texttt{list[dict]}: Extended mode with per-action metadata (\texttt{name},
+\texttt{reward\_penalty}, \texttt{burden\_penalty}).
+\end{itemize}
+
+The \texttt{\_normalize\_actions()} validator extracts names into a flat list,
+rejects mixed types, duplicates, and missing \texttt{name} keys. Agents receive
+\texttt{config.action\_names} (always \texttt{list[str]}), so no ABC changes are needed.
 
 
 \subsection{Transition Model Updates}
 
-% To be filled: 6x6x2 transition matrix, backward compatibility
+The 6-action config requires a $6 \times 2$ transition matrix (6 actions, 2 states).
+The transition probabilities are hand-tuned placeholders in
+\texttt{docs/initial\_experiments/configs/1a\_actions\_only.yaml}.
 
 
 \subsection{Agent Compatibility}
 
-% To be filled: verification of variable-length action handling
+All 9 MVP agent variants work with the 6-action config. The
+\texttt{action\_names} property returns a flat \texttt{list[str]} regardless of
+input format, so agents require no changes.
 
 
 \subsection{Open Questions}
 
-% To be filled
+\begin{itemize}
+\item Penalty values are placeholders. A grid search could identify meaningful
+regions where burden penalty shapes behaviour.
+\item With 6 actions and 2 states, the transition matrix has 12 entries.
+Real clinical data would inform realistic probabilities.
+\end{itemize}
 
 
 \section{Reward Function Extension}

@@ -1,0 +1,88 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,booktabs,graphicx}
+\usepackage[margin=1in]{geometry}
+
+\title{Experiment 1a: 6-Action Extension}
+\author{William Dennis}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+\section{Motivation}
+
+The MVP simulator uses a binary action space (\texttt{nudge}, \texttt{idle}).
+Issue \#126 extends this to 6 clinically-motivated actions with per-action
+metadata (\texttt{reward\_penalty}, \texttt{burden\_penalty}) while maintaining
+full backward compatibility with \texttt{list[str]} configs.
+
+\section{Config Schema}
+
+Actions now accept two formats:
+
+\begin{itemize}
+\item \texttt{list[str]}: MVP mode, e.g.\ \texttt{[nudge, idle]}
+\item \texttt{list[dict]}: Extended mode with metadata:
+\begin{verbatim}
+- name: motivational_prompt
+  reward_penalty: 0.1
+  burden_penalty: 0.2
+\end{verbatim}
+\end{itemize}
+
+The \texttt{\_normalize\_actions()} validator extracts names, rejects mixed
+types and duplicates. Agents receive the flat \texttt{action\_names} list.
+
+\section{6-Action Config}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Action & Reward Penalty & Burden Penalty \\
+\midrule
+no\_message & 0.00 & 0.00 \\
+motivational\_prompt & 0.10 & 0.20 \\
+walking\_suggestion & 0.20 & 0.30 \\
+goal\_reminder & 0.05 & 0.15 \\
+recovery\_suggestion & 0.15 & 0.25 \\
+progress\_feedback & 0.08 & 0.10 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Results (50 seeds, 90 days)}
+
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+Agent & Total Reward & Per Step \\
+\midrule
+Standard TS & 260.8 $\pm$ 23.8 & 0.5796 \\
+Contextual TS & 248.8 $\pm$ 21.2 & 0.5529 \\
+Standard EG & 260.1 $\pm$ 33.0 & 0.5781 \\
+Contextual EG & 249.4 $\pm$ 30.8 & 0.5543 \\
+Standard UCB & 270.4 $\pm$ 24.5 & 0.6009 \\
+Contextual UCB & 254.4 $\pm$ 19.6 & 0.5653 \\
+Standard DEC & 268.6 $\pm$ 32.5 & 0.5969 \\
+Contextual DEC & 255.7 $\pm$ 25.0 & 0.5681 \\
+Random & 211.4 $\pm$ 17.1 & 0.4699 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Standard UCB achieves the highest reward (270.4). Contextual agents do not
+outperform standard variants on this config, likely because the 6-action
+space is too large for activity-only conditioning to learn effectively
+within 450 steps.
+
+\section{Open Questions}
+
+\begin{itemize}
+\item The penalty values are hand-tuned placeholders. A grid search over
+penalty combinations could identify regions where burden penalty meaningfully
+shapes agent behaviour.
+\item With 6 actions and only 2 states, the transition matrix has 12 entries.
+Real clinical data would inform more realistic transition probabilities.
+\end{itemize}
+
+\end{document}
