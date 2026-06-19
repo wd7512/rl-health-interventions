@@ -64,30 +64,130 @@ References \texttt{docs/design/initial\_design.tex \S3} and Issue \#126.
 \label{sec:reward}
 
 References \texttt{docs/design/initial\_design.tex \S3} and Issue \#132.
+\emph{Implementation: PR 1c (feat/1c-reward) --- merged.}
 
 
-\subsection{Multi-Timescale Reward}
+\subsection{RewardWeightsConfig}
 
-% To be filled: immediate + 3-week delayed clinical outcome
+An optional \texttt{reward\_weights} block controls the delayed reward
+component. When absent the reward is purely per-state (MVP backward-compatible
+mode):
+\[
+r(s, a, t) = m[t \bmod S] \cdot r(s')
+\]
 
+When present, the schema accepts these fields:
 
-\subsection{Reward Composition}
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Field & Type & Default \\
+\midrule
+\texttt{mode} & \texttt{Literal["multi\_timescale"]} & \texttt{"multi\_timescale"} \\
+\texttt{delayed\_reward\_interval} & \texttt{int $\ge$ 1} & 21 \\
+\texttt{delayed\_reward\_value} & \texttt{float $\ge$ 0} & 10.0 \\
+\texttt{delayed\_reward\_scale} & \texttt{float $\mid$ None} & None \\
+\texttt{delayed\_reward\_threshold} & \texttt{float $\in$ [0,1] $\mid$ None} & None \\
+\bottomrule
+\end{tabular}
+\end{center}
 
-% To be filled: configurable per_step_weight, clinical_weight
+All numeric fields are validated at load time via Pydantic \texttt{Field}
+constraints. The mode is constrained to \texttt{Literal["multi\_timescale"]};
+when additional modes are added later the union can be expanded.
 
+\subsection{Flat Bonus (Option A)}
 
-\subsection{Synthetic Clinical Data}
+When \texttt{delayed\_reward\_scale} is \texttt{None} a flat bonus fires at
+every interval boundary:
+\[
+r_{\text{bonus}} =
+\begin{cases}
+\texttt{value} & \text{if } t > 0 \text{ and } t \equiv 0 \pmod{N} \\
+0 & \text{otherwise}
+\end{cases}
+\]
+where $N = \texttt{delayed\_reward\_interval}$ and $t$ is the zero-indexed
+cumulative step count (\texttt{state.global\_step}).
 
-% To be filled: weekly_step_count, engagement_ratio generator
+\subsection{Scaled Bonus (Option B)}
 
+When \texttt{delayed\_reward\_scale} is set the bonus depends on the fraction
+of steps in the interval where the simulated user was in the active state:
+\[
+\text{rate} = \frac{\text{active\_count}}{N}
+\qquad
+r_{\text{bonus}} =
+\begin{cases}
+\texttt{scale} \times \text{rate} & \text{if } \text{rate} \ge \texttt{threshold} \\
+0 & \text{otherwise}
+\end{cases}
+\]
+
+The active count is tracked in \texttt{CompoundReward.\_active\_count},
+incremented on every \texttt{reward()} call where
+\texttt{state.activity == "active"} and reset to zero at each interval
+boundary.
+
+\subsection{Episode Boundaries}
+
+The \texttt{RewardHandler} ABC now defines a \texttt{reset()} method that
+clears episode-local state (\texttt{\_active\_count}).
+\texttt{Environment.reset()} calls \texttt{self.\_reward.reset()} so that
+reusing a reward instance across episodes does not leak state.
+
+\subsection{Results}
+
+The 1c experiment config is at
+\texttt{docs/initial\_experiments/configs/1c\_reward\_only.yaml}.
+Total rewards for Thompson Sampling over one run with seed~42:
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+Mode & Total reward & Bonus firings \\
+\midrule
+No bonus (MVP baseline) & 165.0 & 0 \\
+Flat bonus (interval=21, value=10.0) & 377.0 & 22 \\
+Scaled bonus (scale=5.0, threshold=0.6) & 168.1 & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The flat bonus fires 21--22 times over the 450-step episode ($450 / 21
+\approx 21.4$), contributing roughly $22 \times 10.0 = 220$ in additional
+reward. The scaled bonus with $\texttt{threshold} = 0.6$ never fires for
+this configuration: the Thompson Sampling agent cannot sustain a 60\%
+active rate within a 21-step interval given the hand-tuned transition
+probabilities. Lowering the threshold or increasing the action efficacy
+would be needed for the scaled bonus to take effect.
 
 \subsection{Open Questions}
 
-% To be filled
+\begin{itemize}
+\item The \texttt{delayed\_reward\_interval} and
+\texttt{delayed\_reward\_value} parameters are placeholders. Calibration
+against real-world user data would inform clinically meaningful values.
+\item The scaled bonus threshold (default~0.6) and scale (default~5.0) were
+chosen arbitrarily. A grid search could identify regions where the delayed
+reward shapes agent behaviour without overwhelming the per-step signal.
+\item The flat vs.\ scaled choice is a config toggle today. A future extension
+could blend both: a fixed bonus plus a scaled bonus for users who meet the
+threshold.
+\end{itemize}
 
 
 \section{Combined Results}
 
-% To be filled: end-to-end episode evaluation with all three extensions enabled
+Results from the pairwise and full-integration experiments will appear here
+once all three extension PRs (1a, 1b, 1c) have been merged and the integration
+PRs (4--7) are complete. The config matrix of seven experiment configurations
+is defined in \texttt{docs/initial\_experiments/plans/state\_action\_reward\_epic.md}.
+Currently available:
+
+\begin{itemize}
+\item \texttt{docs/initial\_experiments/configs/1c\_reward\_only.yaml}
+(PR~1c, 2~actions, 2~states, multi-timescale reward) --- see \S\ref{sec:reward}.
+\end{itemize}
 
 \end{document}

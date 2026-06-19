@@ -53,6 +53,9 @@ class Environment:
             steps_per_day=self._config.steps_per_day,
         )
 
+        # Reward uses the fully evolved StateView (including post-transition
+        # activity, day, and step_of_day) so that multi-timescale handlers
+        # can read state.global_step for interval-based bonus computation.
         reward, _ = self._reward.reward(self._current_state, action, step_idx)
 
         if self._step_count >= self._config.steps_per_day * self._config.episode_days:

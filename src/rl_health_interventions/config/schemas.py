@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, RootModel, model_validator
 
@@ -151,7 +151,7 @@ class AgentConfig(BaseModel):
 
 
 class RewardWeightsConfig(BaseModel):
-    mode: str = "multi_timescale"
+    mode: Literal["multi_timescale"] = "multi_timescale"
     delayed_reward_interval: int = Field(ge=1, default=21)
     delayed_reward_value: float = Field(ge=0.0, default=10.0)
     delayed_reward_scale: float | None = Field(ge=0.0, default=None)
