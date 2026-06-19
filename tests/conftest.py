@@ -34,7 +34,10 @@ def valid_config() -> MDPConfig:
             "sedentary": {"reward": 0.0},
             "active": {"reward": 1.0},
         },
-        actions=["nudge", "idle"],
+        actions=[
+            {"name": "nudge", "burden_penalty": 0.0},
+            {"name": "idle", "burden_penalty": 0.0},
+        ],
         transition_model={
             "type": "rule_based",
             "transition_probabilities": {
@@ -63,7 +66,10 @@ def minimal_config() -> MDPConfig:
             "sedentary": {"reward": 0.0},
             "active": {"reward": 1.0},
         },
-        actions=["nudge", "idle"],
+        actions=[
+            {"name": "nudge", "burden_penalty": 0.0},
+            {"name": "idle", "burden_penalty": 0.0},
+        ],
         transition_model={
             "type": "rule_based",
             "transition_probabilities": {

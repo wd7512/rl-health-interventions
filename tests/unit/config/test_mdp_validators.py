@@ -12,7 +12,10 @@ def _valid_raw():
         "seed": 42,
         "initial_state": "sedentary",
         "states": {"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
-        "actions": ["nudge", "idle"],
+        "actions": [
+            {"name": "nudge", "burden_penalty": 0.0},
+            {"name": "idle", "burden_penalty": 0.0},
+        ],
         "transition_model": {
             "type": "rule_based",
             "transition_probabilities": {
@@ -75,7 +78,10 @@ class TestCrossReferenceValidators:
 
     def test_duplicate_actions_rejected(self):
         raw = _valid_raw()
-        raw["actions"] = ["nudge", "nudge"]
+        raw["actions"] = [
+            {"name": "nudge", "burden_penalty": 0.0},
+            {"name": "nudge", "burden_penalty": 0.1},
+        ]
         with pytest.raises(ValidationError, match="(?i)duplicate"):
             MDPConfig.model_validate(raw)
 
@@ -336,7 +342,7 @@ class TestAgentValidation:
     def test_actions_must_be_list(self):
         raw = _valid_raw()
         raw["actions"] = {"nudge": 1, "idle": 0}
-        with pytest.raises(ValidationError, match="must be a list"):
+        with pytest.raises(ValidationError, match="must be dicts"):
             MDPConfig.model_validate(raw)
 
     def test_initial_state_not_in_states_rejected(self):
@@ -346,15 +352,43 @@ class TestAgentValidation:
             MDPConfig.model_validate(raw)
 
 
-class TestSchemaRefActions:
-    def test_schema_ref_actions_skips_inline_checks(self):
+class TestBurdenPenalties:
+    def test_actions_without_burden_penalty_rejected(self):
         raw = _valid_raw()
-        raw["states"] = {"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}}
-        raw["actions"] = {"schema": "heartsteps"}
-        del raw["transition_model"]["transition_probabilities"]
+        raw["actions"] = [{"name": "nudge"}]
+        with pytest.raises(ValidationError, match="burden_penalty"):
+            MDPConfig.model_validate(raw)
+
+    def test_burden_penalty_must_be_numeric(self):
+        raw = _valid_raw()
+        raw["actions"] = [{"name": "nudge", "burden_penalty": "not_a_number"}]
+        with pytest.raises(ValidationError, match="numeric"):
+            MDPConfig.model_validate(raw)
+
+    def test_burden_penalty_float_values_accepted(self):
+        raw = _valid_raw()
+        raw["actions"] = [
+            {"name": "no_message", "burden_penalty": 0.0},
+            {"name": "motivational_prompt", "burden_penalty": 0.2},
+            {"name": "walking_suggestion", "burden_penalty": 0.3},
+            {"name": "goal_reminder", "burden_penalty": 0.15},
+            {"name": "recovery_suggestion", "burden_penalty": 0.25},
+            {"name": "progress_feedback", "burden_penalty": 0.1},
+        ]
+        raw["transition_model"]["transition_probabilities"] = {
+            s: {
+                a: {s2: 0.5 for s2 in ["sedentary", "active"]}
+                for a in [x["name"] for x in raw["actions"]]
+            }
+            for s in ["sedentary", "active"]
+        }
         config = MDPConfig.model_validate(raw)
-        assert isinstance(config.actions, dict)
-        assert "schema" in config.actions
+        assert len(config.action_names) == 6
+        assert config.action_names[0] == "no_message"
+
+    def test_action_name_property_returns_names(self):
+        config = MDPConfig.model_validate(_valid_raw())
+        assert config.action_names == ["nudge", "idle"]
 
 
 class TestNonRuleBasedTransition:
@@ -397,127 +431,4 @@ class TestDecayingEpsilonGreedy:
         raw = _valid_raw()
         raw["agents"] = [{"type": "decaying_epsilon_greedy", "epsilon_start": 1.5}]
         with pytest.raises(ValidationError, match="epsilon_start must be in"):
-            MDPConfig.model_validate(raw)
-
-
-def _valid_extended_raw():
-    return {
-        "episode_days": 90,
-        "steps_per_day": 5,
-        "seed": 42,
-        "initial_state": "sedentary",
-        "states": {"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
-        "actions": [
-            {"name": "no_message", "reward_penalty": 0.0, "burden_penalty": 0.0},
-            {
-                "name": "motivational_prompt",
-                "reward_penalty": 0.1,
-                "burden_penalty": 0.2,
-            },
-            {
-                "name": "walking_suggestion",
-                "reward_penalty": 0.2,
-                "burden_penalty": 0.3,
-            },
-            {"name": "goal_reminder", "reward_penalty": 0.05, "burden_penalty": 0.15},
-            {
-                "name": "recovery_suggestion",
-                "reward_penalty": 0.15,
-                "burden_penalty": 0.25,
-            },
-            {
-                "name": "progress_feedback",
-                "reward_penalty": 0.08,
-                "burden_penalty": 0.1,
-            },
-        ],
-        "transition_model": {
-            "type": "rule_based",
-            "transition_probabilities": {
-                "sedentary": {
-                    "no_message": {"active": 0.1, "sedentary": 0.9},
-                    "motivational_prompt": {"active": 0.3, "sedentary": 0.7},
-                    "walking_suggestion": {"active": 0.4, "sedentary": 0.6},
-                    "goal_reminder": {"active": 0.2, "sedentary": 0.8},
-                    "recovery_suggestion": {"active": 0.35, "sedentary": 0.65},
-                    "progress_feedback": {"active": 0.25, "sedentary": 0.75},
-                },
-                "active": {
-                    "no_message": {"active": 0.6, "sedentary": 0.4},
-                    "motivational_prompt": {"active": 0.7, "sedentary": 0.3},
-                    "walking_suggestion": {"active": 0.8, "sedentary": 0.2},
-                    "goal_reminder": {"active": 0.65, "sedentary": 0.35},
-                    "recovery_suggestion": {"active": 0.75, "sedentary": 0.25},
-                    "progress_feedback": {"active": 0.7, "sedentary": 0.3},
-                },
-            },
-        },
-        "agents": [{"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1}],
-    }
-
-
-class TestExtendedActions:
-    def test_actions_dict_list_accepted(self):
-        config = MDPConfig.model_validate(_valid_extended_raw())
-        assert len(config.action_names) == 6
-        assert config.action_names == [
-            "no_message",
-            "motivational_prompt",
-            "walking_suggestion",
-            "goal_reminder",
-            "recovery_suggestion",
-            "progress_feedback",
-        ]
-
-    def test_actions_dict_list_duplicate_rejected(self):
-        raw = _valid_extended_raw()
-        raw["actions"].append({"name": "no_message", "reward_penalty": 99})
-        with pytest.raises(ValidationError, match="(?i)duplicate"):
-            MDPConfig.model_validate(raw)
-
-    def test_actions_dict_list_missing_name_rejected(self):
-        raw = _valid_extended_raw()
-        raw["actions"][0] = {"reward_penalty": 0, "burden_penalty": 0}
-        with pytest.raises(ValidationError, match="name"):
-            MDPConfig.model_validate(raw)
-
-    def test_actions_dict_list_missing_in_transition_rejected(self):
-        raw = _valid_extended_raw()
-        raw["actions"].append(
-            {"name": "extra_action", "reward_penalty": 0.5, "burden_penalty": 0.5}
-        )
-        with pytest.raises(ValidationError, match="extra_action"):
-            MDPConfig.model_validate(raw)
-
-    def test_actions_dict_list_action_names_property(self):
-        config = MDPConfig.model_validate(_valid_extended_raw())
-        assert config.action_names == [
-            "no_message",
-            "motivational_prompt",
-            "walking_suggestion",
-            "goal_reminder",
-            "recovery_suggestion",
-            "progress_feedback",
-        ]
-
-    def test_actions_mvp_string_list_still_works(self):
-        config = MDPConfig.model_validate(_valid_raw())
-        assert config.action_names == ["nudge", "idle"]
-
-    def test_mixed_dict_and_string_rejected(self):
-        raw = _valid_extended_raw()
-        raw["actions"].append("no_message")
-        with pytest.raises(ValidationError, match="dict"):
-            MDPConfig.model_validate(raw)
-
-    def test_non_string_action_name_rejected(self):
-        raw = _valid_extended_raw()
-        raw["actions"][0]["name"] = 123
-        with pytest.raises(ValidationError, match="non-empty string"):
-            MDPConfig.model_validate(raw)
-
-    def test_empty_action_name_rejected(self):
-        raw = _valid_extended_raw()
-        raw["actions"][0]["name"] = ""
-        with pytest.raises(ValidationError, match="non-empty string"):
             MDPConfig.model_validate(raw)

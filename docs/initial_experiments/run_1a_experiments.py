@@ -1,6 +1,6 @@
 """Run 1a_actions_only experiments: all MVP agents, 50 seeds.
 
-6-action config with reward_penalty/burden_penalty metadata.
+6-action config with per-action burden penalties.
 """
 import logging
 import numpy as np

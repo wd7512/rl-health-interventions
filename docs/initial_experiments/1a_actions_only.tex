@@ -13,39 +13,38 @@
 
 The MVP simulator uses a binary action space (\texttt{nudge}, \texttt{idle}).
 Issue \#126 extends this to 6 clinically-motivated actions with per-action
-metadata (\texttt{reward\_penalty}, \texttt{burden\_penalty}) while maintaining
-full backward compatibility with \texttt{list[str]} configs.
+burden penalties. Each action carries a \texttt{burden\_penalty} that feeds
+into the user fatigue model.
 
 \section{Config Schema}
 
-Actions now accept two formats:
+Actions use a \texttt{list[dict]} format where each dict has \texttt{name}
+and \texttt{burden\_penalty}:
 
-\begin{itemize}
-\item \texttt{list[str]}: MVP mode, e.g.\ \texttt{[nudge, idle]}
-\item \texttt{list[dict]}: Extended mode with metadata:
 \begin{verbatim}
-- name: motivational_prompt
-  reward_penalty: 0.1
-  burden_penalty: 0.2
+actions:
+  - name: motivational_prompt
+    burden_penalty: 0.2
+  - name: idle
+    burden_penalty: 0.0
 \end{verbatim}
-\end{itemize}
 
-The \texttt{\_normalize\_actions()} validator extracts names, rejects mixed
-types and duplicates. Agents receive the flat \texttt{action\_names} list.
+The \texttt{action\_names} property extracts a flat \texttt{list[str]} from
+the dicts. Agents receive plain action names with no schema changes needed.
 
 \section{6-Action Config}
 
 \begin{center}
-\begin{tabular}{lcc}
+\begin{tabular}{lc}
 \toprule
-Action & Reward Penalty & Burden Penalty \\
+Action & Burden Penalty \\
 \midrule
-no\_message & 0.00 & 0.00 \\
-motivational\_prompt & 0.10 & 0.20 \\
-walking\_suggestion & 0.20 & 0.30 \\
-goal\_reminder & 0.05 & 0.15 \\
-recovery\_suggestion & 0.15 & 0.25 \\
-progress\_feedback & 0.08 & 0.10 \\
+no\_message & 0.00 \\
+motivational\_prompt & 0.20 \\
+walking\_suggestion & 0.30 \\
+goal\_reminder & 0.15 \\
+recovery\_suggestion & 0.25 \\
+progress\_feedback & 0.10 \\
 \bottomrule
 \end{tabular}
 \end{center}

@@ -55,36 +55,31 @@ PRs into `epic`. All must maintain MVP backward compatibility:
 
 ### PR 1: `feat/1a-actions` - 6-Action Space
 
-**Objective:** Extend `actions` from 2 MVP strings to 6 design-doc actions
-with metadata (reward_penalty, burden_penalty).
+**Objective:** Extend `actions` from 2 MVP actions to 6 design-doc actions
+with per-action burden penalties.
 
 **Config schema (`config/schemas.py`):**
 
-`actions` field accepts either `list[str]` (MVP mode, e.g.
-`["nudge", "idle"]`) or `list[dict]` (extended mode):
+`actions` field accepts a `list[dict]` where each dict has `name` and
+`burden_penalty`:
 ```yaml
 actions:
   - name: no_message
-    reward_penalty: 0
-    burden_penalty: 0
+    burden_penalty: 0.0
   - name: motivational_prompt
-    reward_penalty: 0.1
     burden_penalty: 0.2
   - name: walking_suggestion
-    reward_penalty: 0.2
     burden_penalty: 0.3
   - name: goal_reminder
-    reward_penalty: 0.15
-    burden_penalty: 0.2
+    burden_penalty: 0.15
   - name: recovery_suggestion
-    reward_penalty: 0.1
     burden_penalty: 0.25
   - name: progress_feedback
-    reward_penalty: 0.05
-    burden_penalty: 0.15
+    burden_penalty: 0.1
 ```
-- `_cross_reference_validators`: extract `name` from dict entries for
-  transition probability checks. Reject duplicate names.
+- `_cross_reference_validators`: validates each dict has `name` and
+  `burden_penalty`, extracts names for transition probability checks.
+  Rejects duplicate names.
 - `_compute_per_step_reward`: no change (reward handler currently ignores
   actions - handled in PR 1c).
 

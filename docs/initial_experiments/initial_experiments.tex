@@ -43,16 +43,18 @@ References \texttt{docs/design/initial\_design.tex \S3} and Issue \#126.
 
 \subsection{ActionConfig}
 
-The \texttt{actions} field in \texttt{MDPConfig} accepts two formats:
-\begin{itemize}
-\item \texttt{list[str]}: MVP mode (backward compatible), e.g.\ \texttt{[nudge, idle]}.
-\item \texttt{list[dict]}: Extended mode with per-action metadata (\texttt{name},
-\texttt{reward\_penalty}, \texttt{burden\_penalty}).
-\end{itemize}
+The \texttt{actions} field in \texttt{MDPConfig} accepts a \texttt{list[dict]}
+where each dict carries the action name and its per-action burden penalty:
+\begin{verbatim}
+actions:
+  - name: nudge
+    burden_penalty: 0.2
+  - name: idle
+    burden_penalty: 0.0
+\end{verbatim}
 
-The \texttt{\_normalize\_actions()} validator extracts names into a flat list,
-rejects mixed types, duplicates, and missing \texttt{name} keys. Agents receive
-\texttt{config.action\_names} (always \texttt{list[str]}), so no ABC changes are needed.
+The \texttt{action\_names} property extracts a flat \texttt{list[str]} from
+the dicts, so agents receive plain action names with no schema changes needed.
 
 
 \subsection{Transition Model Updates}

@@ -20,7 +20,7 @@ def test_mdp_config_loaded_from_yaml():
     assert config.initial_state == "sedentary"
     assert config.seed == 42
     assert set(config.states) == {"sedentary", "active"}
-    assert config.actions == ["nudge", "idle"]
+    assert config.action_names == ["nudge", "idle"]
     assert config.transition_model.type == "rule_based"
     assert len(config.agents) == 1
     assert config.agents[0].type == "thompson_sampling"

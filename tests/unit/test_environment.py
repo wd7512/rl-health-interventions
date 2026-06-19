@@ -9,7 +9,10 @@ def _config(steps_per_day=5, episode_days=90) -> MDPConfig:
         seed=42,
         initial_state="sedentary",
         states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
-        actions=["nudge", "idle"],
+        actions=[
+            {"name": "nudge", "burden_penalty": 0.0},
+            {"name": "idle", "burden_penalty": 0.0},
+        ],
         transition_model={
             "type": "rule_based",
             "transition_probabilities": {
@@ -86,7 +89,10 @@ def test_reward_multiplier_affects_reward():
         seed=42,
         initial_state="sedentary",
         states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
-        actions=["nudge", "idle"],
+        actions=[
+            {"name": "nudge", "burden_penalty": 0.0},
+            {"name": "idle", "burden_penalty": 0.0},
+        ],
         transition_model={
             "type": "rule_based",
             "transition_probabilities": {
