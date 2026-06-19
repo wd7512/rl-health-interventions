@@ -19,6 +19,7 @@ AGENT_VARIANTS = [
     ("Contextual UCB", {"type": "ucb", "c": 0.5, "contextual": True, "context_feature": "activity"}),
     ("Standard DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.2, "epsilon_min": 0.01, "decay_steps": 200}),
     ("Contextual DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.2, "epsilon_min": 0.01, "decay_steps": 200, "contextual": True, "context_feature": "activity"}),
+    ("Random", {"type": "random"}),
 ]
 
 
@@ -28,6 +29,11 @@ def run_episode_capture(config, agent_cfg_dict, seed):
     kwargs = {k: v for k, v in agent_cfg.model_dump().items() if v is not None and k != "type"}
     kwargs["actions"] = config.actions
     kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
+    # RandomAgent only accepts actions and seed — filter incompatible kwargs
+    import inspect
+    from rl_health_interventions.agents import REGISTRY
+    sig = inspect.signature(REGISTRY[agent_cfg.type].__init__)
+    kwargs = {k: v for k, v in kwargs.items() if k in sig.parameters}
     agent = make_agent(agent_cfg.type, **kwargs)
 
     env = Environment(config, seed=seed)
