@@ -489,6 +489,31 @@ def test_bonus_at_correct_global_step_with_multi_day():
     assert rew2 == 1.0  # no bonus
 
 
+def test_scaled_bonus_threshold_none_defaults_to_zero():
+    """When delayed_reward_threshold is None, bonus fires for any positive rate."""
+    config = _mt_config(
+        reward_weights={
+            "mode": "multi_timescale",
+            "delayed_reward_interval": 3,
+            "delayed_reward_value": 10.0,
+            "delayed_reward_scale": 6.0,
+            # threshold omitted → defaults to None → treated as 0.0
+        }
+    )
+    r = CompoundReward(config)
+    # 0 active out of 3 → rate=0/3=0.0, threshold=None→0.0, 0.0 >= 0.0 → bonus fires
+    r.reward(
+        _sv("sedentary", day=0, step_of_day=1, steps_per_day=1), "nudge", step_idx=0
+    )
+    r.reward(
+        _sv("sedentary", day=0, step_of_day=2, steps_per_day=1), "nudge", step_idx=0
+    )
+    rew, _ = r.reward(
+        _sv("sedentary", day=0, step_of_day=3, steps_per_day=1), "nudge", step_idx=0
+    )
+    assert rew == pytest.approx(0.0 + 6.0 * 0.0)  # base=0, bonus=6*0=0
+
+
 # --- Multi-interval _active_count reset test ---
 
 
