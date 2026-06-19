@@ -30,14 +30,14 @@ class StepsDynamicsConfig(BaseModel):
     response_multiplier: dict[str, float]
     tod_modulation: dict[int, float]
     dow_modulation: dict[int, float]
-    noise_std: float = 50.0
+    noise_std: float = Field(default=50.0, ge=0.0)
 
 
 class WeightDynamicsConfig(BaseModel):
     meal_effect: dict[int, float]
     weekend_boost: float = 0.05
     steps_coefficient: float = -0.0001
-    noise_std: float = 0.05
+    noise_std: float = Field(default=0.05, ge=0.0)
 
 
 class StateDynamicsConfig(BaseModel):
@@ -223,6 +223,10 @@ class MDPConfig(BaseModel):
         if len(action_names) != len(self.actions):
             raise ValueError("actions contain duplicates")
 
+        # transition_probabilities is always required for rule_based, even when
+        # state_dynamics is present. RuleBasedTransition._sample_activity() uses
+        # the cache built from transition_probabilities for activity-level
+        # transitions; without it _sample_activity raises KeyError at runtime.
         if (
             self.transition_model.type == "rule_based"
             and self.transition_model.transition_probabilities is None

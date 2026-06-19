@@ -17,21 +17,83 @@ MDP defined in \texttt{docs/design/initial\_design.tex}.
 \label{sec:state}
 
 References \texttt{docs/design/initial\_design.tex \S3} and Issue \#124.
+\emph{Implementation: PR 1b (feat/1b-states) --- merged.}
 
 
 \subsection{Enriched StateView}
 
-% To be filled: archetype, burden, goal_progress, steps, previous_action
+The MVP dataclass currently holds four fields:
+\[
+\texttt{StateView(activity, day, step\_of\_day, steps\_per\_day)}
+\]
 
+PR~1b adds four optional float fields (all defaulting to \texttt{None} for
+MVP backward compatibility):
+\[
+\texttt{steps},\quad \texttt{weight},\quad \texttt{time\_of\_day},\quad \texttt{day\_of\_week}
+\]
 
-\subsection{Contextual Bandit Conditioning}
+The transition ABC signature changes from
+$\texttt{transition(state: str, action: str) -> str}$ to
+$\texttt{transition(state: StateView, action: str) -> StateView}$.
+The reward ABC signature changes from $\texttt{reward(state: str, ...)}$ to
+$\texttt{reward(state: StateView, ...)}$.
 
-% To be filled: context_feature config, conditional action selection
+When the config includes a \texttt{state\_dynamics} block,
+\texttt{RuleBasedTransition} enters extended mode and evolves steps and weight
+according to the following equations:
 
+\begin{align}
+\text{tod} &= \text{step\_of\_day} \times \frac{24}{\text{steps\_per\_day}} \\
+\text{dow} &= \text{day} \bmod 7 \\
+\text{steps\_mean} &= \text{response\_multiplier}[a] \times
+\text{tod\_modulation}[\text{tod}] \times
+\text{dow\_modulation}[\text{dow}] \\
+\text{steps}_{t+1} &= \text{steps}_t + \text{steps\_mean} +
+\mathcal{N}(0, \sigma_{\text{steps}}) \\
+\text{weight}_{t+1} &= \text{weight}_t + \text{meal\_effect}[\text{tod}] +
+\text{weekend\_boost} \cdot \mathbb{1}_{\text{dow} \in \{0, 6\}} +
+\text{steps\_coefficient} \cdot \Delta\text{steps} +
+\mathcal{N}(0, \sigma_{\text{weight}})
+\end{align}
+
+The config schema defines two Pydantic models:
+\begin{itemize}
+\item \texttt{StepsDynamicsConfig}: \texttt{response\_multiplier} (per-action step
+response), \texttt{tod\_modulation} (hour-of-day gain, default 1.0 for missing
+hours), \texttt{dow\_modulation} (day-of-week gain, default 1.0), and
+\texttt{noise\_std} (non-negative, default 50).
+\item \texttt{WeightDynamicsConfig}: \texttt{meal\_effect} (per-hour weight
+change), \texttt{weekend\_boost} (additional weight gain on Sat/Sun, default
+0.05), \texttt{steps\_coefficient} (weight loss per step, default $-10^{-4}$),
+and \texttt{noise\_std} (non-negative, default 0.05).
+\end{itemize}
+
+The experiment config is at
+\texttt{docs/initial\_experiments/configs/1b\_states\_only.yaml}.
+It uses the 2 MVP actions with the above dynamics.
+
+\subsection{Environment Evolution (PR 1b)}
+
+\texttt{Environment.reset()} initialises \texttt{steps} and \texttt{weight}
+from the config's \texttt{initial\_steps} (default 0.0) and
+\texttt{initial\_weight} (default 70.0). \texttt{time\_of\_day} and
+\texttt{day\_of\_week} are computed deterministically from the step counter.
+
+After each \texttt{step()} call, the environment overwrites the deterministic
+calendar fields (\texttt{day}, \texttt{step\_of\_day}, \texttt{time\_of\_day},
+\texttt{day\_of\_week}) via \texttt{dataclasses.replace}. The transition model
+computes \texttt{tod} and \texttt{dow} identically, so no inconsistency arises.
 
 \subsection{Open Questions}
 
-% To be filled
+\begin{itemize}
+\item The \texttt{tod\_modulation} keys are sparse ($\{0,6,12,18,23\}$).
+Missing hours default to~1.0, meaning most steps receive no time-of-day
+modulation. This may be refined with higher-resolution data.
+\item Steps and weight are unnormalised. Normalisation may be needed when these
+fields are used as agent context features.
+\end{itemize}
 
 
 \section{Action Space Extension}
@@ -88,6 +150,37 @@ References \texttt{docs/design/initial\_design.tex \S3} and Issue \#132.
 
 \section{Combined Results}
 
-% To be filled: end-to-end episode evaluation with all three extensions enabled
+Results from the pairwise and full-integration experiments will appear here
+once all three extension PRs (1a, 1b, 1c) have been merged. Currently available:
+
+\begin{itemize}
+\item \texttt{docs/initial\_experiments/configs/1b\_states\_only.yaml} (PR~1b,
+2~actions, 4~continuous states, simple reward) --- see \S\ref{sec:state}.
+\end{itemize}
+
+\paragraph{PR~1b Results (seed~42, one run).}
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+Metric & Value \\
+\midrule
+Total reward (Thompson Sampling) & 169.0 \\
+Final weight (kg)                 & 66.86 \\
+Total steps taken                 & 62,268 \\
+Steps/step mean                   & 138.4 \\
+\bottomrule
+\end{tabular}
+\end{center}\vspace{2mm}
+
+Over a 90-day episode (450 steps), the agent collects roughly 97 rewarded
+steps (active states), averaging 0.37 reward per step. Weight drops from
+70.0~kg to 66.9~kg, driven by the cumulative $-$0.01 meal effect at hour~0
+(step\_of\_day~0) and the small negative steps coefficient. The
+\texttt{nudge} action, with response multiplier~200, produces a mean step
+increase of $200 \times \text{tod\_mod} \times \text{dow\_mod}$ per step;
+idle (multiplier~50) produces roughly one quarter of that. The total 62k
+steps over 90~days corresponds to about 690~steps per day, a plausible if
+modest activity level consistent with the MVP's \texttt{sedentary} bias.
 
 \end{document}

@@ -80,7 +80,7 @@ def test_layer3_dummy_step() -> None:
     action = agent.select_action(state.activity)
     agent.update(state, action, 0.0, state)
     next_state = transition.transition(state, action)
-    rew, done = reward.reward(state, action, step_idx=0)
+    rew, done = reward.reward(next_state, action, step_idx=0)
     resp = response.response(state.activity, action)
     assert isinstance(resp, float)
     assert isinstance(rew, float)

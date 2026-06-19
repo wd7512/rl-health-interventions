@@ -84,8 +84,8 @@ def test_mvp_config_backward_compatible():
         state, _, done = env.step("nudge")
         assert state.steps == 0.0  # default initial_steps
         assert state.weight == 70.0  # default initial_weight
-        assert state.time_of_day is not None  # set deterministically by env
-        assert state.day_of_week is not None
+        assert state.time_of_day == int(state.step_of_day * 24 / 5)
+        assert state.day_of_week == state.day % 7
     assert done is True
 
 

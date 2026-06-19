@@ -1,3 +1,5 @@
+import pytest
+
 from rl_health_interventions.state import StateView
 
 
@@ -22,8 +24,6 @@ def test_state_view_global_step_calculation():
 
 
 def test_state_view_is_frozen():
-    import pytest
-
     sv = StateView("sedentary", 0, 0)
     with pytest.raises(AttributeError):
         setattr(sv, "activity", "active")
@@ -49,8 +49,6 @@ def test_state_view_full_construction():
     assert sv.time_of_day == 7
     assert sv.day_of_week == 2
     assert sv.global_step == 23
-    import pytest
-
     with pytest.raises(AttributeError):
         setattr(sv, "steps", 6000.0)
 
