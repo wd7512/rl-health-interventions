@@ -5,6 +5,35 @@ from typing import Any
 from pydantic import BaseModel, Field, RootModel, model_validator
 
 
+def _normalize_actions(actions: Any) -> tuple[list[str], Any]:
+    """Validate and normalize actions. Returns (action_names, raw_actions).
+
+    Accepts:
+    - list[str]: MVP mode, returned as-is
+    - list[dict]: Extended mode, extracts 'name' from each dict
+
+    Raises ValueError on missing name or duplicates.
+    """
+    seen: set[str] = set()
+    names: list[str] = []
+    for item in actions:
+        if isinstance(item, dict):
+            if "name" not in item:
+                raise ValueError("Each action dict must have a 'name' key")
+            name = item["name"]
+        elif isinstance(item, str):
+            name = item
+        else:
+            raise ValueError(
+                f"Actions must be strings or dicts with a 'name' key, got {type(item).__name__}"
+            )
+        if name in seen:
+            raise ValueError(f"Duplicate action name: {name}")
+        seen.add(name)
+        names.append(name)
+    return names, actions
+
+
 class TransitionProbabilities(RootModel):
     root: dict[str, dict[str, dict[str, float]]]
 
@@ -162,6 +191,13 @@ class MDPConfig(BaseModel):
     agents: list[AgentConfig] = []
     per_step_reward: list[dict[str, float]] | None = None
 
+    @property
+    def action_names(self) -> list[str]:
+        if hasattr(self, "_action_names"):
+            return self._action_names
+        msg = "action_names requires validation to run first"
+        raise RuntimeError(msg)
+
     @model_validator(mode="after")
     def _cross_reference_validators(self) -> MDPConfig:
         """Schema-ref mode: skip inline checks when states/actions have a schema key."""
@@ -176,10 +212,20 @@ class MDPConfig(BaseModel):
                 "states must be a dictionary mapping state names to their configurations"
             )
         if not isinstance(self.actions, list):
-            raise ValueError("actions must be a list of action names")
+            raise ValueError("actions must be a list of action names or dicts")
 
         state_names = set(self.states.keys())
-        action_names = set(self.actions)
+
+        # Normalize actions: extract names from dicts or use strings directly
+        if self.actions:
+            has_dict = any(isinstance(a, dict) for a in self.actions)
+            has_str = any(isinstance(a, str) for a in self.actions)
+            if has_dict and has_str:
+                raise ValueError("All actions must be dicts if any action is a dict")
+        try:
+            self._action_names, _ = _normalize_actions(self.actions)
+        except ValueError as e:
+            raise ValueError(str(e))
 
         if not self.states:
             raise ValueError("states must be non-empty")
@@ -196,10 +242,8 @@ class MDPConfig(BaseModel):
                     f"State '{name}' reward must be numeric, got {type(data['reward']).__name__}"
                 )
 
-        if not self.actions:
+        if not self._action_names:
             raise ValueError("actions must be non-empty")
-        if len(action_names) != len(self.actions):
-            raise ValueError("actions contain duplicates")
 
         if (
             self.transition_model.type == "rule_based"
@@ -229,7 +273,7 @@ class MDPConfig(BaseModel):
                 )
 
             for state, actions_dict in probs_root.items():
-                for action in self.actions:
+                for action in self._action_names:
                     if action not in actions_dict:
                         raise ValueError(
                             f"Missing transition entry for ({state}, {action})"

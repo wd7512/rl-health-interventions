@@ -76,7 +76,7 @@ class TestCrossReferenceValidators:
     def test_duplicate_actions_rejected(self):
         raw = _valid_raw()
         raw["actions"] = ["nudge", "nudge"]
-        with pytest.raises(ValidationError, match="duplicate"):
+        with pytest.raises(ValidationError, match="(?i)duplicate"):
             MDPConfig.model_validate(raw)
 
     def test_transition_state_not_in_states_rejected(self):
@@ -397,4 +397,115 @@ class TestDecayingEpsilonGreedy:
         raw = _valid_raw()
         raw["agents"] = [{"type": "decaying_epsilon_greedy", "epsilon_start": 1.5}]
         with pytest.raises(ValidationError, match="epsilon_start must be in"):
+            MDPConfig.model_validate(raw)
+
+
+def _valid_extended_raw():
+    return {
+        "episode_days": 90,
+        "steps_per_day": 5,
+        "seed": 42,
+        "initial_state": "sedentary",
+        "states": {"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
+        "actions": [
+            {"name": "no_message", "reward_penalty": 0.0, "burden_penalty": 0.0},
+            {
+                "name": "motivational_prompt",
+                "reward_penalty": 0.1,
+                "burden_penalty": 0.2,
+            },
+            {
+                "name": "walking_suggestion",
+                "reward_penalty": 0.2,
+                "burden_penalty": 0.3,
+            },
+            {"name": "goal_reminder", "reward_penalty": 0.05, "burden_penalty": 0.15},
+            {
+                "name": "recovery_suggestion",
+                "reward_penalty": 0.15,
+                "burden_penalty": 0.25,
+            },
+            {
+                "name": "progress_feedback",
+                "reward_penalty": 0.08,
+                "burden_penalty": 0.1,
+            },
+        ],
+        "transition_model": {
+            "type": "rule_based",
+            "transition_probabilities": {
+                "sedentary": {
+                    "no_message": {"active": 0.1, "sedentary": 0.9},
+                    "motivational_prompt": {"active": 0.3, "sedentary": 0.7},
+                    "walking_suggestion": {"active": 0.4, "sedentary": 0.6},
+                    "goal_reminder": {"active": 0.2, "sedentary": 0.8},
+                    "recovery_suggestion": {"active": 0.35, "sedentary": 0.65},
+                    "progress_feedback": {"active": 0.25, "sedentary": 0.75},
+                },
+                "active": {
+                    "no_message": {"active": 0.6, "sedentary": 0.4},
+                    "motivational_prompt": {"active": 0.7, "sedentary": 0.3},
+                    "walking_suggestion": {"active": 0.8, "sedentary": 0.2},
+                    "goal_reminder": {"active": 0.65, "sedentary": 0.35},
+                    "recovery_suggestion": {"active": 0.75, "sedentary": 0.25},
+                    "progress_feedback": {"active": 0.7, "sedentary": 0.3},
+                },
+            },
+        },
+        "agents": [{"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1}],
+    }
+
+
+class TestExtendedActions:
+    def test_actions_dict_list_accepted(self):
+        config = MDPConfig.model_validate(_valid_extended_raw())
+        assert len(config.action_names) == 6
+        assert config.action_names == [
+            "no_message",
+            "motivational_prompt",
+            "walking_suggestion",
+            "goal_reminder",
+            "recovery_suggestion",
+            "progress_feedback",
+        ]
+
+    def test_actions_dict_list_duplicate_rejected(self):
+        raw = _valid_extended_raw()
+        raw["actions"].append({"name": "no_message", "reward_penalty": 99})
+        with pytest.raises(ValidationError, match="(?i)duplicate"):
+            MDPConfig.model_validate(raw)
+
+    def test_actions_dict_list_missing_name_rejected(self):
+        raw = _valid_extended_raw()
+        raw["actions"][0] = {"reward_penalty": 0, "burden_penalty": 0}
+        with pytest.raises(ValidationError, match="name"):
+            MDPConfig.model_validate(raw)
+
+    def test_actions_dict_list_missing_in_transition_rejected(self):
+        raw = _valid_extended_raw()
+        raw["actions"].append(
+            {"name": "extra_action", "reward_penalty": 0.5, "burden_penalty": 0.5}
+        )
+        with pytest.raises(ValidationError, match="extra_action"):
+            MDPConfig.model_validate(raw)
+
+    def test_actions_dict_list_action_names_property(self):
+        config = MDPConfig.model_validate(_valid_extended_raw())
+        assert config.action_names == [
+            "no_message",
+            "motivational_prompt",
+            "walking_suggestion",
+            "goal_reminder",
+            "recovery_suggestion",
+            "progress_feedback",
+        ]
+
+    def test_actions_mvp_string_list_still_works(self):
+        config = MDPConfig.model_validate(_valid_raw())
+        assert config.action_names == ["nudge", "idle"]
+
+    def test_mixed_dict_and_string_rejected(self):
+        raw = _valid_extended_raw()
+        raw["actions"].append("no_message")
+        with pytest.raises(ValidationError, match="dict"):
             MDPConfig.model_validate(raw)
