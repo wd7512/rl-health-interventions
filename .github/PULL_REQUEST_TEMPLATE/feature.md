@@ -33,15 +33,16 @@ Closes #
 
 ## Experiments
 
-- [ ] Experiment config YAML created in `config/experiments/`
+- [ ] Experiment folder created in `docs/<feature>/` following MVP structure
+- [ ] `.tex` documentation written with motivation, method, and results
+- [ ] Compiled `.pdf` committed
+- [ ] Runner script (`.py`) included alongside config
 - [ ] Experiment has been run end-to-end
 - [ ] Results reviewed and make sense (not just "it ran")
 - [ ] Key findings reflected in docs
 
 ## Documentation
 
-- [ ] `initial_experiments.tex` updated with implementation details
-- [ ] Compiled PDF generated and committed
 - [ ] Config schema documented (fields, defaults, modes)
 - [ ] Doc quality: written for someone reading for the first time — clear motivation, no unexplained jargon
 
