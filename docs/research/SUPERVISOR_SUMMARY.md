@@ -72,8 +72,8 @@ positioning), then #90 (the PR #85 sanity check).
 - We have a two-stage validation strategy
 - We have a pre-registered noise floor (10% on NHANES
   fingerprints, 2× replay MSE on HeartSteps V2)
-- We have a fallback if HeartSteps V2 access is delayed (TILES,
-  with caveats)
+- We have a fallback if HeartSteps V2 access is delayed (4TU #1
+  "Collaboratively Setting Daily Step Goals", with caveats)
 
 ### Reproducibility
 - We have a documented review of the one existing real-data
@@ -105,7 +105,7 @@ In strict priority order:
    question 2).** Affects the exploratory subgroup analysis only.
 
 5. **Phase 2 data access (PR #87, open question 1).** HeartSteps
-   V2 data request is in flight; TILES is the documented
+   V2 data request is in flight; 4TU #1 is the documented
    fallback. Affects the Stage 2 validation gate.
 
 6. **External review of the analysis plan (PR #86, open question

@@ -18,7 +18,7 @@ At the start of work, capture these paths:
 
 ```bash
 REPO_ROOT=$(git rev-parse --show-toplevel)
-WORKTREE_ROOT="$REPO_ROOT/../.worktrees"
+WORKTREE_ROOT="$REPO_ROOT/.worktrees"
 ```
 
 These variables are used in every step below. (The skill uses `$BRANCH`, `$REPO_ROOT`, and `$WORKTREE_ROOT` — substitute your values.)
