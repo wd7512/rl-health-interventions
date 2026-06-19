@@ -226,7 +226,6 @@ class MDPConfig(BaseModel):
         if (
             self.transition_model.type == "rule_based"
             and self.transition_model.transition_probabilities is None
-            and self.transition_model.state_dynamics is None
         ):
             raise ValueError(
                 "transition_probabilities must be provided for rule_based transition model"

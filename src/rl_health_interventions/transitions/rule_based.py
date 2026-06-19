@@ -59,11 +59,11 @@ class RuleBasedTransition(TransitionModel):
         # Evolve steps
         sd = self._state_dynamics.steps
         resp_mult = sd.response_multiplier.get(action, 0.0)
-        tod_mod = sd.tod_modulation.get(tod, 0.0)
-        dow_mod = sd.dow_modulation.get(dow, 0.0)
+        tod_mod = sd.tod_modulation.get(tod, 1.0)
+        dow_mod = sd.dow_modulation.get(dow, 1.0)
         steps_mean = resp_mult * tod_mod * dow_mod
         steps_noise = self._rng.normal(0, sd.noise_std)
-        new_steps = (state.steps or 0.0) + steps_mean + steps_noise
+        new_steps = max(0.0, (state.steps or 0.0) + steps_mean + steps_noise)
 
         # Evolve weight
         wd = self._state_dynamics.weight
