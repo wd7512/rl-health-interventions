@@ -12,16 +12,6 @@ purpose: "What 5 research artefacts now exist, what they let us claim, what stil
 > PRs on 2026-06-14. Each PR is a self-contained chunk of value;
 > none modify code, the design doc, or main.
 
-> **Known-incorrect references (2026-06-17):** Two sentences below (Validation section
-> point #3 and "What still blocks" section point #5) treat TILES as the documented
-> fallback for HeartSteps V2 access delays, claiming it has intervention delivery
-> logs. That characterisation is wrong: TILES-2018 is observational (Mundnich et al.
-> 2020, *Sci. Data* 7:354) and has no `a_t` variable. See
-> `docs/sources/additional_data_sources.md` (Dataset 9, correction note) and
-> `docs/plans/learned_transitions.md` (TILES — DROPPED) for the canonical correction.
-> The fallback characterisation should be updated: 4TU #1 is the open-access
-> intervention dataset. Tracked as a follow-up; not fixed in the same PR.
-
 ## The 5 PRs
 
 | # | PR | Branch | What it lets us claim |
@@ -82,8 +72,8 @@ positioning), then #90 (the PR #85 sanity check).
 - We have a two-stage validation strategy
 - We have a pre-registered noise floor (10% on NHANES
   fingerprints, 2× replay MSE on HeartSteps V2)
-- We have a fallback if HeartSteps V2 access is delayed (TILES,
-  with caveats)
+- We have a fallback if HeartSteps V2 access is delayed (4TU #1
+  "Collaboratively Setting Daily Step Goals", with caveats)
 
 ### Reproducibility
 - We have a documented review of the one existing real-data
@@ -115,7 +105,7 @@ In strict priority order:
    question 2).** Affects the exploratory subgroup analysis only.
 
 5. **Phase 2 data access (PR #87, open question 1).** HeartSteps
-   V2 data request is in flight; TILES is the documented
+   V2 data request is in flight; 4TU #1 is the documented
    fallback. Affects the Stage 2 validation gate.
 
 6. **External review of the analysis plan (PR #86, open question

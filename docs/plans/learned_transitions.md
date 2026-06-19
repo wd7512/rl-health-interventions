@@ -135,7 +135,7 @@ Download the 3.6 MB zip from 4TU #1, unzip into `data/4tu_collaborative/`, and i
 
 - `class LearnedTransition(TransitionModel)`:
   - `__init__(self, weights: np.ndarray, bias: np.ndarray, feature_names: list[str], action_names: list[str])` — load fitted weights.
-  - `transition(state: StateView, action: str) -> StateView` — predict `Δs` per feature, return `dataclasses.replace(state, features={k: state.features[k] + delta[k] for k in feature_names})`.
+  - `transition(state: StateView, action: str) -> StateView` — predict `Δs` per feature, return `dataclasses.replace(state, features={k: (state.features or {}).get(k, 0.0) + delta[k] for k in feature_names})`.
 - `register()` function committing `"learned"` key into the `transitions/__init__.py` registry.
 
 **Fit-time script:** `scripts/fit_learned_transition.py` (or `notebooks/fit_learned.ipynb`). Closed-form ridge:
@@ -143,7 +143,8 @@ Download the 3.6 MB zip from 4TU #1, unzip into `data/4tu_collaborative/`, and i
 ```
 design matrix X = [features one-hot(action)] + intercept column
 y = s_{t+1} - s_t    (residual target, per Q2)
-w = (Xᵀ X + λ I)⁻¹ Xᵀ y    via np.linalg.solve
+w = (Xᵀ X + λ I')⁻¹ Xᵀ y    via np.linalg.solve
+  where I' is the identity with I'[0,0] = 0 (intercept unpenalised)
 λ grid search on LOUO validation split
 ```
 
@@ -163,12 +164,12 @@ Three gates, all must pass for ridge to be accepted:
 
 1. **No-op baseline comparison (Q3 + Q5):**
    - Compute `noop_rmse = sqrt(mean(Δs²))` (i.e., `Δŝ = 0` prediction).
-   - Compute `ridge_rmse_loou` via leave-one-user-out CV, `ridge_rmse_temporal` via last-20%-of-timeline per-user holdout.
-   - Pass criterion: `min(ridge_rmse_loou, ridge_rmse_temporal) ≤ 0.80 × noop_rmse` on at least one primary feature (≥20% improvement, per Q5).
+   - Compute `ridge_rmse_louo` via leave-one-user-out CV, `ridge_rmse_temporal` via last-20%-of-timeline per-user holdout.
+   - Pass criterion: `min(ridge_rmse_louo, ridge_rmse_temporal) ≤ 0.80 × noop_rmse` on at least one primary feature (≥20% improvement, per Q5).
 2. **Coefficient sanity — autocorrelation (Q7 + Q9):**
    - Refit a *separate* direct model `s_{t+1} = Ridge(s, a)` (not residual).
    - Assert `w[prior_steps → next_steps] > 0`. Where HR is present, assert `w[prior_hr → next_hr] > 0`.
-3. **Output:** JSON report `{dataset, feature, noop_rmse, ridge_rmse_loou, ridge_rmse_temporal, ratio, direct_coef_sign_pass}` saved to `reports/learned_falsification_<dataset>.json`.
+3. **Output:** JSON report `{dataset, feature, noop_rmse, ridge_rmse_louo, ridge_rmse_temporal, ratio, direct_coef_sign_pass}` saved to `reports/learned_falsification_<dataset>.json`.
 
 **Decision gate:**
 
