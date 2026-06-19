@@ -49,8 +49,9 @@ according to the following equations:
 \text{steps\_mean} &= \text{response\_multiplier}[a] \times
 \text{tod\_modulation}[\text{tod}] \times
 \text{dow\_modulation}[\text{dow}] \\
-\text{steps}_{t+1} &= \text{steps}_t + \text{steps\_mean} +
-\mathcal{N}(0, \sigma_{\text{steps}}) \\
+\text{steps}_{t+1} &= \max\bigl(0,\; \text{steps}_t + \text{steps\_mean} +
+\mathcal{N}(0, \sigma_{\text{steps}})\bigr) \\
+\Delta\text{steps} &= \text{steps}_{t+1} - \text{steps}_t \\
 \text{weight}_{t+1} &= \text{weight}_t + \text{meal\_effect}[\text{tod}] +
 \text{weekend\_boost} \cdot \mathbb{1}_{\text{dow} \in \{0, 6\}} +
 \text{steps\_coefficient} \cdot \Delta\text{steps} +
@@ -83,7 +84,7 @@ from the config's \texttt{initial\_steps} (default 0.0) and
 After each \texttt{step()} call, the environment overwrites the deterministic
 calendar fields (\texttt{day}, \texttt{step\_of\_day}, \texttt{time\_of\_day},
 \texttt{day\_of\_week}) via \texttt{dataclasses.replace}. The transition model
-computes \texttt{tod} and \texttt{dow} identically, so no inconsistency arises.
+does not set these fields --- they are the environment's responsibility.
 
 \subsection{Open Questions}
 
