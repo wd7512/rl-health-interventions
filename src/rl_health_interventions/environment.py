@@ -41,7 +41,6 @@ class Environment:
         )
 
         step_idx = self._step_count % self._config.steps_per_day
-        reward, _ = self._reward.reward(next_activity, action, step_idx)
 
         self._step_count += 1
         next_step_of_day = self._step_count % self._config.steps_per_day
@@ -52,6 +51,8 @@ class Environment:
             step_of_day=next_step_of_day,
             steps_per_day=self._config.steps_per_day,
         )
+
+        reward, _ = self._reward.reward(self._current_state, action, step_idx)
 
         if self._step_count >= self._config.steps_per_day * self._config.episode_days:
             self._done = True

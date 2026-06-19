@@ -150,6 +150,14 @@ class AgentConfig(BaseModel):
         return self
 
 
+class RewardWeightsConfig(BaseModel):
+    mode: str = "multi_timescale"
+    delayed_reward_interval: int = 21
+    delayed_reward_value: float = 10.0
+    delayed_reward_scale: float | None = None
+    delayed_reward_threshold: float | None = None
+
+
 class MDPConfig(BaseModel):
     episode_days: int = Field(ge=1)
     steps_per_day: int = Field(ge=1)
@@ -159,6 +167,7 @@ class MDPConfig(BaseModel):
     actions: Any
     transition_model: TransitionModelConfig
     reward_multiplier_by_step: list[float] | None = None
+    reward_weights: RewardWeightsConfig | None = None
     agents: list[AgentConfig] = []
     per_step_reward: list[dict[str, float]] | None = None
 

@@ -5,6 +5,7 @@ from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.data import make as make_dataset
 from rl_health_interventions.rewards import make as make_reward
 from rl_health_interventions.simulation import make as make_response_model
+from rl_health_interventions.state import StateView
 from rl_health_interventions.transitions import make as make_transition
 
 
@@ -79,7 +80,8 @@ def test_layer3_dummy_step() -> None:
     action = agent.select_action(state)
     agent.update(state, action, 0.0, state)
     next_state = transition.transition(state, action)
-    rew, done = reward.reward(state, action, step_idx=0)
+    state_view = StateView(activity=state, day=0, step_of_day=0, steps_per_day=5)
+    rew, done = reward.reward(state_view, action, step_idx=0)
     resp = response.response(state, action)
     assert isinstance(resp, float)
     assert isinstance(rew, float)
