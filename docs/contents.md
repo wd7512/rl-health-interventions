@@ -10,7 +10,24 @@
 
 | File | Description |
 |------|-------------|
-| `mvp_specification.tex` | MDP formulation for the current binary-state, binary-action simulator with transition probabilities, reward function, agent formulations, and 10-seed results table. |
+| `mvp.tex` | MDP formulation for the current binary-state, binary-action simulator with transition probabilities, reward function, agent formulations, and 10-seed results table. |
+| `mvp.pdf` | Compiled specification. |
+| `extensions.tex` | Contextual bandits, EG decay, and hyperparameter optimisation. |
+| `extensions.pdf` | Compiled extensions. |
+| `run_experiments.py` | Runner for MVP experiments. |
+| `chart_generator.py` | Generate figures for MVP results. |
+| `hyperparam_search.py` | Grid search over agent hyperparameters. |
+| `hyperparam_results.csv` | Hyperparameter search results. |
+| `images/` | Figures for MVP docs. |
+
+## initial_experiments/
+
+| File | Description |
+|------|-------------|
+| `initial_experiments.tex` | Scaffold for state space, action space, and reward function extensions bridging MVP to the full design vision. Sections to be filled by Issues #124, #126, #132. |
+| `chart_generator.py` | Stub — generate charts for initial experiments results. |
+| `run_experiments.py` | Stub — run experiments on initial experiments configs. |
+| `images/` | Charts and figures for initial experiments. |
 
 ## learned/
 

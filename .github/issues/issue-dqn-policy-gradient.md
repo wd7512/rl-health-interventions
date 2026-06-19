@@ -80,6 +80,6 @@ On `config/rule_based.yaml` (2 states, 2 actions, 450 steps):
 - Issue #2 (state space enrichment — richer state → more meaningful RL)
 
 ## Related
-- `docs/mvp/mvp_specification.tex §5` (bandit results showing the gap)
+- `docs/mvp/mvp.tex §5` (bandit results showing the gap)
 - `src/rl_health_interventions/agents/_base.py` (Agent ABC)
 - `src/rl_health_interventions/config/schemas.py` (agent config validation)

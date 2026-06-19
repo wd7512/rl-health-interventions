@@ -13,5 +13,6 @@ aspirational architecture and may not reflect the current code.
 
 For current documentation see:
 - `README.md` — quickstart, module tree, results
-- `docs/mvp/mvp_specification.tex` — MDP formulation
+- `docs/mvp/mvp.tex` — MVP MDP formulation
+- `docs/initial_experiments/initial_experiments.tex` — state, action, reward extensions
 - `docs/design/initial_design.tex` — long-term design vision
