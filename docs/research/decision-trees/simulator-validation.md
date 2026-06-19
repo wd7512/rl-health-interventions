@@ -6,6 +6,8 @@
 **Scope:** Phase 1–2 simulator validation for the config-driven RL health intervention framework  
 **Target paper format:** Nature Methods
 
+> **Known-incorrect section (2026-06-17):** This document references TILES-2018 as a source of "intervention delivery logs" and as a cross-dataset transportability target (Strategies B and D, gap analysis, follow-ups). That characterisation is wrong: TILES-2018 is observational (Mundnich et al. 2020, *Sci. Data* 7:354) and has no `a_t` variable. See `docs/sources/additional_data_sources.md` (Dataset 9, correction note) and `docs/plans/learned_transitions.md` (TILES — DROPPED) for the canonical correction. This document needs a wholesale rewrite to either (a) drop TILES and rely on HeartSteps V1/V2 alone, or (b) substitute 4TU #1 as the open-access intervention validation set. Tracked as a follow-up; not fixed in the same PR as the correction to `additional_data_sources.md`.
+
 ---
 
 ## Table of Contents

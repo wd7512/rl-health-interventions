@@ -92,3 +92,82 @@ jobs:
         run: uv sync --dev
       - name: Build
         run: uv build
+
+  thread-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check for unresolved review threads
+        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            core.info(`Checking PR #${prNumber} for unresolved review threads...`);
+
+            let allThreads = [];
+            let cursor = null;
+
+            do {
+              const query = `
+                query($owner: String!, $repo: String!, $pr: Int!, $cursor: String) {
+                  repository(owner: $owner, name: $repo) {
+                    pullRequest(number: $pr) {
+                      reviewThreads(first: 100, after: $cursor) {
+                        nodes {
+                          id
+                          isResolved
+                          isOutdated
+                          comments(first: 1) {
+                            nodes {
+                              author { login }
+                              body
+                              path
+                            }
+                          }
+                        }
+                        pageInfo {
+                          hasNextPage
+                          endCursor
+                        }
+                      }
+                    }
+                  }
+                }
+              `;
+
+              const result = await github.graphql(query, {
+                owner,
+                repo,
+                pr: prNumber,
+                cursor,
+              });
+
+              const threads = result.repository.pullRequest.reviewThreads;
+              allThreads.push(...threads.nodes);
+              cursor = threads.pageInfo.hasNextPage ? threads.pageInfo.endCursor : null;
+            } while (cursor);
+
+            core.info(`Found ${allThreads.length} review threads total.`);
+
+            const unresolved = allThreads.filter(t => !t.isResolved && !t.isOutdated);
+
+            if (unresolved.length > 0) {
+              for (const t of unresolved) {
+                const c = t.comments?.nodes?.[0];
+                const author = c?.author?.login ?? '?';
+                const path = c?.path ?? '?';
+                const body = (c?.body ?? '').slice(0, 200);
+                core.warning(`Unresolved thread by ${author} on ${path}: ${body}`);
+              }
+              core.setFailed(
+                `${unresolved.length} review thread(s) are unresolved. ` +
+                `Reply to each thread and resolve it before merging.`
+              );
+            } else {
+              core.info('All review threads resolved. ✅');
+            }
