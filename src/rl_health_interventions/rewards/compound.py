@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.rewards._base import RewardHandler
+from rl_health_interventions.state import StateView
 
 
 class CompoundReward(RewardHandler):
@@ -15,8 +16,10 @@ class CompoundReward(RewardHandler):
             )
         self._per_step_reward = p
 
-    def reward(self, state: str, action: str, step_idx: int) -> tuple[float, bool]:
-        return self._per_step_reward[step_idx][state], False
+    def reward(
+        self, state: StateView, action: str, step_idx: int
+    ) -> tuple[float, bool]:
+        return self._per_step_reward[step_idx][state.activity], False
 
 
 def register() -> None:

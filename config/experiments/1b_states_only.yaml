@@ -1,0 +1,66 @@
+episode_days: 90
+steps_per_day: 5
+seed: 42
+initial_state: sedentary
+initial_steps: 0.0
+initial_weight: 70.0
+
+states:
+  sedentary:
+    reward: 0.0
+  active:
+    reward: 1.0
+
+actions:
+  - nudge
+  - idle
+
+transition_model:
+  type: rule_based
+  transition_probabilities:
+    sedentary:
+      nudge:
+        active: 0.3
+        sedentary: 0.7
+      idle:
+        active: 0.1
+        sedentary: 0.9
+    active:
+      nudge:
+        active: 0.5
+        sedentary: 0.5
+      idle:
+        active: 0.6
+        sedentary: 0.4
+  state_dynamics:
+    steps:
+      response_multiplier:
+        nudge: 200
+        idle: 50
+      tod_modulation:
+        0: 0.2
+        6: 0.5
+        12: 0.9
+        18: 0.6
+        23: 0.2
+      dow_modulation:
+        0: 0.7
+        1: 0.9
+        5: 0.8
+        6: 0.6
+      noise_std: 50
+    weight:
+      meal_effect:
+        0: -0.02
+        6: 0.01
+        12: 0.03
+        18: 0.03
+        23: -0.01
+      weekend_boost: 0.05
+      steps_coefficient: -0.0001
+      noise_std: 0.05
+
+agents:
+  - type: thompson_sampling
+    alpha_prior: 1
+    beta_prior: 1

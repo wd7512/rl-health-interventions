@@ -76,6 +76,19 @@ def test_step_before_reset_raises():
         env.step("nudge")
 
 
+def test_mvp_config_backward_compatible():
+    """MVP config (no state_dynamics) still works with continuous defaults."""
+    env = Environment(_config(steps_per_day=5, episode_days=1), seed=42)
+    env.reset()
+    for _ in range(5):
+        state, _, done = env.step("nudge")
+        assert state.steps == 0.0  # default initial_steps
+        assert state.weight == 70.0  # default initial_weight
+        assert state.time_of_day is not None  # set deterministically by env
+        assert state.day_of_week is not None
+    assert done is True
+
+
 def test_reward_multiplier_affects_reward():
     from rl_health_interventions.config.schemas import MDPConfig
 

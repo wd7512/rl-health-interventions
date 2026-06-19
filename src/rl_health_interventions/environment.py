@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import logging
 
 from rl_health_interventions import make_reward, make_transition
@@ -26,6 +27,10 @@ class Environment:
             day=0,
             step_of_day=0,
             steps_per_day=self._config.steps_per_day,
+            steps=self._config.initial_steps,
+            weight=self._config.initial_weight,
+            time_of_day=0,
+            day_of_week=0,
         )
         logger.debug("Environment reset: %s", self._current_state)
         return self._current_state
@@ -36,21 +41,22 @@ class Environment:
         if self._current_state is None:
             raise RuntimeError("Call reset() before step().")
 
-        next_activity = self._transition.transition(
-            self._current_state.activity, action
-        )
+        next_state = self._transition.transition(self._current_state, action)
 
         step_idx = self._step_count % self._config.steps_per_day
-        reward, _ = self._reward.reward(next_activity, action, step_idx)
+        reward, _ = self._reward.reward(next_state, action, step_idx)
 
         self._step_count += 1
-        next_step_of_day = self._step_count % self._config.steps_per_day
-        next_day = self._step_count // self._config.steps_per_day
-        self._current_state = StateView(
-            activity=next_activity,
-            day=next_day,
-            step_of_day=next_step_of_day,
-            steps_per_day=self._config.steps_per_day,
+
+        # Overwrite deterministic fields
+        new_step_of_day = self._step_count % self._config.steps_per_day
+        new_day = self._step_count // self._config.steps_per_day
+        self._current_state = dataclasses.replace(
+            next_state,
+            day=new_day,
+            step_of_day=new_step_of_day,
+            time_of_day=int(new_step_of_day * 24 / self._config.steps_per_day),
+            day_of_week=new_day % 7,
         )
 
         if self._step_count >= self._config.steps_per_day * self._config.episode_days:

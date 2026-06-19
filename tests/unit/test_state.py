@@ -27,3 +27,37 @@ def test_state_view_is_frozen():
     sv = StateView("sedentary", 0, 0)
     with pytest.raises(AttributeError):
         setattr(sv, "activity", "active")
+
+
+def test_state_view_full_construction():
+    sv = StateView(
+        activity="active",
+        day=2,
+        step_of_day=3,
+        steps_per_day=10,
+        steps=5000.0,
+        weight=71.5,
+        time_of_day=7,
+        day_of_week=2,
+    )
+    assert sv.activity == "active"
+    assert sv.day == 2
+    assert sv.step_of_day == 3
+    assert sv.steps_per_day == 10
+    assert sv.steps == 5000.0
+    assert sv.weight == 71.5
+    assert sv.time_of_day == 7
+    assert sv.day_of_week == 2
+    assert sv.global_step == 23
+    import pytest
+
+    with pytest.raises(AttributeError):
+        setattr(sv, "steps", 6000.0)
+
+
+def test_state_view_optional_fields_default_to_none():
+    sv = StateView(activity="sedentary", day=0, step_of_day=0)
+    assert sv.steps is None
+    assert sv.weight is None
+    assert sv.time_of_day is None
+    assert sv.day_of_week is None

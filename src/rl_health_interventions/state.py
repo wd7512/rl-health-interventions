@@ -8,6 +8,10 @@ class StateView:
     day: int
     step_of_day: int
     steps_per_day: int = field(default=5)
+    steps: float | None = None
+    weight: float | None = None
+    time_of_day: int | None = None
+    day_of_week: int | None = None
 
     @property
     def global_step(self) -> int:

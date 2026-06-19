@@ -26,9 +26,29 @@ class TransitionProbabilities(RootModel):
         return self
 
 
+class StepsDynamicsConfig(BaseModel):
+    response_multiplier: dict[str, float]
+    tod_modulation: dict[int, float]
+    dow_modulation: dict[int, float]
+    noise_std: float = 50.0
+
+
+class WeightDynamicsConfig(BaseModel):
+    meal_effect: dict[int, float]
+    weekend_boost: float = 0.05
+    steps_coefficient: float = -0.0001
+    noise_std: float = 0.05
+
+
+class StateDynamicsConfig(BaseModel):
+    steps: StepsDynamicsConfig
+    weight: WeightDynamicsConfig
+
+
 class TransitionModelConfig(BaseModel):
     type: str = "rule_based"
     transition_probabilities: TransitionProbabilities | None = None
+    state_dynamics: StateDynamicsConfig | None = None
 
 
 _KNOWN_AGENT_TYPES = frozenset(
@@ -155,6 +175,8 @@ class MDPConfig(BaseModel):
     steps_per_day: int = Field(ge=1)
     seed: int = 42
     initial_state: str = "sedentary"
+    initial_steps: float = 0.0
+    initial_weight: float = 70.0
     states: Any
     actions: Any
     transition_model: TransitionModelConfig
@@ -204,6 +226,7 @@ class MDPConfig(BaseModel):
         if (
             self.transition_model.type == "rule_based"
             and self.transition_model.transition_probabilities is None
+            and self.transition_model.state_dynamics is None
         ):
             raise ValueError(
                 "transition_probabilities must be provided for rule_based transition model"
