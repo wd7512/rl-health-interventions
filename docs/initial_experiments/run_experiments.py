@@ -50,7 +50,7 @@ def main() -> None:
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
-    config_path = args.config or str(repo_root / "config" / "rule_based_with_actions.yaml")
+    config_path = args.config or str(repo_root / "docs" / "initial_experiments" / "configs" / "rule_based_with_actions.yaml")
     config = load_config(config_path)
 
     n_steps = config.episode_days * config.steps_per_day
