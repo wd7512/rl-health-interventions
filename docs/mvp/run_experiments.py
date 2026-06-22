@@ -31,21 +31,24 @@ def _agent_label(cfg: AgentConfig) -> str:
         return "Random"
     short = _AGENT_SHORT_NAMES.get(cfg.type, cfg.type)
     prefix = "Contextual" if cfg.contextual else "Standard"
-    return f"{prefix} {short}"
+    params = cfg.model_dump(
+        exclude={"type", "contextual", "context_feature"}, exclude_none=True
+    )
+    label = f"{prefix} {short}"
+    if params:
+        parts = ", ".join(f"{k}={v}" for k, v in sorted(params.items()))
+        label += f" ({parts})"
+    return label
 
 
 def run_agent(config, agent_cfg: AgentConfig, n_seeds: int) -> np.ndarray:
     """Run one agent variant over n_seeds. Returns per-step rewards (n_seeds, n_steps)."""
-    skip_keys = {"type"}
+    exclude = {"type"}
     if not agent_cfg.contextual:
-        skip_keys.update({"contextual", "context_feature"})
+        exclude |= {"contextual", "context_feature"}
     rewards = []
     for seed in range(1, n_seeds + 1):
-        kwargs = {
-            k: v
-            for k, v in agent_cfg.model_dump().items()
-            if v is not None and k not in skip_keys
-        }
+        kwargs = agent_cfg.model_dump(exclude=exclude, exclude_none=True)
         kwargs["actions"] = config.actions
         kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
         agent = make_agent(agent_cfg.type, **kwargs)
@@ -54,11 +57,18 @@ def run_agent(config, agent_cfg: AgentConfig, n_seeds: int) -> np.ndarray:
     return np.array(rewards)
 
 
+def _positive_int(value: str) -> int:
+    n = int(value)
+    if n <= 0:
+        raise argparse.ArgumentTypeError(f"must be a positive integer, got {n}")
+    return n
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Benchmark contextual bandit agents")
     parser.add_argument(
         "--seeds",
-        type=int,
+        type=_positive_int,
         default=50,
         help="Number of random seeds (default: 50)",
     )
