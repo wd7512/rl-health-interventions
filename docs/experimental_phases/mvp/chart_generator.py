@@ -246,7 +246,13 @@ def main() -> None:
     config_path = args.config or str(
         Path(__file__).parent / "configs" / "mvp_extensions.yaml"
     )
-    config = load_config(config_path)
+    raw = Path(config_path)
+    if not raw.is_absolute():
+        raw = Path(__file__).parent / "configs" / raw.name
+    config = load_config(str(raw))
+
+    multiplier = getattr(config, "reward_multiplier_by_step", None)
+    mask_frac = float(np.mean(multiplier)) if multiplier else 1.0
 
     n_steps = config.episode_days * config.steps_per_day
     n_seeds = args.seeds
@@ -268,8 +274,8 @@ def main() -> None:
         all_data[label] = run_agent(config, agent_cfg, n_seeds)
 
     steps = np.arange(1, n_steps + 1)
-    contextual_optimal = steps * (3 / 7)
-    noncontextual_optimal = steps * 0.375
+    contextual_optimal = steps * (3 / 7) * mask_frac
+    noncontextual_optimal = steps * 0.375 * mask_frac
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
@@ -324,17 +330,17 @@ def main() -> None:
     ax1.grid(True, alpha=0.3)
 
     ax2.axhline(
-        y=3 / 7, color="#4CAF50", linestyle="--", alpha=0.5, label="Ctx optimal"
+        y=3 / 7 * mask_frac, color="#4CAF50", linestyle="--", alpha=0.5, label="Ctx optimal"
     )
     ax2.axhline(
-        y=0.375, color="#2196F3", linestyle="--", alpha=0.5, label="Non-ctx optimal"
+        y=0.375 * mask_frac, color="#2196F3", linestyle="--", alpha=0.5, label="Non-ctx optimal"
     )
     ax2.set_xlabel("Step")
     ax2.set_ylabel("Reward per Step (rolling avg)")
     ax2.set_title(f"Per-Step Reward (window={window})")
     ax2.legend(fontsize=7, loc="upper left")
     ax2.grid(True, alpha=0.3)
-    ax2.set_ylim(0.25, 0.50)
+    ax2.set_ylim(0.25 * mask_frac, 0.50)
 
     plt.tight_layout()
     out = Path(__file__).parent / "images" / f"learning_curves{args.lc_suffix}.pdf"
