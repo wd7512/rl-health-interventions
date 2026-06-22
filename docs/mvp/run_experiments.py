@@ -3,6 +3,7 @@
 Loads a base MDP config with an agents section, runs every agent variant.
 Reveals how ergonomic the experiment API is for real usage.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -66,7 +67,9 @@ def _positive_int(value: str) -> int:
 
 _MVP_CONFIGS = [
     "docs/mvp/configs/mvp.yaml",
+    "docs/mvp/configs/mvp_masked.yaml",
     "docs/mvp/configs/mvp_extensions.yaml",
+    "docs/mvp/configs/mvp_extensions_masked.yaml",
 ]
 
 
@@ -143,8 +146,10 @@ def main() -> None:
             logger.info("\n=== Config: %s ===\n", rel_path)
             _benchmark_config(config_path, n_seeds)
     else:
-        config_path = args.config or str(
-            repo_root / "docs" / "mvp" / "configs" / "mvp_extensions.yaml"
+        config_path = (
+            str(repo_root / args.config)
+            if args.config
+            else str(repo_root / "docs" / "mvp" / "configs" / "mvp_extensions.yaml")
         )
         _benchmark_config(config_path, n_seeds)
 

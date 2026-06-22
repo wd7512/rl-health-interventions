@@ -124,7 +124,7 @@ Random & 137.3 $\pm$ 12.3 & 0.305 & 0.319 \\
 \caption{Results on \texttt{configs/mvp.yaml} (50 seeds, 450 timesteps). TS and $\epsilon$-greedy perform similarly; TS has lower variance. UCB ($c=2.0$) underperforms relative to the tuned value ($c=0.5$, see \S\ref{sec:benchmark}).}
 \end{table}
 
-\subsection{Masked Config (\texttt{config/rule\_based\_with\_mask.yaml})}
+\subsection{Masked Config (\texttt{docs/mvp/configs/mvp\_masked.yaml})}
 \texttt{reward\_multiplier\_by\_step: [1, 1, 1, 1, 0]} -- step 4 (end of day) yields zero reward regardless of outcome. Results are 10 seeds.
 
 \begin{table}[h]
@@ -139,7 +139,7 @@ UCB ($c=2.0$) & 116.9 $\pm$ 8.6 & 0.260 $\pm$ 0.019 \\
 Random & 107.8 $\pm$ 6.7 & 0.240 $\pm$ 0.015 \\
 \bottomrule
 \end{tabular}
-\caption{Results on \texttt{config/rule\_based\_with\_mask.yaml} (10 seeds, 450 timesteps). Reward drops $\approx 20\%$ across all agents, matching the $1/5$ masked fraction. Relative ordering is preserved.}
+\caption{Results on \texttt{docs/mvp/configs/mvp\_masked.yaml} (10 seeds, 450 timesteps). Reward drops $\approx 20\%$ across all agents, matching the $1/5$ masked fraction. Relative ordering is preserved.}
 \end{table}
 
 \section{Contextual Bandits}\label{sec:contextual}
@@ -186,7 +186,7 @@ Grid search over key parameters (50 seeds, 450 timesteps, both standard and cont
   \caption*{\small D-EG: heatmap}
   \label{fig:hyperparam-dec-heatmap}
 \end{minipage}
-\caption{Hyperparameter sensitivity (50 seeds, $\pm$1~SD). EG optimum $\epsilon=0.15$, UCB optimum $c=0.5$ (both interior). D-EG optimum at $\epsilon_{\text{start}}=1.0$ --- the theoretical maximum, since $\Pr(\text{explore}) = \min(1, \epsilon)$.}
+\caption{Hyperparameter sensitivity (50 seeds, $\pm$1~SD). EG optimum $\epsilon=0.15$, UCB optimum $c=0.5$ (both interior). D-EG total reward plateaus above $\epsilon_{\text{start}}=0.2$; $\epsilon_{\text{start}}=1.0$ is the theoretical maximum but $\epsilon_{\text{start}}=0.2$ is chosen in benchmarks for lower variance.}
 \label{fig:hyperparam-all}
 \end{figure}
 
@@ -201,8 +201,8 @@ $\epsilon=0.05$ vs $\epsilon=0.10$: identical means (158.1), but $\epsilon=0.10$
 \toprule
 Agent & Total Reward & Per Step & Last 50 Steps & vs Contextual Opt \\
 \midrule
-Contextual UCB & 179.4 $\pm$ 15.4 & 0.399 & 0.430 & $\phantom{-}$0.0\% \\
-Contextual TS & 178.7 $\pm$ 15.8 & 0.397 & 0.429 & $\phantom{-}$0.0\% \\
+Contextual UCB & 179.4 $\pm$ 15.4 & 0.399 & 0.430 & $-7.0\%$ \\
+Contextual TS & 178.7 $\pm$ 15.8 & 0.397 & 0.429 & $-7.4\%$ \\
 Contextual EG & 166.6 $\pm$ 30.4 & 0.370 & 0.405 & $-13.6\%$ \\
 Contextual D-EG & 167.0 $\pm$ 35.2 & 0.371 & 0.396 & $-13.4\%$ \\
 \midrule
@@ -230,7 +230,7 @@ Contextual TS and UCB reach the per-context optimal ($0.429$) by the last 50 ste
 \section{Known Limitations}
 
 \begin{itemize}
-\item Agents are state-blind bandits, not state-aware RL. State-aware agents are Phase 2.
+\item Agents are contextual bandits, not state-aware RL. Full state-aware RL (with state history and temporal-difference learning) is Phase 2.
 \item Single-timescale reward only. Multi-timescale (immediate + 3-week delayed) is Phase 2.
 \item No user response model. Burden accumulation and 4 archetypes are Phase 2.
 \item Transition matrix is fixed and known. Learned transitions from real data are Phase 2.
