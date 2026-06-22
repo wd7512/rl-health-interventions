@@ -34,6 +34,14 @@ transition_model:
 reward_multiplier_by_step: [1, 1, 1, 1, 0]
 
 agents:
+  - type: random
+
   - type: thompson_sampling
-    alpha_prior: 1
-    beta_prior: 1
+    alpha_prior: 1.0
+    beta_prior: 1.0
+
+  - type: epsilon_greedy
+    epsilon: 0.1
+
+  - type: ucb
+    c: 2.0
