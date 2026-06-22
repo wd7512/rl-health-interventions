@@ -15,11 +15,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-logger = logging.getLogger(__name__)
-
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.experiment import run_episode
 from rl_health_interventions.agents import derive_agent_seed, make as make_agent
+
+logger = logging.getLogger(__name__)
 
 _COLORS = [
     "#2196F3",
@@ -187,7 +187,7 @@ def generate_dec_heatmap(results_path: Path, suffix: str = "") -> None:
         origin="lower",
         interpolation="nearest",
     )
-    cbar = fig.colorbar(im, ax=ax, label="Total Reward")
+    fig.colorbar(im, ax=ax, label="Total Reward")
 
     ax.set_xticks(range(len(pivot.columns)))
     ax.set_xticklabels(pivot.columns)
@@ -234,6 +234,12 @@ def main() -> None:
         type=str,
         default="",
         help="Suffix for hyperparameter chart filenames (e.g. '_masked')",
+    )
+    parser.add_argument(
+        "--lc-suffix",
+        type=str,
+        default="",
+        help="Suffix for learning curve filenames (e.g. '_masked')",
     )
     args = parser.parse_args()
 
@@ -332,7 +338,7 @@ def main() -> None:
     ax2.set_ylim(0.25, 0.50)
 
     plt.tight_layout()
-    out = Path(__file__).parent / "images" / "learning_curves.pdf"
+    out = Path(__file__).parent / "images" / f"learning_curves{args.lc_suffix}.pdf"
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)

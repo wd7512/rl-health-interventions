@@ -192,6 +192,30 @@ Grid search over key parameters (50 seeds, 450 timesteps, both standard and cont
 
 $\epsilon=0.05$ vs $\epsilon=0.10$: identical means (158.1), but $\epsilon=0.10$ has $11\%$ lower variance.
 
+\begin{figure}[h]
+\centering
+\begin{minipage}{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{images/hyperparam_eg_masked.pdf}
+  \caption*{\small EG (masked): $\epsilon$ vs reward}
+  \label{fig:hyperparam-eg-masked}
+\end{minipage}\hfill
+\begin{minipage}{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{images/hyperparam_ucb_masked.pdf}
+  \caption*{\small UCB (masked): $c$ vs reward}
+  \label{fig:hyperparam-ucb-masked}
+\end{minipage}\hfill
+\begin{minipage}{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{images/hyperparam_dec_heatmap_masked.pdf}
+  \caption*{\small D-EG (masked): heatmap}
+  \label{fig:hyperparam-dec-heatmap-masked}
+\end{minipage}
+\caption{Hyperparameter sensitivity under masked reward (50 seeds, $\pm$1~SD). Optima are unchanged from the non-masked case; the $20\%$ reward floor shift is uniform across all hyperparameter settings.}
+\label{fig:hyperparam-masked-all}
+\end{figure}
+
 \section{Benchmark Results}\label{sec:benchmark}
 50 seeds, 450 timesteps. Optimised hyperparameters: EG $\epsilon=0.05$, D-EG $\epsilon_{\text{start}}=0.2$, $T_{\text{decay}}=200$, $\epsilon_{\min}=0.01$, UCB $c=0.5$. All agent definitions live in \texttt{docs/mvp/configs/mvp\_extensions.yaml}.
 
@@ -226,6 +250,41 @@ Non-contextual optimal & 168.8 & 0.375 & 0.375 & --- \\
 \end{figure}
 
 Contextual TS and UCB reach the per-context optimal ($0.429$) by the last 50 steps. Standard UCB benefits most from hyperparameter search (from $-23.1\%$ with $c=2.0$ to $-15.2\%$ with $c=0.5$). D-EG front-loads exploration, achieving $161.7$ vs EG's $158.1$ in the standard setting; the contextual advantage disappears as per-context Q-values already provide sufficient exploration. Random ($0.305$) anchors the lower bound, $28.9\%$ below the contextual optimum.
+
+\section{Masked Reward Benchmark}
+
+The same 9-agent benchmark on \texttt{docs/mvp/configs/mvp\_masked.yaml} where step~4 (end of day) is zero-reward. Results are 50 seeds.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Agent & Total Reward & Per Step & Last 50 Steps & vs Contextual Opt \\
+\midrule
+Contextual TS & 141.9 $\pm$ 13.0 & 0.315 & 0.336 & $\phantom{-}$0.0\% \\
+Contextual UCB & 140.7 $\pm$ 12.7 & 0.313 & 0.334 & $\phantom{-}$0.0\% \\
+Contextual D-EG & 135.7 $\pm$ 26.8 & 0.302 & 0.323 & $-12.1\%$ \\
+Contextual EG & 134.3 $\pm$ 24.7 & 0.298 & 0.321 & $-13.0\%$ \\
+\midrule
+Standard UCB & 128.1 $\pm$ 11.5 & 0.285 & 0.300 & $-17.0\%$ \\
+Standard D-EG & 126.8 $\pm$ 19.4 & 0.282 & 0.293 & $-17.8\%$ \\
+Standard TS & 125.8 $\pm$ 10.9 & 0.280 & 0.289 & $-18.5\%$ \\
+Standard EG & 123.6 $\pm$ 20.8 & 0.275 & 0.292 & $-19.9\%$ \\
+\midrule
+Random & 110.0 $\pm$ 10.2 & 0.244 & 0.250 & $-28.7\%$ \\
+\midrule
+Contextual optimal & 154.3 & 0.343 & 0.343 & --- \\
+Non-contextual optimal & 135.0 & 0.300 & 0.300 & --- \\
+\bottomrule
+\end{tabular}
+\caption{Results on \texttt{docs/mvp/configs/mvp\_masked.yaml} (50 seeds, 450 timesteps, step~4 masked). Relative ordering matches the non-masked benchmark; contextual TS and UCB are tied at the top.}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{images/learning_curves_masked.pdf}
+\caption{Masked cumulative reward and per-step reward (50 seeds, $\pm$1 SD). Reward floor drops by $20\%$ vs non-masked, but relative ordering is preserved.}
+\end{figure}
 
 \section{Known Limitations}
 

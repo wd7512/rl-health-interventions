@@ -103,7 +103,6 @@ def run_one_config(
                 - step_mean: Mean reward per step, averaged across all steps and seeds.
                 - last50_mean: Mean reward over the final 50 steps across all seeds.
     """
-    n_steps = config.episode_days * config.steps_per_day
     all_rewards = []
     for seed in range(1, n_seeds + 1):
         kwargs = dict(params)

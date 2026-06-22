@@ -11,12 +11,12 @@ import logging
 import numpy as np
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
-
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.config.schemas import AgentConfig
 from rl_health_interventions.experiment import run_episode
 from rl_health_interventions.agents import derive_agent_seed, make as make_agent
+
+logger = logging.getLogger(__name__)
 
 _AGENT_SHORT_NAMES: dict[str, str] = {
     "thompson_sampling": "TS",
