@@ -239,9 +239,16 @@ def main() -> None:
         all_data[label] = run_agent(config, agent_cfg, n_seeds)
 
     steps = np.arange(1, n_steps + 1)
-    bounds = compute_bounds(config)
-    ctx_per_step = bounds["contextual_optimal"]
-    nctx_per_step = bounds["noncontextual_optimal"]
+    try:
+        bounds = compute_bounds(config)
+    except ValueError as e:
+        logger.warning("Could not compute optimal bounds: %s — skipping optimal lines", e)
+        bounds = None
+    if bounds is not None:
+        ctx_per_step = bounds["contextual_optimal"]
+        nctx_per_step = bounds["noncontextual_optimal"]
+    else:
+        ctx_per_step = nctx_per_step = 0.0
     contextual_optimal = steps * ctx_per_step * mask_frac
     noncontextual_optimal = steps * nctx_per_step * mask_frac
 
@@ -273,36 +280,38 @@ def main() -> None:
             linestyle=ls,
         )
 
-    ax1.plot(
-        steps,
-        noncontextual_optimal,
-        label="Non-ctx optimal",
-        color="#2196F3",
-        linewidth=1,
-        linestyle="--",
-        alpha=0.5,
-    )
-    ax1.plot(
-        steps,
-        contextual_optimal,
-        label="Ctx optimal",
-        color="#4CAF50",
-        linewidth=1,
-        linestyle="--",
-        alpha=0.5,
-    )
+    if bounds is not None:
+        ax1.plot(
+            steps,
+            noncontextual_optimal,
+            label="Non-ctx optimal",
+            color="#2196F3",
+            linewidth=1,
+            linestyle="--",
+            alpha=0.5,
+        )
+        ax1.plot(
+            steps,
+            contextual_optimal,
+            label="Ctx optimal",
+            color="#4CAF50",
+            linewidth=1,
+            linestyle="--",
+            alpha=0.5,
+        )
     ax1.set_xlabel("Step")
     ax1.set_ylabel("Cumulative Reward")
     ax1.set_title("Cumulative Reward")
     ax1.legend(fontsize=7, loc="upper left")
     ax1.grid(True, alpha=0.3)
 
-    ax2.axhline(
-        y=ctx_per_step * mask_frac, color="#4CAF50", linestyle="--", alpha=0.5, label="Ctx optimal"
-    )
-    ax2.axhline(
-        y=nctx_per_step * mask_frac, color="#2196F3", linestyle="--", alpha=0.5, label="Non-ctx optimal"
-    )
+    if bounds is not None:
+        ax2.axhline(
+            y=ctx_per_step * mask_frac, color="#4CAF50", linestyle="--", alpha=0.5, label="Ctx optimal"
+        )
+        ax2.axhline(
+            y=nctx_per_step * mask_frac, color="#2196F3", linestyle="--", alpha=0.5, label="Non-ctx optimal"
+        )
     ax2.set_xlabel("Step")
     ax2.set_ylabel("Reward per Step (rolling avg)")
     ax2.set_title(f"Per-Step Reward (window={window})")

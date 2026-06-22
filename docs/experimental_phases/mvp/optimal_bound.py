@@ -8,12 +8,16 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import logging
 import sys
 
 import numpy as np
 
 from rl_health_interventions.config.loader import load_config
+from rl_health_interventions.config.schemas import MDPConfig
 from _shared import resolve_config
+
+logger = logging.getLogger(__name__)
 
 
 def _stationary(P: np.ndarray) -> np.ndarray:
@@ -27,7 +31,7 @@ def _stationary(P: np.ndarray) -> np.ndarray:
     return np.array([pi_s, pi_a])
 
 
-def compute_bounds(config) -> dict[str, float]:
+def compute_bounds(config: MDPConfig) -> dict[str, float]:
     """Compute theoretical per-step expected reward bounds from an MDP config.
 
     Returns a dict with keys:
@@ -35,6 +39,12 @@ def compute_bounds(config) -> dict[str, float]:
         noncontextual_optimal   — per-step E[r] under best fixed action
         random                  — per-step E[r] under uniformly random actions
     """
+    if not config.states:
+        raise ValueError("config.states is required for computing bounds")
+    if not config.actions:
+        raise ValueError("config.actions is required for computing bounds")
+    if not config.transition_model:
+        raise ValueError("config.transition_model is required for computing bounds")
     state_names = sorted(config.states.keys())
     state_rewards = np.array([config.states[s]["reward"] for s in state_names])
     state_idx = {s: i for i, s in enumerate(state_names)}
@@ -136,27 +146,31 @@ def main() -> None:
         π = _stationary(action_mats[a])
         fixed_rewards[a] = float(π @ (action_mats[a] @ state_rewards))
 
-    print(f"Config: {config_path}")
-    print(f"Steps: {n_steps} ({config.episode_days} days x {config.steps_per_day} steps/day)")
+    logger.info("Config: %s", config_path)
+    logger.info("Steps: %d (%d days x %d steps/day)", n_steps, config.episode_days, config.steps_per_day)
     mult_str = str(mult) if mult else "[1.0] x steps_per_day"
-    print(f"Reward multiplier: {mult_str}  (mean={mask_frac:.4f})")
-    print()
-    print("Optimal per-action (per full step):")
+    logger.info("Reward multiplier: %s  (mean=%.4f)", mult_str, mask_frac)
+    logger.info("")
+    logger.info("Optimal per-action (per full step):")
     for a in config.actions:
         π = _stationary(action_mats[a])
-        print(f"  {a}: E[r]={fixed_rewards[a]:.4f}  "
-              f"(stationary π={np.round(π, 4).tolist()}, imm E[r]={np.round(imm_reward[a], 4).tolist()})")
-    print(f"  random: E[r]={random_full:.4f}  "
-          f"(stationary π={np.round(_stationary(np.mean(list(action_mats.values()), axis=0)), 4).tolist()})")
-    print()
-    print(f"Contextual optimal policy: {', '.join(f'{s}->{a}' for s, a in zip(state_names, opt_actions))}")
-    print(f"  stationary π={np.round(ctx_stationary, 4).tolist()}")
-    print()
-    print(f"{'':>25} {'Full step':>10} {'Scaled':>10} {'Total':>10}")
-    print(f"{'Contextual optimal':>25} {ctx_full:>10.4f} {ctx_full * mask_frac:>10.4f} {ctx_total:>10.1f}")
-    print(f"{'Non-contextual optimal':>25} {nctx_full:>10.4f} {nctx_full * mask_frac:>10.4f} {nctx_total:>10.1f}")
-    print(f"{'Random':>25} {random_full:>10.4f} {random_full * mask_frac:>10.4f} {random_total:>10.1f}")
+        logger.info("  %s: E[r]=%.4f  (stationary π=%s, imm E[r]=%s)",
+                     a, fixed_rewards[a],
+                     np.round(π, 4).tolist(),
+                     np.round(imm_reward[a], 4).tolist())
+    logger.info("  random: E[r]=%.4f  (stationary π=%s)",
+                random_full,
+                np.round(_stationary(np.mean(list(action_mats.values()), axis=0)), 4).tolist())
+    logger.info("")
+    logger.info("Contextual optimal policy: %s", ', '.join(f'{s}->{a}' for s, a in zip(state_names, opt_actions)))
+    logger.info("  stationary π=%s", np.round(ctx_stationary, 4).tolist())
+    logger.info("")
+    logger.info("%25s %10s %10s %10s", "", "Full step", "Scaled", "Total")
+    logger.info("%25s %10.4f %10.4f %10.1f", "Contextual optimal", ctx_full, ctx_full * mask_frac, ctx_total)
+    logger.info("%25s %10.4f %10.4f %10.1f", "Non-contextual optimal", nctx_full, nctx_full * mask_frac, nctx_total)
+    logger.info("%25s %10.4f %10.4f %10.1f", "Random", random_full, random_full * mask_frac, random_total)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     main()
