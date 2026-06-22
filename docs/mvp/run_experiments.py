@@ -21,7 +21,7 @@ _AGENT_SHORT_NAMES: dict[str, str] = {
     "thompson_sampling": "TS",
     "epsilon_greedy": "EG",
     "ucb": "UCB",
-    "decaying_epsilon_greedy": "DEC",
+    "decaying_epsilon_greedy": "D-EG",
     "random": "Random",
 }
 

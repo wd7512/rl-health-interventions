@@ -29,7 +29,7 @@ Grid search over key parameters (50 seeds, 450 timesteps, both standard and cont
 \[
 \begin{aligned}
 \text{EG:} &\quad \epsilon \in [0.01, 0.50], \; \Delta 0.05 \\
-\text{DEC:} &\quad \epsilon_{\text{start}} \in [0.1, 1.0], \; \Delta 0.1; \quad T_{\text{decay}} \in [25, 700], \; \Delta 25 \\
+\text{D-EG:} &\quad \epsilon_{\text{start}} \in [0.1, 1.0], \; \Delta 0.1; \quad T_{\text{decay}} \in [25, 700], \; \Delta 25 \\
 \text{UCB:} &\quad c \in [0.1, 10.0], \; \Delta 0.5
 \end{aligned}
 \]
@@ -54,14 +54,14 @@ Grid search over key parameters (50 seeds, 450 timesteps, both standard and cont
   \caption*{\small DEC: heatmap}
   \label{fig:hyperparam-dec-heatmap}
 \end{minipage}
-\caption{Hyperparameter sensitivity (50 seeds, $\pm$1~SD). EG optimum $\epsilon=0.15$, UCB optimum $c=0.5$ (both interior). DEC optimum at $\epsilon_{\text{start}}=1.0$ --- the theoretical maximum, since $\Pr(\text{explore}) = \min(1, \epsilon)$.}
+\caption{Hyperparameter sensitivity (50 seeds, $\pm$1~SD). EG optimum $\epsilon=0.15$, UCB optimum $c=0.5$ (both interior). D-EG optimum at $\epsilon_{\text{start}}=1.0$ --- the theoretical maximum, since $\Pr(\text{explore}) = \min(1, \epsilon)$.}
 \label{fig:hyperparam-all}
 \end{figure}
 
 $\epsilon=0.05$ vs $\epsilon=0.10$: identical means (158.1), but $\epsilon=0.10$ has $11\%$ lower variance.
 
 \section{Results}
-50 seeds, 450 timesteps. Optimised hyperparameters: EG $\epsilon=0.05$, DEC $\epsilon_{\text{start}}=0.2$, $T_{\text{decay}}=200$, $\epsilon_{\min}=0.01$, UCB $c=0.5$. All agent definitions live in \texttt{docs/mvp/configs/mvp.yaml}.
+50 seeds, 450 timesteps. Optimised hyperparameters: EG $\epsilon=0.05$, D-EG $\epsilon_{\text{start}}=0.2$, $T_{\text{decay}}=200$, $\epsilon_{\min}=0.01$, UCB $c=0.5$. All agent definitions live in \texttt{docs/mvp/configs/mvp.yaml}.
 
 \begin{table}[h]
 \centering
@@ -72,10 +72,10 @@ Agent & Total Reward & Per Step & Last 50 Steps & vs Contextual Opt \\
 Contextual TS & 178.7 $\pm$ 15.8 & 0.397 & 0.429 & $\phantom{-}$0.0\% \\
 Contextual UCB & 179.4 $\pm$ 15.4 & 0.399 & 0.430 & $\phantom{-}$0.0\% \\
 Contextual EG & 166.6 $\pm$ 30.4 & 0.370 & 0.405 & $-13.6\%$ \\
-Contextual DEC & 167.0 $\pm$ 35.2 & 0.371 & 0.396 & $-13.4\%$ \\
+Contextual D-EG & 167.0 $\pm$ 35.2 & 0.371 & 0.396 & $-13.4\%$ \\
 \midrule
 Standard UCB & 163.6 $\pm$ 11.1 & 0.364 & 0.382 & $-15.2\%$ \\
-Standard DEC & 161.7 $\pm$ 18.4 & 0.359 & 0.375 & $-16.2\%$ \\
+Standard D-EG & 161.7 $\pm$ 18.4 & 0.359 & 0.375 & $-16.2\%$ \\
 Standard TS & 159.6 $\pm$ 12.7 & 0.355 & 0.373 & $-17.2\%$ \\
 Standard EG & 158.1 $\pm$ 19.9 & 0.351 & 0.375 & $-18.0\%$ \\
 \midrule
@@ -93,6 +93,6 @@ Non-contextual optimal & 168.8 & 0.375 & 0.375 & --- \\
 \caption{Cumulative reward and per-step reward (50 seeds, $\pm$1 SD). Contextual agents converge toward $3/7 \approx 0.429$; standard agents plateau lower.}
 \end{figure}
 
-Contextual TS and UCB reach the per-context optimal ($0.429$) by the last 50 steps. Standard UCB benefits most from hyperparameter search ($-23.1\%$ to $-15.2\%$). DEC front-loads exploration, achieving $161.7$ vs EG's $158.1$ in the standard setting; the contextual advantage disappears as per-context Q-values already provide sufficient exploration. Random ($0.305$) anchors the lower bound, $28.9\%$ below the contextual optimum.
+Contextual TS and UCB reach the per-context optimal ($0.429$) by the last 50 steps. Standard UCB benefits most from hyperparameter search ($-23.1\%$ to $-15.2\%$). D-EG front-loads exploration, achieving $161.7$ vs EG's $158.1$ in the standard setting; the contextual advantage disappears as per-context Q-values already provide sufficient exploration. Random ($0.305$) anchors the lower bound, $28.9\%$ below the contextual optimum.
 
 \end{document}
