@@ -146,7 +146,7 @@ def main() -> None:
     episodes. Aggregates reward statistics (total reward mean/std, per-step mean, and
     mean of last 50 steps) and saves the results to CSV.
     """
-    config_path = Path(__file__).parent / "rule_based_with_actions.yaml"
+    config_path = Path(__file__).parent / "configs" / "rule_based_with_actions.yaml"
     config = load_config(str(config_path))
     n_steps = config.episode_days * config.steps_per_day
 

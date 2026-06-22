@@ -30,38 +30,38 @@ transition_model:
       no_message:
         active: 0.1
         sedentary: 0.9
-      motivational_prompt:
-        active: 0.3
-        sedentary: 0.7
-      walking_suggestion:
-        active: 0.4
-        sedentary: 0.6
-      goal_reminder:
-        active: 0.2
-        sedentary: 0.8
-      recovery_suggestion:
-        active: 0.35
-        sedentary: 0.65
       progress_feedback:
         active: 0.25
         sedentary: 0.75
+      goal_reminder:
+        active: 0.2
+        sedentary: 0.8
+      motivational_prompt:
+        active: 0.45
+        sedentary: 0.55
+      recovery_suggestion:
+        active: 0.35
+        sedentary: 0.65
+      walking_suggestion:
+        active: 0.3
+        sedentary: 0.7
     active:
       no_message:
-        active: 0.6
-        sedentary: 0.4
-      motivational_prompt:
-        active: 0.7
-        sedentary: 0.3
-      walking_suggestion:
+        active: 0.85
+        sedentary: 0.15
+      progress_feedback:
         active: 0.8
         sedentary: 0.2
       goal_reminder:
         active: 0.65
         sedentary: 0.35
+      motivational_prompt:
+        active: 0.6
+        sedentary: 0.4
       recovery_suggestion:
-        active: 0.75
-        sedentary: 0.25
-      progress_feedback:
+        active: 0.55
+        sedentary: 0.45
+      walking_suggestion:
         active: 0.7
         sedentary: 0.3
 

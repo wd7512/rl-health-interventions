@@ -18,18 +18,18 @@ logger = logging.getLogger(__name__)
 
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.config.schemas import AgentConfig
-from rl_health_interventions.experiment import run_episode
-from rl_health_interventions.agents import derive_agent_seed, make as make_agent
+
+from _experiment_utils import run_agent
 
 AGENT_VARIANTS = [
-    ("Standard TS", {"type": "thompson_sampling", "alpha_prior": 0.5, "beta_prior": 5.0}, "#2196F3", "-"),
+    ("Standard TS", {"type": "thompson_sampling", "alpha_prior": 2.0, "beta_prior": 5.0}, "#2196F3", "-"),
     ("Contextual TS", {"type": "thompson_sampling", "alpha_prior": 1.0, "beta_prior": 5.0, "contextual": True, "context_feature": "activity"}, "#4CAF50", "-"),
-    ("Standard EG", {"type": "epsilon_greedy", "epsilon": 0.1}, "#FF9800", "-"),
-    ("Contextual EG", {"type": "epsilon_greedy", "epsilon": 0.15, "contextual": True, "context_feature": "activity"}, "#E91E63", "-"),
+    ("Standard EG", {"type": "epsilon_greedy", "epsilon": 0.2}, "#FF9800", "-"),
+    ("Contextual EG", {"type": "epsilon_greedy", "epsilon": 0.1, "contextual": True, "context_feature": "activity"}, "#E91E63", "-"),
     ("Standard UCB", {"type": "ucb", "c": 0.5}, "#9C27B0", "-"),
-    ("Contextual UCB", {"type": "ucb", "c": 0.3, "contextual": True, "context_feature": "activity"}, "#00BCD4", "-"),
-    ("Standard DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.4, "epsilon_min": 0.01, "decay_steps": 75}, "#795548", "--"),
-    ("Contextual DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 1.0, "epsilon_min": 0.01, "decay_steps": 150, "contextual": True, "context_feature": "activity"}, "#607D8B", "--"),
+    ("Contextual UCB", {"type": "ucb", "c": 0.2, "contextual": True, "context_feature": "activity"}, "#00BCD4", "-"),
+    ("Standard DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.8, "epsilon_min": 0.01, "decay_steps": 75}, "#795548", "--"),
+    ("Contextual DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.3, "epsilon_min": 0.01, "decay_steps": 300, "contextual": True, "context_feature": "activity"}, "#607D8B", "--"),
 ]
 
 IMAGES_DIR = Path(__file__).parent / "images"
@@ -137,18 +137,6 @@ def generate_ts_chart(results_path: Path, ctx: bool = False) -> None:
     logger.info("Saved %s", out)
 
 
-def run_agent(config, agent_cfg: AgentConfig, n_seeds: int) -> np.ndarray:
-    rewards = []
-    for seed in range(1, n_seeds + 1):
-        kwargs = {k: v for k, v in agent_cfg.model_dump().items() if v is not None and k != "type"}
-        kwargs["actions"] = config.action_names
-        kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
-        agent = make_agent(agent_cfg.type, **kwargs)
-        df = run_episode(config, agent, seed=seed)
-        rewards.append(df["reward"].values)
-    return np.array(rewards)
-
-
 def _parse_eg_df(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     eg = df[df["agent"] == "epsilon_greedy"].copy()
     eg["epsilon"] = eg["params"].str.extract(r"eps=([\d.]+)").astype(float)
@@ -193,7 +181,7 @@ def main() -> None:
     parser.add_argument("--config", type=str, default=None)
     args = parser.parse_args()
 
-    config_path = Path(args.config) if args.config else Path(__file__).parent / "rule_based_with_actions.yaml"
+    config_path = Path(args.config) if args.config else Path(__file__).parent / "configs" / "rule_based_with_actions.yaml"
     config = load_config(str(config_path))
     n_steps = config.episode_days * config.steps_per_day
     n_seeds = args.seeds
@@ -211,7 +199,8 @@ def main() -> None:
         logger.info("Running %s...", label)
         all_data[label] = run_agent(config, agent_cfg, n_seeds)
 
-    optimal_per_step = 2 / 3
+    contextual_opt = 0.75
+    noncontextual_opt = 5 / 9
     steps = np.arange(1, n_steps + 1)
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
@@ -226,20 +215,22 @@ def main() -> None:
         window_steps = np.arange(window, n_steps + 1)
         ax2.plot(window_steps, step_smooth, label=label, color=color, linewidth=1.5, linestyle=ls)
 
-    ax1.plot(steps, optimal_per_step * steps, label="Optimal", color="#2196F3", linewidth=1, linestyle="--", alpha=0.5)
+    ax1.plot(steps, contextual_opt * steps, label="Contextual optimal", color="#4CAF50", linewidth=1.5, linestyle="--", alpha=0.6)
+    ax1.plot(steps, noncontextual_opt * steps, label="Non-contextual optimal", color="#2196F3", linewidth=1.5, linestyle=":", alpha=0.6)
     ax1.set_xlabel("Step")
     ax1.set_ylabel("Cumulative Reward")
     ax1.set_title("Cumulative Reward (6-action)")
     ax1.legend(fontsize=7, loc="upper left")
     ax1.grid(True, alpha=0.3)
 
-    ax2.axhline(y=optimal_per_step, color="#4CAF50", linestyle="--", alpha=0.5, label="Optimal")
+    ax2.axhline(y=contextual_opt, color="#4CAF50", linestyle="--", alpha=0.6, label="Contextual optimal")
+    ax2.axhline(y=noncontextual_opt, color="#2196F3", linestyle=":", alpha=0.6, label="Non-contextual optimal")
     ax2.set_xlabel("Step")
     ax2.set_ylabel("Reward per Step (rolling avg)")
     ax2.set_title(f"Per-Step Reward (window={window})")
     ax2.legend(fontsize=7, loc="upper left")
     ax2.grid(True, alpha=0.3)
-    ax2.set_ylim(0.3, 0.8)
+    ax2.set_ylim(0.3, 0.85)
 
     plt.tight_layout()
     out = IMAGES_DIR / "learning_curves.pdf"

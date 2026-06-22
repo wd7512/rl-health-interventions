@@ -204,7 +204,7 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# LaTeX build artefacts (keep .pdf)
+# LaTeX build artefacts
 *.aux
 *.bbl
 *.bcf
@@ -221,6 +221,7 @@ cython_debug/
 *.synctex.gz
 *.toc
 *.xdv
+docs/initial_experiments/initial_experiments.pdf
 
 # Marimo
 marimo/_static/

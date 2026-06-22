@@ -13,35 +13,26 @@ Extends the MVP simulator (\texttt{docs/mvp/mvp\_specification.tex}) by enrichin
 the state space, action space, and reward function, moving toward the full
 MDP defined in \texttt{docs/design/initial\_design.tex}.
 
-\section{State Space Extension}
-\label{sec:state}
+\section{Formulation}
+\label{sec:formulation}
 
-References \texttt{docs/design/initial\_design.tex \S3} and Issue \#124.
+Context $c_t = s_t.\texttt{activity} \in \{\texttt{sedentary}, \texttt{active}\}$. Each algorithm maintains separate parameters per $(c, a)$ pair for the contextual variants:
 
+\begin{itemize}
+  \item \textbf{Thompson Sampling:} $(\alpha_{c,a}, \beta_{c,a})$ posteriors. Sample $\theta_{c_t, a} \sim \text{Beta}(\alpha_{c_t, a}, \beta_{c_t, a})$, pick $a^* = \arg\max_a \theta_{c_t, a}$.
+  \item \textbf{Epsilon-Greedy:} $Q_{c,a}$ values. With probability $\epsilon$ explore, otherwise $a^* = \arg\max_a Q_{c_t, a}$.
+  \item \textbf{UCB:} $a^* = \arg\max_a \left[ Q_{c_t, a} + c \sqrt{\ln(N_{c_t}) / n_{c_t, a}} \right]$ where $N_{c_t} = \sum_a n_{c_t, a}$.
+  \item \textbf{Decaying Epsilon-Greedy:} Linear decay: $\epsilon_t = \max(\epsilon_{\min},\; \epsilon_{\text{start}} (1 - t / T_{\text{decay}}))$.
+\end{itemize}
 
-\subsection{Enriched StateView}
-
-% To be filled: archetype, burden, goal_progress, steps, previous_action
-
-
-\subsection{Contextual Bandit Conditioning}
-
-% To be filled: context_feature config, conditional action selection
-
-
-\subsection{Open Questions}
-
-% To be filled
-
+Non-contextual variants collapse $c$ and maintain a single set of $(\alpha_a, \beta_a)$, $Q_a$, or $n_a$.
 
 \section{Action Space Extension}
 \label{sec:action}
 
 References \texttt{docs/design/initial\_design.tex \S3} and Issue \#126.
 
-
 \subsection{ActionConfig}
-
 \label{sec:action-config}
 The action space is extended from 2 to 6 actions, each with a \texttt{burden\_penalty} representing the cost of sending that type of message. The full set:
 
@@ -65,88 +56,57 @@ Action & Description & Burden Penalty \\
 
 Burden penalties are stored as metadata in the config via \texttt{ActionConfig(name, burden\_penalty)} but are not yet wired into the reward function. The \texttt{action\_names} property on \texttt{MDPConfig} normalises either format (\texttt{list[str]} or \texttt{list[ActionConfig]}) to plain string lists for agent consumption.
 
-
 \subsection{Transition Model Updates}
 
-The transition matrix grows from $2\times2\times2$ to $6\times2\times2$ (6 actions, 2 states, 2 next states). Each action defines a row:
+The transition matrix grows from $2\times2\times2$ to $6\times2\times2$ (6 actions, 2 states, 2 next states). The design creates a contextual gap: the optimal action differs by state.
 
 \begin{align*}
 P_{\text{no\_message}} &=
 \begin{bmatrix}
-0.9 & 0.1 \\
-0.4 & 0.6
+0.90 & 0.10 \\
+0.15 & 0.85
 \end{bmatrix}
 &
 P_{\text{progress\_feedback}} &=
 \begin{bmatrix}
 0.75 & 0.25 \\
-0.3 & 0.7
+0.20 & 0.80
 \end{bmatrix}
 \\
 P_{\text{goal\_reminder}} &=
 \begin{bmatrix}
-0.8 & 0.2 \\
+0.80 & 0.20 \\
 0.35 & 0.65
 \end{bmatrix}
 &
 P_{\text{motivational\_prompt}} &=
 \begin{bmatrix}
-0.7 & 0.3 \\
-0.3 & 0.7
+0.55 & 0.45 \\
+0.40 & 0.60
 \end{bmatrix}
 \\
 P_{\text{recovery\_suggestion}} &=
 \begin{bmatrix}
 0.65 & 0.35 \\
-0.25 & 0.75
+0.45 & 0.55
 \end{bmatrix}
 &
 P_{\text{walking\_suggestion}} &=
 \begin{bmatrix}
-0.6 & 0.4 \\
-0.2 & 0.8
+0.70 & 0.30 \\
+0.30 & 0.70
 \end{bmatrix}
 \end{align*}
 
-\noindent Columns are $\{\text{sedentary}, \text{active}\}$. \texttt{walking\_suggestion} has the strongest effect in both states, making it the optimal action everywhere. Backward compatibility: \texttt{ActionConfig} dicts are accepted alongside plain strings via the updated schema validator.
-
+\noindent Columns are $\{\text{sedentary}, \text{active}\}$. For sedentary users, \texttt{motivational\_prompt} ($0.45 \to \text{active}$) is most effective; for active users, \texttt{no\_message} ($0.85 \to \text{active}$) is best --- sending any message to an already-active user risks backfiring (Reactance theory). This asymmetry creates a gap between contextual and non-contextual optimal policies.
 
 \subsection{Agent Compatibility}
 \label{sec:agent-compat}
 
-All four bandit agents (Thompson Sampling, $\epsilon$-Greedy, UCB1, Decaying $\epsilon$-Greedy) handle variable-length action sets without modification. The \texttt{action\_names} property extracts plain strings from \texttt{ActionConfig} dicts, so agents continue to receive \texttt{list[str]}. No agent-side changes were required.
-
-
-\subsection{Open Questions}
-
-% To be filled
-
-
-\section{Reward Function Extension}
-\label{sec:reward}
-
-References \texttt{docs/design/initial\_design.tex \S3} and Issue \#132.
-
-
-\subsection{Multi-Timescale Reward}
-
-% To be filled: immediate + 3-week delayed clinical outcome
-
-
-\subsection{Reward Composition}
-
-% To be filled: configurable per_step_weight, clinical_weight
-
-
-\subsection{Synthetic Clinical Data}
-
-% To be filled: weekly_step_count, engagement_ratio generator
-
+All four bandit agents handle variable-length action sets without modification. The \texttt{action\_names} property extracts plain strings from \texttt{ActionConfig} dicts, so agents continue to receive \texttt{list[str]}. No agent-side changes were required.
 
 \subsection{Open Questions}
-
-% To be filled
-
+Burden penalties remain metadata-only; wiring them into the reward function is deferred to a follow-up experiment.
 
 \section{Combined Results}
 \label{sec:results}
@@ -155,20 +115,25 @@ End-to-end evaluation on \texttt{rule\_based\_with\_actions.yaml}: 50 random see
 
 \subsection{Optimal Reward}
 
-Under the 6-action MDP, the optimal policy always selects \texttt{walking\_suggestion}, which maximises $P(\text{active})$ from both states:
+The optimal contextual policy is state-dependent:
+\begin{itemize}
+  \item \textbf{When sedentary:} choose \texttt{motivational\_prompt} ($P(\to\text{active}) = 0.45$)
+  \item \textbf{When active:} choose \texttt{no\_message} ($P(\to\text{active}) = 0.85$)
+\end{itemize}
 
+Stationary distribution under this policy: $\pi_{\text{active}} = \frac{3}{4}$, $\pi_{\text{sedentary}} = \frac{1}{4}$. Expected per-step contextual reward:
 \[
-P(\text{active} \mid \text{sedentary}, \text{walking}) = 0.4, \qquad
-P(\text{active} \mid \text{active}, \text{walking}) = 0.8
+E[r_{\text{ctx}}] = 1.0 \cdot \frac{3}{4} + 0.0 \cdot \frac{1}{4} = 0.75
 \]
+Total contextual optimal: $0.75 \times 450 = 337.5$.
 
-Stationary distribution: $\pi_{\text{active}} = \frac{2}{3}$, $\pi_{\text{sedentary}} = \frac{1}{3}$. Expected per-step reward:
-
+The optimal non-contextual policy picks the single best action across both states: \texttt{progress\_feedback} ($P(\to\text{active}\mid\text{sed})=0.25$, $P(\to\text{active}\mid\text{act})=0.80$). Stationary distribution: $\pi_{\text{active}} = \frac{5}{9}$. Expected per-step non-contextual reward:
 \[
-E[r] = 1.0 \cdot \frac{2}{3} + 0.0 \cdot \frac{1}{3} = \frac{2}{3} \approx 0.6667
+E[r_{\text{nctx}}] = \frac{5}{9} \approx 0.556
 \]
+Total non-contextual optimal: $\frac{5}{9} \times 450 = 250.0$.
 
-Total optimal reward: $\frac{2}{3} \times 450 = 300$. Because the same action is optimal in both states, the contextual and non-contextual bounds coincide.
+The contextual policy achieves $34.9\%$ higher per-step reward ($0.75$ vs $0.556$).
 
 \subsection{Hyperparameter Optimisation}
 \label{sec:hyperparam}
@@ -184,28 +149,51 @@ Grid search (50 seeds, 450 steps, 316 configurations):
 \end{aligned}
 \]
 
+\begin{figure}[h]
+\centering
+\begin{minipage}{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{images/hyperparam_eg.pdf}
+  \caption*{\small EG: $\epsilon$ vs reward}
+  \label{fig:hyperparam-eg}
+\end{minipage}\hfill
+\begin{minipage}{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{images/hyperparam_ucb.pdf}
+  \caption*{\small UCB: $c$ vs reward}
+  \label{fig:hyperparam-ucb}
+\end{minipage}\hfill
+\begin{minipage}{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{images/hyperparam_dec_heatmap.pdf}
+  \caption*{\small DEC: heatmap}
+  \label{fig:hyperparam-dec-heatmap}
+\end{minipage}
+\caption{Hyperparameter sensitivity (50 seeds, $\pm$1~SD). Contextual variants converge toward the $0.75$ contextual optimal; standard variants plateau near the $0.556$ non-contextual bound.}
+\label{fig:hyperparam-all}
+\end{figure}
+
 \begin{table}[h]
 \centering
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrrrr}
 \toprule
-Agent (Standard) & Total Reward & Per Step & Last 50 & vs Optimal \\
+Agent & Total Reward & Per Step & Last 50 & vs Ctx Opt & vs Non-Ctx Opt \\
 \midrule
-DEC ($\epsilon_{\text{start}}=0.4$, $T_{\text{decay}}=75$) & 273.5 $\pm$ 31.5 & 0.608 & 0.638 & $-8.8\%$ \\
-UCB ($c=0.5$) & 270.4 $\pm$ 24.5 & 0.601 & 0.656 & $-9.9\%$ \\
-TS ($\alpha_0=0.5$, $\beta_0=5.0$) & 267.7 $\pm$ 31.4 & 0.595 & 0.638 & $-10.8\%$ \\
-EG ($\epsilon=0.1$) & 263.7 $\pm$ 29.4 & 0.586 & 0.612 & $-12.1\%$ \\
+Contextual UCB ($c=0.2$) & 299.3 $\pm$ 27.8 & 0.665 & 0.720 & $-11.3\%$ & $+19.7\%$ \\
+Contextual DEC ($\epsilon_{\text{s}}=0.3$, $T_{\text{decay}}=300$) & 297.3 $\pm$ 23.0 & 0.661 & 0.726 & $-11.9\%$ & $+18.9\%$ \\
+Contextual TS ($\alpha_0=1.0$, $\beta_0=5.0$) & 297.1 $\pm$ 28.8 & 0.660 & 0.718 & $-12.0\%$ & $+18.8\%$ \\
+Contextual EG ($\epsilon=0.1$) & 285.2 $\pm$ 29.9 & 0.634 & 0.689 & $-15.5\%$ & $+14.0\%$ \\
 \midrule
-Agent (Contextual) & & & & \\
+Standard UCB ($c=0.5$) & 231.1 $\pm$ 19.9 & 0.514 & 0.544 & $-31.5\%$ & $\phantom{-}7.6\%$ \\
+Standard DEC ($\epsilon_{\text{s}}=0.8$, $T_{\text{decay}}=75$) & 230.9 $\pm$ 20.8 & 0.513 & 0.536 & $-31.6\%$ & $\phantom{-}7.7\%$ \\
+Standard TS ($\alpha_0=2.0$, $\beta_0=5.0$) & 228.3 $\pm$ 17.6 & 0.507 & 0.542 & $-32.3\%$ & $\phantom{-}8.7\%$ \\
+Standard EG ($\epsilon=0.2$) & 225.3 $\pm$ 19.2 & 0.501 & 0.520 & $-33.2\%$ & $\phantom{-}9.9\%$ \\
 \midrule
-DEC ($\epsilon_{\text{start}}=1.0$, $T_{\text{decay}}=150$) & 263.3 $\pm$ 20.7 & 0.585 & 0.644 & $-12.2\%$ \\
-UCB ($c=0.3$) & 261.0 $\pm$ 20.0 & 0.580 & 0.620 & $-13.0\%$ \\
-TS ($\alpha_0=1.0$, $\beta_0=5.0$) & 253.2 $\pm$ 24.2 & 0.563 & 0.610 & $-15.6\%$ \\
-EG ($\epsilon=0.15$) & 253.1 $\pm$ 21.1 & 0.562 & 0.609 & $-15.6\%$ \\
-\midrule
-Optimal ($\pi_{\text{active}} = \frac{2}{3}$) & 300.0 & 0.667 & 0.667 & --- \\
+Contextual optimal & 337.5 & 0.750 & 0.750 & --- & $+34.9\%$ \\
+Non-contextual optimal & 250.0 & 0.556 & 0.556 & $-25.9\%$ & --- \\
 \bottomrule
 \end{tabular}
-\caption{Best agent variants on the 6-action config (50 seeds, 450 timesteps). Contextual agents underperform their standard counterparts because 6 actions $\times$ 2 contexts = 12 parameter sets per agent, dividing the data too thinly over 450 steps.}
+\caption{Best agent variants on the 6-action config (50 seeds, 450 timesteps). Contextual agents converge toward the $0.75$ bound; standard agents plateau near the $0.556$ non-contextual bound. Contextual UCB at $c=0.2$ achieves the highest reward, reaching $88.7\%$ of the contextual optimal.}
 \label{tab:results}
 \end{table}
 
@@ -214,10 +202,13 @@ Optimal ($\pi_{\text{active}} = \frac{2}{3}$) & 300.0 & 0.667 & 0.667 & --- \\
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{images/learning_curves.pdf}
-\caption{Cumulative and per-step reward (50 seeds, $\pm$1~SD). Standard DEC and UCB converge fastest; contextual variants lag due to data fragmentation across 12 context--action pairs.}
+\caption{Cumulative and per-step reward (50 seeds, $\pm$1~SD). Contextual agents converge toward the $0.75$ bound; standard agents plateau near $0.556$. Both optimal lines are shown --- they differ because the best action depends on the current state.}
 \label{fig:learning-curves}
 \end{figure}
 
-Standard variants outperform contextual ones across all four algorithms, contrary to the 2-action MVP results. With 6 actions, the $\frac{2}{3}$ optimal bound is reachable without state conditioning (the same action is best in both states), so contextualisation adds data fragmentation without benefit. DEC's $\epsilon$ decay provides effective exploration early while exploiting later, yielding the best overall result at $91.2\%$ of optimal.
+Contextual agents outperform standard agents across all four algorithms, driven by the state-dependent optimal policy gap ($0.75$ vs $0.556$). Contextual UCB at $c=0.2$ achieves the best overall result at $88.7\%$ of the contextual optimal. DEC's $\epsilon$ decay provides effective early exploration while exploiting later. Standard agents hover within $8$--$10\%$ of their non-contextual $0.556$ bound, confirming that the gap is structural (state-dependent optimal action) rather than a learning deficiency.
+
+\subsection{State Space and Reward Extensions}
+Enriched state features (archetype, burden, goal progress) and multi-timescale reward (immediate + 3-week delayed clinical outcome) are deferred to follow-up work. These require corresponding extensions to the agent architecture (full RL rather than bandit) and are tracked in Issues \#124 and \#132.
 
 \end{document}
