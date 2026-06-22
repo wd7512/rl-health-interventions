@@ -1,8 +1,13 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from pydantic import BaseModel, Field, RootModel, model_validator
+
+
+class ActionConfig(BaseModel):
+    name: str
+    burden_penalty: float = 0.0
 
 
 class TransitionProbabilities(RootModel):
@@ -176,10 +181,9 @@ class MDPConfig(BaseModel):
                 "states must be a dictionary mapping state names to their configurations"
             )
         if not isinstance(self.actions, list):
-            raise ValueError("actions must be a list of action names")
+            raise ValueError("actions must be a list of action names or action dicts")
 
         state_names = set(self.states.keys())
-        action_names = set(self.actions)
 
         if not self.states:
             raise ValueError("states must be non-empty")
@@ -198,7 +202,26 @@ class MDPConfig(BaseModel):
 
         if not self.actions:
             raise ValueError("actions must be non-empty")
-        if len(action_names) != len(self.actions):
+
+        # Extract action names from either string list or dict list
+        raw_names: list[str] = []
+        for i, a in enumerate(self.actions):
+            if isinstance(a, str):
+                raw_names.append(a)
+            elif isinstance(a, dict):
+                ad: dict[str, Any] = cast(dict[str, Any], a)
+                name_val = ad.get("name")
+                if name_val is None:
+                    raise ValueError(f"action at index {i} is missing 'name' key")
+                raw_names.append(str(name_val))
+            else:
+                raise ValueError(
+                    f"action at index {i} must be a string or dict, "
+                    f"got {type(a).__name__}"
+                )
+
+        action_names = set(raw_names)
+        if len(action_names) != len(raw_names):
             raise ValueError("actions contain duplicates")
 
         if (
@@ -229,10 +252,10 @@ class MDPConfig(BaseModel):
                 )
 
             for state, actions_dict in probs_root.items():
-                for action in self.actions:
-                    if action not in actions_dict:
+                for action_name in raw_names:
+                    if action_name not in actions_dict:
                         raise ValueError(
-                            f"Missing transition entry for ({state}, {action})"
+                            f"Missing transition entry for ({state}, {action_name})"
                         )
 
             for state, actions_dict in probs_root.items():
@@ -270,3 +293,17 @@ class MDPConfig(BaseModel):
             for mult in multiplier
         ]
         return self
+
+    @property
+    def action_names(self) -> list[str]:
+        """Return action names as a flat list of strings regardless of storage format."""
+        if not isinstance(self.actions, list):
+            return []
+        result: list[str] = []
+        for a in self.actions:
+            if isinstance(a, str):
+                result.append(a)
+            elif isinstance(a, dict):
+                ad: dict[str, Any] = cast(dict[str, Any], a)
+                result.append(str(ad.get("name", "")))
+        return result
