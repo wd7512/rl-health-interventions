@@ -42,17 +42,79 @@ References \texttt{docs/design/initial\_design.tex \S3} and Issue \#126.
 
 \subsection{ActionConfig}
 
-% To be filled: reward_penalty, burden_penalty, 6-action set
+\label{sec:action-config}
+The action space is extended from 2 to 6 actions, each with a \texttt{burden\_penalty} representing the cost of sending that type of message. The full set:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Action & Description & Burden Penalty \\
+\midrule
+\texttt{no\_message} & Do nothing & 0.00 \\
+\texttt{progress\_feedback} & Show step-count progress & 0.10 \\
+\texttt{goal\_reminder} & Remind of daily goal & 0.15 \\
+\texttt{motivational\_prompt} & Generic encouragement & 0.20 \\
+\texttt{recovery\_suggestion} & Suggest recovery activity & 0.25 \\
+\texttt{walking\_suggestion} & Suggest a walk & 0.30 \\
+\bottomrule
+\end{tabular}
+\caption{The six actions and their burden penalties. Higher burden actions are expected to be more effective but risk user disengagement.}
+\label{tab:actions}
+\end{table}
+
+Burden penalties are stored as metadata in the config via \texttt{ActionConfig(name, burden\_penalty)} but are not yet wired into the reward function. The \texttt{action\_names} property on \texttt{MDPConfig} normalises either format (\texttt{list[str]} or \texttt{list[ActionConfig]}) to plain string lists for agent consumption.
 
 
 \subsection{Transition Model Updates}
 
-% To be filled: 6x6x2 transition matrix, backward compatibility
+The transition matrix grows from $2\times2\times2$ to $6\times2\times2$ (6 actions, 2 states, 2 next states). Each action defines a row:
+
+\begin{align*}
+P_{\text{no\_message}} &=
+\begin{bmatrix}
+0.9 & 0.1 \\
+0.4 & 0.6
+\end{bmatrix}
+&
+P_{\text{progress\_feedback}} &=
+\begin{bmatrix}
+0.75 & 0.25 \\
+0.3 & 0.7
+\end{bmatrix}
+\\
+P_{\text{goal\_reminder}} &=
+\begin{bmatrix}
+0.8 & 0.2 \\
+0.35 & 0.65
+\end{bmatrix}
+&
+P_{\text{motivational\_prompt}} &=
+\begin{bmatrix}
+0.7 & 0.3 \\
+0.3 & 0.7
+\end{bmatrix}
+\\
+P_{\text{recovery\_suggestion}} &=
+\begin{bmatrix}
+0.65 & 0.35 \\
+0.25 & 0.75
+\end{bmatrix}
+&
+P_{\text{walking\_suggestion}} &=
+\begin{bmatrix}
+0.6 & 0.4 \\
+0.2 & 0.8
+\end{bmatrix}
+\end{align*}
+
+\noindent Columns are $\{\text{sedentary}, \text{active}\}$. \texttt{walking\_suggestion} has the strongest effect in both states, making it the optimal action everywhere. Backward compatibility: \texttt{ActionConfig} dicts are accepted alongside plain strings via the updated schema validator.
 
 
 \subsection{Agent Compatibility}
+\label{sec:agent-compat}
 
-% To be filled: verification of variable-length action handling
+All four bandit agents (Thompson Sampling, $\epsilon$-Greedy, UCB1, Decaying $\epsilon$-Greedy) handle variable-length action sets without modification. The \texttt{action\_names} property extracts plain strings from \texttt{ActionConfig} dicts, so agents continue to receive \texttt{list[str]}. No agent-side changes were required.
 
 
 \subsection{Open Questions}
@@ -87,7 +149,75 @@ References \texttt{docs/design/initial\_design.tex \S3} and Issue \#132.
 
 
 \section{Combined Results}
+\label{sec:results}
 
-% To be filled: end-to-end episode evaluation with all three extensions enabled
+End-to-end evaluation on \texttt{rule\_based\_with\_actions.yaml}: 50 random seeds, 450 timesteps each. Results use the best hyperparameters found per agent variant (see \S\ref{sec:hyperparam}).
+
+\subsection{Optimal Reward}
+
+Under the 6-action MDP, the optimal policy always selects \texttt{walking\_suggestion}, which maximises $P(\text{active})$ from both states:
+
+\[
+P(\text{active} \mid \text{sedentary}, \text{walking}) = 0.4, \qquad
+P(\text{active} \mid \text{active}, \text{walking}) = 0.8
+\]
+
+Stationary distribution: $\pi_{\text{active}} = \frac{2}{3}$, $\pi_{\text{sedentary}} = \frac{1}{3}$. Expected per-step reward:
+
+\[
+E[r] = 1.0 \cdot \frac{2}{3} + 0.0 \cdot \frac{1}{3} = \frac{2}{3} \approx 0.6667
+\]
+
+Total optimal reward: $\frac{2}{3} \times 450 = 300$. Because the same action is optimal in both states, the contextual and non-contextual bounds coincide.
+
+\subsection{Hyperparameter Optimisation}
+\label{sec:hyperparam}
+
+Grid search (50 seeds, 450 steps, 316 configurations):
+
+\[
+\begin{aligned}
+\text{TS:} &\quad (\alpha_0, \beta_0) \in \{0.5, 1.0, 2.0, 5.0\}^2 \\
+\text{EG:} &\quad \epsilon \in [0.01, 0.50],\; \Delta 0.05 \\
+\text{DEC:} &\quad \epsilon_{\text{start}} \in [0.1, 1.0],\; \Delta 0.1;\quad T_{\text{decay}} \in [25, 700],\; \Delta 25 \\
+\text{UCB:} &\quad c \in [0.1, 10.0],\; \Delta 0.5
+\end{aligned}
+\]
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Agent (Standard) & Total Reward & Per Step & Last 50 & vs Optimal \\
+\midrule
+DEC ($\epsilon_{\text{start}}=0.4$, $T_{\text{decay}}=75$) & 273.5 $\pm$ 31.5 & 0.608 & 0.638 & $-8.8\%$ \\
+UCB ($c=0.5$) & 270.4 $\pm$ 24.5 & 0.601 & 0.656 & $-9.9\%$ \\
+TS ($\alpha_0=0.5$, $\beta_0=5.0$) & 267.7 $\pm$ 31.4 & 0.595 & 0.638 & $-10.8\%$ \\
+EG ($\epsilon=0.1$) & 263.7 $\pm$ 29.4 & 0.586 & 0.612 & $-12.1\%$ \\
+\midrule
+Agent (Contextual) & & & & \\
+\midrule
+DEC ($\epsilon_{\text{start}}=1.0$, $T_{\text{decay}}=150$) & 263.3 $\pm$ 20.7 & 0.585 & 0.644 & $-12.2\%$ \\
+UCB ($c=0.3$) & 261.0 $\pm$ 20.0 & 0.580 & 0.620 & $-13.0\%$ \\
+TS ($\alpha_0=1.0$, $\beta_0=5.0$) & 253.2 $\pm$ 24.2 & 0.563 & 0.610 & $-15.6\%$ \\
+EG ($\epsilon=0.15$) & 253.1 $\pm$ 21.1 & 0.562 & 0.609 & $-15.6\%$ \\
+\midrule
+Optimal ($\pi_{\text{active}} = \frac{2}{3}$) & 300.0 & 0.667 & 0.667 & --- \\
+\bottomrule
+\end{tabular}
+\caption{Best agent variants on the 6-action config (50 seeds, 450 timesteps). Contextual agents underperform their standard counterparts because 6 actions $\times$ 2 contexts = 12 parameter sets per agent, dividing the data too thinly over 450 steps.}
+\label{tab:results}
+\end{table}
+
+\subsection{Learning Curves}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{images/learning_curves.pdf}
+\caption{Cumulative and per-step reward (50 seeds, $\pm$1~SD). Standard DEC and UCB converge fastest; contextual variants lag due to data fragmentation across 12 context--action pairs.}
+\label{fig:learning-curves}
+\end{figure}
+
+Standard variants outperform contextual ones across all four algorithms, contrary to the 2-action MVP results. With 6 actions, the $\frac{2}{3}$ optimal bound is reachable without state conditioning (the same action is best in both states), so contextualisation adds data fragmentation without benefit. DEC's $\epsilon$ decay provides effective exploration early while exploiting later, yielding the best overall result at $91.2\%$ of optimal.
 
 \end{document}

@@ -1,0 +1,71 @@
+episode_days: 90
+steps_per_day: 5
+seed: 42
+initial_state: sedentary
+
+states:
+  sedentary:
+    reward: 0.0
+  active:
+    reward: 1.0
+
+actions:
+  - name: no_message
+    burden_penalty: 0.0
+  - name: motivational_prompt
+    burden_penalty: 0.2
+  - name: walking_suggestion
+    burden_penalty: 0.3
+  - name: goal_reminder
+    burden_penalty: 0.15
+  - name: recovery_suggestion
+    burden_penalty: 0.25
+  - name: progress_feedback
+    burden_penalty: 0.1
+
+transition_model:
+  type: rule_based
+  transition_probabilities:
+    sedentary:
+      no_message:
+        active: 0.1
+        sedentary: 0.9
+      motivational_prompt:
+        active: 0.3
+        sedentary: 0.7
+      walking_suggestion:
+        active: 0.4
+        sedentary: 0.6
+      goal_reminder:
+        active: 0.2
+        sedentary: 0.8
+      recovery_suggestion:
+        active: 0.35
+        sedentary: 0.65
+      progress_feedback:
+        active: 0.25
+        sedentary: 0.75
+    active:
+      no_message:
+        active: 0.6
+        sedentary: 0.4
+      motivational_prompt:
+        active: 0.7
+        sedentary: 0.3
+      walking_suggestion:
+        active: 0.8
+        sedentary: 0.2
+      goal_reminder:
+        active: 0.65
+        sedentary: 0.35
+      recovery_suggestion:
+        active: 0.75
+        sedentary: 0.25
+      progress_feedback:
+        active: 0.7
+        sedentary: 0.3
+
+agents:
+  - type: thompson_sampling
+    alpha_prior: 1.0
+    beta_prior: 1.0
