@@ -16,6 +16,7 @@ versioned with the repo, and reviewed via PR like any other change.
 | File | Type | Status | Owner |
 |---|---|---|---|
 | `statistical-analysis-plan.md` | Pre-registration | draft v0.1 | W. Dennis |
+| `lit-review-state-action-space.md` | Literature review | draft v0.1 | W. Dennis |
 | `decision-trees/` | Decision records | (forthcoming) | W. Dennis |
 
 ## Conventions
