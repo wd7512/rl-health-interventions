@@ -1,6 +1,6 @@
 """E2E benchmark: compare all contextual bandit agents.
 
-Loads a base MDP config, swaps out the agent section for each variant.
+Loads a base MDP config with an agents section, runs every agent variant.
 Reveals how ergonomic the experiment API is for real usage.
 """
 from __future__ import annotations
@@ -17,24 +17,35 @@ from rl_health_interventions.config.schemas import AgentConfig
 from rl_health_interventions.experiment import run_episode
 from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 
-# Agent variants to benchmark: (label, agent_config_dict)
-AGENT_VARIANTS = [
-    ("Standard TS", {"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1}),
-    ("Contextual TS", {"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1, "contextual": True, "context_feature": "activity"}),
-    ("Standard EG", {"type": "epsilon_greedy", "epsilon": 0.05}),
-    ("Contextual EG", {"type": "epsilon_greedy", "epsilon": 0.05, "contextual": True, "context_feature": "activity"}),
-    ("Standard UCB", {"type": "ucb", "c": 0.5}),
-    ("Contextual UCB", {"type": "ucb", "c": 0.5, "contextual": True, "context_feature": "activity"}),
-    ("Standard DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.2, "epsilon_min": 0.01, "decay_steps": 200}),
-    ("Contextual DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.2, "epsilon_min": 0.01, "decay_steps": 200, "contextual": True, "context_feature": "activity"}),
-]
+_AGENT_SHORT_NAMES: dict[str, str] = {
+    "thompson_sampling": "TS",
+    "epsilon_greedy": "EG",
+    "ucb": "UCB",
+    "decaying_epsilon_greedy": "DEC",
+    "random": "Random",
+}
+
+
+def _agent_label(cfg: AgentConfig) -> str:
+    if cfg.type == "random":
+        return "Random"
+    short = _AGENT_SHORT_NAMES.get(cfg.type, cfg.type)
+    prefix = "Contextual" if cfg.contextual else "Standard"
+    return f"{prefix} {short}"
 
 
 def run_agent(config, agent_cfg: AgentConfig, n_seeds: int) -> np.ndarray:
     """Run one agent variant over n_seeds. Returns per-step rewards (n_seeds, n_steps)."""
+    skip_keys = {"type"}
+    if not agent_cfg.contextual:
+        skip_keys.update({"contextual", "context_feature"})
     rewards = []
     for seed in range(1, n_seeds + 1):
-        kwargs = {k: v for k, v in agent_cfg.model_dump().items() if v is not None and k != "type"}
+        kwargs = {
+            k: v
+            for k, v in agent_cfg.model_dump().items()
+            if v is not None and k not in skip_keys
+        }
         kwargs["actions"] = config.actions
         kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
         agent = make_agent(agent_cfg.type, **kwargs)
@@ -45,24 +56,41 @@ def run_agent(config, agent_cfg: AgentConfig, n_seeds: int) -> np.ndarray:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Benchmark contextual bandit agents")
-    parser.add_argument("--seeds", type=int, default=50, help="Number of random seeds (default: 50)")
-    parser.add_argument("--config", type=str, default=None, help="Base MDP config (default: config/rule_based.yaml)")
+    parser.add_argument(
+        "--seeds",
+        type=int,
+        default=50,
+        help="Number of random seeds (default: 50)",
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default=None,
+        help="Base MDP config (default: docs/mvp/configs/mvp.yaml)",
+    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
-    config_path = args.config or str(repo_root / "config" / "rule_based.yaml")
+    config_path = args.config or str(
+        repo_root / "docs" / "mvp" / "configs" / "mvp.yaml"
+    )
     config = load_config(config_path)
 
     n_steps = config.episode_days * config.steps_per_day
     n_seeds = args.seeds
 
     logger.info("Config: %s", config_path)
-    logger.info("MDP: %d days × %d steps = %d steps", config.episode_days, config.steps_per_day, n_steps)
+    logger.info(
+        "MDP: %d days x %d steps = %d steps",
+        config.episode_days,
+        config.steps_per_day,
+        n_steps,
+    )
     logger.info("Seeds: %d\n", n_seeds)
 
     results: dict[str, dict] = {}
-    for label, agent_dict in AGENT_VARIANTS:
-        agent_cfg = AgentConfig.model_validate(agent_dict)
+    for agent_cfg in config.agents:
+        label = _agent_label(agent_cfg)
         logger.info("Running %s...", label)
         rewards = run_agent(config, agent_cfg, n_seeds)
         results[label] = {
@@ -72,20 +100,19 @@ def main() -> None:
             "last50_mean": rewards[:, -50:].mean(),
         }
 
-    contextual_opt = 3 / 7
-    contextual_total_opt = contextual_opt * n_steps
-    noncontextual_opt = 0.375
-    noncontextual_total_opt = noncontextual_opt * n_steps
     logger.info("\n%s", "=" * 72)
-    logger.info("%-20s %14s %10s %10s %12s", "Agent", "Total Reward", "Per Step", "Last 50", "vs Ctx Opt")
+    logger.info("%-20s %14s %10s %10s", "Agent", "Total Reward", "Per Step", "Last 50")
     logger.info("%s", "-" * 72)
-    for label, _ in AGENT_VARIANTS:
+    for label in sorted(results, key=lambda k: results[k]["step_mean"], reverse=True):
         r = results[label]
-        vs_opt = (r["step_mean"] - contextual_opt) / contextual_opt * 100
-        logger.info("%-20s %8.1f ± %-5.1f %9.4f %10.4f %+10.1f%%", label, r["total_mean"], r["total_std"], r["step_mean"], r["last50_mean"], vs_opt)
-    logger.info("%s", "-" * 72)
-    logger.info("%-20s %14.1f %10.4f %10.4f %12s", "Contextual optimal", contextual_total_opt, contextual_opt, contextual_opt, "---")
-    logger.info("%-20s %14.1f %10.4f %10.4f %12s", "Non-ctx optimal", noncontextual_total_opt, noncontextual_opt, noncontextual_opt, "---")
+        logger.info(
+            "%-20s %8.1f +- %-5.1f %9.4f %10.4f",
+            label,
+            r["total_mean"],
+            r["total_std"],
+            r["step_mean"],
+            r["last50_mean"],
+        )
     logger.info("%s", "=" * 72)
 
 
