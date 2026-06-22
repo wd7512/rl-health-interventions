@@ -243,9 +243,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    repo_root = Path(__file__).resolve().parents[2]
     config_path = args.config or str(
-        repo_root / "docs" / "mvp" / "configs" / "mvp_extensions.yaml"
+        Path(__file__).parent / "configs" / "mvp_extensions.yaml"
     )
     config = load_config(config_path)
 

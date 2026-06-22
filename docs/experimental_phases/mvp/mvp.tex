@@ -107,7 +107,7 @@ The mixture chain $P_{\text{random}} = \tfrac{1}{2}(P_{\text{nudge}} + P_{\text{
 All agents run over 50 random seeds, 450 timesteps each. Results are reported as mean $\pm$ standard deviation across seeds.
 
 \subsection{Standard Config (\texttt{configs/mvp.yaml})}
-Four baseline agents (TS, EG, UCB, Random). Agent definitions and hyperparameters live in \texttt{docs/mvp/configs/mvp.yaml}.
+Four baseline agents (TS, EG, UCB, Random). Agent definitions and hyperparameters live in \texttt{configs/mvp.yaml}.
 
 \begin{table}[h]
 \centering
@@ -124,22 +124,22 @@ Random & 137.3 $\pm$ 12.3 & 0.305 & 0.319 \\
 \caption{Results on \texttt{configs/mvp.yaml} (50 seeds, 450 timesteps). TS and $\epsilon$-greedy perform similarly; TS has lower variance. UCB ($c=2.0$) underperforms relative to the tuned value ($c=0.5$, see \S\ref{sec:benchmark}).}
 \end{table}
 
-\subsection{Masked Config (\texttt{docs/mvp/configs/mvp\_masked.yaml})}
-\texttt{reward\_multiplier\_by\_step: [1, 1, 1, 1, 0]} -- step 4 (end of day) yields zero reward regardless of outcome. Results are 10 seeds.
+\subsection{Masked Config (\texttt{configs/mvp\_masked.yaml})}
+\texttt{reward\_multiplier\_by\_step: [1, 1, 1, 1, 0]} -- step 4 (end of day) yields zero reward regardless of outcome. Results are 50 seeds.
 
 \begin{table}[h]
 \centering
-\begin{tabular}{lrr}
+\begin{tabular}{lrrr}
 \toprule
-Agent & Total Reward & Mean Reward/Step \\
+Agent & Total Reward & Per Step & Last 50 Steps \\
 \midrule
-Thompson Sampling ($\alpha_0=\beta_0=1$) & 126.6 $\pm$ 6.8 & 0.281 $\pm$ 0.015 \\
-Epsilon-Greedy ($\epsilon=0.1$) & 127.3 $\pm$ 10.2 & 0.283 $\pm$ 0.023 \\
-UCB ($c=2.0$) & 116.9 $\pm$ 8.6 & 0.260 $\pm$ 0.019 \\
-Random & 107.8 $\pm$ 6.7 & 0.240 $\pm$ 0.015 \\
+Thompson Sampling ($\alpha_0=\beta_0=1$) & 125.8 $\pm$ 10.9 & 0.280 & 0.289 \\
+Epsilon-Greedy ($\epsilon=0.1$) & 125.9 $\pm$ 14.8 & 0.280 & 0.291 \\
+UCB ($c=2.0$) & 116.5 $\pm$ 11.3 & 0.259 & 0.274 \\
+Random & 110.0 $\pm$ 10.2 & 0.244 & 0.250 \\
 \bottomrule
 \end{tabular}
-\caption{Results on \texttt{docs/mvp/configs/mvp\_masked.yaml} (10 seeds, 450 timesteps). Reward drops $\approx 20\%$ across all agents, matching the $1/5$ masked fraction. Relative ordering is preserved.}
+\caption{Results on \texttt{configs/mvp\_masked.yaml} (50 seeds, 450 timesteps). Reward drops $\approx 20\%$ across all agents, matching the $1/5$ masked fraction. Relative ordering is preserved.}
 \end{table}
 
 \section{Contextual Bandits}\label{sec:contextual}
@@ -217,7 +217,7 @@ $\epsilon=0.05$ vs $\epsilon=0.10$: identical means (158.1), but $\epsilon=0.10$
 \end{figure}
 
 \section{Benchmark Results}\label{sec:benchmark}
-50 seeds, 450 timesteps. Optimised hyperparameters: EG $\epsilon=0.05$, D-EG $\epsilon_{\text{start}}=0.2$, $T_{\text{decay}}=200$, $\epsilon_{\min}=0.01$, UCB $c=0.5$. All agent definitions live in \texttt{docs/mvp/configs/mvp\_extensions.yaml}.
+50 seeds, 450 timesteps. Optimised hyperparameters: EG $\epsilon=0.05$, D-EG $\epsilon_{\text{start}}=0.2$, $T_{\text{decay}}=200$, $\epsilon_{\min}=0.01$, UCB $c=0.5$. All agent definitions live in \texttt{configs/mvp\_extensions.yaml}.
 
 \begin{table}[h]
 \centering
@@ -253,7 +253,7 @@ Contextual TS and UCB reach the per-context optimal ($0.429$) by the last 50 ste
 
 \section{Masked Reward Benchmark}
 
-The same 9-agent benchmark on \texttt{docs/mvp/configs/mvp\_masked.yaml} where step~4 (end of day) is zero-reward. Results are 50 seeds.
+The same 9-agent benchmark on \texttt{configs/mvp\_masked.yaml} where step~4 (end of day) is zero-reward. Results are 50 seeds.
 
 \begin{table}[h]
 \centering
@@ -261,8 +261,8 @@ The same 9-agent benchmark on \texttt{docs/mvp/configs/mvp\_masked.yaml} where s
 \toprule
 Agent & Total Reward & Per Step & Last 50 Steps & vs Contextual Opt \\
 \midrule
-Contextual TS & 141.9 $\pm$ 13.0 & 0.315 & 0.336 & $\phantom{-}$0.0\% \\
-Contextual UCB & 140.7 $\pm$ 12.7 & 0.313 & 0.334 & $\phantom{-}$0.0\% \\
+Contextual TS & 141.9 $\pm$ 13.0 & 0.315 & 0.336 & $-8.0\%$ \\
+Contextual UCB & 140.7 $\pm$ 12.7 & 0.313 & 0.334 & $-8.8\%$ \\
 Contextual D-EG & 135.7 $\pm$ 26.8 & 0.302 & 0.323 & $-12.1\%$ \\
 Contextual EG & 134.3 $\pm$ 24.7 & 0.298 & 0.321 & $-13.0\%$ \\
 \midrule
@@ -277,7 +277,7 @@ Contextual optimal & 154.3 & 0.343 & 0.343 & --- \\
 Non-contextual optimal & 135.0 & 0.300 & 0.300 & --- \\
 \bottomrule
 \end{tabular}
-\caption{Results on \texttt{docs/mvp/configs/mvp\_masked.yaml} (50 seeds, 450 timesteps, step~4 masked). Relative ordering matches the non-masked benchmark; contextual TS and UCB are tied at the top.}
+\caption{Results on \texttt{configs/mvp\_masked.yaml} (50 seeds, 450 timesteps, step~4 masked). Relative ordering matches the non-masked benchmark; contextual TS and UCB are tied at the top.}
 \end{table}
 
 \begin{figure}[h]

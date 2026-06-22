@@ -58,19 +58,21 @@ def run_agent(config, agent_cfg: AgentConfig, n_seeds: int) -> np.ndarray:
     return np.array(rewards)
 
 
+_CONFIGS_DIR = Path(__file__).parent / "configs"
+
+_MVP_CONFIGS = [
+    _CONFIGS_DIR / "mvp.yaml",
+    _CONFIGS_DIR / "mvp_masked.yaml",
+    _CONFIGS_DIR / "mvp_extensions.yaml",
+    _CONFIGS_DIR / "mvp_extensions_masked.yaml",
+]
+
+
 def _positive_int(value: str) -> int:
     n = int(value)
     if n <= 0:
         raise argparse.ArgumentTypeError(f"must be a positive integer, got {n}")
     return n
-
-
-_MVP_CONFIGS = [
-    "docs/mvp/configs/mvp.yaml",
-    "docs/mvp/configs/mvp_masked.yaml",
-    "docs/mvp/configs/mvp_extensions.yaml",
-    "docs/mvp/configs/mvp_extensions_masked.yaml",
-]
 
 
 def _benchmark_config(config_path: str, n_seeds: int) -> None:
@@ -123,35 +125,32 @@ def main() -> None:
         default=50,
         help="Number of random seeds (default: 50)",
     )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
+    parser.add_argument(
         "--config",
         type=str,
         default=None,
-        help="Base MDP config (default: mvp_extensions.yaml)",
+        help="Base MDP config (default: configs/mvp_extensions.yaml)",
     )
-    group.add_argument(
+    parser.add_argument(
         "--all",
         action="store_true",
         help="Run all MVP configs (mvp.yaml + mvp_extensions.yaml)",
     )
     args = parser.parse_args()
 
-    repo_root = Path(__file__).resolve().parents[2]
     n_seeds = args.seeds
 
     if args.all:
-        for rel_path in _MVP_CONFIGS:
-            config_path = str(repo_root / rel_path)
-            logger.info("\n=== Config: %s ===\n", rel_path)
-            _benchmark_config(config_path, n_seeds)
+        for config_path in _MVP_CONFIGS:
+            logger.info("\n=== Config: %s ===\n", config_path.name)
+            _benchmark_config(str(config_path), n_seeds)
     else:
         config_path = (
-            str(repo_root / args.config)
+            _CONFIGS_DIR / args.config
             if args.config
-            else str(repo_root / "docs" / "mvp" / "configs" / "mvp_extensions.yaml")
+            else _CONFIGS_DIR / "mvp_extensions.yaml"
         )
-        _benchmark_config(config_path, n_seeds)
+        _benchmark_config(str(config_path), n_seeds)
 
 
 if __name__ == "__main__":

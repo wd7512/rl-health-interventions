@@ -124,13 +124,13 @@ def main() -> None:
     parser.add_argument(
         "--config",
         type=str,
-        default="docs/mvp/configs/mvp.yaml",
-        help="Config path relative to repo root (default: docs/mvp/configs/mvp.yaml)",
+        default="mvp.yaml",
+        help="Config filename in configs/ (default: mvp.yaml)",
     )
     args = parser.parse_args()
 
-    repo_root = Path(__file__).resolve().parents[2]
-    config_path = repo_root / args.config
+    config_dir = Path(__file__).parent / "configs"
+    config_path = config_dir / args.config
     output_stem = Path(args.config).stem
     output_path = Path(__file__).parent / f"hyperparam_results_{output_stem}.csv"
 
