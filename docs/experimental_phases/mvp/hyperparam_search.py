@@ -24,6 +24,7 @@ import numpy as np
 from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.experiment import run_episode
+from _shared import resolve_config
 
 logger = logging.getLogger(__name__)
 
@@ -129,12 +130,11 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    config_dir = Path(__file__).parent / "configs"
-    config_path = config_dir / args.config
-    output_stem = Path(args.config).stem
+    config_path = resolve_config(args.config, default="mvp.yaml")
+    output_stem = Path(args.config or "mvp.yaml").stem
     output_path = Path(__file__).parent / f"hyperparam_results_{output_stem}.csv"
 
-    config = load_config(str(config_path))
+    config = load_config(config_path)
     n_steps = config.episode_days * config.steps_per_day
 
     logger.info("Config: %s", config_path)

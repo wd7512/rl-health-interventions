@@ -9,11 +9,11 @@ from __future__ import annotations
 
 import argparse
 import sys
-from pathlib import Path
 
 import numpy as np
 
 from rl_health_interventions.config.loader import load_config
+from _shared import resolve_config
 
 
 def _stationary(P: np.ndarray) -> np.ndarray:
@@ -29,23 +29,16 @@ def _stationary(P: np.ndarray) -> np.ndarray:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compute theoretical bounds from a config")
-    parser.add_argument("config", type=str, help="Config file path (relative to configs/ or absolute)")
+    parser.add_argument("config", type=str, help="Config filename in configs/")
     args = parser.parse_args()
 
-    config_dir = Path(__file__).parent / "configs"
-    raw = Path(args.config)
-    if raw.is_absolute():
-        config_path = raw
-    else:
-        config_path = config_dir / raw.name
-
-    config = load_config(str(config_path))
+    config_path = resolve_config(args.config)
+    config = load_config(config_path)
 
     state_names = sorted(config.states.keys())
     state_rewards = np.array([config.states[s]["reward"] for s in state_names])
     state_idx = {s: i for i, s in enumerate(state_names)}
     n_states = len(state_names)
-    n_actions = len(config.actions)
     n_steps = config.episode_days * config.steps_per_day
 
     mult = config.reward_multiplier_by_step

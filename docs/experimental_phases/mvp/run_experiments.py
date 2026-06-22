@@ -1,64 +1,21 @@
 """E2E benchmark: compare all contextual bandit agents.
 
 Loads a base MDP config with an agents section, runs every agent variant.
-Reveals how ergonomic the experiment API is for real usage.
 """
 
 from __future__ import annotations
 
 import argparse
 import logging
-import numpy as np
 from pathlib import Path
 
+
 from rl_health_interventions.config.loader import load_config
-from rl_health_interventions.config.schemas import AgentConfig
-from rl_health_interventions.experiment import run_episode
-from rl_health_interventions.agents import derive_agent_seed, make as make_agent
+from _shared import agent_label, resolve_config, run_agent
 
 logger = logging.getLogger(__name__)
 
-_AGENT_SHORT_NAMES: dict[str, str] = {
-    "thompson_sampling": "TS",
-    "epsilon_greedy": "EG",
-    "ucb": "UCB",
-    "decaying_epsilon_greedy": "D-EG",
-    "random": "Random",
-}
-
-
-def _agent_label(cfg: AgentConfig) -> str:
-    if cfg.type == "random":
-        return "Random"
-    short = _AGENT_SHORT_NAMES.get(cfg.type, cfg.type)
-    prefix = "Contextual" if cfg.contextual else "Standard"
-    params = cfg.model_dump(
-        exclude={"type", "contextual", "context_feature"}, exclude_none=True
-    )
-    label = f"{prefix} {short}"
-    if params:
-        parts = ", ".join(f"{k}={v}" for k, v in sorted(params.items()))
-        label += f" ({parts})"
-    return label
-
-
-def run_agent(config, agent_cfg: AgentConfig, n_seeds: int) -> np.ndarray:
-    """Run one agent variant over n_seeds. Returns per-step rewards (n_seeds, n_steps)."""
-    exclude = {"type"}
-    if not agent_cfg.contextual:
-        exclude |= {"contextual", "context_feature"}
-    rewards = []
-    for seed in range(1, n_seeds + 1):
-        kwargs = agent_cfg.model_dump(exclude=exclude, exclude_none=True)
-        kwargs["actions"] = config.actions
-        kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
-        agent = make_agent(agent_cfg.type, **kwargs)
-        df = run_episode(config, agent, seed=seed)
-        rewards.append(df["reward"].values)
-    return np.array(rewards)
-
-
-_CONFIGS_DIR = Path(__file__).parent / "configs"
+_CONFIGS_DIR = Path(__file__).resolve().parent / "configs"
 
 _MVP_CONFIGS = [
     _CONFIGS_DIR / "mvp.yaml",
@@ -91,7 +48,7 @@ def _benchmark_config(config_path: str, n_seeds: int) -> None:
 
     results: dict[str, dict] = {}
     for agent_cfg in config.agents:
-        label = _agent_label(agent_cfg)
+        label = agent_label(agent_cfg)
         logger.info("Running %s...", label)
         rewards = run_agent(config, agent_cfg, n_seeds)
         results[label] = {
@@ -129,12 +86,12 @@ def main() -> None:
         "--config",
         type=str,
         default=None,
-        help="Base MDP config (default: configs/mvp_extensions.yaml)",
+        help="Config filename in configs/ (default: mvp_extensions.yaml)",
     )
     parser.add_argument(
         "--all",
         action="store_true",
-        help="Run all MVP configs (mvp.yaml + mvp_extensions.yaml)",
+        help="Run all MVP configs",
     )
     args = parser.parse_args()
 
@@ -145,12 +102,7 @@ def main() -> None:
             logger.info("\n=== Config: %s ===\n", config_path.name)
             _benchmark_config(str(config_path), n_seeds)
     else:
-        config_path = (
-            _CONFIGS_DIR / args.config
-            if args.config
-            else _CONFIGS_DIR / "mvp_extensions.yaml"
-        )
-        _benchmark_config(str(config_path), n_seeds)
+        _benchmark_config(resolve_config(args.config), n_seeds)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,7 @@
 """Generate learning curve and hyperparameter charts for MVP agents.
 
-Loads agent configs from mvp_extensions.yaml, runs each variant,
-and produces cumulative/per-step reward plots plus hyperparameter
-sensitivity charts (when results CSV exists).
+Loads agent configs, runs each variant, and produces cumulative/per-step
+reward plots plus hyperparameter sensitivity charts (when results CSV exists).
 """
 
 from __future__ import annotations
@@ -16,8 +15,7 @@ import numpy as np
 import pandas as pd
 
 from rl_health_interventions.config.loader import load_config
-from rl_health_interventions.experiment import run_episode
-from rl_health_interventions.agents import derive_agent_seed, make as make_agent
+from _shared import agent_label, resolve_config, run_agent
 
 logger = logging.getLogger(__name__)
 
@@ -33,40 +31,8 @@ _COLORS = [
     "#F44336",
 ]
 _LINESTYLES = ["-", "--", "-.", ":"]
-_SHORT_NAMES: dict[str, str] = {
-    "thompson_sampling": "TS",
-    "epsilon_greedy": "EG",
-    "ucb": "UCB",
-    "decaying_epsilon_greedy": "D-EG",
-    "random": "Random",
-}
 
-
-def _agent_label(cfg) -> str:
-    if cfg.type == "random":
-        return "Random"
-    short = _SHORT_NAMES.get(cfg.type, cfg.type)
-    prefix = "Ctx" if cfg.contextual else "Std"
-    return f"{prefix} {short}"
-
-
-def run_agent(config, agent_cfg, n_seeds: int) -> np.ndarray:
-    """Run one agent variant over n_seeds. Returns per-step rewards (n_seeds, n_steps)."""
-    exclude = {"type"}
-    if not agent_cfg.contextual:
-        exclude |= {"contextual", "context_feature"}
-    rewards = []
-    for seed in range(1, n_seeds + 1):
-        kwargs = agent_cfg.model_dump(exclude=exclude, exclude_none=True)
-        kwargs["actions"] = config.actions
-        kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
-        agent = make_agent(agent_cfg.type, **kwargs)
-        df = run_episode(config, agent, seed=seed)
-        rewards.append(df["reward"].values)
-    return np.array(rewards)
-
-
-IMAGES_DIR = Path(__file__).parent / "images"
+IMAGES_DIR = Path(__file__).resolve().parent / "images"
 
 
 def _parse_eg_df(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -128,6 +94,7 @@ def generate_eg_chart(results_path: Path, suffix: str = "") -> None:
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
     out = IMAGES_DIR / f"hyperparam_eg{suffix}.pdf"
+    out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     logger.info("Saved %s", out)
@@ -163,6 +130,7 @@ def generate_ucb_chart(results_path: Path, suffix: str = "") -> None:
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
     out = IMAGES_DIR / f"hyperparam_ucb{suffix}.pdf"
+    out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     logger.info("Saved %s", out)
@@ -212,6 +180,7 @@ def generate_dec_heatmap(results_path: Path, suffix: str = "") -> None:
 
     plt.tight_layout()
     out = IMAGES_DIR / f"hyperparam_dec_heatmap{suffix}.pdf"
+    out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     logger.info("Saved %s", out)
@@ -222,7 +191,7 @@ def main() -> None:
     parser.add_argument(
         "--seeds", type=int, default=50, help="Number of random seeds (default: 50)"
     )
-    parser.add_argument("--config", type=str, default=None, help="Agent config file")
+    parser.add_argument("--config", type=str, default=None, help="Agent config filename")
     parser.add_argument(
         "--hp-results",
         type=str,
@@ -243,13 +212,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    config_path = args.config or str(
-        Path(__file__).parent / "configs" / "mvp_extensions.yaml"
-    )
-    raw = Path(config_path)
-    if not raw.is_absolute():
-        raw = Path(__file__).parent / "configs" / raw.name
-    config = load_config(str(raw))
+    config_path = resolve_config(args.config)
+    config = load_config(config_path)
 
     multiplier = getattr(config, "reward_multiplier_by_step", None)
     mask_frac = float(np.mean(multiplier)) if multiplier else 1.0
@@ -268,8 +232,8 @@ def main() -> None:
     logger.info("Seeds: %d\n", n_seeds)
 
     all_data: dict[str, np.ndarray] = {}
-    for i, agent_cfg in enumerate(config.agents):
-        label = _agent_label(agent_cfg)
+    for agent_cfg in config.agents:
+        label = agent_label(agent_cfg)
         logger.info("Running %s...", label)
         all_data[label] = run_agent(config, agent_cfg, n_seeds)
 
@@ -280,7 +244,7 @@ def main() -> None:
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
     for i, agent_cfg in enumerate(config.agents):
-        label = _agent_label(agent_cfg)
+        label = agent_label(agent_cfg)
         rewards = all_data[label]
         color = _COLORS[i % len(_COLORS)]
         ls = _LINESTYLES[i % len(_LINESTYLES)]
@@ -343,7 +307,7 @@ def main() -> None:
     ax2.set_ylim(0.25 * mask_frac, 0.50)
 
     plt.tight_layout()
-    out = Path(__file__).parent / "images" / f"learning_curves{args.lc_suffix}.pdf"
+    out = IMAGES_DIR / f"learning_curves{args.lc_suffix}.pdf"
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
