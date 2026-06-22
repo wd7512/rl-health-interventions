@@ -1,13 +1,13 @@
-"""Generate learning curve charts for all contextual bandit agents.
+"""Generate learning curve and hyperparameter charts for MVP agents.
 
-Loads a base MDP config, swaps out the agent section for each variant.
-Excluded from ty/ruff via pyproject.toml.
+Loads agent configs from mvp_extensions.yaml, runs each variant,
+and produces cumulative/per-step reward plots plus hyperparameter
+sensitivity charts (when results CSV exists).
 """
 from __future__ import annotations
 
 import argparse
 import logging
-import re
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -17,27 +17,46 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 from rl_health_interventions.config.loader import load_config
-from rl_health_interventions.config.schemas import AgentConfig
 from rl_health_interventions.experiment import run_episode
 from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 
-AGENT_VARIANTS = [
-    ("Standard TS", {"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1}, "#2196F3", "-"),
-    ("Contextual TS", {"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1, "contextual": True, "context_feature": "activity"}, "#4CAF50", "-"),
-    ("Standard EG", {"type": "epsilon_greedy", "epsilon": 0.05}, "#FF9800", "-"),
-    ("Contextual EG", {"type": "epsilon_greedy", "epsilon": 0.05, "contextual": True, "context_feature": "activity"}, "#E91E63", "-"),
-    ("Standard UCB", {"type": "ucb", "c": 0.5}, "#9C27B0", "-"),
-    ("Contextual UCB", {"type": "ucb", "c": 0.5, "contextual": True, "context_feature": "activity"}, "#00BCD4", "-"),
-    ("Standard DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.2, "epsilon_min": 0.01, "decay_steps": 200}, "#795548", "--"),
-    ("Contextual DEC", {"type": "decaying_epsilon_greedy", "epsilon_start": 0.2, "epsilon_min": 0.01, "decay_steps": 200, "contextual": True, "context_feature": "activity"}, "#607D8B", "--"),
+_COLORS = [
+    "#2196F3", "#4CAF50", "#FF9800", "#E91E63",
+    "#9C27B0", "#00BCD4", "#795548", "#607D8B", "#F44336",
 ]
+_LINESTYLES = ["-", "--", "-.", ":"]
+_SHORT_NAMES: dict[str, str] = {
+    "thompson_sampling": "TS",
+    "epsilon_greedy": "EG",
+    "ucb": "UCB",
+    "decaying_epsilon_greedy": "D-EG",
+    "random": "Random",
+}
 
 
-def run_agent(config, agent_cfg: AgentConfig, n_seeds: int) -> np.ndarray:
+def _agent_label(cfg) -> str:
+    if cfg.type == "random":
+        return "Random"
+    short = _SHORT_NAMES.get(cfg.type, cfg.type)
+    prefix = "Ctx" if cfg.contextual else "Std"
+    params = cfg.model_dump(
+        exclude={"type", "contextual", "context_feature"}, exclude_none=True
+    )
+    label = f"{prefix} {short}"
+    if params:
+        parts = ", ".join(f"{k}={v}" for k, v in sorted(params.items()))
+        label += f" ({parts})"
+    return label
+
+
+def run_agent(config, agent_cfg, n_seeds: int) -> np.ndarray:
     """Run one agent variant over n_seeds. Returns per-step rewards (n_seeds, n_steps)."""
+    exclude = {"type"}
+    if not agent_cfg.contextual:
+        exclude |= {"contextual", "context_feature"}
     rewards = []
     for seed in range(1, n_seeds + 1):
-        kwargs = {k: v for k, v in agent_cfg.model_dump().items() if v is not None and k != "type"}
+        kwargs = agent_cfg.model_dump(exclude=exclude, exclude_none=True)
         kwargs["actions"] = config.actions
         kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
         agent = make_agent(agent_cfg.type, **kwargs)
@@ -50,7 +69,6 @@ IMAGES_DIR = Path(__file__).parent / "images"
 
 
 def _parse_eg_df(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Split EG results into standard and contextual DataFrames with numeric epsilon."""
     eg = df[df["agent"] == "epsilon_greedy"].copy()
     eg["epsilon"] = eg["params"].str.extract(r"eps=([\d.]+)").astype(float)
     std = eg[~eg["params"].str.startswith("ctx_")].sort_values("epsilon")
@@ -59,7 +77,6 @@ def _parse_eg_df(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
 
 
 def _parse_ucb_df(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Split UCB results into standard and contextual DataFrames with numeric c."""
     ucb = df[df["agent"] == "ucb"].copy()
     ucb["c_val"] = ucb["params"].str.extract(r"c=([\d.]+)").astype(float)
     std = ucb[~ucb["params"].str.startswith("ctx_")].sort_values("c_val")
@@ -68,7 +85,6 @@ def _parse_ucb_df(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
 
 
 def _parse_dec_df(df: pd.DataFrame, ctx: bool = False) -> pd.DataFrame:
-    """Parse DEC results into a DataFrame with numeric epsilon_start and decay."""
     dec = df[df["agent"] == "decaying_epsilon_greedy"].copy()
     if ctx:
         dec = dec[dec["params"].str.startswith("ctx_")]
@@ -80,7 +96,6 @@ def _parse_dec_df(df: pd.DataFrame, ctx: bool = False) -> pd.DataFrame:
 
 
 def generate_eg_chart(results_path: Path) -> None:
-    """Line chart: epsilon vs total reward for EG (standard and contextual)."""
     df = pd.read_csv(results_path)
     std, ctx = _parse_eg_df(df)
 
@@ -102,7 +117,6 @@ def generate_eg_chart(results_path: Path) -> None:
 
 
 def generate_ucb_chart(results_path: Path) -> None:
-    """Line chart: c vs total reward for UCB (standard and contextual)."""
     df = pd.read_csv(results_path)
     std, ctx = _parse_ucb_df(df)
 
@@ -124,7 +138,6 @@ def generate_ucb_chart(results_path: Path) -> None:
 
 
 def generate_dec_heatmap(results_path: Path) -> None:
-    """2D heatmap: epsilon_start vs decay_steps for standard DEC, colour = total_reward."""
     df = pd.read_csv(results_path)
     dec = _parse_dec_df(df, ctx=False)
 
@@ -144,7 +157,7 @@ def generate_dec_heatmap(results_path: Path) -> None:
     ax.set_yticklabels(pivot.index)
     ax.set_xlabel("Decay Steps")
     ax.set_ylabel("Epsilon Start")
-    ax.set_title("Standard DEC: Total Reward by Epsilon Start and Decay Steps")
+    ax.set_title("Standard D-EG: Total Reward by Epsilon Start and Decay Steps")
 
     for i in range(len(pivot.index)):
         for j in range(len(pivot.columns)):
@@ -163,11 +176,13 @@ def generate_dec_heatmap(results_path: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate learning curve charts")
     parser.add_argument("--seeds", type=int, default=50, help="Number of random seeds (default: 50)")
-    parser.add_argument("--config", type=str, default=None, help="Base MDP config (default: config/rule_based.yaml)")
+    parser.add_argument("--config", type=str, default=None, help="Agent config file")
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
-    config_path = args.config or str(repo_root / "config" / "rule_based.yaml")
+    config_path = args.config or str(
+        repo_root / "docs" / "mvp" / "configs" / "mvp_extensions.yaml"
+    )
     config = load_config(config_path)
 
     n_steps = config.episode_days * config.steps_per_day
@@ -179,8 +194,8 @@ def main() -> None:
     logger.info("Seeds: %d\n", n_seeds)
 
     all_data: dict[str, np.ndarray] = {}
-    for label, agent_dict, _color, _ls in AGENT_VARIANTS:
-        agent_cfg = AgentConfig.model_validate(agent_dict)
+    for i, agent_cfg in enumerate(config.agents):
+        label = _agent_label(agent_cfg)
         logger.info("Running %s...", label)
         all_data[label] = run_agent(config, agent_cfg, n_seeds)
 
@@ -190,8 +205,12 @@ def main() -> None:
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-    for label, _agent_dict, color, ls in AGENT_VARIANTS:
+    for i, agent_cfg in enumerate(config.agents):
+        label = _agent_label(agent_cfg)
         rewards = all_data[label]
+        color = _COLORS[i % len(_COLORS)]
+        ls = _LINESTYLES[i % len(_LINESTYLES)]
+
         cum_mean = np.cumsum(rewards, axis=1).mean(axis=0)
         cum_std = np.cumsum(rewards, axis=1).std(axis=0)
 

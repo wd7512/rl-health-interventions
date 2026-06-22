@@ -1,9 +1,9 @@
 """Hyperparameter grid search for contextual bandit agents.
 
-Grid (widened from PR #129 review):
+Grid:
   - epsilon_greedy:  epsilon [0.01, 0.02, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5]
-  - decaying_epsilon_greedy:  epsilon_start [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
-                              x decay_steps [50, 75, 100, 150, 200, 250, 300, 400, 500]
+  - decaying_epsilon_greedy (D-EG):  epsilon_start [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+                                     x decay_steps [25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700]
   - ucb:  c [0.1, 0.2, 0.3, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 5.0, 7.0, 10.0]
 
 Each combination: 50 seeds, record mean total reward + last-50-step mean.
@@ -128,7 +128,7 @@ def main() -> None:
     mean of last 50 steps) and saves the results to CSV.
     """
     repo_root = Path(__file__).resolve().parents[2]
-    config_path = repo_root / "config" / "rule_based.yaml"
+    config_path = repo_root / "docs" / "mvp" / "configs" / "mvp.yaml"
     config = load_config(str(config_path))
     n_steps = config.episode_days * config.steps_per_day
 
