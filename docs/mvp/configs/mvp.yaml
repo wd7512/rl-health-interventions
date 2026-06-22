@@ -33,6 +33,7 @@ transition_model:
 
 agents:
   - type: random
+
   - type: thompson_sampling
     alpha_prior: 1
     beta_prior: 1
@@ -41,6 +42,7 @@ agents:
     context_feature: activity
     alpha_prior: 1
     beta_prior: 1
+
   - type: epsilon_greedy
     epsilon: 0.05
   - type: epsilon_greedy
@@ -58,6 +60,7 @@ agents:
     epsilon_start: 0.2
     epsilon_min: 0.01
     decay_steps: 200
+    
   - type: ucb
     c: 0.5
   - type: ucb
