@@ -138,16 +138,18 @@ The contextual policy achieves $34.9\%$ higher per-step reward ($0.75$ vs $0.556
 \subsection{Hyperparameter Optimisation}
 \label{sec:hyperparam}
 
-Grid search (50 seeds, 450 steps, 316 configurations):
+Grid search (50 seeds, 450 steps, 288 configurations):
 
 \[
 \begin{aligned}
-\text{TS:} &\quad (\alpha_0, \beta_0) \in \{0.5, 1.0, 2.0, 5.0\}^2 \\
+\text{TS:} &\quad \text{distribution family} \in \{\text{Beta}(1,1),\; \text{Gaussian}\} \\
 \text{EG:} &\quad \epsilon \in [0.01, 0.50],\; \Delta 0.05 \\
 \text{DEC:} &\quad \epsilon_{\text{start}} \in [0.1, 1.0],\; \Delta 0.1;\quad T_{\text{decay}} \in [25, 700],\; \Delta 25 \\
 \text{UCB:} &\quad c \in [0.1, 10.0],\; \Delta 0.5
 \end{aligned}
 \]
+
+Note: Thompson Sampling searches over distribution family (Beta vs Gaussian) with fixed uninformative priors rather than sweeping prior parameters --- tuning $\alpha_0,\beta_0$ on the evaluation data would constitute data leakage since we have no genuine domain knowledge to inform the prior.
 
 \begin{figure}[h]
 \centering
@@ -175,19 +177,20 @@ Grid search (50 seeds, 450 steps, 316 configurations):
 
 \begin{table}[h]
 \centering
+\small
 \begin{tabular}{lrrrrr}
 \toprule
-Agent & Total Reward & Per Step & Last 50 & vs Ctx Opt & vs Non-Ctx Opt \\
+Agent & Total Reward & Per Step & Last 50 & vs Ctx & vs Non-Ctx \\
 \midrule
-Contextual UCB ($c=0.2$) & 299.3 $\pm$ 27.8 & 0.665 & 0.720 & $-11.3\%$ & $+19.7\%$ \\
-Contextual DEC ($\epsilon_{\text{s}}=0.3$, $T_{\text{decay}}=300$) & 297.3 $\pm$ 23.0 & 0.661 & 0.726 & $-11.9\%$ & $+18.9\%$ \\
-Contextual TS ($\alpha_0=1.0$, $\beta_0=5.0$) & 297.1 $\pm$ 28.8 & 0.660 & 0.718 & $-12.0\%$ & $+18.8\%$ \\
-Contextual EG ($\epsilon=0.1$) & 285.2 $\pm$ 29.9 & 0.634 & 0.689 & $-15.5\%$ & $+14.0\%$ \\
+Ctx UCB ($c=0.2$) & 299.3 $\pm$ 27.8 & 0.665 & 0.720 & $-11.3\%$ & $+19.7\%$ \\
+Ctx DEC ($\epsilon_{\text{s}}=0.3$, $T_{\text{decay}}=300$) & 297.3 $\pm$ 23.0 & 0.661 & 0.726 & $-11.9\%$ & $+18.9\%$ \\
+Ctx EG ($\epsilon=0.1$) & 285.2 $\pm$ 29.9 & 0.634 & 0.689 & $-15.5\%$ & $+14.1\%$ \\
+Ctx TS ($\text{Beta}(1,1)$) & 280.2 $\pm$ 22.9 & 0.623 & 0.689 & $-17.0\%$ & $+12.1\%$ \\
 \midrule
-Standard UCB ($c=0.5$) & 231.1 $\pm$ 19.9 & 0.514 & 0.544 & $-31.5\%$ & $\phantom{-}7.6\%$ \\
-Standard DEC ($\epsilon_{\text{s}}=0.8$, $T_{\text{decay}}=75$) & 230.9 $\pm$ 20.8 & 0.513 & 0.536 & $-31.6\%$ & $\phantom{-}7.7\%$ \\
-Standard TS ($\alpha_0=2.0$, $\beta_0=5.0$) & 228.3 $\pm$ 17.6 & 0.507 & 0.542 & $-32.3\%$ & $\phantom{-}8.7\%$ \\
-Standard EG ($\epsilon=0.2$) & 225.3 $\pm$ 19.2 & 0.501 & 0.520 & $-33.2\%$ & $\phantom{-}9.9\%$ \\
+Std UCB ($c=0.5$) & 231.1 $\pm$ 19.9 & 0.514 & 0.548 & $-31.5\%$ & $-7.6\%$ \\
+Std DEC ($\epsilon_{\text{s}}=0.8$, $T_{\text{decay}}=75$) & 230.9 $\pm$ 20.8 & 0.513 & 0.536 & $-31.6\%$ & $-7.6\%$ \\
+Std TS ($\text{Beta}(1,1)$) & 226.4 $\pm$ 19.5 & 0.503 & 0.518 & $-32.9\%$ & $-9.4\%$ \\
+Std EG ($\epsilon=0.2$) & 225.3 $\pm$ 19.2 & 0.501 & 0.520 & $-33.3\%$ & $-9.9\%$ \\
 \midrule
 Contextual optimal & 337.5 & 0.750 & 0.750 & --- & $+34.9\%$ \\
 Non-contextual optimal & 250.0 & 0.556 & 0.556 & $-25.9\%$ & --- \\

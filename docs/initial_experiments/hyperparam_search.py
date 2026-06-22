@@ -1,8 +1,8 @@
 """Hyperparameter grid search for contextual bandit agents (6-action config).
 
 Grid:
-  - thompson_sampling:  alpha_prior [0.5, 1.0, 2.0, 5.0]
-                        x beta_prior [0.5, 1.0, 2.0, 5.0]
+  - thompson_sampling:  distribution_family ["beta", "gaussian"]
+                        (fixed uninformative priors — no tuning of prior params)
   - epsilon_greedy:     epsilon [0.01, 0.02, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5]
   - decaying_epsilon_greedy:  epsilon_start [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
                               x decay_steps [25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700]
@@ -11,6 +11,10 @@ Grid:
 Each combination: 50 seeds, record mean total reward + last-50-step mean.
 Runs both standard and contextual (context_feature="activity") variants.
 Output: CSV to docs/initial_experiments/hyperparam_results.csv
+
+NOTE: Thompson Sampling uses fixed uninformative priors per distribution family
+rather than sweeping alpha_prior/beta_prior — tuning prior parameters on the
+data would be data leakage.
 """
 from __future__ import annotations
 
@@ -27,8 +31,7 @@ from rl_health_interventions.experiment import run_episode
 
 logger = logging.getLogger(__name__)
 
-ALPHA_VALUES = [0.5, 1.0, 2.0, 5.0]
-BETA_VALUES = [0.5, 1.0, 2.0, 5.0]
+DISTRIBUTION_FAMILIES = ["beta", "gaussian"]
 EPSILON_VALUES = [0.01, 0.02, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5]
 DEC_EPSILON_START_VALUES = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 C_VALUES = [0.1, 0.2, 0.3, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 5.0, 7.0, 10.0]
@@ -40,15 +43,23 @@ CTX_KWARGS = {"contextual": True, "context_feature": "activity"}
 
 
 def _ts_grid(ctx: bool = False) -> list[tuple[dict, str]]:
-    """Return (params, label) pairs for thompson_sampling."""
+    """Return (params, label) pairs for thompson_sampling.
+
+    Sweeps over distribution family rather than prior parameter values.
+    Each family uses fixed uninformative priors (no data leakage):
+
+    * ``"beta"`` — Beta(1,1) uniform prior.
+    * ``"gaussian"`` — Gaussian prior N(0.5, 1.0), likelihood variance 0.25.
+    """
     prefix = "ctx_" if ctx else ""
     suffix_kwargs = CTX_KWARGS if ctx else {}
+    families = [
+        ("beta", {"alpha_prior": 1.0, "beta_prior": 1.0, "distribution_family": "beta"}),
+        ("gaussian", {"alpha_prior": 1.0, "beta_prior": 0.5, "distribution_family": "gaussian"}),
+    ]
     return [
-        (
-            {"alpha_prior": a, "beta_prior": b, **suffix_kwargs},
-            f"{prefix}alpha={a},beta={b}",
-        )
-        for a, b in itertools.product(ALPHA_VALUES, BETA_VALUES)
+        ({**params, **suffix_kwargs}, f"{prefix}family={family}")
+        for family, params in families
     ]
 
 

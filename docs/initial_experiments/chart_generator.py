@@ -3,6 +3,10 @@
 Loads rule_based_with_actions.yaml, runs all agent variants, and produces
 learning curve PDFs and hyperparameter sensitivity charts.
 Excluded from ty/ruff via pyproject.toml.
+
+NOTE: Thompson Sampling hyperparameter charts compare distribution families
+(Beta vs Gaussian) with fixed uninformative priors, rather than sweeping
+alpha_prior/beta_prior (which would be data leakage).
 """
 from __future__ import annotations
 
@@ -22,8 +26,8 @@ from rl_health_interventions.config.schemas import AgentConfig
 from _experiment_utils import run_agent
 
 AGENT_VARIANTS = [
-    ("Standard TS", {"type": "thompson_sampling", "alpha_prior": 2.0, "beta_prior": 5.0}, "#2196F3", "-"),
-    ("Contextual TS", {"type": "thompson_sampling", "alpha_prior": 1.0, "beta_prior": 5.0, "contextual": True, "context_feature": "activity"}, "#4CAF50", "-"),
+    ("Standard TS", {"type": "thompson_sampling", "alpha_prior": 1.0, "beta_prior": 1.0}, "#2196F3", "-"),
+    ("Contextual TS", {"type": "thompson_sampling", "alpha_prior": 1.0, "beta_prior": 1.0, "contextual": True, "context_feature": "activity"}, "#4CAF50", "-"),
     ("Standard EG", {"type": "epsilon_greedy", "epsilon": 0.2}, "#FF9800", "-"),
     ("Contextual EG", {"type": "epsilon_greedy", "epsilon": 0.1, "contextual": True, "context_feature": "activity"}, "#E91E63", "-"),
     ("Standard UCB", {"type": "ucb", "c": 0.5}, "#9C27B0", "-"),
@@ -109,29 +113,24 @@ def generate_dec_heatmap(results_path: Path, ctx: bool = False) -> None:
 def generate_ts_chart(results_path: Path, ctx: bool = False) -> None:
     df = pd.read_csv(results_path)
     ts = _parse_ts_df(df, ctx=ctx)
-    pivot = ts.pivot_table(index="alpha", columns="beta",
-                           values="total_mean", aggfunc="first")
     tag = "ctx_" if ctx else ""
-    fig, ax = plt.subplots(figsize=(7, 6))
-    im = ax.imshow(pivot.values, aspect="auto", cmap="plasma",
-                   origin="lower", interpolation="nearest")
-    cbar = fig.colorbar(im, ax=ax, label="Total Reward")
-    ax.set_xticks(range(len(pivot.columns)))
-    ax.set_xticklabels([f"{b:.1f}" for b in pivot.columns])
-    ax.set_yticks(range(len(pivot.index)))
-    ax.set_yticklabels([f"{a:.1f}" for a in pivot.index])
-    ax.set_xlabel("Beta Prior")
-    ax.set_ylabel("Alpha Prior")
+    fig, ax = plt.subplots(figsize=(6, 5))
+    families = ts["family"].tolist()
+    means = ts["total_mean"].tolist()
+    stds = ts["total_std"].tolist()
+    colors = ["#2196F3", "#4CAF50"]
+    xpos = range(len(families))
+    ax.bar(xpos, means, yerr=stds, capsize=6, color=colors, width=0.5)
+    ax.set_xticks(list(xpos))
+    ax.set_xticklabels(families)
+    ax.set_ylabel("Total Reward")
     prefix = "Contextual " if ctx else "Standard "
-    ax.set_title(f"{prefix}TS: Total Reward by Priors")
-    for i in range(len(pivot.index)):
-        for j in range(len(pivot.columns)):
-            val = pivot.values[i, j]
-            ax.text(j, i, f"{val:.0f}", ha="center", va="center",
-                    color="white" if val < pivot.values.max() * 0.7 else "black",
-                    fontsize=9)
+    ax.set_title(f"{prefix}TS: Distribution Family vs Total Reward")
+    ax.grid(True, axis="y", alpha=0.3)
+    for i, (m, s) in enumerate(zip(means, stds)):
+        ax.text(i, m + s + 2, f"{m:.0f}", ha="center", va="bottom", fontsize=9)
     plt.tight_layout()
-    out = IMAGES_DIR / f"hyperparam_{tag}ts_heatmap.pdf"
+    out = IMAGES_DIR / f"hyperparam_{tag}ts_barchart.pdf"
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
     logger.info("Saved %s", out)
@@ -170,9 +169,8 @@ def _parse_ts_df(df: pd.DataFrame, ctx: bool = False) -> pd.DataFrame:
         ts = ts[ts["params"].str.startswith("ctx_")]
     else:
         ts = ts[~ts["params"].str.startswith("ctx_")]
-    ts["alpha"] = ts["params"].str.extract(r"alpha=([\d.]+)").astype(float)
-    ts["beta"] = ts["params"].str.extract(r"beta=([\d.]+)").astype(float)
-    return ts.sort_values(["alpha", "beta"])
+    ts["family"] = ts["params"].str.extract(r"family=(\w+)")
+    return ts.sort_values("family")
 
 
 def main() -> None:

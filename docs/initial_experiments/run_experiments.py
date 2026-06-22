@@ -18,8 +18,8 @@ from _experiment_utils import run_agent
 
 # Agent variants to benchmark: (label, agent_config_dict)
 AGENT_VARIANTS = [
-    ("Standard TS", {"type": "thompson_sampling", "alpha_prior": 2.0, "beta_prior": 5.0}),
-    ("Contextual TS", {"type": "thompson_sampling", "alpha_prior": 1.0, "beta_prior": 5.0, "contextual": True, "context_feature": "activity"}),
+    ("Standard TS", {"type": "thompson_sampling", "alpha_prior": 1.0, "beta_prior": 1.0}),
+    ("Contextual TS", {"type": "thompson_sampling", "alpha_prior": 1.0, "beta_prior": 1.0, "contextual": True, "context_feature": "activity"}),
     ("Standard EG", {"type": "epsilon_greedy", "epsilon": 0.2}),
     ("Contextual EG", {"type": "epsilon_greedy", "epsilon": 0.1, "contextual": True, "context_feature": "activity"}),
     ("Standard UCB", {"type": "ucb", "c": 0.5}),

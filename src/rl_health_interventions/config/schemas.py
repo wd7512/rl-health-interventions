@@ -52,6 +52,7 @@ class AgentConfig(BaseModel):
     c: float | None = None
     contextual: bool = False
     context_feature: str | None = None
+    distribution_family: str = "beta"
 
     @model_validator(mode="after")
     def _validate_agent(self) -> AgentConfig:
@@ -92,6 +93,11 @@ class AgentConfig(BaseModel):
                 raise ValueError("alpha_prior must be > 0 for thompson_sampling")
             if self.beta_prior is None or self.beta_prior <= 0:
                 raise ValueError("beta_prior must be > 0 for thompson_sampling")
+            if self.distribution_family not in ("beta", "gaussian"):
+                raise ValueError(
+                    f"distribution_family must be 'beta' or 'gaussian', "
+                    f"got '{self.distribution_family}'"
+                )
             if self.epsilon is not None or self.c is not None:
                 raise ValueError("thompson_sampling agent does not accept epsilon or c")
         if self.type == "epsilon_greedy":
