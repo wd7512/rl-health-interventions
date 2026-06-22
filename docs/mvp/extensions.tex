@@ -61,7 +61,7 @@ Grid search over key parameters (50 seeds, 450 timesteps, both standard and cont
 $\epsilon=0.05$ vs $\epsilon=0.10$: identical means (158.1), but $\epsilon=0.10$ has $11\%$ lower variance.
 
 \section{Results}
-50 seeds, 450 timesteps. Optimised hyperparameters: EG $\epsilon=0.05$, DEC $\epsilon_{\text{start}}=0.2$, $T_{\text{decay}}=200$, $\epsilon_{\min}=0.01$, UCB $c=0.5$.
+50 seeds, 450 timesteps. Optimised hyperparameters: EG $\epsilon=0.05$, DEC $\epsilon_{\text{start}}=0.2$, $T_{\text{decay}}=200$, $\epsilon_{\min}=0.01$, UCB $c=0.5$. All agent definitions live in \texttt{docs/mvp/configs/mvp.yaml}.
 
 \begin{table}[h]
 \centering
@@ -79,6 +79,8 @@ Standard DEC & 161.7 $\pm$ 18.4 & 0.359 & 0.375 & $-16.2\%$ \\
 Standard TS & 159.6 $\pm$ 12.7 & 0.355 & 0.373 & $-17.2\%$ \\
 Standard EG & 158.1 $\pm$ 19.9 & 0.351 & 0.375 & $-18.0\%$ \\
 \midrule
+Random & 137.3 $\pm$ 12.3 & 0.305 & 0.319 & $-28.9\%$ \\
+\midrule
 Contextual optimal & 192.9 & 0.429 & 0.429 & --- \\
 Non-contextual optimal & 168.8 & 0.375 & 0.375 & --- \\
 \bottomrule
@@ -91,6 +93,6 @@ Non-contextual optimal & 168.8 & 0.375 & 0.375 & --- \\
 \caption{Cumulative reward and per-step reward (50 seeds, $\pm$1 SD). Contextual agents converge toward $3/7 \approx 0.429$; standard agents plateau lower.}
 \end{figure}
 
-Contextual TS and UCB reach the per-context optimal ($0.429$) by the last 50 steps. Standard UCB benefits most from hyperparameter search ($-23.1\%$ to $-15.2\%$). DEC front-loads exploration, achieving $161.7$ vs EG's $158.1$ in the standard setting; the contextual advantage disappears as per-context Q-values already provide sufficient exploration.
+Contextual TS and UCB reach the per-context optimal ($0.429$) by the last 50 steps. Standard UCB benefits most from hyperparameter search ($-23.1\%$ to $-15.2\%$). DEC front-loads exploration, achieving $161.7$ vs EG's $158.1$ in the standard setting; the contextual advantage disappears as per-context Q-values already provide sufficient exploration. Random ($0.305$) anchors the lower bound, $28.9\%$ below the contextual optimum.
 
 \end{document}
