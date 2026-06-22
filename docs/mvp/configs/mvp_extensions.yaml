@@ -37,9 +37,34 @@ agents:
   - type: thompson_sampling
     alpha_prior: 1.0
     beta_prior: 1.0
+  - type: thompson_sampling
+    contextual: true
+    context_feature: activity
+    alpha_prior: 1.0
+    beta_prior: 1.0
 
   - type: epsilon_greedy
-    epsilon: 0.1
+    epsilon: 0.05
+  - type: epsilon_greedy
+    contextual: true
+    context_feature: activity
+    epsilon: 0.05
 
+  - type: decaying_epsilon_greedy
+    epsilon_start: 0.2
+    epsilon_min: 0.01
+    decay_steps: 200
+  - type: decaying_epsilon_greedy
+    contextual: true
+    context_feature: activity
+    epsilon_start: 0.2
+    epsilon_min: 0.01
+    decay_steps: 200
+    
   - type: ucb
-    c: 2.0
+    c: 0.5
+  - type: ucb
+    contextual: true
+    context_feature: activity
+    c: 0.5
+  

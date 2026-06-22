@@ -64,30 +64,16 @@ def _positive_int(value: str) -> int:
     return n
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Benchmark contextual bandit agents")
-    parser.add_argument(
-        "--seeds",
-        type=_positive_int,
-        default=50,
-        help="Number of random seeds (default: 50)",
-    )
-    parser.add_argument(
-        "--config",
-        type=str,
-        default=None,
-        help="Base MDP config (default: docs/mvp/configs/mvp.yaml)",
-    )
-    args = parser.parse_args()
+_MVP_CONFIGS = [
+    "docs/mvp/configs/mvp.yaml",
+    "docs/mvp/configs/mvp_extensions.yaml",
+]
 
-    repo_root = Path(__file__).resolve().parents[2]
-    config_path = args.config or str(
-        repo_root / "docs" / "mvp" / "configs" / "mvp.yaml"
-    )
+
+def _benchmark_config(config_path: str, n_seeds: int) -> None:
     config = load_config(config_path)
 
     n_steps = config.episode_days * config.steps_per_day
-    n_seeds = args.seeds
 
     logger.info("Config: %s", config_path)
     logger.info(
@@ -124,6 +110,43 @@ def main() -> None:
             r["last50_mean"],
         )
     logger.info("%s", "=" * 72)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Benchmark contextual bandit agents")
+    parser.add_argument(
+        "--seeds",
+        type=_positive_int,
+        default=50,
+        help="Number of random seeds (default: 50)",
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--config",
+        type=str,
+        default=None,
+        help="Base MDP config (default: mvp_extensions.yaml)",
+    )
+    group.add_argument(
+        "--all",
+        action="store_true",
+        help="Run all MVP configs (mvp.yaml + mvp_extensions.yaml)",
+    )
+    args = parser.parse_args()
+
+    repo_root = Path(__file__).resolve().parents[2]
+    n_seeds = args.seeds
+
+    if args.all:
+        for rel_path in _MVP_CONFIGS:
+            config_path = str(repo_root / rel_path)
+            logger.info("\n=== Config: %s ===\n", rel_path)
+            _benchmark_config(config_path, n_seeds)
+    else:
+        config_path = args.config or str(
+            repo_root / "docs" / "mvp" / "configs" / "mvp_extensions.yaml"
+        )
+        _benchmark_config(config_path, n_seeds)
 
 
 if __name__ == "__main__":
