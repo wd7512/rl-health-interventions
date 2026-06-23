@@ -33,7 +33,7 @@ dev = [
 [tool.ruff]
 line-length = 88
 target-version = "py311"
-extend-exclude = ["docs"]
+extend-exclude = ["docs", "tests/scripts"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
