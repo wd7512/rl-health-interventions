@@ -18,12 +18,17 @@ _mvp_dir = (
     pathlib.Path(__file__).resolve().parents[2] / "docs" / "experimental_phases" / "mvp"
 )
 sys.path.insert(0, str(_mvp_dir))
-
-_spec = importlib.util.spec_from_file_location(
-    "optimal_bound", _mvp_dir / "optimal_bound.py"
-)
-_optimal_bound_mod = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_optimal_bound_mod)
+try:
+    _spec = importlib.util.spec_from_file_location(
+        "optimal_bound", _mvp_dir / "optimal_bound.py"
+    )
+    assert _spec is not None, "Failed to load module spec"
+    assert _spec.loader is not None, "Module spec has no loader"
+    _optimal_bound_mod = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_optimal_bound_mod)
+finally:
+    if sys.path and sys.path[0] == str(_mvp_dir):
+        sys.path.pop(0)
 compute_bounds = _optimal_bound_mod.compute_bounds
 
 
