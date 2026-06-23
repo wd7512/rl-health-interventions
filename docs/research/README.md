@@ -13,10 +13,12 @@ versioned with the repo, and reviewed via PR like any other change.
 
 ## What's in here
 
-| File | Type | Status | Owner |
-|---|---|---|---|
+| File / Directory | Type | Status | Owner |
+|---|---|---|---|---|
 | `statistical-analysis-plan.md` | Pre-registration | draft v0.1 | W. Dennis |
-| `lit-review-state-action-space.md` | Literature review | draft v0.1 | W. Dennis |
+| `lit-review-state-action-space.md` | Literature review (synthesis) | draft v0.1 | W. Dennis |
+| `action-space-design/` | Action space reference configs + evidence | draft v0.1 | W. Dennis |
+| `state-space-design/` | State space reference configs + evidence | draft v0.1 | W. Dennis |
 | `decision-trees/` | Decision records | (forthcoming) | W. Dennis |
 
 ## Conventions
