@@ -172,3 +172,21 @@ def test_compute_bounds_raises_for_invalid_state_count():
     )
     with pytest.raises(ValueError, match="exactly 2 states"):
         compute_bounds(config)
+
+
+def test_compute_bounds_raises_for_schema_reference():
+    """compute_bounds should raise ValueError for schema-referenced configs."""
+    config = MDPConfig.model_construct(
+        episode_days=1,
+        steps_per_day=1,
+        seed=42,
+        initial_state="sedentary",
+        states={"schema": "some_schema_ref"},
+        actions=["nudge"],
+        transition_model=TransitionModelConfig(
+            type="rule_based",
+            transition_probabilities=None,
+        ),
+    )
+    with pytest.raises(ValueError, match="actual state definitions"):
+        compute_bounds(config)

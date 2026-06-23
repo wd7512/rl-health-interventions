@@ -8,7 +8,6 @@ Run with:
 """
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import numpy as np
@@ -66,7 +65,7 @@ def hand_compute(config_path: Path) -> dict:
     for a in config.actions:
         pi = _stationary(action_mats[a])
         fixed_rewards[a] = float(pi @ (action_mats[a] @ state_rewards))
-    best_fixed = max(fixed_rewards, key=fixed_rewards.__getitem__)
+    best_fixed = max(fixed_rewards, key=lambda k: fixed_rewards[k])
     nctx_full = fixed_rewards[best_fixed]
 
     # Random: uniform mixture

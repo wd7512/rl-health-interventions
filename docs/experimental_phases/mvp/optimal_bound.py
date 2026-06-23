@@ -47,8 +47,12 @@ def compute_bounds(config: MDPConfig) -> dict:
     """
     if not config.states:
         raise ValueError("config.states is required for computing bounds")
+    if isinstance(config.states, dict) and "schema" in config.states:
+        raise ValueError("config.states must contain actual state definitions (schema references are not supported)")
     if not config.actions:
         raise ValueError("config.actions is required for computing bounds")
+    if isinstance(config.actions, dict) and "schema" in config.actions:
+        raise ValueError("config.actions must contain actual action definitions (schema references are not supported)")
     if not config.transition_model:
         raise ValueError("config.transition_model is required for computing bounds")
     state_names = sorted(config.states.keys())
