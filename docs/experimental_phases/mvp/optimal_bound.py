@@ -59,6 +59,11 @@ def compute_bounds(config: MDPConfig) -> dict:
     tprobs_obj = config.transition_model.transition_probabilities
     if tprobs_obj is None:
         raise ValueError("transition_probabilities is required for computing bounds")
+    if n_states != 2:
+        raise ValueError(
+            f"compute_bounds requires exactly 2 states (got {n_states}). "
+            "_stationary() is specific to 2x2 transition matrices."
+        )
     tprobs = tprobs_obj.root
 
     action_mats: dict[str, np.ndarray] = {}

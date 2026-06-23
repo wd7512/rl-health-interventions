@@ -10,7 +10,11 @@ import sys
 import numpy as np
 import pytest
 
-from rl_health_interventions.config.schemas import MDPConfig, TransitionModelConfig
+from rl_health_interventions.config.schemas import (
+    MDPConfig,
+    TransitionModelConfig,
+    TransitionProbabilities,
+)
 
 # The optimal_bound.py module imports from _shared at module level.
 # Make the mvp directory importable so compute_bounds can be imported.
@@ -97,7 +101,7 @@ def test_compute_bounds_raises_for_missing_transition_probabilities():
         steps_per_day=1,
         seed=42,
         initial_state="sedentary",
-        states={"sedentary": {"reward": 0.0}},
+        states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
         actions=["nudge"],
         transition_model=TransitionModelConfig(
             type="rule_based",
@@ -143,3 +147,28 @@ def test_symmetric_two_state_mdp():
     assert bounds["contextual_optimal"] == pytest.approx(0.5)
     assert bounds["noncontextual_optimal"] == pytest.approx(0.5)
     assert bounds["random"] == pytest.approx(0.5)
+
+
+def test_compute_bounds_raises_for_invalid_state_count():
+    """_stationary is specific to 2x2 transition matrices — reject other sizes."""
+    config = MDPConfig(
+        episode_days=1,
+        steps_per_day=1,
+        seed=42,
+        initial_state="a",
+        states={"a": {"reward": 0.0}, "b": {"reward": 0.5}, "c": {"reward": 1.0}},
+        actions=["nudge"],
+        transition_model=TransitionModelConfig(
+            type="rule_based",
+            transition_probabilities=TransitionProbabilities(
+                {
+                    "a": {"nudge": {"a": 0.3, "b": 0.4, "c": 0.3}},
+                    "b": {"nudge": {"a": 0.3, "b": 0.4, "c": 0.3}},
+                    "c": {"nudge": {"a": 0.3, "b": 0.4, "c": 0.3}},
+                }
+            ),
+        ),
+        agents=[],
+    )
+    with pytest.raises(ValueError, match="exactly 2 states"):
+        compute_bounds(config)
