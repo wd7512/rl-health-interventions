@@ -7,6 +7,10 @@ purpose: "Positioning table for the Nature Methods paper introduction"
 related: "docs/initial_design.tex §2 · docs/research/decision-trees/online-vs-offline-rl.md"
 ---
 
+> **Archived 2026-06-23.** This document was part of the June-14 research batch
+> (PRs #86–#90). It is retained for historical reference but is no longer actively
+> maintained. See `docs/research/README.md` for current research artifacts.
+
 # Framework Comparison — RL-driven Health Intervention Simulators
 
 > A 2-axis positioning table for the paper's "why our framework"

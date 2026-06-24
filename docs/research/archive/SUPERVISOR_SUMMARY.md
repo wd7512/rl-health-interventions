@@ -6,6 +6,10 @@ audience: "Primary supervisor + Mengyan (Bristol) + Swapnil (NUS)"
 purpose: "What 5 research artefacts now exist, what they let us claim, what still blocks the paper"
 ---
 
+> **Archived 2026-06-23.** This document was part of the June-14 research batch
+> (PRs #86–#90). It is retained for historical reference but is no longer actively
+> maintained. See `docs/research/README.md` for current research artifacts.
+
 # Research front summary
 
 > A supervisor-facing summary of the 5 research artefacts opened as

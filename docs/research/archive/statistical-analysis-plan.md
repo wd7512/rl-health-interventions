@@ -9,6 +9,10 @@ supersedes: "Open decision in initial_design.tex §5 ('evaluation methodology')"
 related: "docs/initial_design.tex · docs/ROADMAP.md M-08 · docs/research/decision-trees/*"
 ---
 
+> **Archived 2026-06-23.** This document was part of the June-14 research batch
+> (PRs #86–#90). It is retained for historical reference but is no longer actively
+> maintained. See `docs/research/README.md` for current research artifacts.
+
 # Statistical Analysis Plan
 
 > Pre-registered analysis plan for the simulation experiments that will
