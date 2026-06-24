@@ -15,13 +15,17 @@ dependencies = [
     "pandas>=3.0.3",
     "polars>=1.0.0",
     "pydantic>=2.0.0",
+    "pyyaml>=6.0",
     "ucimlrepo>=0.0.7",
     "wfdb>=4.3.1",
 ]
 
 [dependency-groups]
 dev = [
+    "matplotlib>=3.7.0",
     "pytest>=8.4.0,<10",
+    "pytest-timeout>=2.3.0,<3",
+    "pytest-xdist>=3.8.0,<4",
     "ruff>=0.14.10,<0.15",
     "ty>=0.0.42,<0.1",
 ]
@@ -29,9 +33,16 @@ dev = [
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+extend-exclude = ["docs", "tests/scripts"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+timeout = 10
+markers = [
+    "unit: fast, no I/O (deselect with '-m not unit')",
+    "integration: may hit network or disk (deselect with '-m not integration')",
+]
+addopts = "-v --tb=short"
 
 [project.scripts]
 rl-health-interventions = "rl_health_interventions.__main__:main"

@@ -10,18 +10,16 @@ logger = logging.getLogger(__name__)
 REGISTRY: dict[str, Type] = {}
 
 
-def make(name: str) -> object:
+def make(name: str, **kwargs) -> object:
     if name not in REGISTRY:
         raise KeyError(f"Unknown data component: {name}. Known: {list(REGISTRY)}")
-    return REGISTRY[name]()
+    return REGISTRY[name](**kwargs)
 
 
-try:
-    synthetic.register()
-except Exception:
-    logger.exception("Failed to register data.synthetic")
+_DATA_COMPONENT_MODULES = [synthetic, feature_pipeline]
 
-try:
-    feature_pipeline.register()
-except Exception:
-    logger.exception("Failed to register data.feature_pipeline")
+for _mod in _DATA_COMPONENT_MODULES:
+    try:
+        _mod.register()
+    except Exception:
+        logger.exception("Failed to register %s", _mod.__name__)

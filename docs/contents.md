@@ -1,23 +1,57 @@
 # docs/
 
-## initial_design.tex
-
-Initial academic LaTeX design document covering problem statement, MDP formalisation,
-architecture, timeline, and future work. This is a draft awaiting supervisor review;
-implementation docs in `code/` derive from it.
-
-## code/
+## design/
 
 | File | Description |
 |------|-------------|
-| `codebase_plan.md` | Top-level architecture, 8-week Phase 1 scope, tech stack, confirmed design decisions |
-| `code_design.md` | Detailed software design: module structure, ABC interfaces, validation layers, logging spec |
-| `phase_1_execution_plan.md` | Dependency graph (Tracks A/B/C), gates summary, risk register |
-| `subphase_1a_data_layer.md` | Data pipeline, Dataset ABC, feature engineering, synthetic data generation |
-| `subphase_1b_mdp_environment.md` | MDP environment, TransitionModel, state/action/reward shaping |
-| `subphase_1c_user_simulation.md` | User profiling, ResponseModel, archetype simulation |
-| `subphase_1d_agent_library.md` | Agent ABC, Thompson Sampling, extension interface |
-| `subphase_1e_experiment_runner.md` | Experiment orchestration, CLI, result tracking, checkpoint/resume |
+| `initial_design.tex` | Academic LaTeX design document: problem statement, MDP formalisation (14 state variables, 6 actions), 4 user archetypes, multi-timescale reward. Long-term vision — current MVP is a deliberate simplification. |
+
+## mvp/
+
+| File | Description |
+|------|-------------|
+| `mvp.tex` | MDP formulation for the current binary-state, binary-action simulator with transition probabilities, reward function, agent formulations, and 10-seed results table. |
+| `mvp.pdf` | Compiled specification. |
+| `extensions.tex` | Contextual bandits, EG decay, and hyperparameter optimisation. |
+| `extensions.pdf` | Compiled extensions. |
+| `run_experiments.py` | Runner for MVP experiments. |
+| `chart_generator.py` | Generate figures for MVP results. |
+| `hyperparam_search.py` | Grid search over agent hyperparameters. |
+| `hyperparam_results.csv` | Hyperparameter search results. |
+| `images/` | Figures for MVP docs. |
+
+## initial_experiments/
+
+| File | Description |
+|------|-------------|
+| `initial_experiments.tex` | Scaffold for state space, action space, and reward function extensions bridging MVP to the full design vision. Sections to be filled by Issues #124, #126, #132. |
+| `chart_generator.py` | Stub — generate charts for initial experiments results. |
+| `run_experiments.py` | Stub — run experiments on initial experiments configs. |
+| `images/` | Charts and figures for initial experiments. |
+
+## learned/
+
+| File | Description |
+|------|-------------|
+| `learned_specification.tex` | Placeholder — learned transition models from real wearable data. See `config/learned.yaml`. |
+
+## llm/
+
+| File | Description |
+|------|-------------|
+| `llm_specification.tex` | Placeholder — LLM-based user simulation. See `config/llm_based.yaml`. |
+
+## plans/
+
+| File | Description |
+|------|-------------|
+| `README.md` | Overview of the archive; links to current docs |
+| `ROADMAP.md` | Milestone roadmap (M-01 through M-10), success metrics, critical path |
+| `ROADMAP_TECHNICAL_DEPS.md` | Technical dependency graph (Mermaid), risk register (R-01 to R-13), TRL table |
+| `subphase_1a_data_layer.md` | Phase 2: config-driven data layer, FeaturePipeline, Dataset ABC |
+| `subphase_1c_user_simulation.md` | Phase 2: UserProfile (4 archetypes), ResponseModel, dataset exploration |
+| `stale/` | Superseded implementation blueprints (code_design, subphase plans, issue-101-mvp) |
+| `2026-06-14_research-assistant-plan.md` | Research PR plan (statistical analysis, decision trees) |
 
 ## sources/
 

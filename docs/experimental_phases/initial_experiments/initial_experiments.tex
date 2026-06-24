@@ -1,0 +1,93 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,booktabs,graphicx}
+\usepackage[margin=1in]{geometry}
+
+\title{Initial Experiments: Extending the MVP Simulator}
+\author{William Dennis}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+
+Extends the MVP simulator (\texttt{docs/mvp/mvp\_specification.tex}) by enriching
+the state space, action space, and reward function, moving toward the full
+MDP defined in \texttt{docs/design/initial\_design.tex}.
+
+\section{State Space Extension}
+\label{sec:state}
+
+References \texttt{docs/design/initial\_design.tex \S3} and Issue \#124.
+
+
+\subsection{Enriched StateView}
+
+% To be filled: archetype, burden, goal_progress, steps, previous_action
+
+
+\subsection{Contextual Bandit Conditioning}
+
+% To be filled: context_feature config, conditional action selection
+
+
+\subsection{Open Questions}
+
+% To be filled
+
+
+\section{Action Space Extension}
+\label{sec:action}
+
+References \texttt{docs/design/initial\_design.tex \S3} and Issue \#126.
+
+
+\subsection{ActionConfig}
+
+% To be filled: reward_penalty, burden_penalty, 6-action set
+
+
+\subsection{Transition Model Updates}
+
+% To be filled: 6x6x2 transition matrix, backward compatibility
+
+
+\subsection{Agent Compatibility}
+
+% To be filled: verification of variable-length action handling
+
+
+\subsection{Open Questions}
+
+% To be filled
+
+
+\section{Reward Function Extension}
+\label{sec:reward}
+
+References \texttt{docs/design/initial\_design.tex \S3} and Issue \#132.
+
+
+\subsection{Multi-Timescale Reward}
+
+% To be filled: immediate + 3-week delayed clinical outcome
+
+
+\subsection{Reward Composition}
+
+% To be filled: configurable per_step_weight, clinical_weight
+
+
+\subsection{Synthetic Clinical Data}
+
+% To be filled: weekly_step_count, engagement_ratio generator
+
+
+\subsection{Open Questions}
+
+% To be filled
+
+
+\section{Combined Results}
+
+% To be filled: end-to-end episode evaluation with all three extensions enabled
+
+\end{document}

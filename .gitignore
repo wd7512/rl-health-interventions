@@ -229,3 +229,10 @@ __marimo__/
 
 # Downloaded datasets
 /data/
+
+# Hermes agent session files (not part of this project)
+.hermes/
+results.csv
+
+# Git worktrees (inside repo)
+.worktrees/

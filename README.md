@@ -1,96 +1,60 @@
 # rl-health-interventions
 
-A configurable simulation framework for testing RL-driven health interventions on wearable device data.
+A config-driven RL simulation framework for testing health interventions. Define MDPs, agents, and experiments in YAML — no source code changes needed.
 
 ## Quickstart
 
 ```bash
 uv sync --dev
-uv run rl-health-interventions
+
+# Run with default config
+uv run rl-health-interventions --config config/rule_based.yaml --output results.csv
+
+# Override agent from command line
+uv run rl-health-interventions --config config/rule_based.yaml --agent epsilon_greedy --output results.csv
 ```
 
-## Development Commands
+## How it works
+
+The MDP (states, actions, transitions, reward) and experiment parameters (agents, episodes, seeds) are defined entirely in YAML. Change the config to change the experiment — no code changes needed.
+
+See `config/` for example configs, and `docs/` for the MDP formalisation.
+
+## Project structure
+
+```
+src/rl_health_interventions/
+  config/        # MDPConfig, AgentConfig, YAML loader + validators
+  agents/        # Thompson Sampling, epsilon-greedy, UCB, random + contextual variants
+  transitions/   # RuleBasedTransition (config-driven matrix)
+  rewards/       # CompoundReward (precomputed per-step reward)
+  data/          # Synthetic data generation, dataset loaders
+  simulation/    # Rule-based user response model
+  state.py       # StateView dataclass
+  environment.py # step/reset simulation loop
+  experiment.py  # run_episode + run_experiment
+  logging.py     # Stdlib logging setup
+config/          # YAML config files
+docs/mvp/        # MVP MDP formulation + initial results
+docs/initial_experiments/  # Extensions: state space, action space, reward function
+docs/design/     # Long-term design vision
+docs/sources/    # Dataset documentation (14 sources)
+docs/plans/      # Roadmap, sub-phase plans
+tests/           # Unit, integration, regression tests
+```
+
+## Development
 
 ```bash
-uv run ruff format
+uv run ruff format --check
 uv run ruff check
 uv run ty check
 uv run pytest
+uv build
 ```
 
-## Project Structure
+## References
 
-```
-src/rl_health_interventions/   # package source
-docs/                          # documentation and plans
-tests/                         # test suite
-```
-
-## Overview
-
-Config-first design. Researchers define their dataset schema, MDP, agents, and experiments via config files — no source code changes needed.
-
-Phase 1 delivers: config-driven data layer, MDP environment, rule-based user simulation, RL agent library, and experiment runner. Phase 2 validates the framework against real datasets (HeartSteps V1/V2, All of Us Fitbit Dataset, UK Biobank Accelerometer Dataset), calibrating the user simulator and grounding MDP dynamics on observed behavioural responses. Beyond Phase 2, stretch goals include LLM-based user simulation.
-
-See `docs/code/codebase_plan.md` and `docs/code/code_design.md` for full architecture.
-
-## Milestones & Issues
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│              PHASE 1 — ISSUE / MILESTONE MAP                        │
-└─────────────────────────────────────────────────────────────────────┘
-
-  ── parallel    ── blocks    ──> feeds into
-
-
-┌─ Foundation ─────────────────────────────────────────────────────────┐
-│  □ Add deps (pydantic, numpy, polars)                                │
-│  □ Create module dirs + REGISTRY dicts                               │
-│  □ ExperimentFactory skeleton + 3-layer validation stubs             │
-│  □ Test directory structure                                          │
-└──────────────────────────────────────────────────────────────────────┘
-                │
-                ▼
-┌─ 1A: Data Layer ───────────┐   ┌─ 1B: MDP Environment ─────────────┐   ┌─ Dataset Exploration ────┐
-│  □ DataConfig schema        │   │  □ MDPConfig schema               │   │  ☑ Investigate All of Us│
-│  □ Polars lazy reader       │   │  □ TransitionModel ABC +          │   │  ☑ Investigate UK Biobank│
-│  □ FeaturePipeline          │   │    RuleBasedTransition            │   │  ☑ Write report → sources/data_sources.md│
-│  □ Dataset + StateView      │   │  □ RewardHandler ABC +            │   └─────────────────────────┘
-│    .from_dataset() bridge   │   │    CompoundReward                 │
-│  □ SyntheticDataGenerator   │   │  □ FatigueTracker                 │
-└─────────────────────────────┘   │  □ Environment step/reset         │
-                                   │  □ Multi-timescale reward         │
-                                   └──────────┬────────────────────────┘
-                                              │
-                                              │ (interface only)
-                                              ├──────────┐
-                                              │          │
-                                              ▼          ▼
-                                       ┌─ 1D: Agent Lib ────┐
-                                       │  □ Agent ABC        │
-                                       │  □ ThompsonSampling │
-                                       └─────────────────────┘
-                                              │
-                                              │
-                                              ▼
-                            ┌─ 1C: User Simulation ────────────────────┐
-                            │  □ UserProfile schema + 4 archetypes    │
-                            │  □ ResponseModel ABC                    │
-                            │  □ Backlash / fatigue mechanism          │
-                            └─────────────────┬───────────────────────┘
-                                              ▼
-                            ┌─ 1E: Experiment Runner ───────────────────┐
-                            │  □ M-06 ExperimentConfig + full config    │
-                            │    parsing + CLI wiring                   │
-                            │  □ Results table + reproducibility        │
-                            │  □ M-08 Evaluation Framework              │
-                            │  □ M-09 Documentation & Examples          │
-                            │  □ M-10 Safety & Ethics Review            │
-                            └───────────────────────────────────────────┘
-```
-
-Each `□` is a GitHub issue. Milestones gate on all their issues closed and CI passing.
-See `docs/code/phase_1_execution_plan.md` and `docs/code/code_design.md` for detailed specifications.
-
-See also `docs/sources/additional_data_sources.md` for a survey of JITAI trial datasets (HeartSteps V1/V2) that provide intervention response data for calibrating the user simulation (1C) and agent benchmarks (1D).
+- HeartSteps V2 (Klasnja et al., 2022)
+- `docs/design/initial_design.tex` (MDP formalisation)
+- `docs/plans/ROADMAP.md` (backlog, rough guidance)
