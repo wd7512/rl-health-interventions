@@ -28,8 +28,8 @@ class HeartStepsAgent(Agent):
         step_data: np.ndarray,
         prior_mean: np.ndarray,
         prior_cov: np.ndarray,
-        g_dim: int = 6,
-        f_dim: int = 4,
+        g_dim: int = 12,
+        f_dim: int = 8,
         noise_variance: float = 1.0,
         pi_param: float = 0.3,
         tau: float = 1.0,
@@ -46,6 +46,8 @@ class HeartStepsAgent(Agent):
         burden_coef: float = 0.3,
         p_avail: float = 0.85,
         p_sed: float = 0.2,
+        weather_loader: object | None = None,
+        participant_meta: dict | None = None,
         seed: int = 42,
         actions: list[str] | None = None,
         **_kwargs: object,
@@ -64,6 +66,8 @@ class HeartStepsAgent(Agent):
         self._daily_steps = 0.0
         self._last_pi = pi_param
         self._last_available = True
+        self._weather_loader = weather_loader
+        self._participant_meta = participant_meta
         self._model = BayesianRewardModel(
             g_dim=g_dim,
             f_dim=f_dim,
@@ -85,6 +89,16 @@ class HeartStepsAgent(Agent):
         )
         self._proxy.solve()
 
+    def _get_weather(self) -> tuple[float, float] | None:
+        if self._weather_loader is not None and self._participant_meta is not None:
+            from rl_health_interventions.data.weather import WeatherLoader
+
+            if isinstance(self._weather_loader, WeatherLoader):
+                return self._weather_loader.get_weather(
+                    self._participant_meta["date"], self._participant_meta["region"]
+                )
+        return None
+
     def select_action(self, state: StateView) -> str:
         day = state.day
         window = state.step_of_day
@@ -97,8 +111,9 @@ class HeartStepsAgent(Agent):
             self._last_pi = self._pi_param
             return "idle"
         steps_flat = self._step_data.flatten()
+        wctx = self._get_weather()
         g, f = construct_heartsteps_features(
-            steps_flat, t, self._daily_steps, time_slot, day
+            steps_flat, t, self._daily_steps, time_slot, day, wctx
         )
         beta_sample = self._model.sample_beta(self._rng)
         alpha_0 = self._model.posterior_mean[: self._g_dim]
@@ -125,26 +140,21 @@ class HeartStepsAgent(Agent):
         return "suggest" if action_int == 1 else "idle"
 
     def update(
-        self,
-        state: StateView,
-        action: str,
-        reward: float,
-        next_state: StateView,
+        self, state: StateView, action: str, reward: float, next_state: StateView
     ) -> None:
         day = state.day
         window = state.step_of_day
         t = day * self._n_windows + window
         time_slot = window // 2
         steps_flat = self._step_data.flatten()
+        wctx = self._get_weather()
         g, f = construct_heartsteps_features(
-            steps_flat, t, self._daily_steps, time_slot, day
+            steps_flat, t, self._daily_steps, time_slot, day, wctx
         )
         action_int = 1 if action == "suggest" else 0
         available = self._last_available
         self._model.update(
             g, f, action_int, self._pi_param, reward, available=available
         )
-        self._dosage.update(
-            treatment_delivered=available and action_int == 1,
-        )
+        self._dosage.update(treatment_delivered=available and action_int == 1)
         self._daily_steps += float(steps_flat[t])

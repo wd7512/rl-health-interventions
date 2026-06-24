@@ -37,8 +37,9 @@ class TestNHANESLoader:
         loader = NHANESLoader(
             data_source="synthetic", n_participants=3, n_days=5, seed=42
         )
-        data = loader.load()
+        data, meta = loader.load()
         assert data.shape == (3, 5, 10)
+        assert len(meta) == 3
 
     def test_unknown_source_raises(self) -> None:
         loader = NHANESLoader(data_source="unknown")

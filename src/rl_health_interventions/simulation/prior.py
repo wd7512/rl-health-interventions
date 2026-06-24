@@ -108,6 +108,131 @@ def _extract_observations(
     return np.array(X_list), np.array(y_list)
 
 
+def construct_prior_from_steps(
+    training_indices: list[int],
+    step_data: np.ndarray,
+    g_dim: int = 12,
+    f_dim: int = 8,
+    n_days: int = 42,
+    n_windows: int = 10,
+    pi_param: float = 0.3,
+    p_avail: float = 0.85,
+    weather_loader: object | None = None,
+    participant_meta: list[dict] | None = None,
+    alpha_level: float = 0.05,
+    rng: np.random.Generator | None = None,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Construct prior from real step data without known generative model.
+
+    Uses observed step counts as the outcome variable. The agent learns
+    which contexts (features) are associated with higher step counts,
+    and the prior encodes this aggregate knowledge.
+
+    Args:
+        training_indices: Indices of training participants in step_data.
+        step_data: Array of shape (n_participants, n_days, n_windows).
+        g_dim: Dimensionality of baseline features.
+        f_dim: Dimensionality of treatment features.
+        n_days: Number of days per episode.
+        n_windows: Number of 30-minute windows per day.
+        pi_param: Action probability for prior construction.
+        p_avail: Availability probability.
+        weather_loader: Optional WeatherLoader for weather features.
+        participant_meta: Optional list of dicts with 'date' and 'region' keys.
+        alpha_level: Significance level for prior inclusion.
+        rng: Random generator.
+
+    Returns:
+        (prior_mean, prior_cov) tuple.
+    """
+    if rng is None:
+        rng = np.random.default_rng()
+    total_params = g_dim + 2 * f_dim
+    all_X: list[np.ndarray] = []
+    all_y: list[np.ndarray] = []
+    per_part_X: list[np.ndarray] = []
+    per_part_y: list[np.ndarray] = []
+
+    for idx in training_indices:
+        source = step_data[idx]
+        extra_idx = rng.integers(
+            0, source.shape[0], size=max(0, n_days - source.shape[0])
+        )
+        extended = np.concatenate([source, source[extra_idx]], axis=0)[:n_days]
+        steps = extended.flatten()
+        total_times = n_days * n_windows
+        daily_steps = _compute_daily_steps(steps, n_windows, total_times)
+
+        weather_ctx: tuple[float, float] | None = None
+        if weather_loader is not None and participant_meta is not None:
+            from rl_health_interventions.data.weather import WeatherLoader
+
+            if isinstance(weather_loader, WeatherLoader):
+                meta = participant_meta[idx]
+                weather_ctx = weather_loader.get_weather(meta["date"], meta["region"])
+
+        X_list_p: list[np.ndarray] = []
+        y_list_p: list[float] = []
+        for t in range(total_times):
+            window = t % n_windows
+            if window < 1 or window >= 9:
+                continue
+            available = rng.binomial(1, p_avail) == 1
+            if not available:
+                continue
+            day = t // n_windows
+            time_slot = window // 2
+            g, f = construct_heartsteps_features(
+                steps, t, float(daily_steps[t]), time_slot, day, weather_ctx
+            )
+            action = int(rng.binomial(1, pi_param))
+            step_reward = float(steps[t])
+            phi = np.concatenate([g, pi_param * f, (action - pi_param) * f])
+            X_list_p.append(phi)
+            y_list_p.append(step_reward)
+
+        if X_list_p:
+            X_arr = np.array(X_list_p)
+            y_arr = np.array(y_list_p)
+            all_X.append(X_arr)
+            all_y.append(y_arr)
+            per_part_X.append(X_arr)
+            per_part_y.append(y_arr)
+
+    if not all_X:
+        return np.zeros(total_params), np.eye(total_params) * 10.0
+
+    X_pooled = np.vstack(all_X)
+    y_pooled = np.concatenate(all_y)
+    pooled_beta, pooled_se, pooled_p = _fit_ols(X_pooled, y_pooled)
+
+    per_part_betas: list[np.ndarray] = []
+    for X_p, y_p in zip(per_part_X, per_part_y):
+        if X_p.shape[0] > total_params:
+            beta_i, _, _ = _fit_ols(X_p, y_p)
+            per_part_betas.append(beta_i)
+
+    if len(per_part_betas) >= 2:
+        cross_std = np.std(np.array(per_part_betas), axis=0, ddof=1)
+    elif len(per_part_betas) == 1:
+        cross_std = pooled_se.copy()
+    else:
+        cross_std = np.ones(total_params)
+
+    prior_mean = np.zeros(total_params)
+    prior_std = np.zeros(total_params)
+    for k in range(total_params):
+        if pooled_p[k] < alpha_level:
+            prior_mean[k] = pooled_beta[k]
+            prior_std[k] = cross_std[k]
+        else:
+            prior_mean[k] = 0.0
+            prior_std[k] = cross_std[k] * 0.5
+
+    prior_std = np.maximum(prior_std, 1e-8)
+    return prior_mean, np.diag(prior_std**2)
+
+
 def construct_prior(
     training_indices: list[int],
     step_data: np.ndarray,

@@ -15,7 +15,7 @@ def _make_step_data(n_days: int = 10, n_windows: int = 10) -> np.ndarray:
     return rng.poisson(500, size=(1, n_days, n_windows)).astype(float)
 
 
-def _make_prior(g_dim: int = 6, f_dim: int = 4) -> tuple[np.ndarray, np.ndarray]:
+def _make_prior(g_dim: int = 12, f_dim: int = 8) -> tuple[np.ndarray, np.ndarray]:
     total = g_dim + 2 * f_dim
     return np.zeros(total), np.eye(total)
 
@@ -55,8 +55,8 @@ class TestHeartStepsAgent:
 class TestHeartStepsReward:
     def test_reward_returns_float(self) -> None:
         step_data = _make_step_data()
-        alpha = np.array([1.0, 0.5, 0.3, 0.1, 0.2, 0.1, 0.2, 0.15, 0.1, 0.05])
-        beta = np.array([1.5, 2.5, 1.0, 0.5])
+        alpha = np.zeros(20)  # g_dim=12 + f_dim=8
+        beta = np.zeros(8)
         r = HeartStepsReward(step_data=step_data, alpha=alpha, beta=beta, seed=42)
         reward, done = r.reward("available", "suggest", 1)
         assert isinstance(reward, float)
@@ -64,8 +64,8 @@ class TestHeartStepsReward:
 
     def test_reward_resets_daily_steps(self) -> None:
         step_data = _make_step_data()
-        alpha = np.array([1.0, 0.5, 0.3, 0.1, 0.2, 0.1, 0.2, 0.15, 0.1, 0.05])
-        beta = np.array([1.5, 2.5, 1.0, 0.5])
+        alpha = np.zeros(20)
+        beta = np.zeros(8)
         r = HeartStepsReward(step_data=step_data, alpha=alpha, beta=beta, seed=42)
         for i in range(10):
             r.reward("available", "idle", i)

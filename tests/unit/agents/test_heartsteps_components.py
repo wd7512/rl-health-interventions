@@ -106,15 +106,13 @@ class TestConstructFeatures:
     def test_returns_correct_shapes(self) -> None:
         steps = np.arange(100, dtype=float)
         g, f = construct_heartsteps_features(steps, 50, 5000.0, 2, 5)
-        assert g.shape == (6,)
-        assert f.shape == (4,)
+        assert g.shape == (12,)
+        assert f.shape == (8,)
 
     def test_normalisation_bounds(self) -> None:
         steps = np.ones(100) * 10000
         g, f = construct_heartsteps_features(steps, 50, 50000.0, 2, 5)
-        # steps_30min_norm and daily_norm are clamped to [0, 1]
         assert 0.0 <= g[0] <= 1.0
         assert 0.0 <= g[1] <= 1.0
-        # sin/cos are in [-1, 1]
         assert -1.0 <= g[2] <= 1.0
         assert -1.0 <= g[3] <= 1.0

@@ -21,39 +21,49 @@ _NIGHT_WINDOWS = {0, 9}
 
 
 class HeartStepsReward(RewardHandler):
-    """HeartSteps generative model reward handler.
-
-    Computes rewards based on step data, feature construction, and a linear
-    reward model with treatment effects.
-    """
+    """HeartSteps generative model reward handler."""
 
     def __init__(
         self,
         step_data: np.ndarray,
-        alpha: np.ndarray,
-        beta: np.ndarray,
-        g_dim: int = 6,
-        f_dim: int = 4,
+        alpha: np.ndarray | None = None,
+        beta: np.ndarray | None = None,
+        g_dim: int = 12,
+        f_dim: int = 8,
         noise_variance: float = 1.0,
         p_avail: float = 0.85,
         p_sed: float = 0.2,
         n_windows: int = 10,
+        weather_loader: object | None = None,
+        participant_meta: dict | None = None,
         seed: int = 42,
         config: object | None = None,
         **_kwargs: object,
     ) -> None:
         self._step_data = step_data
-        self._alpha = alpha
-        self._beta = beta
+        self._alpha = alpha if alpha is not None else np.zeros(g_dim + f_dim)
+        self._beta = beta if beta is not None else np.zeros(f_dim)
         self._g_dim = g_dim
         self._f_dim = f_dim
         self._noise_variance = noise_variance
         self._p_avail = p_avail
         self._p_sed = p_sed
         self._n_windows = n_windows
+        self._weather_loader = weather_loader
+        self._participant_meta = participant_meta
         self._rng = np.random.default_rng(seed)
         self._step_counter = 0
         self._daily_steps = 0.0
+
+    def _get_weather(self) -> tuple[float, float] | None:
+        if self._weather_loader is not None and self._participant_meta is not None:
+            from rl_health_interventions.data.weather import WeatherLoader
+
+            if isinstance(self._weather_loader, WeatherLoader):
+                return self._weather_loader.get_weather(
+                    self._participant_meta["date"], self._participant_meta["region"]
+                )
+        return None
 
     def reward(self, state: str, action: str, step_idx: int) -> tuple[float, bool]:
         if step_idx == 0:
@@ -65,8 +75,9 @@ class HeartStepsReward(RewardHandler):
         time_slot = window // 2
 
         steps_flat = self._step_data.flatten()
+        wctx = self._get_weather()
         g, f = construct_heartsteps_features(
-            steps_flat, t, self._daily_steps, time_slot, day
+            steps_flat, t, self._daily_steps, time_slot, day, wctx
         )
 
         action_int = 1 if action == "suggest" else 0

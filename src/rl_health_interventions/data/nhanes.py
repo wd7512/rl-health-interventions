@@ -81,21 +81,36 @@ class RealNHANESLoader:
         if 1440 % self.n_windows != 0:
             raise ValueError(f"n_windows={n_windows} must divide 1440 evenly")
 
-    def load(self) -> np.ndarray:
-        import pandas as pd
+    def load(
+        self,
+    ) -> tuple[np.ndarray, list[dict]]:
+        """Load step data and participant metadata.
 
+        Returns:
+            (step_data, participant_meta) where step_data is
+            (n_participants, n_days, n_windows) and participant_meta is a
+            list of dicts with 'seqn', 'date', 'region' keys.
+        """
         import os
+
+        import pandas as pd
 
         if not os.path.exists(self.data_path):
             logger.warning(
-                "NHANES data not found at %s, falling back to synthetic", self.data_path
+                "NHANES data not found at %s, falling back to synthetic",
+                self.data_path,
             )
             gen = SyntheticNHANESGenerator(seed=self._seed)
-            return gen.generate(
+            data = gen.generate(
                 n_participants=self.n_participants,
                 n_days=self.n_days,
                 n_windows=self.n_windows,
             )
+            meta = [
+                {"seqn": i, "date": "2004-01-01", "region": 1}
+                for i in range(self.n_participants)
+            ]
+            return data, meta
 
         minutes_per_window = 1440 // self.n_windows
         minute_cols = [f"min_{i}" for i in range(1, 1441)]
@@ -132,11 +147,45 @@ class RealNHANESLoader:
 
         selected = finalized[: self.n_participants]
         result = np.zeros((len(selected), self.n_days, self.n_windows))
+        meta_list: list[dict] = []
         for i, seqn in enumerate(selected):
             days = sorted(participant_data[seqn].keys())[: self.n_days]
             for j, day in enumerate(days):
                 result[i, j] = participant_data[seqn][day]
-        return result
+            meta_list.append({"seqn": int(seqn), "date": "2004-01-01", "region": 1})
+
+        logger.info(
+            "Loaded %d participants x %d days x %d windows from %s",
+            len(selected),
+            self.n_days,
+            self.n_windows,
+            self.data_path,
+        )
+        return result, meta_list
+
+    def load_with_participants_csv(
+        self, participants_csv: str
+    ) -> tuple[np.ndarray, list[dict]]:
+        """Load step data and merge with participants.csv metadata."""
+        import os
+
+        import pandas as pd
+
+        step_data, meta = self.load()
+
+        if os.path.exists(participants_csv):
+            pdf = pd.read_csv(participants_csv)
+            meta_map = {
+                int(row["seqn"]): {"date": row["date"], "region": int(row["region"])}
+                for _, row in pdf.iterrows()
+            }
+            for m in meta:
+                if m["seqn"] in meta_map:
+                    m["date"] = meta_map[m["seqn"]]["date"]
+                    m["region"] = meta_map[m["seqn"]]["region"]
+            logger.info("Merged participant metadata from %s", participants_csv)
+
+        return step_data, meta
 
 
 class NHANESLoader:
@@ -146,7 +195,7 @@ class NHANESLoader:
         self,
         data_source: str = "synthetic",
         n_participants: int = 100,
-        n_days: int = 7,
+        n_days: int = 42,
         seed: int = 42,
         data_path: str | None = None,
     ) -> None:
@@ -156,12 +205,19 @@ class NHANESLoader:
         self._seed = seed
         self.data_path = data_path
 
-    def load(self) -> np.ndarray:
+    def load(self) -> tuple[np.ndarray, list[dict]]:
         if self.data_source == "synthetic":
             gen = SyntheticNHANESGenerator(seed=self._seed)
-            return gen.generate(
-                n_participants=self.n_participants, n_days=self.n_days, n_windows=10
+            data = gen.generate(
+                n_participants=self.n_participants,
+                n_days=self.n_days,
+                n_windows=10,
             )
+            meta = [
+                {"seqn": i, "date": "2004-01-01", "region": 1}
+                for i in range(self.n_participants)
+            ]
+            return data, meta
         if self.data_source == "real":
             if self.data_path is None:
                 msg = "data_path is required when data_source='real'"

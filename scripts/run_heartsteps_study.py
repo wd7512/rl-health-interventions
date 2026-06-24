@@ -1,162 +1,30 @@
-"""Run HeartSteps V2 simulation study."""
+"""Run HeartSteps V2 simulation study with real NHANES data."""
 
+from __future__ import annotations
+
+import argparse
+import json
 import logging
+import time
+
 import numpy as np
+import yaml
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
 
-def main() -> None:
-    from rl_health_interventions.data.nhanes import SyntheticNHANESGenerator
-    from rl_health_interventions.simulation.cross_validation import create_folds
-    from rl_health_interventions.simulation.prior import construct_prior
-
-    logger.info("HeartSteps V2 Simulation Study")
-    logger.info("=" * 50)
-
-    g_dim, f_dim = 6, 4
-    alpha = np.array([1.0, 0.5, 0.3, 0.1, 0.2, 0.1, 0.2, 0.15, 0.1, 0.05])
-    beta = np.array([1.5, 2.5, 1.0, 0.5])
-    noise_var, p_avail, p_sed = 1.0, 0.85, 0.2
-    n_days, n_windows, pi_param = 90, 10, 0.3
-    n_re_runs = 3
-
-    rng = np.random.default_rng(42)
-    step_data_raw = SyntheticNHANESGenerator(seed=42).generate(
-        n_participants=30, n_days=7, n_windows=10
-    )
-    step_data = np.zeros((30, n_days, n_windows))
-    for p in range(30):
-        src = step_data_raw[p]
-        extra_idx = rng.integers(0, src.shape[0], size=max(0, n_days - src.shape[0]))
-        step_data[p] = np.concatenate([src, src[extra_idx]], axis=0)[:n_days]
-    folds = create_folds(30, 3, rng=np.random.default_rng(42))
-    all_improvements: list[float] = []
-
-    for fold_idx, (train_idx, test_idx) in enumerate(folds):
-        logger.info("Fold %d", fold_idx + 1)
-        prior_mean, prior_cov = construct_prior(
-            train_idx.tolist(),
-            step_data,
-            alpha,
-            beta,
-            g_dim,
-            f_dim,
-            n_days,
-            pi_param,
-            noise_var,
-            p_avail,
-            rng=np.random.default_rng(int(rng.integers(0, 2**31))),
-        )
-
-        best_g, best_w, best_r = 0.0, 0.0, -float("inf")
-        for gv in (0.0, 0.5, 0.9):
-            for wv in (0.0, 0.5, 1.0):
-                rews = []
-                for p in train_idx[:3]:
-                    for _ in range(2):
-                        rews.append(
-                            _sim(
-                                step_data[int(p)],
-                                alpha,
-                                beta,
-                                g_dim,
-                                f_dim,
-                                noise_var,
-                                p_avail,
-                                p_sed,
-                                n_days,
-                                n_windows,
-                                pi_param,
-                                "prop",
-                                prior_mean,
-                                prior_cov,
-                                gv,
-                                wv,
-                                int(rng.integers(0, 2**31)),
-                            )
-                        )
-                mr = np.mean(rews) if rews else 0
-                if mr > best_r:
-                    best_r, best_g, best_w = mr, gv, wv
-        logger.info("  Best gamma=%.2f w=%.2f", best_g, best_w)
-
-        for p_idx in test_idx:
-            prop_r, band_r = [], []
-            for _ in range(n_re_runs):
-                prop_r.append(
-                    _sim(
-                        step_data[int(p_idx)],
-                        alpha,
-                        beta,
-                        g_dim,
-                        f_dim,
-                        noise_var,
-                        p_avail,
-                        p_sed,
-                        n_days,
-                        n_windows,
-                        pi_param,
-                        "prop",
-                        prior_mean,
-                        prior_cov,
-                        best_g,
-                        best_w,
-                        int(rng.integers(0, 2**31)),
-                    )
-                )
-                band_r.append(
-                    _sim(
-                        step_data[int(p_idx)],
-                        alpha,
-                        beta,
-                        g_dim,
-                        f_dim,
-                        noise_var,
-                        p_avail,
-                        p_sed,
-                        n_days,
-                        n_windows,
-                        pi_param,
-                        "bandit",
-                        prior_mean,
-                        prior_cov,
-                        0.0,
-                        0.0,
-                        int(rng.integers(0, 2**31)),
-                    )
-                )
-            imp = float(np.mean(prop_r) - np.mean(band_r))
-            all_improvements.append(imp)
-            logger.info(
-                "  P%02d: prop=%.1f bandit=%.1f imp=%+.1f",
-                int(p_idx),
-                np.mean(prop_r),
-                np.mean(band_r),
-                imp,
-            )
-
-    arr = np.array(all_improvements)
-    n_imp = int(np.sum(arr > 0))
-    logger.info("=" * 50)
-    logger.info(
-        "RESULTS: %d/%d improved (%.1f%%)", n_imp, len(arr), 100 * n_imp / len(arr)
-    )
-    logger.info("Mean improvement: %+.2f", float(np.mean(arr)))
-    logger.info("Median improvement: %+.2f", float(np.median(arr)))
-    logger.info("Range: [%.2f, %.2f]", float(np.min(arr)), float(np.max(arr)))
+def _get_weather(wl, meta, idx):
+    if wl and meta:
+        m = meta[idx]
+        return wl.get_weather(m["date"], m["region"])
+    return None
 
 
 def _sim(
     step_part,
-    alpha,
-    beta,
     g_dim,
     f_dim,
-    noise_var,
-    p_avail,
-    p_sed,
     n_days,
     n_windows,
     pi_param,
@@ -165,14 +33,21 @@ def _sim(
     prior_cov,
     proxy_gamma,
     proxy_w,
+    p_avail,
+    p_sed,
+    dosage_decay,
+    treat_benefit,
+    burden_coef,
+    noise_var,
     seed,
+    wctx=None,
 ):
     from rl_health_interventions.agents.heartsteps.bayesian import BayesianRewardModel
     from rl_health_interventions.agents.heartsteps.dosage import DosageTracker
-    from rl_health_interventions.agents.heartsteps.proxy import ProxyValueFunction
     from rl_health_interventions.agents.heartsteps.features import (
         construct_heartsteps_features,
     )
+    from rl_health_interventions.agents.heartsteps.proxy import ProxyValueFunction
 
     rng = np.random.default_rng(seed)
     steps_flat = step_part.flatten()
@@ -180,9 +55,17 @@ def _sim(
     model = BayesianRewardModel(
         g_dim, f_dim, prior_mean.copy(), prior_cov.copy(), noise_var
     )
-    dosage = DosageTracker(0.95)
+    dosage = DosageTracker(dosage_decay)
     proxy = ProxyValueFunction(
-        0.95, proxy_gamma, p_avail, p_sed, proxy_w, 20.0, 0.5, 2.0, 0.3
+        dosage_decay,
+        proxy_gamma,
+        p_avail,
+        p_sed,
+        proxy_w,
+        20.0,
+        0.5,
+        treat_benefit,
+        burden_coef,
     )
     proxy.solve()
     daily_s, total_r = 0.0, 0.0
@@ -190,7 +73,7 @@ def _sim(
         day, window = t // n_windows, t % n_windows
         ts = window // 2
         avail = False if window in {0, 9} else rng.binomial(1, p_avail) == 1
-        g, f = construct_heartsteps_features(steps_flat, t, daily_s, ts, day)
+        g, f = construct_heartsteps_features(steps_flat, t, daily_s, ts, day, wctx)
         act_int = 0
         if avail:
             if agent_type == "prop":
@@ -225,12 +108,7 @@ def _sim(
                     )
                 )
                 act_int = int(rng.binomial(1, p))
-        R = float(
-            g @ alpha[:g_dim]
-            + f @ alpha[g_dim:]
-            + act_int * f[: len(beta)] @ beta
-            + rng.normal(0, np.sqrt(noise_var))
-        )
+        R = float(steps_flat[t])
         if avail:
             if agent_type == "prop":
                 model.update(g, f, act_int, pi_param, R, available=True)
@@ -245,6 +123,252 @@ def _sim(
         total_r += R
         daily_s += float(steps_flat[t])
     return total_r
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="HeartSteps V2 Simulation Study")
+    parser.add_argument("--config", default="config/heartsteps.yaml")
+    parser.add_argument("--data-source", choices=["real", "synthetic"], default=None)
+    parser.add_argument("--n-participants", type=int, default=None)
+    parser.add_argument("--n-folds", type=int, default=None)
+    parser.add_argument("--episode-days", type=int, default=None)
+    parser.add_argument("--seed", type=int, default=None)
+    args = parser.parse_args()
+
+    with open(args.config) as f:
+        cfg = yaml.safe_load(f)
+
+    data_source = args.data_source or cfg.get("data", {}).get("source", "synthetic")
+    n_participants = args.n_participants or cfg.get("n_participants", 100)
+    n_folds = args.n_folds or cfg.get("n_folds", 3)
+    n_days = args.episode_days or cfg.get("episode_days", 42)
+    n_re_runs = cfg.get("n_re_runs", 3)
+    seed = args.seed or cfg.get("seed", 42)
+    n_windows = cfg.get("steps_per_day", 10)
+
+    agent_cfg = cfg["agents"][0]
+    g_dim = agent_cfg.get("g_dim", 12)
+    f_dim = agent_cfg.get("f_dim", 8)
+    pi_param = agent_cfg.get("pi_param", 0.3)
+    p_avail = agent_cfg.get("p_avail", 0.85)
+    p_sed = agent_cfg.get("p_sed", 0.2)
+    dosage_decay = agent_cfg.get("dosage_decay", 0.95)
+    treat_benefit = agent_cfg.get("treat_benefit", 2.0)
+    burden_coef = agent_cfg.get("burden_coef", 0.3)
+    noise_var = agent_cfg.get("noise_variance", 1.0)
+
+    grid_cfg = cfg.get("grid", {})
+    gamma_vals = grid_cfg.get("gamma", [0.0, 0.3, 0.5, 0.7, 0.9, 1.0])
+    omega_vals = grid_cfg.get("omega", [0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+
+    t0 = time.time()
+    logger.info("HeartSteps V2 Simulation Study")
+    logger.info("=" * 60)
+    logger.info(
+        "data=%s n_part=%d folds=%d days=%d grid=%dx%d",
+        data_source,
+        n_participants,
+        n_folds,
+        n_days,
+        len(gamma_vals),
+        len(omega_vals),
+    )
+
+    from rl_health_interventions.data.nhanes import NHANESLoader
+    from rl_health_interventions.simulation.cross_validation import create_folds
+    from rl_health_interventions.simulation.prior import construct_prior_from_steps
+
+    data_path = cfg.get("data", {}).get("data_path", "data/nhanes/accel.csv")
+    loader = NHANESLoader(
+        data_source=data_source,
+        n_participants=n_participants,
+        n_days=n_days,
+        seed=seed,
+        data_path=data_path,
+    )
+    step_data, participant_meta = loader.load()
+    logger.info("Loaded data: %s", step_data.shape)
+
+    weather_loader = None
+    weather_path = cfg.get("data", {}).get("weather_path")
+    if weather_path and data_source == "real":
+        try:
+            from rl_health_interventions.data.weather import WeatherLoader
+
+            weather_loader = WeatherLoader(weather_path)
+        except Exception:
+            logger.warning("Could not load weather data")
+
+    folds = create_folds(step_data.shape[0], n_folds, rng=np.random.default_rng(seed))
+    all_improvements: list[float] = []
+    all_results: list[dict] = []
+
+    for fold_idx, (train_idx, test_idx) in enumerate(folds):
+        logger.info(
+            "Fold %d (train=%d, test=%d)", fold_idx + 1, len(train_idx), len(test_idx)
+        )
+        prior_mean, prior_cov = construct_prior_from_steps(
+            train_idx.tolist(),
+            step_data,
+            g_dim=g_dim,
+            f_dim=f_dim,
+            n_days=n_days,
+            n_windows=n_windows,
+            pi_param=pi_param,
+            p_avail=p_avail,
+            weather_loader=weather_loader,
+            participant_meta=participant_meta,
+            rng=np.random.default_rng(
+                int(np.random.default_rng(seed).integers(0, 2**31))
+            ),
+        )
+
+        best_g, best_w, best_r = 0.0, 0.0, -float("inf")
+        for gv in gamma_vals:
+            for wv in omega_vals:
+                rews = []
+                for p in train_idx[:5]:
+                    for _ in range(2):
+                        wctx = _get_weather(weather_loader, participant_meta, int(p))
+                        rews.append(
+                            _sim(
+                                step_data[int(p)],
+                                g_dim,
+                                f_dim,
+                                n_days,
+                                n_windows,
+                                pi_param,
+                                "prop",
+                                prior_mean,
+                                prior_cov,
+                                gv,
+                                wv,
+                                p_avail,
+                                p_sed,
+                                dosage_decay,
+                                treat_benefit,
+                                burden_coef,
+                                noise_var,
+                                int(np.random.default_rng(seed).integers(0, 2**31)),
+                                wctx,
+                            )
+                        )
+                mr = np.mean(rews) if rews else 0
+                if mr > best_r:
+                    best_r, best_g, best_w = mr, gv, wv
+
+        logger.info("  Best gamma=%.2f w=%.2f", best_g, best_w)
+        fold_imps: list[float] = []
+        for p_idx in test_idx:
+            prop_r, band_r = [], []
+            for _ in range(n_re_runs):
+                wctx = _get_weather(weather_loader, participant_meta, int(p_idx))
+                seed_i = int(np.random.default_rng(seed).integers(0, 2**31))
+                prop_r.append(
+                    _sim(
+                        step_data[int(p_idx)],
+                        g_dim,
+                        f_dim,
+                        n_days,
+                        n_windows,
+                        pi_param,
+                        "prop",
+                        prior_mean,
+                        prior_cov,
+                        best_g,
+                        best_w,
+                        p_avail,
+                        p_sed,
+                        dosage_decay,
+                        treat_benefit,
+                        burden_coef,
+                        noise_var,
+                        seed_i,
+                        wctx,
+                    )
+                )
+                seed_i = int(np.random.default_rng(seed).integers(0, 2**31))
+                band_r.append(
+                    _sim(
+                        step_data[int(p_idx)],
+                        g_dim,
+                        f_dim,
+                        n_days,
+                        n_windows,
+                        pi_param,
+                        "bandit",
+                        prior_mean,
+                        prior_cov,
+                        0.0,
+                        0.0,
+                        p_avail,
+                        p_sed,
+                        dosage_decay,
+                        treat_benefit,
+                        burden_coef,
+                        noise_var,
+                        seed_i,
+                        wctx,
+                    )
+                )
+            imp = float(np.mean(prop_r) - np.mean(band_r))
+            fold_imps.append(imp)
+            all_improvements.append(imp)
+            all_results.append(
+                {
+                    "fold": fold_idx,
+                    "participant": int(p_idx),
+                    "proposed": float(np.mean(prop_r)),
+                    "bandit": float(np.mean(band_r)),
+                    "improvement": imp,
+                }
+            )
+            logger.info(
+                "  P%02d: prop=%.1f bandit=%.1f imp=%+.1f",
+                int(p_idx),
+                np.mean(prop_r),
+                np.mean(band_r),
+                imp,
+            )
+
+    arr = np.array(all_improvements)
+    n_imp = int(np.sum(arr > 0))
+    logger.info("=" * 60)
+    logger.info(
+        "RESULTS: %d/%d improved (%.1f%%)", n_imp, len(arr), 100 * n_imp / len(arr)
+    )
+    logger.info(
+        "Mean: %+.2f  Median: %+.2f", float(np.mean(arr)), float(np.median(arr))
+    )
+    logger.info(
+        "Range: [%.2f, %.2f]  Time: %.1fs",
+        float(np.min(arr)),
+        float(np.max(arr)),
+        time.time() - t0,
+    )
+
+    with open("results_heartsteps.json", "w") as f:
+        json.dump(
+            {
+                "config": {
+                    "data_source": data_source,
+                    "n_participants": n_participants,
+                    "n_folds": n_folds,
+                    "episode_days": n_days,
+                    "g_dim": g_dim,
+                    "f_dim": f_dim,
+                },
+                "summary": {
+                    "n_improved": n_imp,
+                    "mean": float(np.mean(arr)),
+                    "median": float(np.median(arr)),
+                },
+                "results": all_results,
+            },
+            f,
+            indent=2,
+        )
+    logger.info("Results saved to results_heartsteps.json")
 
 
 if __name__ == "__main__":
