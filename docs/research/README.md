@@ -16,7 +16,10 @@ written in Markdown, versioned with the repo, and reviewed via PR.
 
 | Path | Type | Description | Status |
 |------|------|-------------|--------|
+| [decision-catalogue.md](decision-catalogue.md) | Decision catalogue | Primary entry point: 14 open MDP design decisions with evidence and options | Active |
 | [decision-trees/online-vs-offline-rl.md](decision-trees/online-vs-offline-rl.md) | Decision record | Resolves online vs offline RL framing — recommends simulation-based policy evaluation | Closed |
+| [state-space-design/](state-space-design/) | Evidence hub | State space evidence: step bins, hidden state, reference configs | Active |
+| [action-space-design/](action-space-design/) | Evidence hub | Action space evidence: burden/fatigue, non-activity interventions, reference configs | Active |
 | [recreations/](recreations/) | Paper recreations | Cross-paper synthesis and individual recreation reports for 8 published papers | Active |
 | [recreations/SYNTHESIS.md](recreations/SYNTHESIS.md) | Synthesis | Aggregated findings from 8 paper recreations | Active |
 | [archive/](archive/) | Archived | Historical research artifacts from the June-14 batch, retained for reference | Archived |
