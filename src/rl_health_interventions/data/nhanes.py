@@ -60,15 +60,22 @@ class SyntheticNHANESGenerator:
 
 
 class RealNHANESLoader:
-    """Loads real NHANES minute-level step count data from PhysioNet CSV."""
+    """Loads real NHANES minute-level step count data from PhysioNet CSV.
+
+    Handles the PhysioNet minute-level-step-count-nhanes format:
+        SEQN, PAXDAYM, PAXDAYWM, min_0001, min_0002, ..., min_1440
+
+    Files may be .xz compressed (pandas handles this transparently).
+    """
 
     def __init__(
         self,
         data_path: str,
-        n_participants: int = 50,
-        n_days: int = 7,
+        n_participants: int = 100,
+        n_days: int = 42,
         n_windows: int = 10,
         min_valid_minutes: int = 600,
+        subject_info_path: str | None = None,
         seed: int = 42,
     ) -> None:
         self.data_path = data_path
@@ -76,20 +83,19 @@ class RealNHANESLoader:
         self.n_days = n_days
         self.n_windows = n_windows
         self.min_valid_minutes = min_valid_minutes
+        self.subject_info_path = subject_info_path
         self._seed = seed
         self._rng = np.random.default_rng(seed)
         if 1440 % self.n_windows != 0:
             raise ValueError(f"n_windows={n_windows} must divide 1440 evenly")
 
-    def load(
-        self,
-    ) -> tuple[np.ndarray, list[dict]]:
+    def load(self) -> tuple[np.ndarray, list[dict]]:
         """Load step data and participant metadata.
 
         Returns:
             (step_data, participant_meta) where step_data is
             (n_participants, n_days, n_windows) and participant_meta is a
-            list of dicts with 'seqn', 'date', 'region' keys.
+            list of dicts with 'seqn', 'date', 'region', 'n_valid_days' keys.
         """
         import os
 
@@ -100,26 +106,20 @@ class RealNHANESLoader:
                 "NHANES data not found at %s, falling back to synthetic",
                 self.data_path,
             )
-            gen = SyntheticNHANESGenerator(seed=self._seed)
-            data = gen.generate(
-                n_participants=self.n_participants,
-                n_days=self.n_days,
-                n_windows=self.n_windows,
-            )
-            meta = [
-                {"seqn": i, "date": "2004-01-01", "region": 1}
-                for i in range(self.n_participants)
-            ]
-            return data, meta
+            return self._load_synthetic()
 
         minutes_per_window = 1440 // self.n_windows
-        minute_cols = [f"min_{i}" for i in range(1, 1441)]
-        cols_to_read = ["SEQN", "PAXDAYM"] + minute_cols
-        participant_data: dict[int, dict[int, np.ndarray]] = {}
+        minute_cols = [f"min_{i:04d}" for i in range(1, 1441)]
+        cols_to_read = ["SEQN", "PAXDAYM", "PAXDAYWM"] + minute_cols
+
+        logger.info(
+            "Loading NHANES data from %s (this may take a moment)...", self.data_path
+        )
+        participant_data: dict[int, dict[int, tuple[np.ndarray, int]]] = {}
         finalized: list[int] = []
 
         for chunk in pd.read_csv(self.data_path, usecols=cols_to_read, chunksize=5000):
-            chunk = chunk[chunk["PAXDAYM"] <= self.n_days]
+            chunk = chunk[chunk["PAXDAYM"] <= 9]
             for seqn, group in chunk.groupby("SEQN", sort=False):
                 if seqn in finalized:
                     continue
@@ -129,16 +129,18 @@ class RealNHANESLoader:
                     day = int(row["PAXDAYM"])
                     if day in participant_data[seqn]:
                         continue
+                    day_of_week = int(row["PAXDAYWM"])
                     minute_vals = row[minute_cols].values.astype(np.float64)
-                    valid_count = np.sum(~np.isnan(minute_vals))
+                    valid_count = int(np.sum(~np.isnan(minute_vals)))
                     if valid_count < self.min_valid_minutes:
                         continue
                     minute_vals = np.nan_to_num(minute_vals, nan=0.0)
                     windows = minute_vals.reshape(
                         self.n_windows, minutes_per_window
                     ).sum(axis=1)
-                    participant_data[seqn][day] = windows
-                if len(participant_data[seqn]) >= self.n_days:
+                    participant_data[seqn][day] = (windows, day_of_week)
+                n_valid = len(participant_data[seqn])
+                if n_valid >= 7:
                     finalized.append(seqn)
                     if len(finalized) >= self.n_participants:
                         break
@@ -148,11 +150,41 @@ class RealNHANESLoader:
         selected = finalized[: self.n_participants]
         result = np.zeros((len(selected), self.n_days, self.n_windows))
         meta_list: list[dict] = []
+
         for i, seqn in enumerate(selected):
-            days = sorted(participant_data[seqn].keys())[: self.n_days]
-            for j, day in enumerate(days):
-                result[i, j] = participant_data[seqn][day]
-            meta_list.append({"seqn": int(seqn), "date": "2004-01-01", "region": 1})
+            days = sorted(participant_data[seqn].keys())
+            for j, day in enumerate(days[: self.n_days]):
+                result[i, j] = participant_data[seqn][day][0]
+            if len(days) < self.n_days:
+                rng_ext = np.random.default_rng(self._seed + seqn)
+                extra_idx = rng_ext.integers(0, len(days), size=self.n_days - len(days))
+                for j, idx in enumerate(extra_idx):
+                    result[i, len(days) + j] = participant_data[seqn][days[idx]][0]
+            n_valid = len(participant_data[seqn])
+            meta_list.append(
+                {
+                    "seqn": int(seqn),
+                    "date": "2004-01-01",
+                    "region": 1,
+                    "n_valid_days": n_valid,
+                }
+            )
+
+        if self.subject_info_path and os.path.exists(self.subject_info_path):
+            subject_info = pd.read_csv(self.subject_info_path)
+            info_map = {
+                int(row["SEQN"]): {
+                    "data_release_cycle": int(row["data_release_cycle"]),
+                    "gender": row["gender"],
+                    "age": int(row["age_in_years_at_screening"]),
+                }
+                for _, row in subject_info.iterrows()
+            }
+            for m in meta_list:
+                if m["seqn"] in info_map:
+                    m["cycle"] = info_map[m["seqn"]]["data_release_cycle"]
+                    m["gender"] = info_map[m["seqn"]]["gender"]
+                    m["age"] = info_map[m["seqn"]]["age"]
 
         logger.info(
             "Loaded %d participants x %d days x %d windows from %s",
@@ -176,7 +208,10 @@ class RealNHANESLoader:
         if os.path.exists(participants_csv):
             pdf = pd.read_csv(participants_csv)
             meta_map = {
-                int(row["seqn"]): {"date": row["date"], "region": int(row["region"])}
+                int(row["seqn"]): {
+                    "date": row["date"],
+                    "region": int(row["region"]),
+                }
                 for _, row in pdf.iterrows()
             }
             for m in meta:
@@ -186,6 +221,19 @@ class RealNHANESLoader:
             logger.info("Merged participant metadata from %s", participants_csv)
 
         return step_data, meta
+
+    def _load_synthetic(self) -> tuple[np.ndarray, list[dict]]:
+        gen = SyntheticNHANESGenerator(seed=self._seed)
+        data = gen.generate(
+            n_participants=self.n_participants,
+            n_days=self.n_days,
+            n_windows=self.n_windows,
+        )
+        meta = [
+            {"seqn": i, "date": "2004-01-01", "region": 1, "n_valid_days": self.n_days}
+            for i in range(self.n_participants)
+        ]
+        return data, meta
 
 
 class NHANESLoader:
@@ -198,12 +246,14 @@ class NHANESLoader:
         n_days: int = 42,
         seed: int = 42,
         data_path: str | None = None,
+        subject_info_path: str | None = None,
     ) -> None:
         self.data_source = data_source
         self.n_participants = n_participants
         self.n_days = n_days
         self._seed = seed
         self.data_path = data_path
+        self.subject_info_path = subject_info_path
 
     def load(self) -> tuple[np.ndarray, list[dict]]:
         if self.data_source == "synthetic":
@@ -214,7 +264,12 @@ class NHANESLoader:
                 n_windows=10,
             )
             meta = [
-                {"seqn": i, "date": "2004-01-01", "region": 1}
+                {
+                    "seqn": i,
+                    "date": "2004-01-01",
+                    "region": 1,
+                    "n_valid_days": self.n_days,
+                }
                 for i in range(self.n_participants)
             ]
             return data, meta
@@ -226,6 +281,7 @@ class NHANESLoader:
                 data_path=self.data_path,
                 n_participants=self.n_participants,
                 n_days=self.n_days,
+                subject_info_path=self.subject_info_path,
                 seed=self._seed,
             )
             return loader.load()

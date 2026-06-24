@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import time
 
 import numpy as np
@@ -41,6 +42,8 @@ def _sim(
     noise_var,
     seed,
     wctx=None,
+    alpha=None,
+    beta=None,
 ):
     from rl_health_interventions.agents.heartsteps.bayesian import BayesianRewardModel
     from rl_health_interventions.agents.heartsteps.dosage import DosageTracker
@@ -52,6 +55,31 @@ def _sim(
     rng = np.random.default_rng(seed)
     steps_flat = step_part.flatten()
     total_t = n_days * n_windows
+    if alpha is None:
+        alpha = np.array(
+            [
+                1.0,
+                0.5,
+                0.3,
+                0.1,
+                0.2,
+                0.1,
+                0.2,
+                0.15,
+                0.1,
+                0.05,
+                0.3,
+                0.2,
+                0.1,
+                0.15,
+                0.1,
+                0.05,
+                0.1,
+                0.05,
+            ]
+        )
+    if beta is None:
+        beta = np.array([1.5, 2.5, 1.0, 0.5, 0.3, 0.2, 0.1, 0.15])
     model = BayesianRewardModel(
         g_dim, f_dim, prior_mean.copy(), prior_cov.copy(), noise_var
     )
@@ -95,7 +123,12 @@ def _sim(
                     + (1 - pi_param) * (f @ bs)
                     + proxy.gamma * proxy.H(x, 1)
                 )
-                p = float(np.clip(np.exp(Q1) / (np.exp(Q0) + np.exp(Q1)), 0.1, 0.2))
+                mq = max(Q0, Q1)
+                p = float(
+                    np.clip(
+                        np.exp(Q1 - mq) / (np.exp(Q0 - mq) + np.exp(Q1 - mq)), 0.1, 0.2
+                    )
+                )
                 act_int = int(rng.binomial(1, p))
             else:
                 th = rng.multivariate_normal(model.posterior_mean, model.posterior_cov)
@@ -108,7 +141,12 @@ def _sim(
                     )
                 )
                 act_int = int(rng.binomial(1, p))
-        R = float(steps_flat[t])
+        R = float(
+            g @ alpha[:g_dim]
+            + f @ alpha[g_dim : g_dim + f_dim]
+            + act_int * f[: len(beta)] @ beta
+            + rng.normal(0, np.sqrt(noise_var))
+        )
         if avail:
             if agent_type == "prop":
                 model.update(g, f, act_int, pi_param, R, available=True)
@@ -157,6 +195,36 @@ def main() -> None:
     burden_coef = agent_cfg.get("burden_coef", 0.3)
     noise_var = agent_cfg.get("noise_variance", 1.0)
 
+    reward_cfg = cfg.get("reward", {})
+    alpha = np.array(
+        reward_cfg.get(
+            "alpha",
+            [
+                1.0,
+                0.5,
+                0.3,
+                0.1,
+                0.2,
+                0.1,
+                0.2,
+                0.15,
+                0.1,
+                0.05,
+                0.3,
+                0.2,
+                0.1,
+                0.15,
+                0.1,
+                0.05,
+                0.1,
+                0.05,
+                0.3,
+                0.2,
+            ],
+        )
+    )
+    beta = np.array(reward_cfg.get("beta", [1.5, 2.5, 1.0, 0.5, 0.3, 0.2, 0.1, 0.15]))
+
     grid_cfg = cfg.get("grid", {})
     gamma_vals = grid_cfg.get("gamma", [0.0, 0.3, 0.5, 0.7, 0.9, 1.0])
     omega_vals = grid_cfg.get("omega", [0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
@@ -178,15 +246,39 @@ def main() -> None:
     from rl_health_interventions.simulation.cross_validation import create_folds
     from rl_health_interventions.simulation.prior import construct_prior_from_steps
 
-    data_path = cfg.get("data", {}).get("data_path", "data/nhanes/accel.csv")
+    data_path = cfg.get("data", {}).get(
+        "data_path", "data/nhanes-step-count/csv/nhanes_1440_PAXMTSM.csv.xz"
+    )
+    subject_info_path = cfg.get("data", {}).get(
+        "subject_info_path", "data/nhanes-step-count/subject-info.csv"
+    )
+    participants_csv = cfg.get("data", {}).get(
+        "participants_csv", "data/nhanes/participants.csv"
+    )
     loader = NHANESLoader(
         data_source=data_source,
         n_participants=n_participants,
         n_days=n_days,
         seed=seed,
         data_path=data_path,
+        subject_info_path=subject_info_path,
     )
     step_data, participant_meta = loader.load()
+
+    if os.path.exists(participants_csv):
+        import pandas as pd
+
+        pdf = pd.read_csv(participants_csv)
+        meta_map = {
+            int(row["seqn"]): {"date": row["date"], "region": int(row["region"])}
+            for _, row in pdf.iterrows()
+        }
+        for m in participant_meta:
+            if m["seqn"] in meta_map:
+                m["date"] = meta_map[m["seqn"]]["date"]
+                m["region"] = meta_map[m["seqn"]]["region"]
+        logger.info("Merged participant metadata from %s", participants_csv)
+
     logger.info("Loaded data: %s", step_data.shape)
 
     weather_loader = None
@@ -222,6 +314,11 @@ def main() -> None:
                 int(np.random.default_rng(seed).integers(0, 2**31))
             ),
         )
+        logger.info(
+            "  Prior mean norm: %.4f, cov trace: %.4f",
+            np.linalg.norm(prior_mean),
+            np.trace(prior_cov),
+        )
 
         best_g, best_w, best_r = 0.0, 0.0, -float("inf")
         for gv in gamma_vals:
@@ -251,6 +348,8 @@ def main() -> None:
                                 noise_var,
                                 int(np.random.default_rng(seed).integers(0, 2**31)),
                                 wctx,
+                                alpha,
+                                beta,
                             )
                         )
                 mr = np.mean(rews) if rews else 0
@@ -285,6 +384,8 @@ def main() -> None:
                         noise_var,
                         seed_i,
                         wctx,
+                        alpha,
+                        beta,
                     )
                 )
                 seed_i = int(np.random.default_rng(seed).integers(0, 2**31))
@@ -309,6 +410,8 @@ def main() -> None:
                         noise_var,
                         seed_i,
                         wctx,
+                        alpha,
+                        beta,
                     )
                 )
             imp = float(np.mean(prop_r) - np.mean(band_r))
@@ -324,11 +427,12 @@ def main() -> None:
                 }
             )
             logger.info(
-                "  P%02d: prop=%.1f bandit=%.1f imp=%+.1f",
+                "  P%02d: prop=%.1f bandit=%.1f imp=%+.1f step_mean=%.0f",
                 int(p_idx),
                 np.mean(prop_r),
                 np.mean(band_r),
                 imp,
+                step_data[int(p_idx)].mean(),
             )
 
     arr = np.array(all_improvements)

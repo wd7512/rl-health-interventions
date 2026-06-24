@@ -12,7 +12,9 @@ n_re_runs: 3
 
 data:
   source: real
-  data_path: data/nhanes/accel.csv
+  data_path: data/nhanes-step-count/csv/nhanes_1440_PAXMTSM.csv.xz
+  subject_info_path: data/nhanes-step-count/subject-info.csv
+  participants_csv: data/nhanes/participants.csv
   weather_path: data/weather/weather_cache.csv
   min_valid_minutes: 600
 
@@ -31,6 +33,8 @@ reward:
   g_dim: 12
   f_dim: 8
   noise_variance: 1.0
+  alpha: [1.0, 0.5, 0.3, 0.1, 0.2, 0.1, 0.2, 0.15, 0.1, 0.05, 0.3, 0.2, 0.1, 0.15, 0.1, 0.05, 0.1, 0.05, 0.3, 0.2]
+  beta: [1.5, 2.5, 1.0, 0.5, 0.3, 0.2, 0.1, 0.15]
 
 agents:
   - type: heartsteps
@@ -54,5 +58,5 @@ agents:
     noise_variance: 1.0
 
 grid:
-  gamma: [0.0, 0.3, 0.5, 0.7, 0.9, 1.0]
-  omega: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+  gamma: [0.0, 0.5, 0.9]
+  omega: [0.0, 0.5, 1.0]

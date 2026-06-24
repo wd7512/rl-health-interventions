@@ -17,17 +17,18 @@ from rl_health_interventions.agents.heartsteps.features import (
 logger = logging.getLogger(__name__)
 
 
-def _fit_ols(X: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def _fit_ridge(
+    X: np.ndarray, y: np.ndarray, alpha: float = 1.0
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     n, p = X.shape
     if n <= p:
-        return np.zeros(p), np.zeros(p), np.ones(p)
+        return np.zeros(p), np.ones(p), np.ones(p)
     try:
-        beta, _, rank, _ = np.linalg.lstsq(X, y, rcond=None)
-        if rank < p:
-            beta = np.linalg.pinv(X) @ y
+        XtX = X.T @ X + alpha * np.eye(p)
+        beta = np.linalg.solve(XtX, X.T @ y)
         residuals = y - X @ beta
         sigma2 = np.sum(residuals**2) / max(n - p, 1)
-        XtX_inv = np.linalg.pinv(X.T @ X)
+        XtX_inv = np.linalg.inv(XtX)
         se = np.sqrt(sigma2 * np.abs(np.diag(XtX_inv)))
         z_stats = np.where(se > 1e-15, beta / se, 0.0)
         p_values = np.array(
@@ -39,7 +40,7 @@ def _fit_ols(X: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.n
         p_values = np.clip(p_values, 0.0, 1.0)
         return beta, se, p_values
     except np.linalg.LinAlgError:
-        return np.zeros(p), np.zeros(p), np.ones(p)
+        return np.zeros(p), np.ones(p), np.ones(p)
 
 
 def _compute_daily_steps(
@@ -204,33 +205,49 @@ def construct_prior_from_steps(
 
     X_pooled = np.vstack(all_X)
     y_pooled = np.concatenate(all_y)
-    pooled_beta, pooled_se, pooled_p = _fit_ols(X_pooled, y_pooled)
 
-    per_part_betas: list[np.ndarray] = []
+    X_mean = X_pooled.mean(axis=0)
+    X_std = X_pooled.std(axis=0)
+    X_std = np.maximum(X_std, 1e-8)
+    X_normed = (X_pooled - X_mean) / X_std
+
+    y_mean = y_pooled.mean()
+    y_std = max(y_pooled.std(), 1e-8)
+    y_normed = (y_pooled - y_mean) / y_std
+
+    pooled_beta, pooled_se, pooled_p = _fit_ridge(X_normed, y_normed, alpha=1.0)
+
+    prior_mean_raw = np.zeros(total_params)
+    prior_std_raw = np.zeros(total_params)
+    for k in range(total_params):
+        if pooled_p[k] < alpha_level:
+            prior_mean_raw[k] = pooled_beta[k] * (y_std / X_std[k])
+            prior_std_raw[k] = pooled_se[k] * (y_std / X_std[k])
+        else:
+            prior_mean_raw[k] = 0.0
+            prior_std_raw[k] = pooled_se[k] * (y_std / X_std[k]) * 0.5
+
+    prior_std_raw = np.maximum(prior_std_raw, 1e-8)
+
+    per_part_betas_normed: list[np.ndarray] = []
     for X_p, y_p in zip(per_part_X, per_part_y):
         if X_p.shape[0] > total_params:
-            beta_i, _, _ = _fit_ols(X_p, y_p)
-            per_part_betas.append(beta_i)
+            X_p_normed = (X_p - X_mean) / X_std
+            y_p_normed = (y_p - y_mean) / y_std
+            beta_i, _, _ = _fit_ridge(X_p_normed, y_p_normed, alpha=1.0)
+            per_part_betas_normed.append(beta_i)
 
-    if len(per_part_betas) >= 2:
-        cross_std = np.std(np.array(per_part_betas), axis=0, ddof=1)
-    elif len(per_part_betas) == 1:
+    if len(per_part_betas_normed) >= 2:
+        cross_std = np.std(np.array(per_part_betas_normed), axis=0, ddof=1)
+    elif len(per_part_betas_normed) == 1:
         cross_std = pooled_se.copy()
     else:
         cross_std = np.ones(total_params)
 
-    prior_mean = np.zeros(total_params)
-    prior_std = np.zeros(total_params)
-    for k in range(total_params):
-        if pooled_p[k] < alpha_level:
-            prior_mean[k] = pooled_beta[k]
-            prior_std[k] = cross_std[k]
-        else:
-            prior_mean[k] = 0.0
-            prior_std[k] = cross_std[k] * 0.5
+    prior_mean = np.clip(prior_mean_raw, -10.0, 10.0)
+    prior_cov_diag = np.clip(cross_std * (y_std / np.maximum(X_std, 1e-8)), 1e-4, 10.0)
 
-    prior_std = np.maximum(prior_std, 1e-8)
-    return prior_mean, np.diag(prior_std**2)
+    return prior_mean, np.diag(prior_cov_diag**2)
 
 
 def construct_prior(
@@ -271,13 +288,13 @@ def construct_prior(
         all_X.append(X_i)
         all_y.append(y_i)
         if X_i.shape[0] > total_params:
-            beta_i, _, _ = _fit_ols(X_i, y_i)
+            beta_i, _, _ = _fit_ridge(X_i, y_i)
             per_part_betas.append(beta_i)
     if not all_X or all(X.shape[0] == 0 for X in all_X):
         return np.zeros(total_params), np.eye(total_params)
     X_pooled = np.vstack(all_X)
     y_pooled = np.concatenate(all_y)
-    pooled_beta, pooled_se, pooled_p = _fit_ols(X_pooled, y_pooled)
+    pooled_beta, pooled_se, pooled_p = _fit_ridge(X_pooled, y_pooled)
     if len(per_part_betas) >= 2:
         cross_std = np.std(np.array(per_part_betas), axis=0, ddof=1)
     elif len(per_part_betas) == 1:
