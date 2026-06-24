@@ -10,7 +10,7 @@ purpose: "Pre-implementation research outputs for the rl-health-interventions pr
 This directory holds research-process documents that support the
 project but are not implementation artefacts. They cover decision
 records, paper recreations, and historical research batches — all
-written in markdown, versioned with the repo, and reviewed via PR.
+written in Markdown, versioned with the repo, and reviewed via PR.
 
 ## Index
 
@@ -48,7 +48,7 @@ written in markdown, versioned with the repo, and reviewed via PR.
 
 ## Related directories
 
-- [.reviews_and_reports/](../.reviews_and_reports/) — code and PR review artifacts
+- [.reviews_and_reports/](../../.reviews_and_reports/) — code and PR review artifacts
 - [docs/sources/](../sources/) — dataset feasibility and reference data
 - [docs/design/](../design/) — academic design documents
 - [docs/experimental_phases/](../experimental_phases/) — experiment specifications and results
