@@ -7,16 +7,19 @@ purpose: "Pre-implementation research outputs for the rl-health-interventions pr
 
 # Research Artifacts
 
-This directory holds research-side documents that support the project
-but are not implementation artefacts. They are written in markdown,
-versioned with the repo, and reviewed via PR like any other change.
+This directory holds research-process documents that support the
+project but are not implementation artefacts. They cover decision
+records, paper recreations, and historical research batches — all
+written in Markdown, versioned with the repo, and reviewed via PR.
 
-## What's in here
+## Index
 
-| File | Type | Status | Owner |
-|---|---|---|---|
-| `statistical-analysis-plan.md` | Pre-registration | draft v0.1 | W. Dennis |
-| `decision-trees/` | Decision records | (forthcoming) | W. Dennis |
+| Path | Type | Description | Status |
+|------|------|-------------|--------|
+| [decision-trees/online-vs-offline-rl.md](decision-trees/online-vs-offline-rl.md) | Decision record | Resolves online vs offline RL framing — recommends simulation-based policy evaluation | Closed |
+| [recreations/](recreations/) | Paper recreations | Cross-paper synthesis and individual recreation reports for 8 published papers | Active |
+| [recreations/SYNTHESIS.md](recreations/SYNTHESIS.md) | Synthesis | Aggregated findings from 8 paper recreations | Active |
+| [archive/](archive/) | Archived | Historical research artifacts from the June-14 batch, retained for reference | Archived |
 
 ## Conventions
 
@@ -30,6 +33,8 @@ versioned with the repo, and reviewed via PR like any other change.
   where relevant, but never modify them.
 - Documents are *versioned*. Changes are logged in the document's
   amendment log, not by rewriting history.
+- Research documents are *inputs* to design decisions and
+  implementation, not the decisions themselves.
 
 ## Review process
 
@@ -40,6 +45,13 @@ versioned with the repo, and reviewed via PR like any other change.
   review the analysis plan before locking v1.0. The audit flagged
   that no external review process currently exists; this is the seed
   of one.
+
+## Related directories
+
+- [.reviews_and_reports/](../../.reviews_and_reports/) — code and PR review artifacts
+- [docs/sources/](../sources/) — dataset feasibility and reference data
+- [docs/design/](../design/) — academic design documents
+- [docs/experimental_phases/](../experimental_phases/) — experiment specifications and results
 
 ## Why a separate directory
 

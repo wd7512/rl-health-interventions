@@ -1,3 +1,7 @@
+> **Archived 2026-06-23.** This document was part of the June-14 research batch
+> (PRs #86–#90). It is retained for historical reference but is no longer actively
+> maintained. See `docs/research/README.md` for current research artifacts.
+
 # Simulator Validation Strategy — Decision Tree
 
 **Date:** 2026-06-14  
