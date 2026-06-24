@@ -37,7 +37,7 @@ From the dose-response curve, four clinically meaningful thresholds emerge:
 | < 4,000 steps | Below minimum effective dose (Lee 2022) | Highest mortality risk |
 | 4,000–6,999 | Steep part of curve; biggest per-step benefit | High marginal return on intervention |
 | 7,000–9,999 | Near plateau for older adults | Good — additional steps add little |
-| ≥ 10,000 | Plateau region | Optimum — no additional mortality benefit |
+| ≥ 10,000 | Plateau region | No additional mortality benefit |
 
 ## 4. Relevance for intervention (vs mortality)
 

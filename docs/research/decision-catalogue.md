@@ -22,7 +22,7 @@ related: "state-space-design/ · action-space-design/ · decision-trees/online-v
 
 ## Dependency diagram
 
-```
+```text
 D14 (Phase 1 vs 2 deferral) ─── constrains timing of all
 │
 ├─→ D1 (step encoding) ──→ D11 (reward design) ←── D8 (non-activity reward)
@@ -348,76 +348,3 @@ Which decisions must be resolved for Phase 1 and which can be deferred?
 - **Sub-questions** tagged `[parameter — sensitivity analysis]` are continuous-valued choices for sensitivity analysis
 - **Deep-dive links** point to files in `state-space-design/` or `action-space-design/`
 - **Upstream framing decision**: [decision-trees/online-vs-offline-rl.md](decision-trees/online-vs-offline-rl.md)
-
-## D3. Hidden psychosocial state variables
-
-**Status:** open
-**Rationale:** Mood/stress/sleep could modify how users respond to interventions, but no deployed RL system models them as state. The only MRT that tested stress as moderator found null.
-
-Should mood, stress, or sleep be included in the state representation?
-
-| Option | Description | Evidence |
-|--------|-------------|----------|
-| Exclude from MVP | Do not include psychosocial variables | Rabbi 2019 Depression MRT — stress tested as moderator of nudge→activity, null result; no deployed RL-for-health system includes mood/stress as state variable |
-| Include as observable context feature | Add as available context features when measured | Trella 2022 — recommends stress as optional context feature if available; 1 MRT (Rabbi 2019) tested stress, null |
-| Include as hidden latent state | Model as POMDP hidden state | No published precedent; POMDP structure; purely speculative |
-
-**Sub-questions:**
-
-- Sleep vs mood/stress: stronger observational evidence (multiple wearable studies) but equally weak causal moderation
-
-**Cross-cutting:** D9 (same variables, opposite framing), D10 (fatigue may collapse into mood state)
-
-→ Deep dive: [state-space-design/hidden-state-evidence.md](state-space-design/hidden-state-evidence.md)
-
-## D4. Trend dimension design
-
-**Status:** open
-**Rationale:** No published RL system has used a trend dimension. This is novel and untested.
-
-Should a trend dimension (increasing/stable/decreasing activity) be included in the state?
-
-| Option | Description | Evidence |
-|--------|-------------|----------|
-| 3-level categorical increasing/stable/decreasing | Three-bin trend classification | No precedent |
-| Continuous slope | Raw slope value | No precedent |
-| Exclude from MVP | No trend dimension | Consistent with all 6 reference systems |
-
-**Sub-questions:**
-
-- Computation method [parameter]: rolling OLS, simple differencing, binary sign of 3-day diff, EMA. No literature basis.
-- Window size [parameter — sensitivity analysis]: 3-7 days. No literature basis.
-- Interaction with step bins: intuitive but untested
-
-→ Deep dive: [state-space-design/reference-configs.md](state-space-design/reference-configs.md)
-
-## D5. Time-of-day encoding
-
-**Status:** open
-**Rationale:** Time-of-day is strongest moderator in HeartSteps V2, but optimal granularity unknown.
-
-How should time-of-day be encoded in the state?
-
-| Option | Description | Evidence |
-|--------|-------------|----------|
-| 2 bins AM/PM | Binary morning/afternoon | Klasnja 2019 — binary time-of-day MRT stratification |
-| 4 bins | Quarter-day divisions | No direct evidence |
-| 5 bins decision points | Aligned with HeartSteps delivery schedule | Liao 2019 — time-of-day strongest moderator; 5 decision points/day deployed |
-| Continuous | Unbinned time value | No precedent in domain |
-
-→ Deep dive: [state-space-design/reference-configs.md](state-space-design/reference-configs.md)
-
-## D6. Day type encoding
-
-**Status:** open
-**Rationale:** Trivial in isolation, but contributes to state cardinality in flat representation.
-
-How should day type (weekday/weekend) be encoded?
-
-| Option | Description | Evidence |
-|--------|-------------|----------|
-| Binary weekday/weekend | Two-level classification | Universal across all 6 reference systems |
-| 3-level weekday/weekend/holiday | Include holidays | No precedent |
-| Exclude | No day type dimension | No system has tested |
-
-→ Deep dive: [state-space-design/reference-configs.md](state-space-design/reference-configs.md)

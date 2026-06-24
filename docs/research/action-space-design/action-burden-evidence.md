@@ -64,7 +64,7 @@ separate from a burden accumulator. The term "fatigue" appears in:
 |--------|---------|-------------|-------|
 | Trella (guidelines) | Conceptual | Not specified | None (framework) |
 | StepCountJITAI | Simulation | 0.1–0.5 (per action) | Tuned to match HeartSteps suggestion rate |
-| Current MVP (feat/1a-actions) | Design | 0.0–0.3 | Plausible ranges — not grounded |
+| Current MVP (design) | Design | 0.0–0.3 | Plausible ranges — not grounded |
 | Proposed in lit review | Design | 0.0–0.25 | Heuristic, not grounded |
 
 **Conclusion**: Burden penalty magnitudes are universally heuristic.
