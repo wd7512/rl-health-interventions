@@ -25,7 +25,7 @@ def model(step_data):
             0.3,
             0.1,
             0.2,
-            0.1,   # g features (6)
+            0.1,  # g features (6)
             0.2,
             0.15,
             0.1,

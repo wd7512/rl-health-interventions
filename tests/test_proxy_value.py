@@ -41,8 +41,6 @@ class TestProxyValueProperties:
         )
         proxy.solve()
         # At x=0, sending should produce higher future value
-        h0_0 = proxy.H(0.0, 0)
-        h0_1 = proxy.H(0.0, 1)
         # The VALUE of the next state after sending is lower (higher dosage)
         # but the agent prefers sending because the treatment effect dominates
         # We test that eta is moderate at low dosage (not overwhelming)

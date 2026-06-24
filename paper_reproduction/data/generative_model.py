@@ -141,14 +141,10 @@ class GenerativeModel:
         """
         steps_30min = float(steps[t])
 
-        # Rolling step averages
-        lookback_1hr = max(0, t - 1)
-        lookback_2hr = max(0, t - 3)
-        lookback_24hr = max(0, t - 47)
-
-        steps_1hr = float(np.mean(steps[lookback_1hr : t + 1]))
-        steps_2hr = float(np.mean(steps[lookback_2hr : t + 1]))
-        steps_24hr = float(np.mean(steps[lookback_24hr : t + 1]))
+        # Rolling step averages (computed for reference, not used in features)
+        _steps_1hr = float(np.mean(steps[max(0, t - 1) : t + 1]))
+        _steps_2hr = float(np.mean(steps[max(0, t - 3) : t + 1]))
+        _steps_24hr = float(np.mean(steps[max(0, t - 47) : t + 1]))
 
         # Step variability (std of last 6 windows)
         lookback_var = max(0, t - 5)
@@ -157,9 +153,6 @@ class GenerativeModel:
 
         # Normalise to [0, 1]
         steps_30min_norm = min(steps_30min / 500.0, 1.0)
-        steps_1hr_norm = min(steps_1hr / 500.0, 1.0)
-        steps_2hr_norm = min(steps_2hr / 500.0, 1.0)
-        steps_24hr_norm = min(steps_24hr / 10000.0, 1.0)
         daily_norm = min(daily_steps_t / 10000.0, 1.0)
 
         # Cyclical encodings
