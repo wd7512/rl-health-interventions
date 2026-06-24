@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Type
 
-from rl_health_interventions.data import synthetic, feature_pipeline
+from rl_health_interventions.data import synthetic, feature_pipeline, nhanes, weather
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ def make(name: str, **kwargs) -> object:
     return REGISTRY[name](**kwargs)
 
 
-_DATA_COMPONENT_MODULES = [synthetic, feature_pipeline]
+_DATA_COMPONENT_MODULES = [synthetic, feature_pipeline, nhanes, weather]
 
 for _mod in _DATA_COMPONENT_MODULES:
     try:

@@ -5,7 +5,7 @@ from rl_health_interventions.rewards._base import RewardHandler
 
 
 class CompoundReward(RewardHandler):
-    def __init__(self, config: MDPConfig) -> None:
+    def __init__(self, config: MDPConfig, **_kwargs: object) -> None:
         p = config.per_step_reward
         if p is None:
             raise NotImplementedError(

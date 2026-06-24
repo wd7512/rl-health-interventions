@@ -6,6 +6,7 @@ from typing import Type
 from rl_health_interventions.agents._base import Agent
 from rl_health_interventions.agents import decaying_epsilon_greedy
 from rl_health_interventions.agents import epsilon_greedy
+from rl_health_interventions.agents import heartsteps
 from rl_health_interventions.agents import random
 from rl_health_interventions.agents import thompson_sampling
 from rl_health_interventions.agents import ucb
@@ -38,6 +39,7 @@ _AGENT_MODULES = [
     random,
     ucb,
     decaying_epsilon_greedy,
+    heartsteps,
 ]
 
 for _mod in _AGENT_MODULES:

@@ -32,7 +32,14 @@ class TransitionModelConfig(BaseModel):
 
 
 _KNOWN_AGENT_TYPES = frozenset(
-    {"thompson_sampling", "random", "epsilon_greedy", "ucb", "decaying_epsilon_greedy"}
+    {
+        "thompson_sampling",
+        "random",
+        "epsilon_greedy",
+        "ucb",
+        "decaying_epsilon_greedy",
+        "heartsteps",
+    }
 )
 
 
@@ -47,6 +54,23 @@ class AgentConfig(BaseModel):
     c: float | None = None
     contextual: bool = False
     context_feature: str | None = None
+    # HeartSteps-specific fields
+    pi_param: float | None = None
+    tau: float | None = None
+    epsilon_0: float | None = None
+    epsilon_1: float | None = None
+    dosage_decay: float | None = None
+    proxy_gamma: float | None = None
+    proxy_w: float | None = None
+    proxy_p_avail: float | None = None
+    proxy_p_sed: float | None = None
+    proxy_grid_max: float | None = None
+    proxy_grid_step: float | None = None
+    treat_benefit: float | None = None
+    burden_coef: float | None = None
+    g_dim: int | None = None
+    f_dim: int | None = None
+    noise_variance: float | None = None
 
     @model_validator(mode="after")
     def _validate_agent(self) -> AgentConfig:
@@ -147,6 +171,13 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "decaying_epsilon_greedy agent does not accept alpha_prior, beta_prior, epsilon, or c"
                 )
+        if self.type == "heartsteps":
+            if self.alpha_prior is not None or self.beta_prior is not None:
+                raise ValueError(
+                    "heartsteps agent does not accept alpha_prior or beta_prior"
+                )
+            if self.epsilon is not None or self.c is not None:
+                raise ValueError("heartsteps agent does not accept epsilon or c")
         return self
 
 

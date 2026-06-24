@@ -1,0 +1,717 @@
+{
+  "config": {
+    "data_source": "real",
+    "n_participants": 100,
+    "n_folds": 3,
+    "episode_days": 42,
+    "g_dim": 12,
+    "f_dim": 8
+  },
+  "summary": {
+    "n_improved": 100,
+    "mean": 71.88837650270318,
+    "median": 73.40172292713021
+  },
+  "results": [
+    {
+      "fold": 0,
+      "participant": 59,
+      "proposed": 1182.5959434698916,
+      "bandit": 1108.1447891184732,
+      "improvement": 74.45115435141838
+    },
+    {
+      "fold": 0,
+      "participant": 21,
+      "proposed": 1136.178251910713,
+      "bandit": 1033.2592525454213,
+      "improvement": 102.91899936529171
+    },
+    {
+      "fold": 0,
+      "participant": 56,
+      "proposed": 810.5595883531972,
+      "bandit": 774.6120319286377,
+      "improvement": 35.94755642455948
+    },
+    {
+      "fold": 0,
+      "participant": 18,
+      "proposed": 1096.3518716823573,
+      "bandit": 1023.6775463557187,
+      "improvement": 72.67432532663861
+    },
+    {
+      "fold": 0,
+      "participant": 33,
+      "proposed": 217.1252329618512,
+      "bandit": 212.29543101563067,
+      "improvement": 4.8298019462205275
+    },
+    {
+      "fold": 0,
+      "participant": 42,
+      "proposed": 821.5685127110714,
+      "bandit": 778.8126753414671,
+      "improvement": 42.755837369604365
+    },
+    {
+      "fold": 0,
+      "participant": 50,
+      "proposed": 983.2709595764792,
+      "bandit": 937.3290892221165,
+      "improvement": 45.94187035436266
+    },
+    {
+      "fold": 0,
+      "participant": 27,
+      "proposed": 1158.6512256500089,
+      "bandit": 1093.238798822753,
+      "improvement": 65.41242682725579
+    },
+    {
+      "fold": 0,
+      "participant": 92,
+      "proposed": 1257.78238255459,
+      "bandit": 1179.7319942054648,
+      "improvement": 78.05038834912511
+    },
+    {
+      "fold": 0,
+      "participant": 71,
+      "proposed": 968.9204982646967,
+      "bandit": 907.8718101449391,
+      "improvement": 61.04868811975757
+    },
+    {
+      "fold": 0,
+      "participant": 2,
+      "proposed": 1088.8540023217822,
+      "bandit": 1023.9759579976732,
+      "improvement": 64.87804432410906
+    },
+    {
+      "fold": 0,
+      "participant": 25,
+      "proposed": 1150.1060902110858,
+      "bandit": 1062.1608696778155,
+      "improvement": 87.94522053327023
+    },
+    {
+      "fold": 0,
+      "participant": 24,
+      "proposed": 1204.4350131710878,
+      "bandit": 1099.5761778257038,
+      "improvement": 104.85883534538402
+    },
+    {
+      "fold": 0,
+      "participant": 52,
+      "proposed": 1156.0807730124416,
+      "bandit": 1060.3381823944285,
+      "improvement": 95.74259061801308
+    },
+    {
+      "fold": 0,
+      "participant": 81,
+      "proposed": 1161.5546281947586,
+      "bandit": 1096.5146445367272,
+      "improvement": 65.03998365803136
+    },
+    {
+      "fold": 0,
+      "participant": 99,
+      "proposed": 1250.4787030321907,
+      "bandit": 1164.1207984633636,
+      "improvement": 86.35790456882705
+    },
+    {
+      "fold": 0,
+      "participant": 51,
+      "proposed": 1159.2949974673672,
+      "bandit": 1083.1344705810643,
+      "improvement": 76.16052688630293
+    },
+    {
+      "fold": 0,
+      "participant": 61,
+      "proposed": 1217.9246190558797,
+      "bandit": 1148.9376959496278,
+      "improvement": 68.98692310625188
+    },
+    {
+      "fold": 0,
+      "participant": 4,
+      "proposed": 1129.4038170116949,
+      "bandit": 1071.8346611417855,
+      "improvement": 57.56915586990931
+    },
+    {
+      "fold": 0,
+      "participant": 97,
+      "proposed": 1155.5032315137248,
+      "bandit": 1086.282965634855,
+      "improvement": 69.2202658788699
+    },
+    {
+      "fold": 0,
+      "participant": 94,
+      "proposed": 1154.056730541648,
+      "bandit": 1072.8530102577836,
+      "improvement": 81.20372028386441
+    },
+    {
+      "fold": 0,
+      "participant": 37,
+      "proposed": 1167.7900501509232,
+      "bandit": 1112.8642611291773,
+      "improvement": 54.92578902174591
+    },
+    {
+      "fold": 0,
+      "participant": 28,
+      "proposed": 1185.4137788249295,
+      "bandit": 1121.5786551801514,
+      "improvement": 63.83512364477815
+    },
+    {
+      "fold": 0,
+      "participant": 80,
+      "proposed": 1165.2504228005096,
+      "bandit": 1103.1106327036682,
+      "improvement": 62.13979009684135
+    },
+    {
+      "fold": 0,
+      "participant": 7,
+      "proposed": 1211.1968525906998,
+      "bandit": 1150.414845617197,
+      "improvement": 60.7820069735028
+    },
+    {
+      "fold": 0,
+      "participant": 57,
+      "proposed": 1071.062170192789,
+      "bandit": 996.1308334599047,
+      "improvement": 74.93133673288423
+    },
+    {
+      "fold": 0,
+      "participant": 79,
+      "proposed": 1105.7580719099647,
+      "bandit": 1046.715579073583,
+      "improvement": 59.0424928363816
+    },
+    {
+      "fold": 0,
+      "participant": 26,
+      "proposed": 1100.3613890148256,
+      "bandit": 998.8422730529052,
+      "improvement": 101.51911596192042
+    },
+    {
+      "fold": 0,
+      "participant": 76,
+      "proposed": 681.7513742540137,
+      "bandit": 608.1158518193315,
+      "improvement": 73.63552243468223
+    },
+    {
+      "fold": 0,
+      "participant": 78,
+      "proposed": 795.7168179614318,
+      "bandit": 758.4394751751083,
+      "improvement": 37.277342786323516
+    },
+    {
+      "fold": 0,
+      "participant": 38,
+      "proposed": 964.0035164475471,
+      "bandit": 908.2497814275225,
+      "improvement": 55.75373502002458
+    },
+    {
+      "fold": 0,
+      "participant": 0,
+      "proposed": 876.6963236874402,
+      "bandit": 837.7006703292654,
+      "improvement": 38.99565335817476
+    },
+    {
+      "fold": 0,
+      "participant": 86,
+      "proposed": 756.2492631118824,
+      "bandit": 732.701892758458,
+      "improvement": 23.547370353424412
+    },
+    {
+      "fold": 0,
+      "participant": 46,
+      "proposed": 1247.0687110637587,
+      "bandit": 1164.8230591119175,
+      "improvement": 82.24565195184118
+    },
+    {
+      "fold": 1,
+      "participant": 10,
+      "proposed": 1151.8691340458752,
+      "bandit": 1050.9074363419165,
+      "improvement": 100.96169770395863
+    },
+    {
+      "fold": 1,
+      "participant": 29,
+      "proposed": 1024.8055761394503,
+      "bandit": 988.9868707859181,
+      "improvement": 35.81870535353221
+    },
+    {
+      "fold": 1,
+      "participant": 70,
+      "proposed": 1144.8757870198665,
+      "bandit": 1094.223916040414,
+      "improvement": 50.6518709794525
+    },
+    {
+      "fold": 1,
+      "participant": 45,
+      "proposed": 1140.4762281757648,
+      "bandit": 1072.6830084358085,
+      "improvement": 67.79321973995638
+    },
+    {
+      "fold": 1,
+      "participant": 17,
+      "proposed": 992.7341870138049,
+      "bandit": 920.7291854786309,
+      "improvement": 72.00500153517396
+    },
+    {
+      "fold": 1,
+      "participant": 39,
+      "proposed": 1024.1955223559955,
+      "bandit": 975.3023597037392,
+      "improvement": 48.893162652256365
+    },
+    {
+      "fold": 1,
+      "participant": 91,
+      "proposed": 1170.8622226014245,
+      "bandit": 1099.282899694801,
+      "improvement": 71.57932290662347
+    },
+    {
+      "fold": 1,
+      "participant": 40,
+      "proposed": 489.2180495926468,
+      "bandit": 474.4405935926866,
+      "improvement": 14.777455999960239
+    },
+    {
+      "fold": 1,
+      "participant": 89,
+      "proposed": 1155.7309920293103,
+      "bandit": 1059.3732122990773,
+      "improvement": 96.357779730233
+    },
+    {
+      "fold": 1,
+      "participant": 5,
+      "proposed": 1223.4289416462561,
+      "bandit": 1143.6726479482463,
+      "improvement": 79.75629369800981
+    },
+    {
+      "fold": 1,
+      "participant": 68,
+      "proposed": 1070.6765617575168,
+      "bandit": 996.5262774977149,
+      "improvement": 74.15028425980188
+    },
+    {
+      "fold": 1,
+      "participant": 1,
+      "proposed": 1152.813724416882,
+      "bandit": 1067.8016879704296,
+      "improvement": 85.01203644645238
+    },
+    {
+      "fold": 1,
+      "participant": 95,
+      "proposed": 952.753488773188,
+      "bandit": 891.148543557947,
+      "improvement": 61.604945215240946
+    },
+    {
+      "fold": 1,
+      "participant": 84,
+      "proposed": 1093.561755701668,
+      "bandit": 1003.5240702998208,
+      "improvement": 90.03768540184728
+    },
+    {
+      "fold": 1,
+      "participant": 63,
+      "proposed": 1081.2748238524034,
+      "bandit": 990.1628478834849,
+      "improvement": 91.1119759689185
+    },
+    {
+      "fold": 1,
+      "participant": 3,
+      "proposed": 1152.5107534551453,
+      "bandit": 1078.8541471233045,
+      "improvement": 73.65660633184075
+    },
+    {
+      "fold": 1,
+      "participant": 83,
+      "proposed": 1181.6976199520905,
+      "bandit": 1108.1974058203762,
+      "improvement": 73.5002141317143
+    },
+    {
+      "fold": 1,
+      "participant": 93,
+      "proposed": 1192.8949527676189,
+      "bandit": 1117.7275812942064,
+      "improvement": 75.16737147341246
+    },
+    {
+      "fold": 1,
+      "participant": 20,
+      "proposed": 1196.8169428562537,
+      "bandit": 1106.045558635079,
+      "improvement": 90.77138422117469
+    },
+    {
+      "fold": 1,
+      "participant": 87,
+      "proposed": 1273.9521607848415,
+      "bandit": 1195.99822055201,
+      "improvement": 77.95394023283143
+    },
+    {
+      "fold": 1,
+      "participant": 43,
+      "proposed": 1128.559075352306,
+      "bandit": 1049.8334983045768,
+      "improvement": 78.7255770477293
+    },
+    {
+      "fold": 1,
+      "participant": 73,
+      "proposed": 1008.9274984194066,
+      "bandit": 904.1986083023606,
+      "improvement": 104.72889011704592
+    },
+    {
+      "fold": 1,
+      "participant": 32,
+      "proposed": 1190.20285466985,
+      "bandit": 1134.1156062276027,
+      "improvement": 56.0872484422473
+    },
+    {
+      "fold": 1,
+      "participant": 75,
+      "proposed": 1198.0470405261747,
+      "bandit": 1133.7840332770502,
+      "improvement": 64.26300724912448
+    },
+    {
+      "fold": 1,
+      "participant": 23,
+      "proposed": 1173.7118690325374,
+      "bandit": 1095.2923040258643,
+      "improvement": 78.41956500667311
+    },
+    {
+      "fold": 1,
+      "participant": 96,
+      "proposed": 1208.7208788536445,
+      "bandit": 1111.3235351308495,
+      "improvement": 97.39734372279509
+    },
+    {
+      "fold": 1,
+      "participant": 69,
+      "proposed": 1118.3286646238257,
+      "bandit": 1042.3461965521476,
+      "improvement": 75.98246807167811
+    },
+    {
+      "fold": 1,
+      "participant": 15,
+      "proposed": 1054.2731224348981,
+      "bandit": 988.585448589523,
+      "improvement": 65.68767384537512
+    },
+    {
+      "fold": 1,
+      "participant": 48,
+      "proposed": 1196.4244074345888,
+      "bandit": 1124.6812057074585,
+      "improvement": 71.74320172713033
+    },
+    {
+      "fold": 1,
+      "participant": 55,
+      "proposed": 1131.956077198893,
+      "bandit": 1058.6528454763468,
+      "improvement": 73.30323172254612
+    },
+    {
+      "fold": 1,
+      "participant": 60,
+      "proposed": 1149.7145914478351,
+      "bandit": 1056.9295178159327,
+      "improvement": 92.78507363190238
+    },
+    {
+      "fold": 1,
+      "participant": 9,
+      "proposed": 1035.376728200867,
+      "bandit": 959.1498005248208,
+      "improvement": 76.22692767604633
+    },
+    {
+      "fold": 1,
+      "participant": 62,
+      "proposed": 1066.2857500765917,
+      "bandit": 1009.2908066564783,
+      "improvement": 56.994943420113486
+    },
+    {
+      "fold": 2,
+      "participant": 31,
+      "proposed": 1169.4629984543808,
+      "bandit": 1085.418995301849,
+      "improvement": 84.04400315253179
+    },
+    {
+      "fold": 2,
+      "participant": 72,
+      "proposed": 1114.630647027946,
+      "bandit": 1020.3815513016289,
+      "improvement": 94.24909572631714
+    },
+    {
+      "fold": 2,
+      "participant": 16,
+      "proposed": 1189.6784011848597,
+      "bandit": 1109.0924479868495,
+      "improvement": 80.5859531980102
+    },
+    {
+      "fold": 2,
+      "participant": 44,
+      "proposed": 1181.455606028497,
+      "bandit": 1093.6422731595192,
+      "improvement": 87.8133328689778
+    },
+    {
+      "fold": 2,
+      "participant": 82,
+      "proposed": 1173.351988560657,
+      "bandit": 1103.5180074369523,
+      "improvement": 69.83398112370469
+    },
+    {
+      "fold": 2,
+      "participant": 67,
+      "proposed": 1170.5453852361763,
+      "bandit": 1093.9891777778823,
+      "improvement": 76.55620745829401
+    },
+    {
+      "fold": 2,
+      "participant": 34,
+      "proposed": 938.4840406038637,
+      "bandit": 844.3593709198425,
+      "improvement": 94.12466968402123
+    },
+    {
+      "fold": 2,
+      "participant": 30,
+      "proposed": 1080.2490032049227,
+      "bandit": 997.3359055580904,
+      "improvement": 82.91309764683228
+    },
+    {
+      "fold": 2,
+      "participant": 58,
+      "proposed": 1229.9799648869455,
+      "bandit": 1159.5742075541152,
+      "improvement": 70.40575733283026
+    },
+    {
+      "fold": 2,
+      "participant": 74,
+      "proposed": 1182.0112413076165,
+      "bandit": 1111.947487700285,
+      "improvement": 70.06375360733159
+    },
+    {
+      "fold": 2,
+      "participant": 88,
+      "proposed": 1208.1905298686702,
+      "bandit": 1145.640744464078,
+      "improvement": 62.549785404592285
+    },
+    {
+      "fold": 2,
+      "participant": 98,
+      "proposed": 1151.0124356667,
+      "bandit": 1095.7882716955794,
+      "improvement": 55.22416397112056
+    },
+    {
+      "fold": 2,
+      "participant": 54,
+      "proposed": 603.3441384514575,
+      "bandit": 533.2206351256864,
+      "improvement": 70.12350332577114
+    },
+    {
+      "fold": 2,
+      "participant": 49,
+      "proposed": 1201.392232215263,
+      "bandit": 1118.4020944714725,
+      "improvement": 82.99013774379046
+    },
+    {
+      "fold": 2,
+      "participant": 6,
+      "proposed": 1139.828190669534,
+      "bandit": 1080.8157628819692,
+      "improvement": 59.012427787564775
+    },
+    {
+      "fold": 2,
+      "participant": 90,
+      "proposed": 1189.2044778329098,
+      "bandit": 1103.6675989785417,
+      "improvement": 85.53687885436807
+    },
+    {
+      "fold": 2,
+      "participant": 11,
+      "proposed": 1128.5213829464458,
+      "bandit": 1045.162715767035,
+      "improvement": 83.35866717941076
+    },
+    {
+      "fold": 2,
+      "participant": 85,
+      "proposed": 1080.0119308911137,
+      "bandit": 994.3716708189312,
+      "improvement": 85.64026007218251
+    },
+    {
+      "fold": 2,
+      "participant": 41,
+      "proposed": 1116.860194000622,
+      "bandit": 1034.3747280276832,
+      "improvement": 82.48546597293875
+    },
+    {
+      "fold": 2,
+      "participant": 22,
+      "proposed": 994.5572239815979,
+      "bandit": 926.0007480156443,
+      "improvement": 68.55647596595361
+    },
+    {
+      "fold": 2,
+      "participant": 19,
+      "proposed": 854.7282880671288,
+      "bandit": 784.2723836019221,
+      "improvement": 70.45590446520669
+    },
+    {
+      "fold": 2,
+      "participant": 35,
+      "proposed": 1184.3308215727907,
+      "bandit": 1122.356606986439,
+      "improvement": 61.97421458635176
+    },
+    {
+      "fold": 2,
+      "participant": 64,
+      "proposed": 1110.6746798184538,
+      "bandit": 1022.8731463475774,
+      "improvement": 87.8015334708764
+    },
+    {
+      "fold": 2,
+      "participant": 47,
+      "proposed": 1175.88794493991,
+      "bandit": 1082.1884821582496,
+      "improvement": 93.69946278166049
+    },
+    {
+      "fold": 2,
+      "participant": 12,
+      "proposed": 1102.881148248913,
+      "bandit": 1040.5340451077836,
+      "improvement": 62.34710314112931
+    },
+    {
+      "fold": 2,
+      "participant": 53,
+      "proposed": 1238.0610592175894,
+      "bandit": 1153.7308018078868,
+      "improvement": 84.33025740970265
+    },
+    {
+      "fold": 2,
+      "participant": 14,
+      "proposed": 1094.852239479502,
+      "bandit": 1032.3214871393604,
+      "improvement": 62.53075234014159
+    },
+    {
+      "fold": 2,
+      "participant": 13,
+      "proposed": 626.8847315502583,
+      "bandit": 574.5493211447389,
+      "improvement": 52.33541040551938
+    },
+    {
+      "fold": 2,
+      "participant": 66,
+      "proposed": 1148.021683086379,
+      "bandit": 1078.7349815339228,
+      "improvement": 69.28670155245618
+    },
+    {
+      "fold": 2,
+      "participant": 36,
+      "proposed": 1157.2259144615825,
+      "bandit": 1061.6501635815923,
+      "improvement": 95.57575087999021
+    },
+    {
+      "fold": 2,
+      "participant": 65,
+      "proposed": 1138.8657516111366,
+      "bandit": 1038.3527791622826,
+      "improvement": 100.51297244885404
+    },
+    {
+      "fold": 2,
+      "participant": 77,
+      "proposed": 1193.8287317129455,
+      "bandit": 1106.9815579062843,
+      "improvement": 86.8471738066612
+    },
+    {
+      "fold": 2,
+      "participant": 8,
+      "proposed": 935.799139733694,
+      "bandit": 875.257601170861,
+      "improvement": 60.54153856283301
+    }
+  ]
+}
