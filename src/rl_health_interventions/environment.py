@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from rl_health_interventions import make_reward, make_transition
 from rl_health_interventions.config.schemas import MDPConfig
@@ -10,10 +11,15 @@ logger = logging.getLogger(__name__)
 
 
 class Environment:
-    def __init__(self, config: MDPConfig, seed: int = 42) -> None:
+    def __init__(
+        self,
+        config: MDPConfig,
+        seed: int = 42,
+        step_data: Any = None,
+    ) -> None:
         self._config = config
-        self._transition = make_transition(config, seed=seed)
-        self._reward = make_reward(config)
+        self._transition = make_transition(config, seed=seed, step_data=step_data)
+        self._reward = make_reward(config, step_data=step_data, seed=seed)
         self._step_count = 0
         self._done = False
         self._current_state: StateView | None = None

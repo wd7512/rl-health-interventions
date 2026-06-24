@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
+import numpy as np
 import pandas as pd
 
 from rl_health_interventions.agents import derive_agent_seed, make as make_agent
@@ -24,10 +25,11 @@ def run_episode(
     agent: AgentLike,
     output_csv: Path | None = None,
     seed: int | None = None,
+    step_data: Any = None,
 ) -> pd.DataFrame:
     if seed is None:
         seed = config.seed
-    env = Environment(config, seed=seed)
+    env = Environment(config, seed=seed, step_data=step_data)
     state = env.reset()
     records: list[dict] = []
     done = False
@@ -56,7 +58,7 @@ def run_episode(
     return df
 
 
-def run_experiment(config_path: str | Path) -> dict[str, float]:
+def run_experiment(config_path: str | Path, step_data: Any = None) -> dict[str, float]:
     """Run all agents defined in the config, return {agent_type: total_reward}."""
     config = load_config(config_path)
     results: dict[str, float] = {}
@@ -68,8 +70,14 @@ def run_experiment(config_path: str | Path) -> dict[str, float]:
         }
         kwargs["actions"] = config.actions
         kwargs["seed"] = derive_agent_seed(config.seed, agent_index=i)
+        if agent_cfg.type == "heartsteps" and step_data is not None:
+            kwargs["step_data"] = step_data
+            kwargs["prior_mean"] = np.zeros(
+                kwargs.get("g_dim", 6) + 2 * kwargs.get("f_dim", 4)
+            )
+            kwargs["prior_cov"] = np.eye(kwargs["g_dim"] + 2 * kwargs["f_dim"])
         agent = make_agent(agent_cfg.type, **kwargs)
-        df = run_episode(config, agent, seed=config.seed)
+        df = run_episode(config, agent, seed=config.seed, step_data=step_data)
         key = agent_cfg.type
         suffix = 1
         while key in results:

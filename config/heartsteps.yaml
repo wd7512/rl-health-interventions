@@ -1,0 +1,45 @@
+# HeartSteps V2 simulation study configuration.
+# Liao et al. (2019). arXiv:1909.03539.
+episode_days: 90
+steps_per_day: 10
+seed: 42
+initial_state: available
+
+states:
+  available: { reward: 0.0 }
+  unavailable: { reward: 0.0 }
+
+actions: [suggest, idle]
+
+transition_model:
+  type: heartsteps
+  p_avail: 0.85
+
+reward:
+  type: heartsteps
+  alpha: [1.0, 0.5, 0.3, 0.1, 0.2, 0.1, 0.2, 0.15, 0.1, 0.05]
+  beta: [1.5, 2.5, 1.0, 0.5]
+  g_dim: 6
+  f_dim: 4
+  noise_variance: 1.0
+
+agents:
+  - type: heartsteps
+    pi_param: 0.3
+    tau: 1.0
+    epsilon_0: 0.2
+    epsilon_1: 0.1
+    dosage_decay: 0.95
+    proxy_gamma: 0.9
+    proxy_w: 0.5
+    proxy_p_avail: 0.85
+    proxy_p_sed: 0.2
+    proxy_grid_max: 20.0
+    proxy_grid_step: 0.5
+    treat_benefit: 2.0
+    burden_coef: 0.3
+    p_avail: 0.85
+    p_sed: 0.2
+    g_dim: 6
+    f_dim: 4
+    noise_variance: 1.0
