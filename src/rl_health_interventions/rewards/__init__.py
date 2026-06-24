@@ -5,6 +5,7 @@ from typing import Type
 
 from rl_health_interventions.rewards._base import RewardHandler
 from rl_health_interventions.rewards import compound
+from rl_health_interventions.rewards import heartsteps as heartsteps_reward
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ def make(name_or_config=None, **kwargs) -> RewardHandler:
     return REGISTRY[name](**kwargs)
 
 
-_REWARD_MODULES = [compound]
+_REWARD_MODULES = [compound, heartsteps_reward]
 
 for _mod in _REWARD_MODULES:
     try:

@@ -5,6 +5,7 @@ from typing import Type
 
 from rl_health_interventions.transitions._base import TransitionModel
 from rl_health_interventions.transitions import rule_based
+from rl_health_interventions.transitions import heartsteps as heartsteps_transition
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ def make(name_or_config=None, **kwargs) -> TransitionModel:
     return REGISTRY[name](**kwargs)
 
 
-_TRANSITION_MODULES = [rule_based]
+_TRANSITION_MODULES = [rule_based, heartsteps_transition]
 
 for _mod in _TRANSITION_MODULES:
     try:

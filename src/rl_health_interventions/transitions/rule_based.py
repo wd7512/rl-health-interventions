@@ -7,7 +7,7 @@ from rl_health_interventions.transitions._base import TransitionModel
 
 
 class RuleBasedTransition(TransitionModel):
-    def __init__(self, config: MDPConfig, seed: int = 42) -> None:
+    def __init__(self, config: MDPConfig, seed: int = 42, **_kwargs: object) -> None:
         self._rng = np.random.default_rng(seed)
         self._cache: dict[tuple[str, str], tuple[list[str], np.ndarray]] = {}
         self._build_cache(config)
