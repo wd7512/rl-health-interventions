@@ -22,15 +22,16 @@ jobs:
               return
             }
 
-            // Check for template compliance
-            const hasWhat = body.includes('i want to')
-            const hasWhy = body.includes('so that') || body.includes('this ') || body.includes('benefit')
-            const hasDone = body.includes('completion criteria') || body.includes('done') || body.includes('how do we know')
+            // Check for exact template: "I want to ... to achieve ... to benefit the research in ..."
+            const whatPattern = /i want to .+ to achieve .+ to benefit the research in .+/i
+            const hasWhat = whatPattern.test(issue.body || '')
+
+            // Check for completion criteria section
+            const hasDone = body.includes('completion criteria') || body.includes('## completion criteria')
 
             const missing = []
-            if (!hasWhat) missing.push('What do you want to do? ("I want to...")')
-            if (!hasWhy) missing.push('Why? How does this benefit the research?')
-            if (!hasDone) missing.push('Completion criteria (how do we know this is done?)')
+            if (!hasWhat) missing.push('What: must follow exact format — "I want to [action] to achieve [goal] to benefit the research in [way]"')
+            if (!hasDone) missing.push('Completion criteria: must have a "## Completion criteria" section')
 
             if (missing.length > 0) {
               // Add needs-refinement label
@@ -42,7 +43,7 @@ jobs:
               })
 
               // Post comment explaining what's missing
-              const bodyText = `Thanks for opening this issue! It looks like it doesn't yet meet our task template requirements.\n\n**Missing:**\n${missing.map(m => `- ${m}`).join('\n')}\n\nPlease flesh out the issue using our [task template](.github/ISSUE_TEMPLATE/task.md) and then remove the \`needs-refinement\` label when it's ready for implementation.\n\nA complete issue answers:\n1. **What do you want to do?**\n2. **Why?** How does this benefit the research?\n3. **Completion criteria** — how do we know this is done?\n4. **Evidence** (optional) — papers, notes, data`
+              const bodyText = `Thanks for opening this issue! It doesn't yet meet our task template requirements.\n\n**Missing or incomplete:**\n${missing.map(m => `- ${m}`).join('\n')}\n\nEvery issue must follow this structure:\n\n1. **What:** Exact sentence — "I want to [action] to achieve [goal] to benefit the research in [way]"\n2. **Completion criteria:** A section titled "## Completion criteria" with a checklist of what must be true\n3. **Evidence** (optional) — papers, notes, data\n4. **Notes** (optional) — dependencies, hints\n\nPlease update the issue using our [task template](.github/ISSUE_TEMPLATE/task.md) and remove the \`needs-refinement\` label when it's ready for implementation.`
 
               await github.rest.issues.createComment({
                 owner: context.repo.owner,

@@ -8,24 +8,16 @@ body:
     id: what
     attributes:
       label: What do you want to do?
-      description: One sentence: I want to X
-      placeholder: I want to add a burden penalty to the reward function
-    validations:
-      required: true
-  - type: textarea
-    id: why
-    attributes:
-      label: Why?
-      description: How does this benefit the research?
-      placeholder: So that the agent learns to avoid over-nudging users, which is a known failure mode in JITAIs
+      description: "Exact format: I want to [action] to achieve [goal] to benefit the research in [way]."
+      placeholder: I want to add a burden penalty to the reward function to achieve more realistic agent behaviour to benefit the research in showing that over-nudging is a real failure mode.
     validations:
       required: true
   - type: textarea
     id: done
     attributes:
       label: Completion criteria
-      description: How do we know this is done? What must be true?
-      placeholder: Tests pass, ruff/ty clean, burden penalty is applied when consecutive nudges exceed threshold
+      description: How do we know this is done? What must be true? Use a checklist.
+      placeholder: "- [ ] Tests pass\n- [ ] ruff/ty clean\n- [ ] Burden penalty applied when consecutive nudges exceed threshold"
     validations:
       required: true
   - type: textarea
