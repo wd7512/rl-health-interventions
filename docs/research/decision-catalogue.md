@@ -187,7 +187,7 @@ How should non-activity actions (journaling, sleep hygiene, social) be rewarded?
 | Option | Description | Evidence |
 |--------|-------------|----------|
 | Placeholder mood/sleep proxy signal | Reward based on mood/sleep improvement proxy | Smyth 2018 JMIR — journaling reduces depression/anxiety; Koffel 2018 — sleep hygiene improves PSQI; no study has used as proxy reward in RL |
-| Defer to Phase 2 | Do not include non-activity actions in Phase 1 | RCTs show causal effect on mood/sleep but no sequential RL evidence; safest given evidence gap |
+| Defer to next sprint | Do not include non-activity actions in current sprint | RCTs show causal effect on mood/sleep but no sequential RL evidence; safest given evidence gap |
 | Post-hoc evaluation only | Agent avoids them → selection frequency ~0 → uninformative | No precedent |
 | Zero step reward + burden penalty (default) | Rational agent never selects them | StepCountJITAI, HeartSteps V2 — no step reward for non-activity |
 
@@ -204,7 +204,7 @@ Should mood/sleep be used as a reward signal or a state variable?
 
 | Option | Description | Evidence |
 |--------|-------------|----------|
-| Reward signal (Phase 2 multi-objective) | Use mood/sleep improvement as reward component | Smyth 2018 PAJ — journaling reduces depression/anxiety; Koffel 2018 — sleep hygiene improves PSQI; consistent with Trella recommendation |
+| Reward signal (next sprint multi-objective) | Use mood/sleep improvement as reward component | Smyth 2018 PAJ — journaling reduces depression/anxiety; Koffel 2018 — sleep hygiene improves PSQI; consistent with Trella recommendation |
 | State variable (latent) | Include as hidden state | Rabbi 2019 null result for stress; confounded observational evidence; no moderation evidence in MRTs |
 | Exclude from MVP | Do not include | Consistent with D3 exclusion |
 
@@ -248,7 +248,7 @@ What should the reward function look like?
 | R = base_step_reward - burden - fatigue | Three-term form (proposed) | Trella 2022 + StepCountJITAI implement this form; no system validates fatigue term |
 | R = step_count_reward only | HeartSteps form | Liao 2019 — 30-min post-decision step count increase |
 | R = step_count_reward - burden only | Two-term, no fatigue | Equivalent to collapsed D10 |
-| Multi-objective (steps + mood + sleep) | Multiple reward components | RCTs show causal effects; no RL implementation; deferred to Phase 2 |
+| Multi-objective (steps + mood + sleep) | Multiple reward components | RCTs show causal effects; no RL implementation; deferred to next sprint |
 
 **Sub-questions:**
 
@@ -292,14 +292,14 @@ How should non-activity actions be evaluated if they don't contribute to step re
 
 → Deep dive: [action-space-design/non-activity-interventions.md](action-space-design/non-activity-interventions.md)
 
-## D14. Phase 1 vs Phase 2 deferral
+## D14. Current sprint vs. next sprint deferral
 
 **Status:** open
-**Rationale:** Meta-decision. Not every decision needs Phase 1 resolution.
+**Rationale:** Meta-decision. Not every decision needs current sprint resolution.
 
-Which decisions must be resolved for Phase 1 and which can be deferred?
+Which decisions must be resolved for the current sprint and which can be deferred?
 
-| Decision | Phase 1 critical? | Reasoning |
+| Decision | Current sprint critical? | Reasoning |
 |----------|-------------------|-----------|
 | D1 step encoding | Likely yes | Core representation |
 | D2 factored/flat | Likely yes | Architecture-level |
@@ -309,11 +309,11 @@ Which decisions must be resolved for Phase 1 and which can be deferred?
 | D6 day type | Likely yes | Trivial; binary default |
 | D7 action set | Likely yes | Core representation |
 | D8 non-activity reward | Depends on D7 | If D7 includes non-activity |
-| D9 reward vs state | Likely no | Phase 2 |
+| D9 reward vs state | Likely no | Next sprint |
 | D10 burden/fatigue | Likely yes | Needed for reward |
 | D11 reward design | Likely yes | Core MDP |
 | D12 algorithm class | Likely yes | Core architecture |
-| D13 evaluation strategy | Depends on D7/D8 | If non-activity in Phase 1 |
+| D13 evaluation strategy | Depends on D7/D8 | If non-activity in current sprint |
 | D14 this decision | Yes (meta) | Must be resolved first |
 
 > This mapping is a proposed starting point, not a resolution. D14 is open.
@@ -337,7 +337,7 @@ Which decisions must be resolved for Phase 1 and which can be deferred?
 | D11 | Reward function design | open | Moderate | reference-configs.md, action-burden-evidence.md |
 | D12 | Algorithm class | open | Moderate | reference-configs.md |
 | D13 | Evaluation strategy | open | None | non-activity-interventions.md |
-| D14 | Phase 1/2 deferral | open | N/A | — |
+| D14 | Current sprint deferral | open | N/A | — |
 
 ---
 

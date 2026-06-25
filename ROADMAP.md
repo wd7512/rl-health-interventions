@@ -2,9 +2,9 @@
 
 ## Design decisions
 
-- [x] [Initial Design](../docs/design/initial_design.pdf)
+- [x] [Initial Design](docs/design/initial_design.pdf)
 - [x] Sign off updated design direction ([[22.06 Chat with Swapnil and Mengyan]])
-- [ ] Resolve D1-D14 with evidence (read papers first) — see [decision-catalogue](../docs/research/decision-catalogue.md)
+- [ ] Resolve D1-D14 with evidence (read papers first) — see [decision-catalogue](docs/research/decision-catalogue.md)
 
 ## State space
 
