@@ -23,7 +23,7 @@ related: "state-space-design/ · action-space-design/ · decision-trees/online-v
 ## Dependency diagram
 
 ```text
-D14 (Phase 1 vs 2 deferral) ─── constrains timing of all
+D14. Current sprint vs. next sprint deferral
 │
 ├─→ D1 (step encoding) ──→ D11 (reward design) ←── D8 (non-activity reward)
 ├─→ D2 (factored vs flat) ──→ D12 (algorithm class)
