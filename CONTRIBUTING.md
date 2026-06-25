@@ -34,7 +34,7 @@ Raw ideas get the `needs-refinement` label until they meet this template.
 | `action-space` | Action space design and implementation |
 | `reward` | Reward function design and components |
 | `agents` | RL agent implementations |
-| `real-data` | Real data integration and evaluation |
+| `data-pipeline` | Data loading, pipeline, integration, and evaluation |
 | `llm` | LLM-based components and high-dimensional spaces |
 | `write-up` | Documentation, reports, and paper drafts |
 | `backlog` | Not in current sprint — pick up when blocked |
