@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/wd7512/rl-health-interventions/discussions
+    about: Questions, ideas, and discussions that don't need a structured issue
