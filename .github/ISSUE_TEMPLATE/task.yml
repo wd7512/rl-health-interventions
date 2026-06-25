@@ -1,0 +1,74 @@
+name: 📋 Task
+description: A discrete piece of work — implementation, fix, or research
+title: "[Task] "
+labels: ["needs-triage"]
+body:
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Before submitting
+      description: Confirm each of the following
+      options:
+        - label: I have searched existing issues and found no duplicate
+          required: true
+        - label: I have provided a clear one-sentence summary below
+          required: true
+        - label: I have provided evidence or context (paper, notes, link)
+          required: false
+
+  - type: input
+    id: title_sentence
+    attributes:
+      label: One-sentence summary
+      description: "Exact format: I want to [action] to achieve [goal] to benefit the research in [way]."
+      placeholder: I want to add a burden penalty to the reward function to achieve more realistic agent behaviour to benefit the research in showing that over-nudging is a real failure mode.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context & motivation
+      description: Why does this matter? What problem does it solve? Link any relevant papers, notes, or prior discussions.
+      placeholder: Currently the agent nudges every time step without penalty. Trella 2022 Section 3.2 shows that repeated nudges reduce responsiveness. Swapnil/Mengyan 22.06 flagged this as a priority.
+    validations:
+      required: true
+
+  - type: textarea
+    id: done
+    attributes:
+      label: Completion criteria
+      description: How do we know this is done? List specific, verifiable conditions.
+      placeholder: |
+        - [ ] No `import pandas` in `src/` (only polars)
+        - [ ] All data loaders pass with polars
+        - [ ] pyproject.toml has no pandas in `dependencies`
+        - [ ] ruff format clean
+        - [ ] ruff check clean
+        - [ ] ty check clean
+        - [ ] All tests pass
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence & references
+      description: Papers, notes, data, links — anything that supports this decision.
+      placeholder: |
+        - Trella 2022, Section 3.2: burden/fatigue model
+        - Swapnil/Mengyan 22.06 chat notes
+        - decision-catalogue D10
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Dependencies & implementation notes
+      description: Blockers, gotchas, suggested approach, files to touch.
+      placeholder: |
+        - Blocked by #126 (action space extension)
+        - See `src/rl_health_interventions/rewards/heartsteps.py` for current reward structure
+    validations:
+      required: false

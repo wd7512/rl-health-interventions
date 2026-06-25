@@ -2,11 +2,12 @@
 
 ## Workflow
 
-1. **Create an issue** using the Task template before starting work.
-2. **Flesh out the issue** — What / Why / Completion Criteria / Evidence. If it's just an idea, label it `needs-refinement` and flesh it out later before implementation.
-3. **Open a PR** that links the issue with `Closes #N`.
-4. **Ensure CI passes** — ruff, ty, pytest.
-5. **Resolve all review comments** before merge.
+1. **Create an issue** using the Task template (YAML form) before starting work.
+2. **Flesh out the issue** — check prerequisites, write the exact-format sentence, define completion criteria.
+3. **Remove `needs-refinement` label** when the issue meets the template.
+4. **Open a PR** that links the issue with `Closes #N`.
+5. **Ensure CI passes** — ruff, ty, pytest.
+6. **Resolve all review comments** before merge.
 
 ## Rules
 
@@ -14,15 +15,31 @@
 - Issues labeled `needs-refinement` cannot be linked to PRs until fleshed out.
 - No direct commits to `main` — all changes go through PRs.
 - Run `uv run ruff format`, `uv run ruff check`, `uv run ty check`, and `uv run pytest` before pushing.
+- `blank_issues_enabled: false` — all issues must use the template.
 
 ## Issue Template
 
-All issues must answer:
+All issues must follow the YAML form structure:
 
-- **What do you want to do?** (one sentence: "I want to X")
-- **Why?** (how does this benefit the research?)
-- **Completion criteria** (how do we know this is done?)
-- **Evidence** (papers, notes, data — optional but encouraged)
+1. **Prerequisites** (checkboxes, required):
+   - ☐ I have searched existing issues and found no duplicate
+   - ☐ I have provided a clear one-sentence summary
+
+2. **One-sentence summary** (required, exact format):
+   > I want to [action] to achieve [goal] to benefit the research in [way].
+
+3. **Context & motivation** (required, min 20 chars):
+   Why does this matter? Link papers, notes, prior discussions.
+
+4. **Completion criteria** (required, checklist):
+   - [ ] Specific condition 1
+   - [ ] ruff/ty clean, tests pass
+
+5. **Evidence** (optional):
+   Papers, notes, data, links — supports the decision.
+
+6. **Dependencies & notes** (optional):
+   Blockers, gotchas, suggested approach.
 
 Raw ideas get the `needs-refinement` label until they meet this template.
 
@@ -39,6 +56,7 @@ Raw ideas get the `needs-refinement` label until they meet this template.
 | `write-up` | Documentation, reports, and paper drafts |
 | `backlog` | Not in current sprint — pick up when blocked |
 | `needs-refinement` | Idea not yet fleshed out — does not meet template |
+| `needs-triage` | Newly opened, awaiting triage |
 | `bug` | Something isn't working |
 | `documentation` | Improvements or additions to documentation |
 
