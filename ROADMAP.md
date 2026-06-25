@@ -2,7 +2,7 @@
 
 ## Design decisions
 
- [x] [Initial Design](../docs/design/initial_design.pdf)
+- [x] [Initial Design](../docs/design/initial_design.pdf)
 - [x] Sign off updated design direction ([[22.06 Chat with Swapnil and Mengyan]])
 - [ ] Resolve D1-D14 with evidence (read papers first) — see [decision-catalogue](../docs/research/decision-catalogue.md)
 
@@ -16,6 +16,13 @@
 
 - [x] MVP: binary (nudge / no-nudge)
 - [ ] 6-10 actions (including journalling, non-activity)
+
+## Reward
+
+- [x] MVP: step-count-based reward
+- [ ] Burden model in reward (reduces responsiveness to actions)
+- [ ] Non-activity reward (journalling, non-activity actions)
+- [ ] Clinical data integration (3-week clinical results, synthetic)
 
 ## Agents
 
