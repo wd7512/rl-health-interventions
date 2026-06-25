@@ -1,0 +1,58 @@
+name: Require linked issue
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  check-linked-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || ''
+            const prNumber = context.payload.pull_request.number
+
+            // Check for "Closes #N" or "Fixes #N" or "Resolves #N"
+            const linkedIssueMatch = body.match(/(?:closes|fixes|resolves)\s+#(\d+)/i)
+
+            if (!linkedIssueMatch) {
+              core.setFailed(
+                `PR #${prNumber} must link an issue using "Closes #N", "Fixes #N", or "Resolves #N".\n\nEvery PR needs a linked issue that meets the task template (What / Why / Completion Criteria / Evidence).`
+              )
+              return
+            }
+
+            const issueNumber = linkedIssueMatch[1]
+
+            // Fetch the linked issue
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+            })
+
+            // Check that the issue is not labeled "needs-refinement"
+            const labels = issue.labels.map(l => l.name)
+            if (labels.includes('needs-refinement')) {
+              core.setFailed(
+                `Issue #${issueNumber} is labeled "needs-refinement" and does not meet the task template requirements.\n\nFlesh out the issue (What / Why / Completion Criteria / Evidence) and remove the "needs-refinement" label before linking it to a PR.`
+              )
+              return
+            }
+
+            // Check that the issue body contains our template sections
+            const bodyLower = issue.body?.toLowerCase() || ''
+            const hasWhat = bodyLower.includes('i want to')
+            const hasWhy = bodyLower.includes('so that') || bodyLower.includes('this ')
+            const hasDone = bodyLower.includes('completion criteria') || bodyLower.includes('done')
+
+            if (!hasWhat || !hasWhy || !hasDone) {
+              core.setFailed(
+                `Issue #${issueNumber} does not appear to meet the task template.\n\nRequired sections:\n- What do you want to do? ("I want to...")\n- Why? How does this benefit the research?\n- Completion criteria\n\nUpdate the issue to follow the template before linking to a PR.`
+              )
+              return
+            }
+
+            console.log(`PR #${prNumber} linked to issue #${issueNumber} — issue meets template requirements ✓`)
