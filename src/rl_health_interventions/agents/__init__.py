@@ -32,6 +32,8 @@ def make(name: str, **kwargs) -> Agent:
     return REGISTRY[name](**kwargs)
 
 
+# NOTE: Append new agent module here so register() runs on import.
+# Each module must have a register() function that adds to REGISTRY.
 _AGENT_MODULES = [
     thompson_sampling,
     epsilon_greedy,
