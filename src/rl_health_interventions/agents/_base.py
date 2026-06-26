@@ -8,6 +8,7 @@ class Agent(ABC):
     @abstractmethod
     def select_action(self, state: Any) -> str: ...
 
-    def update(
-        self, state: Any, action: str, reward: float, next_state: Any
-    ) -> None: ...
+    def update(self, state: Any, action: str, reward: float, next_state: Any) -> None:
+        """NOTE: Intentionally a no-op for non-learning agents.
+        Only learners (e.g. bandit agents) override this to incorporate feedback.
+        """
