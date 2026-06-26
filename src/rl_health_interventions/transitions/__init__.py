@@ -26,6 +26,8 @@ def make(name_or_config=None, **kwargs) -> TransitionModel:
     return REGISTRY[name](**kwargs)
 
 
+# NOTE: Append new transition model module here so register() runs on import.
+# Each module must have a register() function that adds to REGISTRY.
 _TRANSITION_MODULES = [rule_based]
 
 for _mod in _TRANSITION_MODULES:
