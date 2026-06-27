@@ -17,6 +17,8 @@ def make(name: str, **kwargs) -> ResponseModel:
     return REGISTRY[name](**kwargs)
 
 
+# NOTE: Import new simulation response model module above and append it here so register() runs on import.
+# Each module must have a register() function that adds to REGISTRY.
 _SIMULATION_MODULES = [rule_based]
 
 for _mod in _SIMULATION_MODULES:

@@ -26,6 +26,8 @@ def make(name_or_config=None, **kwargs) -> RewardHandler:
     return REGISTRY[name](**kwargs)
 
 
+# NOTE: Import new reward handler module above and append it here so register() runs on import.
+# Each module must have a register() function that adds to REGISTRY.
 _REWARD_MODULES = [compound]
 
 for _mod in _REWARD_MODULES:
