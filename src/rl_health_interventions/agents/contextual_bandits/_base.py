@@ -20,6 +20,10 @@ class ContextualBanditAgent(Agent):
         contextual: bool = False,
         context_feature: str | None = None,
     ) -> None:
+        if contextual and (not context_feature or not isinstance(context_feature, str)):
+            raise ValueError(
+                "context_feature must be a non-empty string when contextual=True"
+            )
         self.contextual = contextual
         self.context_feature = context_feature
         self._actions = actions or ["nudge", "idle"]
@@ -30,18 +34,15 @@ class ContextualBanditAgent(Agent):
 
         Non-contextual mode: just the action name.
         Contextual mode: ``(context_value, action)`` tuple.
+
+        Note: ``context_feature`` validation happens in ``__init__`` — by the time
+        this method runs in contextual mode, ``context_feature`` is guaranteed to
+        be a non-empty string.
         """
         if not self.contextual:
             return action
         if state is None:
             raise ValueError("state cannot be None when contextual=True")
-        if self.context_feature is None:
-            raise ValueError("context_feature must be set when contextual=True")
-        if not hasattr(state, self.context_feature):
-            raise ValueError(
-                f"State has no attribute '{self.context_feature}'. "
-                f"Available attributes: "
-                f"{[a for a in dir(state) if not a.startswith('_')]}"
-            )
+        assert self.context_feature is not None
         value = getattr(state, self.context_feature)
         return (value, action)

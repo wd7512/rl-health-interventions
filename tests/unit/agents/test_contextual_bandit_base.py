@@ -25,18 +25,14 @@ def test_get_context_key_contextual_returns_tuple():
     assert agent._get_context_key(state, "nudge") == ("sedentary", "nudge")
 
 
-def test_get_context_key_contextual_raises_without_context_feature():
-    agent = _make_agent(contextual=True)
-    state = StateView(activity="sedentary", day=0, step_of_day=0)
-    with pytest.raises(ValueError, match="context_feature must be set"):
-        agent._get_context_key(state, "nudge")
+def test_init_raises_when_contextual_without_context_feature():
+    with pytest.raises(ValueError, match="context_feature must be a non-empty string"):
+        _make_agent(contextual=True)
 
 
-def test_get_context_key_contextual_raises_on_missing_attribute():
-    agent = _make_agent(contextual=True, context_feature="nonexistent")
-    state = StateView(activity="sedentary", day=0, step_of_day=0)
-    with pytest.raises(ValueError, match="State has no attribute"):
-        agent._get_context_key(state, "nudge")
+def test_init_raises_when_contextual_with_empty_context_feature():
+    with pytest.raises(ValueError, match="context_feature must be a non-empty string"):
+        _make_agent(contextual=True, context_feature="")
 
 
 def test_get_context_key_contextual_raises_on_none_state():
