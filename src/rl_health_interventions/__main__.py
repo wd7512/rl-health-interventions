@@ -65,8 +65,9 @@ def main() -> None:
 
     logger.info("=== Episode complete ===")
     logger.info("Total steps: %d", len(df))
-    logger.info("Total reward: %.2f", sum(r["reward"] for r in df))
-    logger.info("Mean reward per step: %.4f", sum(r["reward"] for r in df) / len(df))
+    total_reward = sum(r["reward"] for r in df)
+    logger.info("Total reward: %.2f", total_reward)
+    logger.info("Mean reward per step: %.4f", total_reward / len(df) if df else 0.0)
     logger.info("Results written to: %s", output_path)
 
 

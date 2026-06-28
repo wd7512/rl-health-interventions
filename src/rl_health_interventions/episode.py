@@ -44,7 +44,7 @@ def run_episode(
         agent.update(state, action, reward, next_state)
         state = next_state
 
-    if output_csv is not None:
+    if output_csv and records:
         output_path = Path(output_csv)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with output_path.open("w", encoding="utf-8", newline="") as f:
