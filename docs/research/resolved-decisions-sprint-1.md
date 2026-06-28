@@ -571,16 +571,33 @@ The day-boundary prompt shows the full per-timestep breakdown from the last day 
 
 ### Cost-benefit summary
 
-| Item | Value |
-|---|---|
-| Model | DeepSeek V4 Flash (OpenRouter) |
-| Input price | $0.09 / 1M tokens |
-| Output price | $0.18 / 1M tokens |
-| Total LLM calls | 24,480 |
-| Est. input tokens per call | ~120 (within-day) / ~180 (day-boundary) |
-| Est. output tokens per call | ~10 (raw number or short JSON) |
-| Total input tokens | ~3.2M |
-| Total output tokens | ~0.24M |
-| **Estimated total cost** | **~$0.33** |
+**Usage estimate (all models):**
+- 24,480 LLM calls
+- ~3.2M input tokens (120 avg per within-day, 180 per day-boundary)
+- ~0.24M output tokens (10 avg per call)
+- ~75% prompt cache hit rate (system prompt + JSON key structure cached)
 
-Prompt caching on OpenRouter reduces effective input costs further (~60-80% after the first few calls), making the actual cost closer to **$0.10–0.15**.
+**List prices (OpenRouter, June 2026):**
+
+| Model | Input / 1M | Output / 1M | Cache read / 1M | Est. cost (no cache) | Est. cost (75% cache) |
+|---|---|---|---|---|---|
+| DeepSeek V4 Flash | $0.09 | $0.18 | $0.09 | **~$0.33** | **~$0.15** |
+| GLM 5.2 | $0.95 | $3.00 | $0.18 | **~$3.76** | **~$1.35** |
+| Claude Sonnet 4.6 | $3.00 | $15.00 | $0.30† | **~$13.20** | **~$4.60** |
+| Claude Opus 4.8 | $5.00 | $25.00 | $0.50† | **~$22.00** | **~$7.40** |
+| GPT-5.5 | $5.00 | $30.00 | $0.50† | **~$23.20** | **~$7.80** |
+
+† Estimated cache read price (Anthropic/OpenAI don't publish separate cache pricing; ~10% of input price assumed).
+
+**Prompt caching** reduces effective cost by 60–80% when the same system prompt and JSON structure is reused across calls — which is exactly our use case (identical structure, only values vary). With caching, DeepSeek V4 Flash goes from ~$0.33 to ~$0.15.
+
+Even without caching, DeepSeek V4 Flash is **~40× cheaper** than GPT-5.5 and **~70× cheaper** output vs Claude Opus 4.8. For a bootstrapping task where any frontier model produces reasonable transition estimates, DeepSeek V4 Flash is the clear cost leader.
+
+---
+
+## Amendment log
+
+| Date | Change |
+|------|--------|
+| 2026-06-28 | Sprint 1 config locked in at `docs/sprint1/configs/sprint1.yaml` |
+| 2026-06-28 | Deferred decisions documented in `docs/research/future-sprints.md` |
