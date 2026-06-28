@@ -102,7 +102,10 @@ def chat_text(
         temperature=temperature,
         max_tokens=max_tokens,
     )
-    return resp["choices"][0]["message"]["content"]
+    try:
+        return resp["choices"][0]["message"]["content"]
+    except (KeyError, IndexError, TypeError) as e:
+        raise LLMClientError(f"Failed to parse API response: {e}") from e
 
 
 def main() -> None:
@@ -136,14 +139,19 @@ def main() -> None:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
 
-    reply = chat_text(
-        args.prompt,
-        model=args.model,
-        base_url=args.base_url,
-        max_tokens=args.max_tokens,
-        temperature=args.temperature,
-    )
-    print(reply)
+    try:
+        reply = chat_text(
+            args.prompt,
+            model=args.model,
+            base_url=args.base_url,
+            max_tokens=args.max_tokens,
+            temperature=args.temperature,
+        )
+    except LLMClientError as exc:
+        logger.error("%s", exc)
+        raise SystemExit(1) from exc
+
+    logger.info("%s", reply)
 
 
 if __name__ == "__main__":

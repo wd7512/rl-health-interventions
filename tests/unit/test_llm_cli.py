@@ -36,7 +36,7 @@ def test_chat_completion_success():
     with patch("urllib.request.urlopen", return_value=_make_response(resp_body)):
         result = chat_completion(
             [{"role": "user", "content": "Hello"}],
-            api_key="***",
+            api_key="test-key",
         )
 
     assert result["choices"][0]["message"]["content"] == "Hi!"
@@ -50,12 +50,12 @@ def test_chat_completion_uses_correct_headers():
     with patch("urllib.request.urlopen", return_value=mock_resp) as mock_urlopen:
         chat_completion(
             [{"role": "user", "content": "test"}],
-            api_key="***",
+            api_key="test-key",
         )
 
     req = mock_urlopen.call_args[0][0]
     assert isinstance(req, urllib.request.Request)
-    assert req.get_header("X-api-key") == "***"
+    assert req.get_header("X-api-key") == "test-key"
     assert req.get_header("Content-type") == "application/json"
 
 
@@ -64,7 +64,7 @@ def test_chat_completion_uses_default_model():
         "choices": [{"message": {"role": "assistant", "content": "ok"}}],
     }
     with patch("urllib.request.urlopen", return_value=_make_response(resp_body)) as m:
-        chat_completion([{"role": "user", "content": "test"}], api_key="***")
+        chat_completion([{"role": "user", "content": "test"}], api_key="test-key")
 
     req = m.call_args[0][0]
     body = json.loads(req.data)
@@ -81,7 +81,7 @@ def test_chat_completion_custom_model_and_params():
             model="deepseek-v4-flash-free",
             temperature=0.7,
             max_tokens=128,
-            api_key="***",
+            api_key="test-key",
         )
 
     req = m.call_args[0][0]
@@ -101,12 +101,11 @@ def test_chat_completion_http_error():
     http_error = HTTPError(
         url="https://test", code=401, msg="Unauthorized", hdrs=MagicMock(), fp=None
     )
-    # Manually assign .read to the error object
     http_error.read = error_resp.read
 
     with patch("urllib.request.urlopen", side_effect=http_error):
         with pytest.raises(LLMClientError, match="API error 401"):
-            chat_completion([{"role": "user", "content": "test"}], api_key="***")
+            chat_completion([{"role": "user", "content": "test"}], api_key="test-key")
 
 
 def test_chat_completion_network_error():
@@ -114,7 +113,7 @@ def test_chat_completion_network_error():
 
     with patch("urllib.request.urlopen", side_effect=URLError("Connection refused")):
         with pytest.raises(LLMClientError, match="Network error"):
-            chat_completion([{"role": "user", "content": "test"}], api_key="***")
+            chat_completion([{"role": "user", "content": "test"}], api_key="test-key")
 
 
 def test_chat_completion_no_api_key():
@@ -128,13 +127,61 @@ def test_chat_text_convenience():
         "choices": [{"message": {"role": "assistant", "content": "Hello world!"}}],
     }
     with patch("urllib.request.urlopen", return_value=_make_response(resp_body)):
-        result = chat_text("Say hi", api_key="***")
+        result = chat_text("Say hi", api_key="test-key")
 
     assert result == "Hello world!"
+
+
+def test_chat_text_malformed_response_missing_choices():
+    """chat_text raises LLMClientError when response has no 'choices' key."""
+    resp_body = {"error": "something went wrong"}
+    with patch("urllib.request.urlopen", return_value=_make_response(resp_body)):
+        with pytest.raises(LLMClientError, match="Failed to parse API response"):
+            chat_text("test", api_key="test-key")
+
+
+def test_chat_text_malformed_response_empty_choices():
+    """chat_text raises LLMClientError when choices list is empty."""
+    resp_body = {"choices": []}
+    with patch("urllib.request.urlopen", return_value=_make_response(resp_body)):
+        with pytest.raises(LLMClientError, match="Failed to parse API response"):
+            chat_text("test", api_key="test-key")
+
+
+def test_chat_text_malformed_response_missing_message():
+    """chat_text raises LLMClientError when message key is missing."""
+    resp_body = {"choices": [{"finish_reason": "stop"}]}
+    with patch("urllib.request.urlopen", return_value=_make_response(resp_body)):
+        with pytest.raises(LLMClientError, match="Failed to parse API response"):
+            chat_text("test", api_key="test-key")
 
 
 def test_default_base_url():
     assert DEFAULT_BASE_URL == "https://opencode.ai/zen/v1"
 
 
-DEFAULT_RESP = {"choices": [{"message": {"role": "assistant", "content": "ok"}}]}
+def test_init_reexports():
+    """cli.__init__ should re-export symbols from cli.llm, not duplicate them."""
+    from rl_health_interventions.cli import (
+        DEFAULT_BASE_URL as init_base,
+        DEFAULT_MODEL as init_model,
+        LLMClientError as init_err,
+        chat_completion as init_cc,
+        chat_text as init_ct,
+        get_api_key as init_gak,
+    )
+    from rl_health_interventions.cli.llm import (
+        DEFAULT_BASE_URL,
+        DEFAULT_MODEL,
+        LLMClientError,
+        chat_completion,
+        chat_text,
+        get_api_key,
+    )
+
+    assert init_base is DEFAULT_BASE_URL
+    assert init_model is DEFAULT_MODEL
+    assert init_err is LLMClientError
+    assert init_cc is chat_completion
+    assert init_ct is chat_text
+    assert init_gak is get_api_key
