@@ -57,6 +57,7 @@ def test_chat_completion_uses_correct_headers():
     assert isinstance(req, urllib.request.Request)
     assert req.get_header("X-api-key") == "test-key"
     assert req.get_header("Content-type") == "application/json"
+    assert req.get_header("User-agent") == "rl-health-interventions/0.1.0"
 
 
 def test_chat_completion_uses_default_model():
