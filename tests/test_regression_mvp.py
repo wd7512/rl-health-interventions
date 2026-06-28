@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from rl_health_interventions.experiment import run_experiment
+from rl_health_interventions.sweep import run_experiment
 
 FIXTURE = Path("tests/fixtures/mvp_expected_rewards.json")
 

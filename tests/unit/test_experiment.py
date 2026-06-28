@@ -5,15 +5,13 @@ from pathlib import Path
 
 from rl_health_interventions.agents.epsilon_greedy import EpsilonGreedyAgent
 from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
-from rl_health_interventions.experiment import run_episode
+from rl_health_interventions.episode import run_episode
 
 
-def test_run_episode_returns_dataframe_with_correct_columns(valid_config):
-    import pandas as pd
-
+def test_run_episode_returns_list_with_correct_columns(valid_config):
     agent = ThompsonSamplingAgent(actions=["nudge", "idle"], seed=42)
-    df = run_episode(valid_config, agent, seed=42)
-    assert isinstance(df, pd.DataFrame)
+    records = run_episode(valid_config, agent, seed=42)
+    assert isinstance(records, list)
     expected_cols = {
         "step",
         "day",
@@ -22,8 +20,8 @@ def test_run_episode_returns_dataframe_with_correct_columns(valid_config):
         "action",
         "reward",
     }
-    assert expected_cols.issubset(set(df.columns))
-    assert len(df) == 450
+    assert expected_cols.issubset(set(records[0].keys()))
+    assert len(records) == 450
 
 
 def test_run_episode_writes_csv(tmp_path: Path, valid_config):
@@ -44,12 +42,12 @@ def test_run_episode_reproducible_with_seed(valid_config):
     agent2 = ThompsonSamplingAgent(actions=["nudge", "idle"], seed=42)
     df1 = run_episode(valid_config, agent1, seed=42)
     df2 = run_episode(valid_config, agent2, seed=42)
-    assert df1["action"].tolist() == df2["action"].tolist()
-    assert df1["reward"].tolist() == df2["reward"].tolist()
+    assert [r["action"] for r in df1] == [r["action"] for r in df2]
+    assert [r["reward"] for r in df1] == [r["reward"] for r in df2]
 
 
 def test_run_experiment_returns_rewards(valid_config, tmp_path):
-    from rl_health_interventions.experiment import run_experiment
+    from rl_health_interventions.sweep import run_experiment
 
     config_path = tmp_path / "test_config.yaml"
     import yaml

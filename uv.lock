@@ -1892,7 +1892,6 @@ dependencies = [
     { name = "huggingface-hub" },
     { name = "kagglehub" },
     { name = "numpy" },
-    { name = "pandas" },
     { name = "polars" },
     { name = "pydantic" },
     { name = "pyyaml" },
@@ -1903,6 +1902,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "matplotlib" },
+    { name = "pandas" },
     { name = "pytest" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
@@ -1916,7 +1916,6 @@ requires-dist = [
     { name = "huggingface-hub", specifier = ">=1.18.0" },
     { name = "kagglehub", specifier = ">=1.0.2" },
     { name = "numpy", specifier = ">=1.24.0" },
-    { name = "pandas", specifier = ">=3.0.3" },
     { name = "polars", specifier = ">=1.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pyyaml", specifier = ">=6.0" },
@@ -1927,6 +1926,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "matplotlib", specifier = ">=3.7.0" },
+    { name = "pandas", specifier = ">=3.0.3" },
     { name = "pytest", specifier = ">=8.4.0,<10" },
     { name = "pytest-timeout", specifier = ">=2.3.0,<3" },
     { name = "pytest-xdist", specifier = ">=3.8.0,<4" },

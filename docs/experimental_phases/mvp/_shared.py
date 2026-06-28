@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from rl_health_interventions.agents import derive_agent_seed, make as make_agent
-from rl_health_interventions.experiment import run_episode
+from rl_health_interventions.episode import run_episode
 
 _CONFIG_DIR = Path(__file__).resolve().parent / "configs"
 
@@ -47,6 +47,6 @@ def run_agent(config, agent_cfg, n_seeds: int) -> np.ndarray:
         kwargs["actions"] = config.actions
         kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
         agent = make_agent(agent_cfg.type, **kwargs)
-        df = run_episode(config, agent, seed=seed)
-        rewards.append(df["reward"].values)
+        records = run_episode(config, agent, seed=seed)
+        rewards.append([r["reward"] for r in records])
     return np.array(rewards)

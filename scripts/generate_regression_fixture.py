@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from rl_health_interventions.experiment import run_experiment
+from rl_health_interventions.sweep import run_experiment
 
 FIXTURE = Path("tests/fixtures/mvp_expected_rewards.json")
 CONFIG = "config/rule_based.yaml"
