@@ -269,7 +269,7 @@ Burden is a rolling count of non-idle actions in the last 3 timesteps:
 ### Transition function signature
 
 Within-day: `P(step_bin' | step_bin, burden, action, day_of_week, sleep)`
-Day-boundary: `P(step_bin', sleep' | step_bin, burden, action, day_of_week, sleep)`
+Day-boundary: `P(sleep' | step_bin, burden, action, day_of_week, sleep)`
 
 ### Rationale
 
@@ -388,7 +388,7 @@ Included in Sprint 1:
 | D10 burden/fatigue | Rolling window, 3 levels — table dimension (resolved) |
 | D11 reward design | R = f(step_bin') − λ·𝟙[action≠idle], f={inactive:0, moderate:0.5, active:1.0}, λ=0.05 (resolved) |
 | D12 algorithm class | Model-free: contextual bandits + optional Q-learning (resolved) |
-| D13 evaluation strategy | MVP metrics + per-archetype breakdown (resolved) |
+| D13 evaluation strategy | MVP metrics; per-archetype breakdown deferred to Phase 2 (resolved) |
 
 ---
 

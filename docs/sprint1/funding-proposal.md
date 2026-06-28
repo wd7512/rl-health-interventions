@@ -59,7 +59,7 @@ Step bin: inactive (<800 steps/timestep, daily <4k following Lee 2022), moderate
 
 **Reward.** $R = f(\text{step\_bin}') - \lambda \cdot \mathbb{1}[\text{action} \neq \text{idle}]$, where $f$ maps step bins to scalar rewards and $\lambda$ is the action penalty multiplier — both specified in the YAML config (see Section 4.4).
 
-**Agent suite.** 3 baselines (random, idle-only, fixed-ratio) + 4 bandits (Thompson Sampling Beta(1,1), epsilon-greedy ε=0.1, UCB c=2.0, decaying ε 0.5→0.01) + optional Q-learning (γ=0.99, α=0.1). Each bandit maintains 144 independent (s,a) parameter groups.
+**Agent suite.** Multiple baselines (random, idle-only, fixed-ratio) and bandit algorithms (Thompson Sampling, epsilon-greedy, UCB, decaying epsilon-greedy) with optional Q-learning for non-myopic comparison. Each bandit maintains independent (s,a) parameter groups.
 
 ### 4.2 LLM Bootstrapping Protocol
 
@@ -73,7 +73,7 @@ Step bin: inactive (<800 steps/timestep, daily <4k following Lee 2022), moderate
 
 **Metrics.** Total reward ($\sum R_t$), per-step reward ($\frac{1}{450} \sum R_t$), convergence (mean of last 50 steps), and percentage gap vs optimal policy.
 
-**Protocol.** 50 random seeds per configuration. Reporting: mean ± 95% bootstrap CI. Pairwise bootstrap test against best baseline with Cohen's d effect size. Bonferroni-Holm correction across 12 comparisons (4 agents × 3 baselines).
+**Protocol.** 50 random seeds per configuration. Reporting: mean ± 95% bootstrap CI. Pairwise bootstrap test against best baseline with Cohen's d effect size. Bonferroni-Holm correction across all pairwise comparisons.
 
 **Verification checks.** (1) Same config + seed = identical CSV on any platform. (2) idle-only yields lower total reward than random. (3) High burden reduces probability of step_bin improvement relative to low burden. (4) Thompson Sampling achieves ≥5% reward gain over random baseline.
 
@@ -99,7 +99,7 @@ The only paid computation is the LLM bootstrap: 24,480 calls to DeepSeek V4 Flas
 |-------|-----------|-------------|
 | 1–2 | Core MDP environment | StateView, TransitionModel, RewardHandler, step logic |
 | 2–3 | LLM bootstrapping | Pipeline script, 6 transition table JSON files |
-| 3–4 | Agent implementations | 6 agents (3 baselines + 3 bandits), extendable agent API |
+| 3–4 | Agent implementations | Baselines + bandit agents, extendable agent API |
 | 4–5 | Evaluation pipeline | CSV output, bootstrap CI, hypothesis tests, 50-seed runner |
 | 5–6 | Validation | Verification checks, regression fixtures, cross-platform testing |
 | 6–7 | Documentation & release | README, example configs, tutorial notebook, PyPI release |
