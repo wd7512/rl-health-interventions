@@ -6,7 +6,7 @@ from pathlib import Path
 
 from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 from rl_health_interventions.config.loader import load_config
-from rl_health_interventions.experiment import run_episode
+from rl_health_interventions.episode import run_episode
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +65,8 @@ def main() -> None:
 
     logger.info("=== Episode complete ===")
     logger.info("Total steps: %d", len(df))
-    logger.info("Total reward: %.2f", df["reward"].sum())
-    logger.info("Mean reward per step: %.4f", df["reward"].mean())
+    logger.info("Total reward: %.2f", sum(r["reward"] for r in df))
+    logger.info("Mean reward per step: %.4f", sum(r["reward"] for r in df) / len(df))
     logger.info("Results written to: %s", output_path)
 
 

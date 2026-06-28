@@ -23,7 +23,7 @@ import numpy as np
 
 from rl_health_interventions.agents import derive_agent_seed, make as make_agent
 from rl_health_interventions.config.loader import load_config
-from rl_health_interventions.experiment import run_episode
+from rl_health_interventions.episode import run_episode
 from _shared import resolve_config
 
 logger = logging.getLogger(__name__)
@@ -110,8 +110,8 @@ def run_one_config(
         kwargs["actions"] = config.actions
         kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
         agent = make_agent(agent_type, **kwargs)
-        df = run_episode(config, agent, seed=seed)
-        all_rewards.append(df["reward"].values)
+        records = run_episode(config, agent, seed=seed)
+        all_rewards.append([r["reward"] for r in records])
     rewards = np.array(all_rewards)
     total_mean = float(rewards.sum(axis=1).mean())
     total_std = float(rewards.sum(axis=1).std())
