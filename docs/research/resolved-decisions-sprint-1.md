@@ -486,3 +486,101 @@ The agent observes the full state at each step:
 | time_of_day | implicit | Not a state dimension | — |
 
 Total state cardinality: 3 × 2 × 2 × 3 = **36 states** (time_of_day is implicit, archetype deferred).
+
+---
+
+## LLM bootstrapping prompt design
+
+All 6 transition tables are bootstrapped via LLM calls through OpenRouter using **DeepSeek V4 Flash** ($0.09/M input tokens, $0.18/M output tokens).
+
+The LLM outputs raw step counts for within-day prompts; the environment bins the result into the 3-level step_bin. The day-boundary prompt outputs a binary JSON choice.
+
+### System prompt (cached once)
+
+```
+# Reference
+
+5 timesteps per day: morning, mid-morning, lunch, afternoon, evening
+
+Per-timestep step ranges (daily threshold / 5):
+  <800 steps     = inactive
+  800-1600 steps = moderate
+  >1600 steps    = active
+
+Sleep: >7h = well rested  |  ≤7h = under-rested
+
+Burden (notification fatigue):
+  low     = 0 of last 3 timesteps had an intervention
+  medium  = 1 of last 3
+  high    = 2 or 3 of last 3
+```
+
+### Within-day prompt (timestep 1 — morning)
+
+```
+# Current state
+You just woke up. It is the morning. It is a {weekday/weekend}.
+You slept {>7h / ≤7h}. Your notification fatigue is {low/medium/high}.
+
+{Your phone just said: {movement_suggestion / goal_reminder / journal}.
+
+How many steps do you take this timestep?
+```
+
+The LLM outputs a raw number (e.g. `800`). The environment adds it to the cumulative daily total and maps to a step bin.
+
+### Within-day prompt (timesteps 2–5)
+
+```
+# Current state
+It is the {mid-morning / lunch / afternoon / evening}. Last timestep
+({morning / mid-morning / lunch / afternoon}) you took {inferred_step_count} steps.
+Your notification fatigue is {low/medium/high}. It is a {weekday/weekend}.
+You slept {>7h / ≤7h}.
+
+{Your phone just said: {movement_suggestion / goal_reminder / journal}.
+ -or- No action.}
+
+How many steps do you take this timestep?
+```
+
+The `{inferred_step_count}` is the midpoint of the step_bin range from the previous timestep's output.
+
+### Day-boundary prompt
+
+```
+# Current state
+You are at the end of the day. It was a {weekday/weekend}.
+You slept {>7h / ≤7h} last night. Your notification fatigue is {low/medium/high}.
+
+Your day:
+  morning:      {inferred_step_count} steps ({step_bin})
+  mid-morning:  {inferred_step_count} steps ({step_bin})
+  lunch:        {inferred_step_count} steps ({step_bin})
+  afternoon:    {inferred_step_count} steps ({step_bin})
+  evening:      {inferred_step_count} steps ({step_bin})
+
+Your notifications today: {morning_action}, {mid-morning_action}, {lunch_action}, {afternoon_action}, {evening_action}
+
+It's bedtime. Do you sleep >7 hours tonight?
+{"sleep_>7h": true}
+{"sleep_>7h": false}
+```
+
+The day-boundary prompt shows the full per-timestep breakdown from the last day — each timestep's raw step count and its corresponding bin — so the LLM can reason about how the day's activity pattern affects sleep quality.
+
+### Cost-benefit summary
+
+| Item | Value |
+|---|---|
+| Model | DeepSeek V4 Flash (OpenRouter) |
+| Input price | $0.09 / 1M tokens |
+| Output price | $0.18 / 1M tokens |
+| Total LLM calls | 24,480 |
+| Est. input tokens per call | ~120 (within-day) / ~180 (day-boundary) |
+| Est. output tokens per call | ~10 (raw number or short JSON) |
+| Total input tokens | ~3.2M |
+| Total output tokens | ~0.24M |
+| **Estimated total cost** | **~$0.33** |
+
+Prompt caching on OpenRouter reduces effective input costs further (~60-80% after the first few calls), making the actual cost closer to **$0.10–0.15**.
