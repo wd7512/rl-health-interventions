@@ -15,14 +15,16 @@ upstream: "decision-catalogue.md"
 
 **Status:** resolved — 3 step bins
 
-3-level step bin based on cumulative daily steps:
-- thresholds TBD (e.g., <5k / 5-10k / >10k or <4k / 4-8k / >8k)
+3-level step bin based on per-timestep cumulative steps:
+- <800 steps/timestep = inactive (<4k daily)
+- 800–1,600 steps/timestep = moderate (4k–8k daily)
+- >1,600 steps/timestep = active (>8k daily)
 
 ### Rationale
 
 - Binary is too coarse — "active" masks clinical distinctions (4k vs 10k are very different health outcomes)
 - 4 bins (D1 original) exceeds the minimum useful granularity; 3 bins captures the key inflection points with fewer LLM calls
-- The reward (binary +1/0 for being "sufficiently active") still aligns with a clinical goal of N active days per month — reward is not binned, only the transition state is
+- Reward is 3-level matching the bins (inactive=0.0, moderate=0.5, active=1.0), aligned with clinical thresholds
 - LLM bootstrapping makes the marginal cost trivial: 3 × 4 × 3 = 36 (s, a) pairs vs 16 for binary
 
 ### Evidence
@@ -35,7 +37,6 @@ upstream: "decision-catalogue.md"
 
 ### Carried forward
 
-- Threshold values TBD (sensitivity analysis once transition matrices are bootstrapped)
 - Engagement curve (upper bins) unknown — same as HeartSteps literature
 
 ## D2. Factored vs flat state representation
@@ -44,13 +45,14 @@ upstream: "decision-catalogue.md"
 
 Factored into two transition structures:
 
-**Within-day (steps 1–4):** `P(step_bin' | step_bin, burden, action, day_of_week, sleep)`
-- 4 separate tables, one per decision point (time-of-day is implicit as the table index)
-- Only step_bin changes stochastically within a day
-
-**Day-boundary (step 0 of each day):** `P(step_bin', sleep' | step_bin, burden, action, day_of_week, sleep)`
-- Joint update: both step_bin and sleep transition
+**Day-boundary (step 0 — morning boundary):** `P(sleep' | step_bin, burden, action, day_of_week, sleep)`
 - Sleep' is the previous night's sleep quality (observed at the start of each day)
+- Only sleep changes — step_bin' is sampled next from within-day table #0 using the new sleep'
+
+**Within-day (steps 0–4):** `P(step_bin' | step_bin, burden, action, day_of_week, sleep')`
+- 5 separate tables (#0–#4), one per decision point (time-of-day is implicit as the table index)
+- Only step_bin changes stochastically within a day
+- Table #0 uses sleep' (just sampled from day-boundary); tables #1–#4 use the same sleep' held constant for the day
 
 ### Deterministic / formula-driven dimensions
 
@@ -78,8 +80,8 @@ Factored into two transition structures:
 
 **2 bins:** slept >7 hours (yes/no).
 
-- **Role:** A daily state dimension that transitions jointly with step_bin at the day boundary
-- **Stochastic at day boundary:** yes — `P(sleep', step_bin' | sleep, step_bin, burden, action, day_of_week)` is LLM-bootstrapped
+- **Role:** A daily state dimension that transitions at the day boundary, separately from step_bin
+- **Stochastic at day boundary:** yes — `P(sleep' | sleep, step_bin, burden, action, day_of_week)` is LLM-bootstrapped; step_bin' is sampled from within-day table #0 using the new sleep'
 - **Static within-day:** yes — once set at step 0, sleep stays constant for all 5 within-day steps
 - **Moderates within-day transitions:** yes — sleep is a context variable in the within-day LLM prompt
 
@@ -116,10 +118,10 @@ No trend dimension in the state.
 
 **Status:** resolved — implicit as table index
 
-Time-of-day is **not a state dimension.** Instead, the step index within the day selects one of 4 within-day transition tables:
+Time-of-day is **not a state dimension.** Instead, the step index within the day selects one of 5 within-day transition tables:
 
-- Step 0 (morning boundary) → day-boundary table for sleep', then within-day table #0 for step_bin' using new sleep'
-- Step 1 (morning P1) → within-day table #1
+- Step 0 (morning boundary) → day-boundary table samples sleep', then within-day table #0 samples step_bin' using new sleep'
+- Step 1 (morning P1) → within-day table #1 (using sleep' from step 0)
 - Step 2 (P2) → within-day table #2
 - Step 3 (P3) → within-day table #3
 - Step 4 (evening) → within-day table #4
@@ -128,7 +130,7 @@ Time-of-day is **not a state dimension.** Instead, the step index within the day
 
 - Time-of-day is the strongest moderator in HeartSteps V2 — different times of day have different response patterns even after controlling for burden and sleep
 - Making it a table index rather than a state dimension avoids multiplying the transition table while still capturing time-specific response functions
-- 4 within-day tables (one per decision point) and 1 day-boundary table — the LLM bootstraps each separately
+- 5 within-day tables (one per decision point, including step 0 after day-boundary) and 1 day-boundary table — the LLM bootstraps each separately
 - The agent doesn't need time-of-day as a context feature to learn different policies — the different transition dynamics per time slot produce different experience distributions automatically
 
 ### Evidence
@@ -296,22 +298,21 @@ Day-boundary: `P(step_bin', sleep' | step_bin, burden, action, day_of_week, slee
 ### Final choice
 
 ```
-R = base_reward(step_bin') - λ · 𝟙[action != idle]
+R = f(step_bin') - λ · 𝟙[action != idle]
 ```
 
 Where:
-- `base_reward` = +1 if step_bin ≥ threshold (e.g., 5k steps), 0 otherwise — binary reward aligned with clinical goal of active days per month
+- `f` maps the post-transition step bin: inactive → 0.0, moderate → 0.5, active → 1.0
 - `λ = 0.05` — a small regularisation penalty per non-idle action to discourage spamming
 - Immediate per-step time horizon (30-min post-decision, matching HeartSteps V2)
 - Burden is not subtracted from reward; its cost is expressed through reduced future activity probability
 
 ### Rationale
 
-- Binary reward (above threshold / below threshold) aligns naturally with a clinical goal of being active in N/20 days per month — the threshold maps to the middle step bin boundary
+- 3-level reward matches the transition-state bins — the agent is incentivised to push users from inactive→moderate (+0.5) or moderate→active (+0.5), with no artificial threshold boundary
 - λ = 0.05 is large enough to bias the agent away from spamming but small enough that it doesn't outweigh the step gain
 - Burden handles the saturation dynamic; λ handles the immediate cost of interruption — two separate mechanisms
 - Immediate horizon learns fastest; multi-timescale (3-week body measure) deferred to Phase 2
-- The 3 step bins feed into the transition model but reward remains binary — the agent is incentivised to push users across the threshold, not just into "any movement"
 
 ## D12. Algorithm class
 
@@ -375,17 +376,17 @@ Included in Sprint 1:
 
 | Decision | Resolution |
 |---|---|
-| D1 step encoding | 3 step bins (TBD thresholds) (resolved) |
+| D1 step encoding | 3 step bins (<800 / 800–1,600 / >1,600 per timestep) (resolved) |
 | D2 factored/flat | Factored: within-day + day-boundary tables (resolved) |
 | D3 psychosocial state | Sleep (2 bins) included; mood/stress excluded (resolved) |
 | D4 trend | Excluded (resolved) |
-| D5 time-of-day | Implicit — step index selects from 4 within-day tables (resolved) |
+| D5 time-of-day | Implicit — step index selects from 5 within-day tables (resolved) |
 | D6 day type | Binary weekday/weekend — moderates transitions (resolved) |
 | D7 action set | 4 actions: idle, movement_suggestion, goal_reminder, journal (resolved) |
 | D8 non-activity reward | Deferred to Phase 2 (resolved) |
 | D9 reward vs state | Deferred to Phase 2 (resolved) |
 | D10 burden/fatigue | Rolling window, 3 levels — table dimension (resolved) |
-| D11 reward design | R = base_reward(step_bin') - λ·𝟙[action≠idle], λ=0.05 (resolved) |
+| D11 reward design | R = f(step_bin') − λ·𝟙[action≠idle], f={inactive:0, moderate:0.5, active:1.0}, λ=0.05 (resolved) |
 | D12 algorithm class | Model-free: contextual bandits + optional Q-learning (resolved) |
 | D13 evaluation strategy | MVP metrics + per-archetype breakdown (resolved) |
 
