@@ -1,9 +1,9 @@
 # OpenCode Zen Free Model Benchmark
 
-Tested 2026-06-28. Free-tier API key, endpoint `https://opencode.ai/zen/v1/chat/completions`,
-auth via `X-API-Key` header. Median of 5 requests per batch unless noted.
+Tested 2026-06-28 (updated). Free-tier API key, endpoint
+`https://opencode.ai/zen/v1/chat/completions`, auth via `X-API-Key` header.
 
-## Free models available
+## Model availability
 
 | Model ID | Status |
 |---|---|
@@ -11,37 +11,60 @@ auth via `X-API-Key` header. Median of 5 requests per batch unless noted.
 | mimo-v2.5-free | Free |
 | north-mini-code-free | Free |
 | big-pickle | Free (stealth) |
-| nemotron-3-ultra-free | Free (limited time) |
-| qwen3.6-plus | Paid only (401 on free tier) |
-| minimax-m2.7 | Paid only (401 on free tier) |
-| minimax-m2.5 | Paid only (401 on free tier) |
+| nemotron-3-ultra-free | Free (limited time), intermittent errors |
+| qwen3.6-plus / 3.5 / 3.7 | Paid only (all return 401) |
+| minimax-m2.7 / m2.5 | Paid only (401) |
 
 ## Latency at 5 concurrent
 
 | Model | Median latency | Wall time | Success |
 |---|---|---|---|
-| big-pickle | 1.7s | 1.9s | 5/5 |
-| deepseek-v4-flash-free | 1.8s | 2.0s | 5/5 |
-| mimo-v2.5-free | 1.7s | 3.4s | 5/5 |
-| north-mini-code-free | 0.9s | 4.6s | 5/5 |
-| nemotron-3-ultra-free | 1.6s | 5.0s | 5/5 |
+| north-mini-code-free | 0.97s | — | 5/5 |
+| big-pickle | 1.63s | — | 5/5 |
+| deepseek-v4-flash-free | 1.86s | — | 5/5 |
+| mimo-v2.5-free | 5.70s | — | 5/5 |
+| nemotron-3-ultra-free | ~1.6s* | — | 4/5 |
+
+*Nemotron latency is highly variable (2s–24s) due to 550B MoE architecture.
+Occasional malformed responses missing `choices` key.
 
 ## Concurrency scaling (no rate limits observed)
 
-| Model | 5 concurrent | 10 concurrent | 15 concurrent | 20 concurrent |
+| Model | 5 | 10 | 15 | 20 |
 |---|---|---|---|---|
-| deepseek-v4-flash-free | 5/5 ok | 10/10 ok | 15/15 ok | 20/20 ok |
-| big-pickle | 5/5 ok | 10/10 ok | 15/15 ok | 20/20 ok |
-| mimo-v2.5-free | 5/5 ok | 10/10 ok | 15/15 ok | 20/20 ok |
+| deepseek-v4-flash-free | 5/5 | 10/10 | 15/15 | 20/20 |
+| big-pickle | 5/5 | 10/10 | 15/15 | 20/20 |
+| north-mini-code-free | 5/5 | 10/10 | 15/15 | 20/20 |
+| mimo-v2.5-free | 5/5 | 10/10 | 15/15 | 20/20 |
 
-- **No HTTP 429 at any level** up to 20 concurrent.
+- **No HTTP 429** at any level up to 20 concurrent.
 - Latency stays flat as concurrency increases — gateway handles parallel well.
 - Wall time grows linearly with batch size (server-side serialization).
 
+## Throughput estimates for 1000 requests
+
+Based on median latency. Assumes no rate limiting (none observed).
+
+| Model | Median lat | 1000 sequential | 1000 @ 5 workers | 1000 @ 10 workers |
+|---|---|---|---|---|
+| north-mini-code-free | 0.97s | 16.2 min | 3.2 min | 1.6 min |
+| big-pickle | 1.63s | 27.2 min | 5.4 min | 2.7 min |
+| deepseek-v4-flash-free | 1.86s | 31.0 min | 6.2 min | 3.1 min |
+| mimo-v2.5-free | 5.70s | 95.0 min | 19.0 min | 9.5 min |
+| nemotron-3-ultra-free | ~3.0s* | ~50 min* | ~10 min* | ~5 min* |
+
+*Nemotron estimate is rough due to high variance. Real-world throughput likely
+worse due to retries on malformed responses.
+
 ## Recommendation
 
-**deepseek-v4-flash-free at 10-15 concurrent** is the sweet spot: fastest consistent
-latency, zero failures, 100% success at all tested concurrency levels.
+**deepseek-v4-flash-free at 10-15 concurrent** is the best default:
+- Fastest consistent latency among reliable models
+- Zero failures at all tested concurrency levels
+- ~3 min for 1000 requests at 10 workers
 
-nemotron-3-ultra-free works but is slower (550B MoE model) — use when reasoning
-quality matters more than throughput.
+**north-mini-code-free** is the fastest but higher variance — good for
+fire-and-forget batch jobs where occasional slow requests are acceptable.
+
+Avoid **mimo-v2.5-free** for batch work (6x slower than deepseek).
+Avoid **nemotron-3-ultra-free** for batch work (unpredictable latency, malformed responses).
