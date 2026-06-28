@@ -20,7 +20,7 @@ class ContextualBanditAgent(Agent):
         contextual: bool = False,
         context_feature: str | None = None,
     ) -> None:
-        if contextual and (not context_feature or not isinstance(context_feature, str)):
+        if contextual and (not isinstance(context_feature, str) or not context_feature.strip()):
             raise ValueError(
                 "context_feature must be a non-empty string when contextual=True"
             )

@@ -25,14 +25,10 @@ def test_get_context_key_contextual_returns_tuple():
     assert agent._get_context_key(state, "nudge") == ("sedentary", "nudge")
 
 
-def test_init_raises_when_contextual_without_context_feature():
+@pytest.mark.parametrize("invalid_feature", ["", "   ", 123, []])
+def test_init_raises_when_contextual_with_invalid_context_feature(invalid_feature):
     with pytest.raises(ValueError, match="context_feature must be a non-empty string"):
-        _make_agent(contextual=True)
-
-
-def test_init_raises_when_contextual_with_empty_context_feature():
-    with pytest.raises(ValueError, match="context_feature must be a non-empty string"):
-        _make_agent(contextual=True, context_feature="")
+        _make_agent(contextual=True, context_feature=invalid_feature)
 
 
 def test_get_context_key_contextual_raises_on_none_state():
