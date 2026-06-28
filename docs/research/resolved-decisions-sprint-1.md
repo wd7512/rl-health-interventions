@@ -386,7 +386,7 @@ Included in Sprint 1:
 | D8 non-activity reward | Deferred to Phase 2 (resolved) |
 | D9 reward vs state | Deferred to Phase 2 (resolved) |
 | D10 burden/fatigue | Rolling window, 3 levels — table dimension (resolved) |
-| D11 reward design | R = f(step_bin') − λ·𝟙[action≠idle], f={inactive:0, moderate:0.5, active:1.0}, λ=0.05 (resolved) |
+| D11 reward design | R = f(step_bin') − λ·𝟙[action≠idle], f={inactive:0.0, moderate:0.5, active:1.0}, λ=0.05 (resolved) |
 | D12 algorithm class | Model-free: contextual bandits + optional Q-learning (resolved) |
 | D13 evaluation strategy | MVP metrics; per-archetype breakdown deferred to Phase 2 (resolved) |
 
