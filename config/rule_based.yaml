@@ -23,7 +23,8 @@ reward:
 
 transition_model:
   type: rule_based
-  table_dir: config/tables
+  table_dir: tables
+  table: mvp_rule_based.json
 
 agents:
   - type: thompson_sampling

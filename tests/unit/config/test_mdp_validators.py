@@ -189,6 +189,12 @@ class TestTransitionModelConfig:
         config = MDPConfig.model_validate(raw)
         assert config.transition_model.type == "bootstrap"
 
+    def test_unknown_type_rejected(self):
+        raw = _valid_raw()
+        raw["transition_model"] = {"type": "unknown_type"}
+        with pytest.raises(ValidationError, match="Unknown transition type"):
+            MDPConfig.model_validate(raw)
+
     def test_learned_type_without_table_dir_accepted(self):
         raw = _valid_raw()
         raw["transition_model"] = {"type": "learned"}
@@ -225,6 +231,10 @@ class TestModelConstruction:
         tmc = TransitionModelConfig(type="bootstrap", table_dir="../tables")
         assert tmc.type == "bootstrap"
         assert tmc.table_dir == "../tables"
+
+    def test_transition_model_table_dir_required_for_table_backed(self):
+        with pytest.raises(ValidationError, match="table_dir"):
+            TransitionModelConfig(type="rule_based")
 
     def test_reward_config_direct(self):
         rc = RewardConfig(
@@ -302,7 +312,7 @@ class TestOldFormatRejected:
                 "factor": "activity_level",
                 "values": {"sedentary": 0.0, "active": 1.0},
             },
-            "transition_model": {"type": "rule_based"},
+            "transition_model": {"type": "rule_based", "table_dir": "tables"},
         }
         with pytest.raises(ValidationError):
             MDPConfig.model_validate(raw)

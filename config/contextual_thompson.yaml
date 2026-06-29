@@ -24,6 +24,7 @@ reward:
 transition_model:
   type: rule_based
   table_dir: tables
+  table: mvp_contextual.json
 
 agents:
   - type: thompson_sampling

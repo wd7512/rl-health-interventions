@@ -24,25 +24,22 @@ class RuleBasedTransition(TransitionModel):
         if config.transition_model.table_dir is None:
             raise ValueError("rule_based transition requires table_dir in config")
         table_dir = Path(config.transition_model.table_dir)
-        if not table_dir.is_absolute():
-            resolved = Path.cwd() / table_dir
-            if resolved.exists():
-                table_dir = resolved
         if not table_dir.exists():
             raise FileNotFoundError(
                 f"Table directory not found: {table_dir}. "
-                f"Use resolve_table_dir(config_path, table_dir) for proper resolution."
+                "Use load_config() which resolves table_dir relative to the config file."
             )
-        # Detect Sprint1 factored format: need both the specific files and the
-        # config factors (step_bin and sleep) that indicate factored mode.
         has_step_bin = "step_bin" in config.factor_configs
         has_sleep = "sleep" in config.factor_configs
-        factored_files = [table_dir / f"within_day_{i}.json" for i in range(5)] + [
+        steps = config.steps_per_day
+        factored_files = [table_dir / f"within_day_{i}.json" for i in range(steps)] + [
             table_dir / "day_boundary.json"
         ]
         if has_step_bin and has_sleep and all(f.exists() for f in factored_files):
             self._factored_mode = True
-            for table_name in ["day_boundary"] + [f"within_day_{i}" for i in range(5)]:
+            for table_name in ["day_boundary"] + [
+                f"within_day_{i}" for i in range(steps)
+            ]:
                 file_path = table_dir / f"{table_name}.json"
                 data = json.loads(file_path.read_text())
                 nested: dict[str, dict[str, tuple[list[str], np.ndarray]]] = {}
@@ -56,10 +53,16 @@ class RuleBasedTransition(TransitionModel):
                     nested[state] = action_map
                 self._cache[table_name] = nested
         else:
-            # MVP flat format: load all JSON files as flat state->action->prob
-            table_files = sorted(table_dir.glob("*.json"))
-            if not table_files:
-                raise FileNotFoundError(f"No JSON table files found in {table_dir}")
+            # MVP flat format: load JSON table file(s).
+            if config.transition_model.table is not None:
+                table_path = table_dir / config.transition_model.table
+                if not table_path.exists():
+                    raise FileNotFoundError(f"Table file not found: {table_path}")
+                table_files = [table_path]
+            else:
+                table_files = sorted(table_dir.glob("*.json"))
+                if not table_files:
+                    raise FileNotFoundError(f"No JSON table files found in {table_dir}")
             for table_file in table_files:
                 data = json.loads(table_file.read_text())
                 for state, actions in data.items():

@@ -55,15 +55,19 @@ class StateView:
 
     @property
     def state_key(self) -> tuple[str, ...]:
-        """Tuple of all factor values — used by agents for parameter lookup."""
-        return tuple(self._factors.values())
+        return tuple(v for _, v in sorted(self._factors.items(), key=lambda x: x[0]))
 
     @property
     def factor_names(self) -> tuple[str, ...]:
         return tuple(self._factors.keys())
 
     def with_factors(self, **updates) -> StateView:
-        """Return new StateView with updated factor values."""
+        unknown = set(updates.keys()) - set(self._factors.keys())
+        if unknown:
+            raise ValueError(
+                f"Unknown factor updates: {sorted(unknown)}. "
+                f"Available factors: {sorted(self._factors.keys())}"
+            )
         new = dict(self._factors)
         new.update(updates)
         return StateView(new, self._day, self._step_of_day, self._steps_per_day)
@@ -86,10 +90,18 @@ class StateView:
             self._factors == other._factors
             and self._day == other._day
             and self._step_of_day == other._step_of_day
+            and self._steps_per_day == other._steps_per_day
         )
 
     def __hash__(self):
-        return hash((frozenset(self._factors.items()), self._day, self._step_of_day))
+        return hash(
+            (
+                frozenset(self._factors.items()),
+                self._day,
+                self._step_of_day,
+                self._steps_per_day,
+            )
+        )
 
     def __repr__(self):
         parts = ", ".join(f"{k}={v}" for k, v in self._factors.items())

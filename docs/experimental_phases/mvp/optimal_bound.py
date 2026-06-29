@@ -32,10 +32,6 @@ def _load_tprobs(config: MDPConfig) -> dict:
     if table_dir_str is None:
         raise ValueError("table_dir is required")
     table_dir = Path(table_dir_str)
-    if not table_dir.is_absolute():
-        resolved = Path.cwd() / table_dir
-        if resolved.exists():
-            table_dir = resolved
     if not table_dir.exists():
         raise FileNotFoundError(f"Table directory not found: {table_dir}")
     tprobs: dict = {}
@@ -81,19 +77,37 @@ def compute_bounds(config: MDPConfig) -> dict:
         P = np.zeros((n_states, n_states))
         for s_from in state_names:
             i = state_idx[s_from]
+            row_ok = False
             for s_to in state_names:
                 prob = tprobs.get(s_from, {}).get(a, {}).get(s_to, 0.0)
                 j = state_idx[s_to]
                 P[i, j] = prob
-        for i in range(n_states):
+                if prob > 0:
+                    row_ok = True
+            if not row_ok:
+                raise ValueError(
+                    f"Missing transition row for state='{s_from}', action='{a}'"
+                )
             rs = P[i].sum()
             if rs > 0:
                 P[i] = P[i] / rs
         action_mats[a] = P
 
+    action_penalties: dict[str, float] = {}
+    for name, cfg in config.actions.items():
+        penalty = (
+            getattr(cfg, "action_penalty", 0.0)
+            if hasattr(cfg, "action_penalty")
+            else 0.0
+        )
+        action_penalties[name] = penalty
+    pen_mult = config.reward.action_penalty_multiplier
+
     imm_reward: dict[str, np.ndarray] = {}
     for a in config.action_names:
         imm_reward[a] = action_mats[a] @ state_rewards_arr
+        penalty = action_penalties.get(a, 0.0) * pen_mult
+        imm_reward[a] = imm_reward[a] - penalty
 
     opt_actions: list[str] = []
     for s in state_names:
@@ -130,7 +144,9 @@ def compute_bounds(config: MDPConfig) -> dict:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Compute theoretical bounds from a config")
+    parser = argparse.ArgumentParser(
+        description="Compute theoretical bounds from a config"
+    )
     parser.add_argument("config", type=str, help="Config filename in configs/")
     args = parser.parse_args()
 
@@ -159,23 +175,59 @@ def main() -> None:
     random_total = random_full * mask_frac * n_steps
 
     logger.info("Config: %s", config_path)
-    logger.info("Steps: %d (%d days x %d steps/day)", n_steps, config.episode_days, config.steps_per_day)
+    logger.info(
+        "Steps: %d (%d days x %d steps/day)",
+        n_steps,
+        config.episode_days,
+        config.steps_per_day,
+    )
     mult_str = str(mult) if mult else "[1.0] x steps_per_day"
     logger.info("Reward multiplier: %s  (mean=%.4f)", mult_str, mask_frac)
     logger.info("")
     logger.info("Optimal per-action (per full step):")
     for a in config.action_names:
         pi = _stationary(action_mats[a])
-        logger.info("  %s: E[r]=%.4f  (stationary pi=%s, imm E[r]=%s)", a, fixed_rewards[a], np.round(pi, 4).tolist(), np.round(imm_reward[a], 4).tolist())
-    logger.info("  random: E[r]=%.4f  (stationary pi=%s)", random_full, np.round(_stationary(np.mean(list(action_mats.values()), axis=0)), 4).tolist())
+        logger.info(
+            "  %s: E[r]=%.4f  (stationary pi=%s, imm E[r]=%s)",
+            a,
+            fixed_rewards[a],
+            np.round(pi, 4).tolist(),
+            np.round(imm_reward[a], 4).tolist(),
+        )
+    logger.info(
+        "  random: E[r]=%.4f  (stationary pi=%s)",
+        random_full,
+        np.round(_stationary(np.mean(list(action_mats.values()), axis=0)), 4).tolist(),
+    )
     logger.info("")
-    logger.info("Contextual optimal policy: %s", ", ".join(f"{s}->{a}" for s, a in zip(state_names, opt_actions)))
+    logger.info(
+        "Contextual optimal policy: %s",
+        ", ".join(f"{s}->{a}" for s, a in zip(state_names, opt_actions)),
+    )
     logger.info("  stationary pi=%s", np.round(ctx_stationary, 4).tolist())
     logger.info("")
     logger.info("%25s %10s %10s %10s", "", "Full step", "Scaled", "Total")
-    logger.info("%25s %10.4f %10.4f %10.1f", "Contextual optimal", ctx_full, ctx_full * mask_frac, ctx_total)
-    logger.info("%25s %10.4f %10.4f %10.1f", "Non-contextual optimal", nctx_full, nctx_full * mask_frac, nctx_total)
-    logger.info("%25s %10.4f %10.4f %10.1f", "Random", random_full, random_full * mask_frac, random_total)
+    logger.info(
+        "%25s %10.4f %10.4f %10.1f",
+        "Contextual optimal",
+        ctx_full,
+        ctx_full * mask_frac,
+        ctx_total,
+    )
+    logger.info(
+        "%25s %10.4f %10.4f %10.1f",
+        "Non-contextual optimal",
+        nctx_full,
+        nctx_full * mask_frac,
+        nctx_total,
+    )
+    logger.info(
+        "%25s %10.4f %10.4f %10.1f",
+        "Random",
+        random_full,
+        random_full * mask_frac,
+        random_total,
+    )
 
 
 if __name__ == "__main__":

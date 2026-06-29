@@ -43,6 +43,7 @@ def test_mvp_end_to_end(tmp_path: Path) -> None:
         "action",
         "reward",
     }
+    assert "state" not in df.columns
     assert df["reward"].isin([0.0, 1.0]).all()
 
 

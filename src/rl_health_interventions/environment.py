@@ -19,6 +19,7 @@ class Environment:
         self._done = False
         self._current_state: StateView | None = None
         self._action_history: deque[str] = deque(maxlen=3)
+        self._factor_names: set[str] = set(config.factor_configs.keys())
 
     def reset(self) -> StateView:
         self._step_count = 0
@@ -54,18 +55,20 @@ class Environment:
         # 1. Transition: TransitionModel handles table routing internally
         next_state = self._transition.transition(self._current_state, action)
 
-        # 2. Determine day_of_week (deterministic cycle: weekday=Mon-Fri, weekend=Sat-Sun)
-        days_elapsed = (self._step_count + 1) // self._config.steps_per_day
-        if days_elapsed >= 5 and (days_elapsed % 7) in (5, 6):
-            new_day_of_week = "weekend"
-        else:
-            new_day_of_week = "weekday"
-        next_state = next_state.with_factors(day_of_week=new_day_of_week)
+        # 2. Inject day_of_week if configured (Sprint1+)
+        if "day_of_week" in self._factor_names:
+            days_elapsed = (self._step_count + 1) // self._config.steps_per_day
+            if days_elapsed >= 5 and (days_elapsed % 7) in (5, 6):
+                new_day_of_week = "weekend"
+            else:
+                new_day_of_week = "weekday"
+            next_state = next_state.with_factors(day_of_week=new_day_of_week)
 
-        # 3. Update action history and compute burden
+        # 3. Update action history and inject burden if configured (Sprint1+)
         self._action_history.append(action)
-        new_burden = self._compute_burden()
-        next_state = next_state.with_factors(burden=new_burden)
+        if "burden" in self._factor_names:
+            new_burden = self._compute_burden()
+            next_state = next_state.with_factors(burden=new_burden)
 
         # 4. Compute reward
         reward, _ = self._reward.reward(next_state, action, step_of_day)

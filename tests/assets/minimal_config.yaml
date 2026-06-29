@@ -23,7 +23,7 @@ reward:
 
 transition_model:
   type: rule_based
-  table_dir: tests/assets/tables
+  table_dir: tables
 
 agents:
   - type: random

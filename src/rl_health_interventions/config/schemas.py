@@ -26,6 +26,10 @@ class TransitionProbabilities(RootModel):
         return self
 
 
+_KNOWN_TRANSITION_TYPES = frozenset({"rule_based", "random", "learned", "bootstrap"})
+_TABLE_BACKED_TRANSITION_TYPES = frozenset({"rule_based", "random", "bootstrap"})
+
+
 class FactorConfig(BaseModel):
     dims: int = Field(ge=1)
     names: list[str]
@@ -39,6 +43,25 @@ class FactorConfig(BaseModel):
             )
         return self
 
+    @model_validator(mode="after")
+    def _check_names_unique(self) -> FactorConfig:
+        if len(set(self.names)) != len(self.names):
+            raise ValueError(
+                f"factor names must be unique, got duplicates: {self.names}"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _check_boundaries(self) -> FactorConfig:
+        if self.boundaries is not None:
+            expected = self.dims - 1
+            if len(self.boundaries) != expected:
+                raise ValueError(
+                    f"boundaries length ({len(self.boundaries)}) "
+                    f"must equal dims - 1 ({expected})"
+                )
+        return self
+
 
 class ActionConfig(BaseModel):
     action_penalty: float = 0.0
@@ -47,6 +70,18 @@ class ActionConfig(BaseModel):
 class TransitionModelConfig(BaseModel):
     type: str = "rule_based"
     table_dir: str | None = None
+    table: str | None = None
+
+    @model_validator(mode="after")
+    def _validate_config(self) -> TransitionModelConfig:
+        if self.type not in _KNOWN_TRANSITION_TYPES:
+            raise ValueError(
+                f"Unknown transition type: '{self.type}'. "
+                f"Supported types: {sorted(_KNOWN_TRANSITION_TYPES)}"
+            )
+        if self.type in _TABLE_BACKED_TRANSITION_TYPES and self.table_dir is None:
+            raise ValueError(f"table_dir is required for transition type '{self.type}'")
+        return self
 
 
 class RewardConfig(BaseModel):
@@ -203,7 +238,6 @@ class MDPConfig(BaseModel):
 
     @model_validator(mode="after")
     def _coerce_actions(self) -> MDPConfig:
-        """Convert raw dict action values to ActionConfig in normal mode."""
         if self.state.schema is not None:
             return self
         coerced: dict[str, Any] = {}
@@ -213,7 +247,10 @@ class MDPConfig(BaseModel):
             elif isinstance(cfg, dict):
                 coerced[name] = ActionConfig(**cfg)
             else:
-                coerced[name] = ActionConfig()
+                raise ValueError(
+                    f"Invalid action config for '{name}': expected dict or "
+                    f"ActionConfig, got {type(cfg).__name__}"
+                )
         self.actions = coerced
         return self
 

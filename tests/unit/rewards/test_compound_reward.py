@@ -46,7 +46,7 @@ def test_per_step_reward_uses_step_index():
             "values": {"sedentary": 0.0, "active": 1.0},
             "per_step_multiplier": [1.0, 0.5, 0.0],
         },
-        transition_model={"type": "rule_based"},
+        transition_model={"type": "rule_based", "table_dir": "tables"},
     )
     r = CompoundReward(config)
     state = StateView({"activity_level": "active"}, day=0, step_of_day=0)
@@ -72,7 +72,7 @@ def test_action_penalty():
             "values": {"sedentary": 0.0, "active": 1.0},
             "action_penalty_multiplier": 0.5,
         },
-        transition_model={"type": "rule_based"},
+        transition_model={"type": "rule_based", "table_dir": "tables"},
     )
     r = CompoundReward(config)
     state = StateView({"activity_level": "active"}, day=0, step_of_day=0)

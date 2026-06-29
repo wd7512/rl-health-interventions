@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-import yaml
 
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.config.schemas import MDPConfig
@@ -12,9 +11,7 @@ ASSETS = Path(__file__).parent.parent.parent / "assets"
 
 
 def test_mdp_config_loaded_from_yaml():
-    path = ASSETS / "valid_mdp_config.yaml"
-    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
-    config = MDPConfig.model_validate(raw)
+    config = load_config(ASSETS / "valid_mdp_config.yaml")
     assert config.steps_per_day == 5
     assert config.episode_days == 90
     assert config.seed == 42
@@ -22,22 +19,18 @@ def test_mdp_config_loaded_from_yaml():
     assert config.initial_state["activity_level"] == "sedentary"
     assert set(config.actions.keys()) == {"nudge", "idle"}
     assert config.transition_model.type == "rule_based"
-    assert config.transition_model.table_dir == "tests/assets/tables"
+    assert config.transition_model.table_dir.endswith("tests/assets/tables")
     assert len(config.agents) == 1
     assert config.agents[0].type == "thompson_sampling"
 
 
 def test_mdp_config_action_names_property():
-    path = ASSETS / "valid_mdp_config.yaml"
-    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
-    config = MDPConfig.model_validate(raw)
+    config = load_config(ASSETS / "valid_mdp_config.yaml")
     assert sorted(config.action_names) == ["idle", "nudge"]
 
 
 def test_mdp_config_factor_configs_property():
-    path = ASSETS / "valid_mdp_config.yaml"
-    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
-    config = MDPConfig.model_validate(raw)
+    config = load_config(ASSETS / "valid_mdp_config.yaml")
     assert "activity_level" in config.factor_configs
     assert config.factor_configs["activity_level"].dims == 2
     assert config.factor_configs["activity_level"].names == ["sedentary", "active"]
@@ -150,7 +143,7 @@ def test_per_step_multiplier_validation():
             "values": {"sedentary": 0.0, "active": 1.0},
             "per_step_multiplier": [1, 2, 3],  # wrong length
         },
-        "transition_model": {"type": "rule_based"},
+        "transition_model": {"type": "rule_based", "table_dir": "tables"},
     }
     with pytest.raises(Exception, match="per_step_multiplier|length"):
         MDPConfig.model_validate(raw)
@@ -172,7 +165,7 @@ def test_reward_factor_must_exist_in_state_factors():
             "factor": "nonexistent_factor",
             "values": {"x": 0.0},
         },
-        "transition_model": {"type": "rule_based"},
+        "transition_model": {"type": "rule_based", "table_dir": "tables"},
     }
     with pytest.raises(Exception, match="factor.*nonexistent_factor"):
         MDPConfig.model_validate(raw)
@@ -194,7 +187,7 @@ def test_reward_values_keys_must_match_factor_names():
             "factor": "activity_level",
             "values": {"wrong_key": 0.0, "active": 1.0},
         },
-        "transition_model": {"type": "rule_based"},
+        "transition_model": {"type": "rule_based", "table_dir": "tables"},
     }
     with pytest.raises(Exception, match="values"):
         MDPConfig.model_validate(raw)
@@ -216,7 +209,7 @@ def test_initial_state_keys_must_match_factor_names():
             "factor": "activity_level",
             "values": {"sedentary": 0.0, "active": 1.0},
         },
-        "transition_model": {"type": "rule_based"},
+        "transition_model": {"type": "rule_based", "table_dir": "tables"},
     }
     with pytest.raises(Exception, match="initial_state|factor"):
         MDPConfig.model_validate(raw)
@@ -238,7 +231,7 @@ def test_initial_state_values_must_be_valid_factor_values():
             "factor": "activity_level",
             "values": {"sedentary": 0.0, "active": 1.0},
         },
-        "transition_model": {"type": "rule_based"},
+        "transition_model": {"type": "rule_based", "table_dir": "tables"},
     }
     with pytest.raises(Exception, match="initial_state|nonexistent"):
         MDPConfig.model_validate(raw)

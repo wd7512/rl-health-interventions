@@ -15,4 +15,8 @@ def load_config(path: str | Path) -> MDPConfig:
     path = Path(path)
     with path.open(encoding="utf-8") as f:
         raw = yaml.safe_load(f)
+    td = raw.get("transition_model", {}).get("table_dir")
+    if td is not None:
+        resolved = resolve_table_dir(path, td)
+        raw["transition_model"]["table_dir"] = str(resolved)
     return MDPConfig.model_validate(raw)

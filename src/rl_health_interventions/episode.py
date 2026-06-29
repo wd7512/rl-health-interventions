@@ -36,9 +36,9 @@ def run_episode(
         next_state, reward, done = env.step(action)
         records.append(
             {
-                "step": state.global_step,
-                "day": state.day,
-                "step_of_day": state.step_of_day,
+                "step": next_state.global_step,
+                "day": next_state.day,
+                "step_of_day": next_state.step_of_day,
                 **{name: getattr(next_state, name) for name in next_state.factor_names},
                 "action": action,
                 "reward": reward,

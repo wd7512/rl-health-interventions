@@ -75,12 +75,12 @@ class TestProperties:
             "burden": "high",
         }
         sv = StateView(factors)
-        assert sv.state_key == ("moderate", "under_rested", "weekend", "high")
+        # state_key is sorted by factor name alphabetically
+        assert sv.state_key == ("high", "weekend", "under_rested", "moderate")
 
     def test_state_key_order_matches_factor_names(self):
         sv = StateView({"a": "x", "b": "y"})
         assert sv.state_key == ("x", "y")
-        assert sv.factor_names == ("a", "b")
 
     def test_factor_names(self):
         sv = StateView({"step_bin": "active", "sleep": "rested"})

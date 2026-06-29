@@ -101,9 +101,9 @@ def test_symmetric_two_state_mdp():
     """2-state MDP using mvp_rule_based.json transitions."""
     config = _symmetric_config()
     bounds = compute_bounds(config)
-    assert bounds["contextual_optimal"] > 0.0
-    assert bounds["noncontextual_optimal"] > 0.0
-    assert bounds["random"] > 0.0
+    assert bounds["contextual_optimal"] == pytest.approx(3.0 / 7.0)
+    assert bounds["noncontextual_optimal"] == pytest.approx(3.0 / 8.0)
+    assert bounds["random"] == pytest.approx(4.0 / 13.0)
 
 
 def test_compute_bounds_raises_for_invalid_state_count():

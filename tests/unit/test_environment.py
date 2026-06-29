@@ -124,3 +124,9 @@ def test_factored_env_step_returns_stateview(sprint1_config):
     assert hasattr(next_state, "sleep")
     assert isinstance(reward, float)
     assert isinstance(done, bool)
+    # step 0 -> day_boundary: sleep updated, then within_day_0: step_bin updated
+    assert next_state.day == 0
+    assert next_state.step_of_day == 1
+    # burden = low (only idle so far)
+    assert next_state.burden == "low"
+    assert next_state.day_of_week in ("weekday", "weekend")
