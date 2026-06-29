@@ -1,35 +1,29 @@
 episode_days: 90
 steps_per_day: 5
 seed: 42
-initial_state: sedentary
 
-states:
-  sedentary:
-    reward: 0.0
-  active:
-    reward: 1.0
+initial_state:
+  activity_level: sedentary
+
+state:
+  factors:
+    activity_level:
+      dims: 2
+      names: [sedentary, active]
 
 actions:
   - nudge
   - idle
 
+reward:
+  factor: activity_level
+  values:
+    sedentary: 0.0
+    active: 1.0
+
 transition_model:
   type: rule_based
-  transition_probabilities:
-    sedentary:
-      nudge:
-        active: 0.3
-        sedentary: 0.7
-      idle:
-        active: 0.1
-        sedentary: 0.9
-    active:
-      nudge:
-        active: 0.5
-        sedentary: 0.5
-      idle:
-        active: 0.6
-        sedentary: 0.4
+  table_dir: ../tables
 
 agents:
   - type: random
@@ -39,7 +33,7 @@ agents:
     beta_prior: 1.0
   - type: thompson_sampling
     contextual: true
-    context_feature: activity
+    context_feature: activity_level
     alpha_prior: 1.0
     beta_prior: 1.0
 
@@ -47,7 +41,7 @@ agents:
     epsilon: 0.05
   - type: epsilon_greedy
     contextual: true
-    context_feature: activity
+    context_feature: activity_level
     epsilon: 0.05
 
   - type: decaying_epsilon_greedy
@@ -56,15 +50,14 @@ agents:
     decay_steps: 200
   - type: decaying_epsilon_greedy
     contextual: true
-    context_feature: activity
+    context_feature: activity_level
     epsilon_start: 0.2
     epsilon_min: 0.01
     decay_steps: 200
-    
+
   - type: ucb
     c: 0.5
   - type: ucb
     contextual: true
-    context_feature: activity
+    context_feature: activity_level
     c: 0.5
-  

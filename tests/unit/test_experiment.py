@@ -7,16 +7,20 @@ from rl_health_interventions.agents.epsilon_greedy import EpsilonGreedyAgent
 from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
 from rl_health_interventions.episode import run_episode
 
+_HERE = Path(__file__).resolve().parent.parent
+ASSETS_TABLES = str(_HERE / "assets" / "tables")
+
 
 def test_run_episode_returns_list_with_correct_columns(valid_config):
     agent = ThompsonSamplingAgent(actions=["nudge", "idle"], seed=42)
     records = run_episode(valid_config, agent, seed=42)
     assert isinstance(records, list)
+    # The record now includes factor names instead of a single "state" field
     expected_cols = {
         "step",
         "day",
         "step_of_day",
-        "state",
+        "activity_level",
         "action",
         "reward",
     }
@@ -56,21 +60,20 @@ def test_run_experiment_returns_rewards(valid_config, tmp_path):
         "episode_days": 1,
         "steps_per_day": 1,
         "seed": 42,
-        "initial_state": "sedentary",
-        "states": {"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
+        "initial_state": {"activity_level": "sedentary"},
+        "state": {
+            "factors": {
+                "activity_level": {"dims": 2, "names": ["sedentary", "active"]},
+            },
+        },
         "actions": ["nudge", "idle"],
+        "reward": {
+            "factor": "activity_level",
+            "values": {"sedentary": 0.0, "active": 1.0},
+        },
         "transition_model": {
             "type": "rule_based",
-            "transition_probabilities": {
-                "sedentary": {
-                    "nudge": {"active": 0.5, "sedentary": 0.5},
-                    "idle": {"active": 0.5, "sedentary": 0.5},
-                },
-                "active": {
-                    "nudge": {"active": 0.5, "sedentary": 0.5},
-                    "idle": {"active": 0.5, "sedentary": 0.5},
-                },
-            },
+            "table_dir": ASSETS_TABLES,
         },
         "agents": [{"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1}],
     }

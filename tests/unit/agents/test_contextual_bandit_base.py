@@ -15,13 +15,13 @@ def _make_agent(**kwargs):
 
 def test_get_context_key_non_contextual_returns_action():
     agent = _make_agent(contextual=False)
-    state = StateView(activity="sedentary", day=0, step_of_day=0)
+    state = StateView({"activity": "sedentary"}, day=0, step_of_day=0)
     assert agent._get_context_key(state, "nudge") == "nudge"
 
 
 def test_get_context_key_contextual_returns_tuple():
     agent = _make_agent(contextual=True, context_feature="activity")
-    state = StateView(activity="sedentary", day=0, step_of_day=0)
+    state = StateView({"activity": "sedentary"}, day=0, step_of_day=0)
     assert agent._get_context_key(state, "nudge") == ("sedentary", "nudge")
 
 
@@ -39,6 +39,6 @@ def test_get_context_key_contextual_raises_on_none_state():
 
 def test_get_context_key_contextual_raises_on_missing_attribute():
     agent = _make_agent(contextual=True, context_feature="nonexistent")
-    state = StateView(activity="sedentary", day=0, step_of_day=0)
+    state = StateView({"activity": "sedentary"}, day=0, step_of_day=0)
     with pytest.raises(AttributeError):
         agent._get_context_key(state, "nudge")

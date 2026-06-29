@@ -3,17 +3,25 @@ from __future__ import annotations
 import pytest
 
 from rl_health_interventions.transitions import REGISTRY, make
+from rl_health_interventions.transitions.random import RandomTransition
 from rl_health_interventions.transitions.rule_based import RuleBasedTransition
 
 
 def test_registry_populated() -> None:
     assert "rule_based" in REGISTRY
     assert REGISTRY["rule_based"] is RuleBasedTransition
+    assert "random" in REGISTRY
+    assert REGISTRY["random"] is RandomTransition
 
 
 def test_make_returns_instance(valid_config) -> None:
     instance = make("rule_based", config=valid_config)
     assert isinstance(instance, RuleBasedTransition)
+
+
+def test_make_random_returns_instance(valid_config) -> None:
+    instance = make("random", config=valid_config)
+    assert isinstance(instance, RandomTransition)
 
 
 def test_make_unknown_raises_keyerror() -> None:

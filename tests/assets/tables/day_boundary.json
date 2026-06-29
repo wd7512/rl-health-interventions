@@ -1,0 +1,38 @@
+{
+  "inactive_rested_weekday_low": {
+    "idle": {"rested": 0.6, "under_rested": 0.4},
+    "movement_suggestion": {"rested": 0.5, "under_rested": 0.5},
+    "goal_reminder": {"rested": 0.5, "under_rested": 0.5},
+    "journal": {"rested": 0.5, "under_rested": 0.5}
+  },
+  "inactive_under_rested_weekday_low": {
+    "idle": {"rested": 0.6, "under_rested": 0.4},
+    "movement_suggestion": {"rested": 0.5, "under_rested": 0.5},
+    "goal_reminder": {"rested": 0.5, "under_rested": 0.5},
+    "journal": {"rested": 0.5, "under_rested": 0.5}
+  },
+  "moderate_rested_weekday_low": {
+    "idle": {"rested": 0.6, "under_rested": 0.4},
+    "movement_suggestion": {"rested": 0.5, "under_rested": 0.5},
+    "goal_reminder": {"rested": 0.5, "under_rested": 0.5},
+    "journal": {"rested": 0.5, "under_rested": 0.5}
+  },
+  "moderate_under_rested_weekday_low": {
+    "idle": {"rested": 0.6, "under_rested": 0.4},
+    "movement_suggestion": {"rested": 0.5, "under_rested": 0.5},
+    "goal_reminder": {"rested": 0.5, "under_rested": 0.5},
+    "journal": {"rested": 0.5, "under_rested": 0.5}
+  },
+  "active_rested_weekday_low": {
+    "idle": {"rested": 0.6, "under_rested": 0.4},
+    "movement_suggestion": {"rested": 0.5, "under_rested": 0.5},
+    "goal_reminder": {"rested": 0.5, "under_rested": 0.5},
+    "journal": {"rested": 0.5, "under_rested": 0.5}
+  },
+  "active_under_rested_weekday_low": {
+    "idle": {"rested": 0.6, "under_rested": 0.4},
+    "movement_suggestion": {"rested": 0.5, "under_rested": 0.5},
+    "goal_reminder": {"rested": 0.5, "under_rested": 0.5},
+    "journal": {"rested": 0.5, "under_rested": 0.5}
+  }
+}

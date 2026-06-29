@@ -1,0 +1,10 @@
+{
+  "sedentary": {
+    "nudge": { "active": 0.5, "sedentary": 0.5 },
+    "idle": { "active": 0.5, "sedentary": 0.5 }
+  },
+  "active": {
+    "nudge": { "active": 0.5, "sedentary": 0.5 },
+    "idle": { "active": 0.6, "sedentary": 0.4 }
+  }
+}
