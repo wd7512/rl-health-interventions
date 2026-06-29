@@ -20,7 +20,7 @@ import yaml
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _RUNNER = _REPO_ROOT / "docs" / "experimental_phases" / "mvp" / "run_experiments.py"
 _RESULTS_DIR = _REPO_ROOT / "docs" / "experimental_phases" / "mvp" / "results"
-_TOLERANCE = 0.001  # 0.1% relative tolerance
+_REL_TOLERANCE = 0.001  # 0.1% relative tolerance
 
 _METRICS = ["total_reward", "per_step", "last50"]
 
@@ -106,7 +106,9 @@ def test_mvp_regression(config_name: str, mvp_results: dict[str, dict]) -> None:
         for metric in _METRICS:
             golden_val = golden_metrics[metric]
             live_val = live_metrics[metric]
-            assert live_val == pytest.approx(golden_val, rel=_TOLERANCE, abs=1e-5), (
+            assert live_val == pytest.approx(
+                golden_val, rel=_REL_TOLERANCE, abs=1e-5
+            ), (
                 f"{config_name} / {agent_label} / {metric}: "
                 f"live={live_val:.6f} vs golden={golden_val:.6f}"
             )

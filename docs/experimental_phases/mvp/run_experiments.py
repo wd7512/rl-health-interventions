@@ -113,14 +113,11 @@ def _write_json_fixture(
             f"Re-run with --confirm-overwrite to intentionally re-baseline."
         )
 
+    resolved = Path(config_path).resolve()
     try:
-        config_ref = str(
-            Path(config_path)
-            .resolve()
-            .relative_to(_CONFIGS_DIR.parent.parent.resolve())
-        )
+        config_ref = str(resolved.relative_to(_CONFIGS_DIR.parent.parent.resolve()))
     except ValueError:
-        config_ref = str(Path(config_path).resolve())
+        config_ref = str(resolved)
 
     fixture = {
         "config": config_ref,
