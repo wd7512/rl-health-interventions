@@ -106,9 +106,7 @@ def test_mvp_regression(config_name: str, mvp_results: dict[str, dict]) -> None:
         for metric in _METRICS:
             golden_val = golden_metrics[metric]
             live_val = live_metrics[metric]
-            rel_diff = abs(live_val - golden_val) / max(abs(golden_val), 1e-9)
-            assert rel_diff <= _TOLERANCE, (
+            assert live_val == pytest.approx(golden_val, rel=_TOLERANCE, abs=1e-5), (
                 f"{config_name} / {agent_label} / {metric}: "
-                f"live={live_val:.6f} vs golden={golden_val:.6f} "
-                f"(rel_diff={rel_diff:.6f} > {_TOLERANCE})"
+                f"live={live_val:.6f} vs golden={golden_val:.6f}"
             )

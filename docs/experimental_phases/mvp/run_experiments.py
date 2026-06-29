@@ -86,6 +86,7 @@ def _benchmark_config(
             output_dir=output_dir,
             config_name=config_name,
             config_path=config_path,
+            config_seed=config.seed,
             n_seeds=n_seeds,
             results=results,
             confirm_overwrite=confirm_overwrite,
@@ -98,6 +99,7 @@ def _write_json_fixture(
     output_dir: Path,
     config_name: str,
     config_path: str,
+    config_seed: int,
     n_seeds: int,
     results: dict[str, dict],
     confirm_overwrite: bool,
@@ -111,9 +113,18 @@ def _write_json_fixture(
             f"Re-run with --confirm-overwrite to intentionally re-baseline."
         )
 
+    try:
+        config_ref = str(
+            Path(config_path)
+            .resolve()
+            .relative_to(_CONFIGS_DIR.parent.parent.resolve())
+        )
+    except ValueError:
+        config_ref = str(Path(config_path).resolve())
+
     fixture = {
-        "config": str(Path(config_path).relative_to(_CONFIGS_DIR.parent.parent)),
-        "seed": 42,
+        "config": config_ref,
+        "seed": config_seed,
         "seeds": n_seeds,
         "agents": results,
     }
@@ -148,7 +159,7 @@ def main() -> None:
         "--output",
         type=str,
         default=None,
-        help="Output directory for JSON fixtures (default: docs/experimental_phases/mvp/results/)",
+        help="Output directory for JSON fixtures (use with --json)",
     )
     parser.add_argument(
         "--json",
