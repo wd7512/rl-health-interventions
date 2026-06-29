@@ -1,0 +1,1 @@
+output .pdf images for the chart_generator.py
