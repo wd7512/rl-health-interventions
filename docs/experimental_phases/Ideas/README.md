@@ -1,5 +1,5 @@
 These folders and configs are ideas for future experiments.
-They do not need to be kept up to date
+They do not need to be kept up to date.
 
 # Contents
 
