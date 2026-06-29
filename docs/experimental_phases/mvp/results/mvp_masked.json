@@ -1,0 +1,31 @@
+{
+  "config": "mvp/configs/mvp_masked.yaml",
+  "seed": 42,
+  "seeds": 50,
+  "agents": {
+    "Random": {
+      "total_reward": 109.96,
+      "total_std": 10.19599921537855,
+      "per_step": 0.24435555555555555,
+      "last50": 0.25
+    },
+    "Std TS": {
+      "total_reward": 125.8,
+      "total_std": 10.938007131100253,
+      "per_step": 0.27955555555555556,
+      "last50": 0.2888
+    },
+    "Std EG": {
+      "total_reward": 125.86,
+      "total_std": 14.81217067144448,
+      "per_step": 0.2796888888888889,
+      "last50": 0.2912
+    },
+    "Std UCB": {
+      "total_reward": 116.52,
+      "total_std": 11.337089573607505,
+      "per_step": 0.25893333333333335,
+      "last50": 0.2744
+    }
+  }
+}

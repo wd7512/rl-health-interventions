@@ -8,8 +8,6 @@ Tolerance: ±0.1% relative per metric.
 
 from __future__ import annotations
 
-import csv
-import io
 import json
 import logging
 import subprocess
@@ -41,7 +39,7 @@ def mvp_results() -> dict[str, dict]:
     assert result.returncode == 0, (
         f"Runner failed:\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}"
     )
-    return _parse_stdout(result.stdout)
+    return _parse_stdout(result.stderr)
 
 
 def _parse_stdout(stdout: str) -> dict[str, dict]:
@@ -75,34 +73,32 @@ def _parse_stdout(stdout: str) -> dict[str, dict]:
             continue
 
         # Parse agent line: "Ctx UCB   179.4 +- 15.4   0.3987   0.4300"
-        # First try to extract leading label then parse the numbers
-        stripped = line.strip()
-        if not stripped:
+        # Format: <label>  <total_mean> +- <total_std>  <per_step>  <last50>
+        if "+-" not in line:
             continue
 
-        # Split on "+-" to isolate the label and first value
-        if "+-" not in stripped:
+        left, right = line.split("+-", 1)
+        left_clean = left.strip()
+        if not left_clean:
             continue
 
-        label_part, rest = stripped.split("+-", 1)
-        label = label_part.strip()
-        if not label:
-            continue
+        # Last whitespace-separated token in left part is total_reward
+        *label_tokens, total_reward_str = left_clean.rsplit(None, 1)
+        label = " ".join(label_tokens) if label_tokens else left_clean
+        total_reward = float(total_reward_str if label_tokens else left_clean)
 
-        numbers_str = rest.strip().split()
-        # numbers_str = [total_std, per_step, last50]
-        if len(numbers_str) < 3:
+        numbers = right.strip().split()
+        if len(numbers) < 3:
             continue
 
         try:
             results[current_config][label] = {
-                "per_step": float(numbers_str[0]),
-                "last50": float(numbers_str[1]),
-                "total_reward": float(numbers_str[2]),
+                "total_reward": total_reward,
+                "per_step": float(numbers[1]),
+                "last50": float(numbers[2]),
             }
         except (ValueError, IndexError):
-            # Try alternate parsing: maybe the numbers come in order total, per_step, last50
-            logger.warning("Failed to parse line for %s: %s", current_config, stripped)
+            logger.warning("Failed to parse line for %s: %s", current_config, line)
             continue
 
     return results
