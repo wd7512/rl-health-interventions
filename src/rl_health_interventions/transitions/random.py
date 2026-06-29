@@ -47,43 +47,43 @@ class RandomTransition(TransitionModel):
             self._cache[cache_key] = (outcomes, probs)
         return self._cache[cache_key]
 
-    def _make_state_key(self, state: StateView) -> str:
-        return "_".join(getattr(state, name) for name in self._factor_names)
+    def _make_state_key(self, source: StateView | dict[str, str]) -> str:
+        if isinstance(source, StateView):
+            return "_".join(getattr(source, name) for name in self._factor_names)
+        return "_".join(source[name] for name in self._factor_names)
 
-    def transition(self, state: StateView, action: str) -> StateView:
+    def _transition_updates(self, state: StateView, action: str) -> dict[str, str]:
         step = state.step_of_day
 
         if self._factored_mode:
             state_key = self._make_state_key(state)
             if step == 0:
-                # Sample sleep from day_boundary
                 sleep_outcomes, sleep_probs = self._lazy_cache(
                     state_key, action, "day_boundary"
                 )
                 sleep_idx = self._rng.choice(len(sleep_outcomes), p=sleep_probs)
                 new_sleep = sleep_outcomes[sleep_idx]
 
-                # Update with new sleep, sample step_bin from within_day_0
-                temp_state = state.with_factors(sleep=new_sleep)
-                temp_key = self._make_state_key(temp_state)
+                temp_factors = dict(state.factor_values)
+                temp_factors["sleep"] = new_sleep
+                temp_key = self._make_state_key(temp_factors)
                 sb_outcomes, sb_probs = self._lazy_cache(
                     temp_key, action, "within_day_0"
                 )
                 sb_idx = self._rng.choice(len(sb_outcomes), p=sb_probs)
                 new_step_bin = sb_outcomes[sb_idx]
 
-                return state.with_factors(sleep=new_sleep, step_bin=new_step_bin)
+                return {"sleep": new_sleep, "step_bin": new_step_bin}
             else:
                 table_type = f"within_day_{step}"
                 outcomes, probs = self._lazy_cache(state_key, action, table_type)
                 idx = self._rng.choice(len(outcomes), p=probs)
-                return state.with_factors(step_bin=outcomes[idx])
+                return {"step_bin": outcomes[idx]}
         else:
-            # Flat mode: single factor
             state_key = getattr(state, self._factor_names[0])
             outcomes, probs = self._lazy_cache(state_key, action, "flat")
             idx = self._rng.choice(len(outcomes), p=probs)
-            return state.with_factors(**{self._factor_names[0]: outcomes[idx]})
+            return {self._factor_names[0]: outcomes[idx]}
 
 
 def register() -> None:

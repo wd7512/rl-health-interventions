@@ -52,32 +52,41 @@ class Environment:
 
         step_of_day = self._step_count % self._config.steps_per_day
 
-        # 1. Transition: TransitionModel handles table routing internally
-        next_state = self._transition.transition(self._current_state, action)
+        # 1. Transition returns factor updates
+        factor_updates = self._transition._transition_updates(
+            self._current_state, action
+        )
 
         # 2. Inject day_of_week if configured (Sprint1+)
         if "day_of_week" in self._factor_names:
             days_elapsed = (self._step_count + 1) // self._config.steps_per_day
             if days_elapsed >= 5 and (days_elapsed % 7) in (5, 6):
-                new_day_of_week = "weekend"
+                factor_updates["day_of_week"] = "weekend"
             else:
-                new_day_of_week = "weekday"
-            next_state = next_state.with_factors(day_of_week=new_day_of_week)
+                factor_updates["day_of_week"] = "weekday"
 
         # 3. Update action history and inject burden if configured (Sprint1+)
         self._action_history.append(action)
         if "burden" in self._factor_names:
-            new_burden = self._compute_burden()
-            next_state = next_state.with_factors(burden=new_burden)
+            factor_updates["burden"] = self._compute_burden()
 
-        # 4. Compute reward
-        reward, _ = self._reward.reward(next_state, action, step_of_day)
-
-        # 5. Advance counters
+        # 4. Advance counters
         self._step_count += 1
         new_step_of_day = self._step_count % self._config.steps_per_day
         new_day = self._step_count // self._config.steps_per_day
-        next_state = next_state.with_advance(day=new_day, step_of_day=new_step_of_day)
+
+        # 5. Build single StateView with all updates + advance
+        next_factors = dict(self._current_state.factor_values)
+        next_factors.update(factor_updates)
+        next_state = StateView(
+            next_factors,
+            day=new_day,
+            step_of_day=new_step_of_day,
+            steps_per_day=self._config.steps_per_day,
+        )
+
+        # 6. Compute reward
+        reward, _ = self._reward.reward(next_state, action, step_of_day)
 
         if self._step_count >= self._config.steps_per_day * self._config.episode_days:
             self._done = True

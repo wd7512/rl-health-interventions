@@ -74,14 +74,15 @@ class RuleBasedTransition(TransitionModel):
                         action_map[action] = (targets, prob_values)
                     self._cache[state] = action_map
 
-    def _make_state_key(self, state: StateView) -> str:
-        return "_".join(getattr(state, name) for name in self._factor_names)
+    def _make_state_key(self, source: StateView | dict[str, str]) -> str:
+        if isinstance(source, StateView):
+            return "_".join(getattr(source, name) for name in self._factor_names)
+        return "_".join(source[name] for name in self._factor_names)
 
-    def transition(self, state: StateView, action: str) -> StateView:
+    def _transition_updates(self, state: StateView, action: str) -> dict[str, str]:
         if self._factored_mode:
             step = state.step_of_day
             if step == 0:
-                # Step 0: sample sleep from day_boundary, then step_bin from within_day_0
                 state_key = self._make_state_key(state)
                 sleep_targets, sleep_probs = self._cache["day_boundary"][state_key][
                     action
@@ -89,28 +90,26 @@ class RuleBasedTransition(TransitionModel):
                 sleep_idx = self._rng.choice(len(sleep_targets), p=sleep_probs)
                 new_sleep = sleep_targets[sleep_idx]
 
-                # Update with new sleep, then sample step_bin from within_day_0
-                temp_state = state.with_factors(sleep=new_sleep)
-                temp_key = self._make_state_key(temp_state)
+                temp_factors = dict(state.factor_values)
+                temp_factors["sleep"] = new_sleep
+                temp_key = self._make_state_key(temp_factors)
                 sb_targets, sb_probs = self._cache["within_day_0"][temp_key][action]
                 sb_idx = self._rng.choice(len(sb_targets), p=sb_probs)
                 new_step_bin = sb_targets[sb_idx]
 
-                return state.with_factors(sleep=new_sleep, step_bin=new_step_bin)
+                return {"sleep": new_sleep, "step_bin": new_step_bin}
             else:
-                # Steps 1-4: sample step_bin from within_day_k
                 table_key = f"within_day_{step}"
                 state_key = self._make_state_key(state)
                 targets, probs = self._cache[table_key][state_key][action]
                 idx = self._rng.choice(len(targets), p=probs)
-                return state.with_factors(step_bin=targets[idx])
+                return {"step_bin": targets[idx]}
         else:
-            # Flat mode: single factor
             factor_name = self._factor_names[0]
             current_val = getattr(state, factor_name)
             targets, probs = self._cache[current_val][action]
             idx = self._rng.choice(len(targets), p=probs)
-            return state.with_factors(**{factor_name: targets[idx]})
+            return {factor_name: targets[idx]}
 
 
 def register() -> None:

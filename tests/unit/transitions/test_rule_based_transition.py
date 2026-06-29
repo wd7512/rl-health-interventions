@@ -5,9 +5,10 @@ from rl_health_interventions.transitions.rule_based import RuleBasedTransition
 def test_transition_returns_valid_state(valid_config):
     t = RuleBasedTransition(valid_config, seed=42)
     state = StateView({"activity_level": "sedentary"}, day=0, step_of_day=0)
-    next_state = t.transition(state, "nudge")
-    assert hasattr(next_state, "activity_level")
-    assert next_state.activity_level in ("sedentary", "active")
+    result = t.transition(state, "nudge")
+    assert isinstance(result, StateView)
+    assert hasattr(result, "activity_level")
+    assert result.activity_level in ("sedentary", "active")
 
 
 def test_transition_probabilities_match_config_over_many_samples(valid_config):
@@ -62,9 +63,8 @@ def test_factored_format_step1_updates_only_step_bin(sprint1_config):
         step_of_day=1,
     )
     result = t.transition(state, "movement_suggestion")
-    # step_of_day=1 uses within_day_1 table, output is step_bin
     assert result.step_bin in ("inactive", "moderate", "active")
-    assert result.sleep == "rested"  # unchanged
+    assert result.sleep == "rested"
 
 
 def test_factored_format_step2_preserves_sleep_and_other_factors(sprint1_config):
