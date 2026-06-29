@@ -6,6 +6,7 @@ Loads a base MDP config with an agents section, runs every agent variant.
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 from pathlib import Path
 
@@ -32,8 +33,15 @@ def _positive_int(value: str) -> int:
     return n
 
 
-def _benchmark_config(config_path: str, n_seeds: int) -> None:
+def _benchmark_config(
+    config_path: str,
+    n_seeds: int,
+    output_dir: Path | None = None,
+    dump_json: bool = False,
+    confirm_overwrite: bool = False,
+) -> dict:
     config = load_config(config_path)
+    config_name = Path(config_path).stem
 
     n_steps = config.episode_days * config.steps_per_day
 
@@ -52,26 +60,69 @@ def _benchmark_config(config_path: str, n_seeds: int) -> None:
         logger.info("Running %s...", label)
         rewards = run_agent(config, agent_cfg, n_seeds)
         results[label] = {
-            "total_mean": rewards.sum(axis=1).mean(),
-            "total_std": rewards.sum(axis=1).std(),
-            "step_mean": rewards.mean(),
-            "last50_mean": rewards[:, -50:].mean(),
+            "total_reward": float(rewards.sum(axis=1).mean()),
+            "total_std": float(rewards.sum(axis=1).std()),
+            "per_step": float(rewards.mean()),
+            "last50": float(rewards[:, -50:].mean()),
         }
 
     logger.info("\n%s", "=" * 72)
     logger.info("%-20s %14s %10s %10s", "Agent", "Total Reward", "Per Step", "Last 50")
     logger.info("%s", "-" * 72)
-    for label in sorted(results, key=lambda k: results[k]["step_mean"], reverse=True):
+    for label in sorted(results, key=lambda k: results[k]["per_step"], reverse=True):
         r = results[label]
         logger.info(
             "%-20s %8.1f +- %-5.1f %9.4f %10.4f",
             label,
-            r["total_mean"],
+            r["total_reward"],
             r["total_std"],
-            r["step_mean"],
-            r["last50_mean"],
+            r["per_step"],
+            r["last50"],
         )
     logger.info("%s", "=" * 72)
+
+    if output_dir is not None and dump_json:
+        _write_json_fixture(
+            output_dir=output_dir,
+            config_name=config_name,
+            config_path=config_path,
+            n_seeds=n_seeds,
+            results=results,
+            confirm_overwrite=confirm_overwrite,
+        )
+
+    return results
+
+
+def _write_json_fixture(
+    output_dir: Path,
+    config_name: str,
+    config_path: str,
+    n_seeds: int,
+    results: dict[str, dict],
+    confirm_overwrite: bool,
+) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    out_path = output_dir / f"{config_name}.json"
+
+    if out_path.exists() and not confirm_overwrite:
+        raise FileExistsError(
+            f"Refusing to overwrite existing fixture: {out_path}\n"
+            f"Re-run with --confirm-overwrite to intentionally re-baseline."
+        )
+
+    fixture = {
+        "config": str(Path(config_path).relative_to(_CONFIGS_DIR.parent.parent)),
+        "seed": 42,
+        "seeds": n_seeds,
+        "agents": results,
+    }
+
+    with out_path.open("w", encoding="utf-8") as f:
+        json.dump(fixture, f, indent=2)
+        f.write("\n")
+
+    logger.info("Wrote fixture: %s", out_path)
 
 
 def main() -> None:
@@ -93,16 +144,48 @@ def main() -> None:
         action="store_true",
         help="Run all MVP configs",
     )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default=None,
+        help="Output directory for JSON fixtures (default: docs/experimental_phases/mvp/results/)",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Write JSON fixture files (requires --output)",
+    )
+    parser.add_argument(
+        "--confirm-overwrite",
+        action="store_true",
+        help="Allow overwriting existing golden fixtures (use when re-baselining)",
+    )
     args = parser.parse_args()
 
+    if args.json and args.output is None:
+        parser.error("--json requires --output <dir>")
+
     n_seeds = args.seeds
+    output_dir = Path(args.output) if args.output else None
 
     if args.all:
         for config_path in _MVP_CONFIGS:
             logger.info("\n=== Config: %s ===\n", config_path.name)
-            _benchmark_config(str(config_path), n_seeds)
+            _benchmark_config(
+                str(config_path),
+                n_seeds,
+                output_dir=output_dir,
+                dump_json=args.json,
+                confirm_overwrite=args.confirm_overwrite,
+            )
     else:
-        _benchmark_config(resolve_config(args.config), n_seeds)
+        _benchmark_config(
+            resolve_config(args.config),
+            n_seeds,
+            output_dir=output_dir,
+            dump_json=args.json,
+            confirm_overwrite=args.confirm_overwrite,
+        )
 
 
 if __name__ == "__main__":
