@@ -34,14 +34,16 @@ def test_mvp_end_to_end(tmp_path: Path) -> None:
 
     df = pd.read_csv(output_path)
     assert len(df) == 5  # 1 day x 5 steps/day
+    # Expected columns include factor names instead of "state"
     assert set(df.columns) >= {
         "step",
         "day",
         "step_of_day",
-        "state",
+        "activity_level",
         "action",
         "reward",
     }
+    assert "state" not in df.columns
     assert df["reward"].isin([0.0, 1.0]).all()
 
 

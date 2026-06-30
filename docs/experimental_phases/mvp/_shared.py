@@ -44,7 +44,7 @@ def run_agent(config, agent_cfg, n_seeds: int) -> np.ndarray:
     rewards = []
     for seed in range(1, n_seeds + 1):
         kwargs = agent_cfg.model_dump(exclude=exclude, exclude_none=True)
-        kwargs["actions"] = config.actions
+        kwargs["actions"] = list(config.actions.keys())
         kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
         agent = make_agent(agent_cfg.type, **kwargs)
         records = run_episode(config, agent, seed=seed)

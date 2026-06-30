@@ -100,7 +100,7 @@ def test_contextual_ts_learns_context_dependent_optimal_actions():
 
     for _ in range(n_iterations):
         ctx = rng.choice(contexts)
-        state = StateView(activity=ctx, day=0, step_of_day=0)
+        state = StateView({"activity": ctx}, day=0, step_of_day=0)
         action = agent.select_action(state)
         if ctx == "sedentary":
             reward = 1.0 if rng.random() < (0.8 if action == "nudge" else 0.2) else 0.0
@@ -136,7 +136,7 @@ def test_contextual_ts_uniform_rewards():
 
     for _ in range(2000):
         ctx = rng.choice(contexts)
-        state = StateView(activity=ctx, day=0, step_of_day=0)
+        state = StateView({"activity": ctx}, day=0, step_of_day=0)
         action = agent.select_action(state)
         reward = 1.0 if rng.random() < 0.5 else 0.0
         agent.update(state, action, reward, state)

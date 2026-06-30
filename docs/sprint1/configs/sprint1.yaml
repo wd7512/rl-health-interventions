@@ -10,28 +10,30 @@ initial_state:
   burden: low
 
 state:
-  step_bin:
-    dims: 3
-    names: [inactive, moderate, active]
-    boundaries: [800, 1600]
-  sleep:
-    dims: 2
-    names: [rested, under_rested]
-  day_of_week:
-    dims: 2
-    names: [weekday, weekend]
-  burden:
-    dims: 3
-    names: [low, medium, high]
+  factors:
+    step_bin:
+      dims: 3
+      names: [inactive, moderate, active]
+      boundaries: [800, 1600]
+    sleep:
+      dims: 2
+      names: [rested, under_rested]
+    day_of_week:
+      dims: 2
+      names: [weekday, weekend]
+    burden:
+      dims: 3
+      names: [low, medium, high]
 
 actions:
   idle: {action_penalty: 0}
-  movement_suggestion: {action_penalty: -1}
-  goal_reminder: {action_penalty: -1}
-  journal: {action_penalty: -1}
+  movement_suggestion: {action_penalty: 1}
+  goal_reminder: {action_penalty: 1}
+  journal: {action_penalty: 1}
 
 reward:
-  step_bin: {inactive: 0.0, moderate: 0.5, active: 1.0}
+  factor: step_bin
+  values: {inactive: 0.0, moderate: 0.5, active: 1.0}
   action_penalty_multiplier: 0.05
 
 # Transition model: "random" for dev (generates random weights),

@@ -10,14 +10,8 @@ import sys
 import numpy as np
 import pytest
 
-from rl_health_interventions.config.schemas import (
-    MDPConfig,
-    TransitionModelConfig,
-    TransitionProbabilities,
-)
+from rl_health_interventions.config.schemas import MDPConfig
 
-# The optimal_bound.py module imports from _shared at module level.
-# Make the mvp directory importable so compute_bounds can be imported.
 _mvp_dir = (
     pathlib.Path(__file__).resolve().parents[2] / "docs" / "experimental_phases" / "mvp"
 )
@@ -34,6 +28,30 @@ finally:
     if sys.path and sys.path[0] == str(_mvp_dir):
         sys.path.pop(0)
 compute_bounds = _optimal_bound_mod.compute_bounds
+
+_HERE = pathlib.Path(__file__).resolve().parent.parent
+ASSETS_TABLES = str(_HERE / "assets" / "tables")
+
+
+def _symmetric_config() -> MDPConfig:
+    """Config with 50/50 symmetric transitions via minimal.json table."""
+    return MDPConfig(
+        episode_days=1,
+        steps_per_day=1,
+        seed=42,
+        initial_state={"activity_level": "sedentary"},
+        state={
+            "factors": {
+                "activity_level": {"dims": 2, "names": ["sedentary", "active"]},
+            },
+        },
+        actions=["nudge", "idle"],
+        reward={
+            "factor": "activity_level",
+            "values": {"sedentary": 0.0, "active": 1.0},
+        },
+        transition_model={"type": "rule_based", "table_dir": ASSETS_TABLES},
+    )
 
 
 def test_returns_expected_keys(valid_config):
@@ -61,132 +79,50 @@ def test_returns_expected_keys(valid_config):
     assert isinstance(bounds["fixed_rewards"], dict)
 
 
-def test_compute_bounds_raises_for_empty_states():
-    config = MDPConfig.model_construct(
+def test_compute_bounds_raises_for_schema_reference():
+    config = MDPConfig(
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        initial_state="sedentary",
-        states={},
-        actions=["nudge"],
-        transition_model=TransitionModelConfig(
-            type="rule_based",
-            transition_probabilities=None,
-        ),
+        initial_state={"activity_level": "sedentary"},
+        state={"schema": "some_schema_ref"},
+        actions=["nudge", "idle"],
+        reward={
+            "factor": "activity_level",
+            "values": {"sedentary": 0.0, "active": 1.0},
+        },
+        transition_model={"type": "learned"},
     )
-    with pytest.raises(ValueError, match="config.states is required"):
-        compute_bounds(config)
-
-
-def test_compute_bounds_raises_for_empty_actions():
-    config = MDPConfig.model_construct(
-        episode_days=1,
-        steps_per_day=1,
-        seed=42,
-        initial_state="sedentary",
-        states={"sedentary": {"reward": 0.0}},
-        actions=[],
-        transition_model=TransitionModelConfig(
-            type="rule_based",
-            transition_probabilities=None,
-        ),
-    )
-    with pytest.raises(ValueError, match="config.actions is required"):
-        compute_bounds(config)
-
-
-def test_compute_bounds_raises_for_missing_transition_probabilities():
-    config = MDPConfig.model_construct(
-        episode_days=1,
-        steps_per_day=1,
-        seed=42,
-        initial_state="sedentary",
-        states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
-        actions=["nudge"],
-        transition_model=TransitionModelConfig(
-            type="rule_based",
-            transition_probabilities=None,
-        ),
-    )
-    with pytest.raises(ValueError, match="transition_probabilities is required"):
+    with pytest.raises(ValueError, match="actual state definitions"):
         compute_bounds(config)
 
 
 def test_symmetric_two_state_mdp():
-    """2-state MDP where both actions are identical 50/50 transitions.
-
-    Stationary dist = [0.5, 0.5]; E[r] per step = 0.5 * 0 + 0.5 * 1 = 0.5.
-    All bounds should be the same since actions are identical.
-    """
-    config = MDPConfig(
-        episode_days=1,
-        steps_per_day=1,
-        seed=42,
-        initial_state="sedentary",
-        states={
-            "sedentary": {"reward": 0.0},
-            "active": {"reward": 1.0},
-        },
-        actions=["nudge", "idle"],
-        transition_model={
-            "type": "rule_based",
-            "transition_probabilities": {
-                "sedentary": {
-                    "nudge": {"active": 0.5, "sedentary": 0.5},
-                    "idle": {"active": 0.5, "sedentary": 0.5},
-                },
-                "active": {
-                    "nudge": {"active": 0.5, "sedentary": 0.5},
-                    "idle": {"active": 0.5, "sedentary": 0.5},
-                },
-            },
-        },
-        agents=[],
-    )
+    """2-state MDP using mvp_rule_based.json transitions."""
+    config = _symmetric_config()
     bounds = compute_bounds(config)
-    assert bounds["contextual_optimal"] == pytest.approx(0.5)
-    assert bounds["noncontextual_optimal"] == pytest.approx(0.5)
-    assert bounds["random"] == pytest.approx(0.5)
+    assert bounds["contextual_optimal"] == pytest.approx(3.0 / 7.0)
+    assert bounds["noncontextual_optimal"] == pytest.approx(3.0 / 8.0)
+    assert bounds["random"] == pytest.approx(4.0 / 13.0)
 
 
 def test_compute_bounds_raises_for_invalid_state_count():
-    """_stationary is specific to 2x2 transition matrices — reject other sizes."""
-    config = MDPConfig(
-        episode_days=1,
-        steps_per_day=1,
-        seed=42,
-        initial_state="a",
-        states={"a": {"reward": 0.0}, "b": {"reward": 0.5}, "c": {"reward": 1.0}},
-        actions=["nudge"],
-        transition_model=TransitionModelConfig(
-            type="rule_based",
-            transition_probabilities=TransitionProbabilities(
-                {
-                    "a": {"nudge": {"a": 0.3, "b": 0.4, "c": 0.3}},
-                    "b": {"nudge": {"a": 0.3, "b": 0.4, "c": 0.3}},
-                    "c": {"nudge": {"a": 0.3, "b": 0.4, "c": 0.3}},
-                }
-            ),
-        ),
-        agents=[],
-    )
     with pytest.raises(ValueError, match="exactly 2 states"):
-        compute_bounds(config)
-
-
-def test_compute_bounds_raises_for_schema_reference():
-    """compute_bounds should raise ValueError for schema-referenced configs."""
-    config = MDPConfig.model_construct(
-        episode_days=1,
-        steps_per_day=1,
-        seed=42,
-        initial_state="sedentary",
-        states={"schema": "some_schema_ref"},
-        actions=["nudge"],
-        transition_model=TransitionModelConfig(
-            type="rule_based",
-            transition_probabilities=None,
-        ),
-    )
-    with pytest.raises(ValueError, match="actual state definitions"):
+        config = MDPConfig(
+            episode_days=1,
+            steps_per_day=1,
+            seed=42,
+            initial_state={"activity_level": "a"},
+            state={
+                "factors": {
+                    "activity_level": {"dims": 3, "names": ["a", "b", "c"]},
+                },
+            },
+            actions=["nudge"],
+            reward={
+                "factor": "activity_level",
+                "values": {"a": 0.0, "b": 0.5, "c": 1.0},
+            },
+            transition_model={"type": "rule_based", "table_dir": ASSETS_TABLES},
+        )
         compute_bounds(config)

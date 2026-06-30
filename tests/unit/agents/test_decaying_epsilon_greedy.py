@@ -103,8 +103,8 @@ def test_contextual_learns_per_context():
         contextual=True,
         context_feature="activity",
     )
-    sed = StateView(activity="sedentary", day=0, step_of_day=0)
-    act = StateView(activity="active", day=0, step_of_day=0)
+    sed = StateView({"activity": "sedentary"}, day=0, step_of_day=0)
+    act = StateView({"activity": "active"}, day=0, step_of_day=0)
     for _ in range(100):
         agent.update(sed, "nudge", reward=0.0, next_state=sed)
         agent.update(sed, "idle", reward=1.0, next_state=sed)

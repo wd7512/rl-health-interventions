@@ -7,13 +7,16 @@ from typing import Protocol
 
 from rl_health_interventions.environment import Environment
 from rl_health_interventions.config.schemas import MDPConfig
+from rl_health_interventions.state import StateView
 
 logger = logging.getLogger(__name__)
 
 
 class AgentLike(Protocol):
-    def select_action(self, state) -> str: ...
-    def update(self, state, action, reward, next_state) -> None: ...
+    def select_action(self, state: StateView) -> str: ...
+    def update(
+        self, state: StateView, action: str, reward: float, next_state: StateView
+    ) -> None: ...
 
 
 def run_episode(
@@ -33,10 +36,10 @@ def run_episode(
         next_state, reward, done = env.step(action)
         records.append(
             {
-                "step": state.global_step,
-                "day": state.day,
-                "step_of_day": state.step_of_day,
-                "state": state.activity,
+                "step": next_state.global_step,
+                "day": next_state.day,
+                "step_of_day": next_state.step_of_day,
+                **{name: getattr(next_state, name) for name in next_state.factor_names},
                 "action": action,
                 "reward": reward,
             }

@@ -7,8 +7,16 @@ import yaml
 from rl_health_interventions.config.schemas import MDPConfig
 
 
+def resolve_table_dir(config_path: Path, table_dir: str) -> Path:
+    return config_path.parent / table_dir
+
+
 def load_config(path: str | Path) -> MDPConfig:
     path = Path(path)
     with path.open(encoding="utf-8") as f:
         raw = yaml.safe_load(f)
+    td = raw.get("transition_model", {}).get("table_dir")
+    if td is not None:
+        resolved = resolve_table_dir(path, td)
+        raw["transition_model"]["table_dir"] = str(resolved)
     return MDPConfig.model_validate(raw)

@@ -7,11 +7,15 @@ import pytest
 from rl_health_interventions.config.schemas import MDPConfig
 
 
+_HERE = pathlib.Path(__file__).parent
+TABLES_DIR = str(_HERE / "assets" / "tables")
+
+
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
-    unit_dir = (pathlib.Path(__file__).parent / "unit").resolve()
-    integration_dir = (pathlib.Path(__file__).parent / "integration").resolve()
+    unit_dir = (_HERE / "unit").resolve()
+    integration_dir = (_HERE / "integration").resolve()
     for item in items:
         test_path = pathlib.Path(item.path).resolve()
         existing_markers = {m.name for m in item.iter_markers()}
@@ -29,25 +33,18 @@ def valid_config() -> MDPConfig:
         episode_days=90,
         steps_per_day=5,
         seed=42,
-        initial_state="sedentary",
-        states={
-            "sedentary": {"reward": 0.0},
-            "active": {"reward": 1.0},
-        },
-        actions=["nudge", "idle"],
-        transition_model={
-            "type": "rule_based",
-            "transition_probabilities": {
-                "sedentary": {
-                    "nudge": {"active": 0.3, "sedentary": 0.7},
-                    "idle": {"active": 0.1, "sedentary": 0.9},
-                },
-                "active": {
-                    "nudge": {"active": 0.5, "sedentary": 0.5},
-                    "idle": {"active": 0.6, "sedentary": 0.4},
-                },
+        initial_state={"activity_level": "sedentary"},
+        state={
+            "factors": {
+                "activity_level": {"dims": 2, "names": ["sedentary", "active"]},
             },
         },
+        actions=["nudge", "idle"],
+        reward={
+            "factor": "activity_level",
+            "values": {"sedentary": 0.0, "active": 1.0},
+        },
+        transition_model={"type": "rule_based", "table_dir": TABLES_DIR},
         agents=[{"type": "thompson_sampling", "alpha_prior": 1, "beta_prior": 1}],
     )
 
@@ -58,26 +55,18 @@ def minimal_config() -> MDPConfig:
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        initial_state="sedentary",
-        states={
-            "sedentary": {"reward": 0.0},
-            "active": {"reward": 1.0},
-        },
-        actions=["nudge", "idle"],
-        transition_model={
-            "type": "rule_based",
-            "transition_probabilities": {
-                "sedentary": {
-                    "nudge": {"active": 0.5, "sedentary": 0.5},
-                    "idle": {"active": 0.5, "sedentary": 0.5},
-                },
-                "active": {
-                    "nudge": {"active": 0.5, "sedentary": 0.5},
-                    "idle": {"active": 0.5, "sedentary": 0.5},
-                },
+        initial_state={"activity_level": "sedentary"},
+        state={
+            "factors": {
+                "activity_level": {"dims": 2, "names": ["sedentary", "active"]},
             },
         },
-        agents=[],
+        actions=["nudge", "idle"],
+        reward={
+            "factor": "activity_level",
+            "values": {"sedentary": 0.0, "active": 1.0},
+        },
+        transition_model={"type": "rule_based", "table_dir": TABLES_DIR},
     )
 
 
@@ -85,4 +74,39 @@ def minimal_config() -> MDPConfig:
 def state_view():
     from rl_health_interventions.state import StateView
 
-    return StateView(activity="sedentary", day=0, step_of_day=0)
+    return StateView({"activity_level": "sedentary"}, day=0, step_of_day=0)
+
+
+@pytest.fixture
+def sprint1_config() -> MDPConfig:
+    return MDPConfig(
+        episode_days=1,
+        steps_per_day=5,
+        seed=42,
+        initial_state={
+            "step_bin": "inactive",
+            "sleep": "rested",
+            "day_of_week": "weekday",
+            "burden": "low",
+        },
+        state={
+            "factors": {
+                "step_bin": {"dims": 3, "names": ["inactive", "moderate", "active"]},
+                "sleep": {"dims": 2, "names": ["rested", "under_rested"]},
+                "day_of_week": {"dims": 2, "names": ["weekday", "weekend"]},
+                "burden": {"dims": 3, "names": ["low", "medium", "high"]},
+            },
+        },
+        actions={
+            "idle": {"action_penalty": 0},
+            "movement_suggestion": {"action_penalty": 1},
+            "goal_reminder": {"action_penalty": 1},
+            "journal": {"action_penalty": 1},
+        },
+        reward={
+            "factor": "step_bin",
+            "values": {"inactive": 0.0, "moderate": 0.5, "active": 1.0},
+            "action_penalty_multiplier": 0.05,
+        },
+        transition_model={"type": "rule_based", "table_dir": TABLES_DIR},
+    )

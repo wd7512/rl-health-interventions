@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from rl_health_interventions.agents import make as make_agent
 from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.data import make as make_dataset
 from rl_health_interventions.rewards import make as make_reward
 from rl_health_interventions.simulation import make as make_response_model
+from rl_health_interventions.state import StateView
 from rl_health_interventions.transitions import make as make_transition
+
+_HERE = Path(__file__).resolve().parent.parent
+ASSETS_TABLES = str(_HERE / "assets" / "tables")
 
 
 def _minimal_config() -> MDPConfig:
@@ -13,22 +19,18 @@ def _minimal_config() -> MDPConfig:
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        initial_state="sedentary",
-        states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
-        actions=["nudge", "idle"],
-        transition_model={
-            "type": "rule_based",
-            "transition_probabilities": {
-                "sedentary": {
-                    "nudge": {"active": 0.5, "sedentary": 0.5},
-                    "idle": {"active": 0.5, "sedentary": 0.5},
-                },
-                "active": {
-                    "nudge": {"active": 0.5, "sedentary": 0.5},
-                    "idle": {"active": 0.5, "sedentary": 0.5},
-                },
+        initial_state={"activity_level": "sedentary"},
+        state={
+            "factors": {
+                "activity_level": {"dims": 2, "names": ["sedentary", "active"]},
             },
         },
+        actions=["nudge", "idle"],
+        reward={
+            "factor": "activity_level",
+            "values": {"sedentary": 0.0, "active": 1.0},
+        },
+        transition_model={"type": "rule_based", "table_dir": ASSETS_TABLES},
     )
 
 
@@ -75,7 +77,7 @@ def test_layer3_dummy_step() -> None:
     agent = make_agent("thompson_sampling")
     response = make_response_model("rule_based")
 
-    state = "sedentary"
+    state = StateView({"activity_level": "sedentary"}, day=0, step_of_day=0)
     action = agent.select_action(state)
     agent.update(state, action, 0.0, state)
     next_state = transition.transition(state, action)
@@ -84,4 +86,5 @@ def test_layer3_dummy_step() -> None:
     assert isinstance(resp, float)
     assert isinstance(rew, float)
     assert isinstance(done, bool)
-    assert next_state in ("sedentary", "active")
+    assert isinstance(next_state, StateView)
+    assert next_state.activity_level in ("sedentary", "active")
