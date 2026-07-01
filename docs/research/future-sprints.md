@@ -8,7 +8,7 @@ upstream: "resolved-decisions-sprint-1.md"
 | Item | Source | Notes |
 |---|---|---|
 | D8 — Journal reward mechanism | D8 carried forward | Mood/sleep proxy for journal acceptance |
-| D9 — Mood as reward signal | D9 carried forward | Multi-objective reward (steps + mood) |
+| D9 — Mood as reward signal | D9 carried forward | Mood as reward component (sleep reward resolved in Sprint 1) |
 | Journal acceptance model | D8 discussion | Stochastic burden reduction on accept |
 | Hyperparameter sensitivity | D13 carried forward | Epsilon, UCB c, etc. |
 | D7 — 6-action set | D7 carried forward | Add motivational prompt, progress feedback |
@@ -23,3 +23,11 @@ upstream: "resolved-decisions-sprint-1.md"
 | LLM-based user simulation | design.tex §2 | Persona-based response models |
 | Delayed reward (3-week body measures) | design.tex §3 | Multi-timescale reward |
 | Non-stationary adaptation | design.tex §2 | Distribution shift handling |
+
+---
+
+## Amendment log
+
+| Date | Change |
+|------|--------|
+| 2026-07-01 | D9 row updated: mood-only remainder noted after sleep reward resolved in Sprint 1 |
