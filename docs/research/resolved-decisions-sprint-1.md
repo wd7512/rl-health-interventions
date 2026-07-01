@@ -584,4 +584,4 @@ Even without caching, DeepSeek V4 Flash is **~40× cheaper** than GPT-5.5 and **
 |------|--------|
 | 2026-06-28 | Sprint 1 config locked in at `docs/sprint1/configs/sprint1.yaml` |
 | 2026-06-28 | Deferred decisions documented in `docs/research/future-sprints.md` |
-| 2026-07-01 | Sleep bins changed from >7h/≤7h to good/poor quality; sleep added to reward: R = α·f(step_bin') + (1-α)·g(sleep); LLM prompts updated with persona background and sleep quality framing |
+| 2026-07-01 | Sleep bins → good/poor quality; sleep added to reward: R = α·f(step_bin') + (1-α)·g(sleep'); LLM prompts updated with persona background; duplicate content removed; GPT-4o mini → DeepSeek V4 Flash cost reference; decision catalogue D3/D9/D11 rationale updated; initial_state.sleep: rested → good |
