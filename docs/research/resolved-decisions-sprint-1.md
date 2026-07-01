@@ -14,15 +14,15 @@ upstream: "decision-catalogue.md"
 | # | Decision | Status | Summary |
 |---|----------|--------|---------|
 | D1 | Step count encoding | resolved | 3 bins: &lt;800 / 800–1600 / &gt;1600 |
-| D2 | State representation | resolved | Factored: within-day + day-boundary |
+| D2 | State representation | resolved | Factored: within-day + day-boundary (Algorithm 1) |
 | D3 | Psychosocial state | sleep incl. | good/poor sleep; mood/stress excluded |
 | D4 | Trend dimension | excluded | No precedent, no evidence |
-| D5 | Time-of-day | resolved | Implicit as table index (5 tables) |
+| D5 | Time-of-day | resolved | Implicit as table index (Algorithm 1) |
 | D6 | Day type | resolved | Binary weekday/weekend moderator |
 | D7 | Action set | resolved | 4 actions: idle, movement, goal, journal |
 | D8 | Non-activity reward | deferred | Journal mechanism → Phase 2 |
 | D9 | Mood/sleep: reward vs state | partial | Sleep dual-role resolved; mood deferred |
-| D10 | Burden/fatigue | resolved | Rolling window, 3 levels |
+| D10 | Burden/fatigue | resolved | Rolling window, 3 levels (Algorithm 1) |
 | D11 | Reward function | resolved | R = α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙 |
 | D12 | Algorithm class | resolved | Model-free: bandits + Q-learning |
 | D13 | Evaluation strategy | resolved | 5 agents × 50 seeds × 450 steps |
@@ -57,9 +57,9 @@ upstream: "decision-catalogue.md"
 
 ## D2. Factored vs flat state representation
 
-**Status:** resolved — factored with two table types
+**Status:** resolved — factored with two table types (Algorithm 1)
 
-Two table types: day-boundary (sleep' transitions) and within-day (step_bin' transitions). See [Transition matrix size summary](#transition-matrix-size-summary) for full signatures and cardinalities.
+State is factored into two table structures: day-boundary (sleep' transitions) and within-day (step_bin' transitions). The per-timestep execution is defined in [Algorithm 1](#algorithm-1-environment-episode).
 
 ### Deterministic / formula-driven dimensions
 
@@ -67,7 +67,7 @@ Two table types: day-boundary (sleep' transitions) and within-day (step_bin' tra
 |---|---|
 | time_of_day | Implicit — step index within day selects the within-day table |
 | day_of_week | Advances deterministically, flips at 6→0 |
-| burden | Rolling formula — count non-idle in last 3 timesteps |
+| burden | Rolling formula — count non-idle in last 3 timesteps (Algorithm 1 line 11) |
 | sleep | Transitions jointly with step_bin at day boundary only |
 | goal_progress | Dropped from transition moderators |
 
@@ -87,9 +87,8 @@ Two table types: day-boundary (sleep' transitions) and within-day (step_bin' tra
 
 **2 bins:** good / poor (qualitative LLM judgment simulating smartwatch sleep-quality output).
 
-- **Role:** A daily state dimension that transitions at the day boundary, separately from step_bin; also a reward signal (see [D11](#d11-reward-function-design))
-- **Stochastic at day boundary:** yes — `P(sleep' | sleep, step_bin, burden, action, day_of_week)` is LLM-bootstrapped; step_bin' is sampled from within-day table #0 using the new sleep'
-- **Static within-day:** yes — once set at step 0, sleep stays constant for all 5 within-day steps
+- **Role:** A daily state dimension that transitions at the day boundary; also a reward signal (see [D11](#d11-reward-function-design))
+- **Transition:** Sampled at step 0 per Algorithm 1 lines 5-8 (stochastic at day boundary, static within-day)
 - **Moderates within-day transitions:** yes — sleep is a context variable in the within-day LLM prompt
 
 ### Mood/stress
@@ -121,21 +120,14 @@ No trend dimension in the state.
 
 ## D5. Time-of-day encoding
 
-**Status:** resolved — implicit as table index
+**Status:** resolved — implicit as table index (Algorithm 1)
 
-Time-of-day is **not a state dimension.** Instead, the step index within the day selects one of 5 within-day transition tables:
-
-- Step 0 (morning boundary) → day-boundary table samples sleep', then within-day table #0 samples step_bin' using new sleep'
-- Step 1 (morning P1) → within-day table #1 (using sleep' from step 0)
-- Step 2 (P2) → within-day table #2
-- Step 3 (P3) → within-day table #3
-- Step 4 (evening) → within-day table #4
+Time-of-day is **not a state dimension.** The step index selects the within-day table per Algorithm 1 line 3.
 
 ### Rationale
 
 - Time-of-day is the strongest moderator in HeartSteps V2 — different times of day have different response patterns even after controlling for burden and sleep
 - Making it a table index rather than a state dimension avoids multiplying the transition table while still capturing time-specific response functions
-- 5 within-day tables (one per decision point, including step 0 after day-boundary) and 1 day-boundary table — the LLM bootstraps each separately
 - The agent doesn't need time-of-day as a context feature to learn different policies — the different transition dynamics per time slot produce different experience distributions automatically
 
 ### Evidence
@@ -252,7 +244,7 @@ Sleep is included as both a state variable ([D3](#d3-hidden-psychosocial-state-v
 
 **Status:** resolved — rolling window with 3 levels
 
-Burden is a rolling count of non-idle actions in the last 3 timesteps:
+Burden is a rolling count of non-idle actions in the last 3 timesteps (Algorithm 1 line 11):
 
 | Non-idle actions (last 3) | Burden level |
 |---|---|
@@ -265,11 +257,6 @@ Burden is a rolling count of non-idle actions in the last 3 timesteps:
 - The window rolls across day boundaries — the first decision point of a new day examines the last 3 steps of the previous day
 - No separate decay parameter, no daily reset, no penalty values to tune
 - No special-case handling needed for early timesteps (the previous day's end naturally fills the window)
-
-### Role in the MDP
-
-- Burden is a **table dimension** — separate LLM calls per burden level produce distinct transition distributions, no approximation
-- Burden is **not** subtracted from the reward function directly (unlike StepCountJITAI's formulation). The cost of burden is expressed through reduced future activity probability.
 
 ### Rationale
 
@@ -368,13 +355,81 @@ Included in Sprint 1:
 - Non-activity action evaluation (journal selection frequency ~0 with current reward) deferred to Phase 2
 - Hyperparameter sensitivity analysis (epsilon, UCB c, etc.) — follow MVP tex approach
 
+## Algorithms
+
+### Algorithm 1: Episode loop
+
+```
+Algorithm 1: Run episode (N days)
+
+Require: N days, initial state s₀ = (step_bin, burden, day_of_week, sleep)
+Ensure: episode of 5N transitions
+
+ 1: state ← s₀
+ 2: for day = 1 to N do
+ 3:     for t = 0 to 4 do
+ 4:         a ← agent.policy(state, t)
+ 5:         if t = 0 then
+ 6:             sleep' ← sample P_day_boundary(step_bin, burden, day_of_week, sleep)
+ 7:         else
+ 8:             sleep' ← state.sleep
+ 9:         end if
+10:         step_bin' ← sample P_within_day[t](step_bin, burden, a, day_of_week, sleep')
+11:         burden' ← count_non_idle_last_3(state.burden, a)
+12:         day_of_week' ← advance(state.day_of_week) if t = 0 else state.day_of_week
+13:         r ← α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙[a ≠ idle]
+14:         next_state ← (step_bin', burden', day_of_week', sleep')
+15:         record (state, a, r, next_state)
+16:         state ← next_state
+17:     end for
+18: end for
+```
+
+Where:
+- `P_day_boundary` and `P_within_day[t]` are the 6 LLM-bootstrapped tables (see Algorithm 2)
+- `f(x)` = {inactive: 0.0, moderate: 0.5, active: 1.0} (see D1)
+- `g(x)` = {good: +1.0, poor: −1.0} (see D3)
+- `count_non_idle_last_3(burden, a)` is a rolling 3-step window (see D10)
+
+*Referenced by:* D2, D3, D5, D10, Transition matrix size summary
+
+### Algorithm 2: Bootstrap transition table from LLM
+
+```
+Algorithm 2: Bootstrap table B from LLM
+
+Require: state dims D_state = step_bin × burden × day_of_week × sleep,
+         action set A, prompt template T_B(·), samples per cell N = 10
+Ensure: transition matrix P_B of size |D_state| × |A| × |D_out|
+
+ 1: for each s ∈ D_state do
+ 2:     for each a ∈ A do
+ 3:         prompt ← T_B.render(state = s, action = a)
+ 4:         counts ← zero(|D_out|)
+ 5:         for i = 1 to N do
+ 6:             response ← LLM.generate(prompt)
+ 7:             v_out ← parse(response)
+ 8:             counts[v_out] += 1
+ 9:         end for
+10:         for each v_out ∈ D_out do
+11:             P_B(v_out | s, a) ← counts[v_out] / N
+12:         end for
+13:     end for
+14: end for
+15: return P_B
+```
+
+Applied to 6 tables (5 within-day + 1 day-boundary). The prompt template `T_B` differs per table; see the prompt templates below.
+
+*Referenced by:* Transition matrix size summary, total LLM cost, prompt design
+
 ## Transition matrix size summary
 
-Six LLM-bootstrapped tables. **All dimensions are table dimensions** (separately sampled), no prompt-context approximations.
+Six tables bootstrapped via [Algorithm 2](#algorithm-2-bootstrap-transition-table-from-llm). **All dimensions are table dimensions** (separately sampled), no prompt-context approximations.
 
 ### Within-day tables (× 5, one per time step)
 
-Five tables, each predicting step_bin' at a specific time slot. Step 0 uses the updated `sleep'` from the day-boundary table; steps 1–4 use the `sleep` that was set at the start of the day.
+Five tables, each predicting step_bin' at a specific time slot. Per [Algorithm 1](#algorithm-1-episode-loop), step 0 uses the updated `sleep'` from the day-boundary table; steps 1–4 use the `sleep` set at the start of the day.
 
 **All five tables have the same signature:**
 
@@ -396,42 +451,41 @@ P(step_bin' | step_bin, burden, action, day_of_week, sleep)
 
 ### Day-boundary table (× 1, step 0)
 
-Predicts sleep' at the start of each day, based on the previous day's end-of-day state:
+Predicts sleep' at the start of each day, based on the previous day's end-of-day state. Action does not affect sleep quality at the day boundary (Algorithm 1 line 6).
 
 ```
-P(sleep' | step_bin, burden, action, day_of_week, sleep)
+P(sleep' | step_bin, burden, day_of_week, sleep)
 ```
 
 | Dimension | Bins |
 |---|---|
 | step_bin | 3 |
 | sleep' | 2 |
-| action | 4 |
 | burden | 3 |
 | day_of_week | 2 |
 | sleep | 2 |
 
-**(s, a) pairs:** 3 × 3 × 4 × 2 × 2 = **144**
+**(s, a) pairs:** 3 × 3 × 2 × 2 = **36** (no action dimension)
 
 ### Total LLM cost
 
 | Table | Transition inputs (dim) | Transition outputs (dim) | Cardinality (probs) | Total LLM calls | Calls per cell |
 |---|---|---|---|---|---|
-| Day-boundary | step_bin(3)×burden(3)×action(4)×day(2)×sleep(2) = **144** | sleep'(2) | 288 | 2,880 | 10 |
+| Day-boundary | step_bin(3)×burden(3)×day(2)×sleep(2) = **36** | sleep'(2) | 72 | 720 | 10 |
 | Within-day #0 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
 | Within-day #1 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
 | Within-day #2 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
 | Within-day #3 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
 | Within-day #4 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
-| **Total** | **864** | | **2,448** | **24,480** | **10** |
+| **Total** | **756** | | **2,232** | **22,320** | **10** |
 
-**Calls per pair:** 20 (day-boundary, 2 outputs) or 30 (within-day, 3 outputs) — both yield exactly 10 samples per output category.
+**Calls per (s,a) pair:** 20 (day-boundary, 2 outputs) or 30 (within-day, 3 outputs) — both yield exactly 10 samples per output category via Algorithm 2.
 
-At DeepSeek V4 Flash pricing (~$0.09/M input tokens, ~$0.18/M output tokens), roughly 50–100 tokens per call → ~$0.33 total (see [Cost-benefit summary](#cost-benefit-summary)).
+At DeepSeek V4 Flash pricing (~$0.09/M input tokens, ~$0.18/M output tokens), roughly 50–100 tokens per call → ~$0.27 total (see [Cost-benefit summary](#cost-benefit-summary)).
 
 ### State space summary
 
-The agent observes the full state at each step:
+The agent observes the full state at each step (Algorithm 1):
 
 | Dimension | Bins | Updates | Stochastic? |
 |---|---|---|---|
@@ -447,9 +501,7 @@ Total state cardinality: 3 × 2 × 2 × 3 = **36 states** (time_of_day is implic
 
 ## LLM bootstrapping prompt design
 
-All 6 transition tables are bootstrapped via LLM calls through OpenRouter using **DeepSeek V4 Flash** ($0.09/M input tokens, $0.18/M output tokens).
-
-The LLM outputs raw step counts for within-day prompts; the environment bins the result into the 3-level step_bin. The day-boundary prompt outputs a binary JSON choice.
+All 6 transition tables are bootstrapped via [Algorithm 2](#algorithm-2-bootstrap-transition-table-from-llm) through OpenRouter using **DeepSeek V4 Flash** ($0.09/M input tokens, $0.18/M output tokens). The LLM outputs raw step counts for within-day prompts (environment bins to 3-level step_bin); the day-boundary prompt outputs a binary JSON choice.
 
 ### System prompt (cached once)
 
@@ -529,17 +581,17 @@ The day-boundary prompt shows the full per-timestep breakdown from the last day 
 
 ### Cost-benefit summary
 
-**Usage estimate (all models):**
-- 24,480 LLM calls
-- ~3.2M input tokens (120 avg per within-day, 180 per day-boundary)
-- ~0.24M output tokens (10 avg per call)
+**Usage estimate:**
+- 22,320 LLM calls (Algorithm 2, N=10 per cell)
+- ~2.7M input tokens (120 avg per within-day, 180 per day-boundary)
+- ~0.22M output tokens (10 avg per call)
 - ~75% prompt cache hit rate (system prompt + JSON key structure cached)
 
 **List prices (OpenRouter, June 2026):**
 
 | Model | Input / 1M | Output / 1M | Cache read / 1M | Est. cost (no cache) | Est. cost (75% cache) |
 |---|---|---|---|---|---|
-| DeepSeek V4 Flash | $0.09 | $0.18 | $0.09 | **~$0.33** | **~$0.15** |
+| DeepSeek V4 Flash | $0.09 | $0.18 | $0.09 | **~$0.27** | **~$0.12** |
 | GLM 5.2 | $0.95 | $3.00 | $0.18 | **~$3.76** | **~$1.35** |
 | Claude Sonnet 4.6 | $3.00 | $15.00 | $0.30† | **~$13.20** | **~$4.60** |
 | Claude Opus 4.8 | $5.00 | $25.00 | $0.50† | **~$22.00** | **~$7.40** |
@@ -547,7 +599,7 @@ The day-boundary prompt shows the full per-timestep breakdown from the last day 
 
 † Estimated cache read price (Anthropic/OpenAI don't publish separate cache pricing; ~10% of input price assumed).
 
-**Prompt caching** reduces effective cost by 60–80% when the same system prompt and JSON structure is reused across calls — which is exactly our use case (identical structure, only values vary). With caching, DeepSeek V4 Flash goes from ~$0.33 to ~$0.15.
+**Prompt caching** reduces effective cost by 60–80% when the same system prompt and JSON structure is reused across calls — which is exactly our use case (identical structure, only values vary). With caching, DeepSeek V4 Flash goes from ~$0.27 to ~$0.12.
 
 Even without caching, DeepSeek V4 Flash is **~40× cheaper** than GPT-5.5 and **~70× cheaper** output vs Claude Opus 4.8. For a bootstrapping task where any frontier model produces reasonable transition estimates, DeepSeek V4 Flash is the clear cost leader.
 
@@ -559,4 +611,4 @@ Even without caching, DeepSeek V4 Flash is **~40× cheaper** than GPT-5.5 and **
 |------|--------|
 | 2026-06-28 | Sprint 1 config locked in at `docs/sprint1/configs/sprint1.yaml` |
 | 2026-06-28 | Deferred decisions documented in `docs/research/future-sprints.md` |
-| 2026-07-01 | Sleep bins → good/poor quality; sleep added to reward: R = α·f(step_bin') + (1-α)·g(sleep'); LLM prompts updated with persona background; duplicate content removed; GPT-4o mini → DeepSeek V4 Flash cost reference; decision catalogue D3/D9/D11 rationale updated; initial_state.sleep: rested → good |
+| 2026-07-01 | Sleep bins → good/poor; sleep added to reward; LLM prompts updated with persona; day-boundary action dimension removed; Algorithm 1 + Algorithm 2 added; duplicate content removed; D3/D9/D11 rationale updated |
