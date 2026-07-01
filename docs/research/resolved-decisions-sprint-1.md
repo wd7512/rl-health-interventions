@@ -168,7 +168,9 @@ Excluded from Sprint 1. No deployed RL-for-health system includes them as state 
 
 ## D4. Trend dimension
 
-**Status:** excluded — no precedent, no evidence, no computation method
+**Status:** excluded
+
+No trend dimension. No published RL system has used one — no precedent, no evidence, no literature-backed computation method.
 
 ## D5. Time-of-day encoding
 
@@ -224,7 +226,12 @@ Binary weekday/weekend. Day type is a **transition moderator** — it appears in
 
 ### Excluded from Sprint 1
 
-Motivational prompt, recovery/stretch, progress feedback, social encouragement — all excluded (overlap or null evidence; see design notes).
+| Action | Reason |
+|--------|--------|
+| Motivational prompt | Overlaps movement_suggestion |
+| Recovery/stretch | No distinct effect vs idle |
+| Progress feedback | Overlaps goal_reminder |
+| Social encouragement | Null result in HeartSteps |
 
 ### Evidence
 
@@ -243,7 +250,15 @@ Motivational prompt, recovery/stretch, progress feedback, social encouragement �
 
 **Status:** deferred
 
-Journal has no step reward benefit in Sprint 1. The agent will learn to avoid it — acceptable for the MVP. Journal reward mechanism (LLM-bootstrapped joint outcome or separate acceptance model) deferred to Phase 2.
+Journal has no step reward benefit in Sprint 1 — the agent will learn to avoid it, which is acceptable for the MVP.
+
+### Mechanism noted for future
+
+Two candidate approaches identified but not resolved (see [action-burden-evidence.md](action-burden-evidence.md)): LLM-bootstrapped joint outcome and separate acceptance model.
+
+### Carried forward
+
+- [D9](#d9-moodsleep-reward-signal-vs-state-variable): if mood becomes a reward channel in Phase 2, journal gets a natural reward signal
 
 ## D9. Mood/sleep: reward signal vs state variable
 
@@ -282,6 +297,10 @@ Burden is a rolling count of non-idle actions in the last 3 timesteps:
 
 Rolling window across day boundaries — no reset, no decay, no penalty values to tune. Early timesteps need no special handling (previous day's end fills the window).
 
+### Rationale
+
+Zero parameters to guess — burden values are universally heuristic (see action-burden-evidence.md). A user with 2-3 recent interventions is plausibly more saturated.
+
 ### Evidence
 
 | Source | Finding |
@@ -315,7 +334,19 @@ Where:
 
 ### Config structure
 
-The formula is defined in `docs/sprint1/configs/sprint1.yaml` (`reward.formula`) with configurable constants, variable mappings, and per-action penalties. Resolved at runtime by a safe expression parser (whitelisted `+`, `-`, `*`, `/` via `ast` node-type allowlist — no `eval()`).
+The formula is configured in `docs/sprint1/configs/sprint1.yaml`:
+
+```yaml
+reward:
+  constants: {alpha: 0.9}
+  variables:
+    step_bin_value: {source: state.step_bin, mapping: {inactive: 0.0, moderate: 0.5, active: 1.0}}
+    sleep_value:    {source: state.sleep, mapping: {good: 1.0, poor: -1.0}}
+    action_penalty: {source: action, mapping: {idle: 0.0, movement_suggestion: 0.05, goal_reminder: 0.05, journal: 0.05}}
+  formula: "alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty"
+```
+
+Resolved at runtime by a safe expression parser (whitelisted `+`, `-`, `*`, `/` via `ast` node-type allowlist — no `eval()`).
 
 ### Rationale
 
