@@ -92,6 +92,8 @@ Should the state be represented as a factored feature vector or a flat discrete 
 
 - Sleep quality operationalisation may need sensitivity analysis vs hard threshold
 
+**Key evidence:** Rabbi 2019 (stress null) · Trella 2022 (optional context) · Irwin 2016 (sleep interventions g=0.43)
+
 **Cross-cutting:** D9 (same variables, opposite framing), D10 (fatigue may collapse into mood state)
 
 → Deep dive: [state-space-design/hidden-state-evidence.md](state-space-design/hidden-state-evidence.md)
@@ -200,6 +202,8 @@ How should non-activity actions (journaling, sleep hygiene, social) be rewarded?
 - Sleep: both state variable and reward signal (same pattern as step_bin)
 - Mood: deferred to Phase 2 as potential reward component
 
+**Key evidence:** Smyth 2018 PAJ (journaling reduces depression/anxiety) · Koffel 2018 (sleep hygiene improves PSQI) · Trella 2022 (mood as optional reward component)
+
 **Cross-cutting:** D3, D8
 
 → Deep dive: [state-space-design/hidden-state-evidence.md](state-space-design/hidden-state-evidence.md)
@@ -239,6 +243,8 @@ How should action burden and cumulative fatigue be modelled?
 - α = 0.9 weights steps vs sleep (sweepable)
 - λ = 0.05 per non-idle action
 - 30-min immediate per-step horizon
+
+**Key evidence:** Trella 2022 + StepCountJITAI (3-term form precedent) · Liao 2019 (30-min HeartSteps horizon) · Lee 2022 / Saint-Maurice 2020 (step-clinical thresholds for reward mapping)
 
 **Blocked by:** D1, D8
 
