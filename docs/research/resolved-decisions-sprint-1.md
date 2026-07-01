@@ -119,7 +119,7 @@ State is factored into two table structures: day-boundary (sleep' transitions) a
 
 - Full product of all dimensions would be intractable
 - With factoring, different timescales map to different table structures naturally
-- The codebase currently uses full product (`rule_based.py` reads flat state keys) and must be refactored to match the factored design (see [D12](#d12-algorithm-class))
+- The config file (`docs/sprint1/configs/sprint1.yaml`) uses a `state.factors` structure with named dimensions — separate from the existing flat `MDPConfig` model. A new `FactoredMDPConfig` pydantic model will be added alongside the old one, with `load_config()` dispatching based on top-level keys.
 - Archetypes (goal-driven, social, resistant, stable maintainer) deferred from Sprint 1 — single "blank" context with no persona
 - Profile variables (age, gender, baseline_activity) also deferred — not separate state dimensions
 
@@ -322,25 +322,50 @@ Burden is a rolling count of non-idle actions in the last 3 timesteps:
 
 ## D11. Reward function design
 
-**Status:** resolved
+**Status:** resolved — config-driven formula
 
-### Final choice
+### Formula
 
 ```
-R = α · f(step_bin') + (1-α) · g(sleep') − λ · 𝟙[action != idle]
+R = alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty
 ```
 
 Where:
-- `f` maps the post-transition [step bin](#d1-step-count-encoding): inactive → 0.0, moderate → 0.5, active → 1.0
-- `g` maps [sleep quality](#d3-hidden-psychosocial-state-variables) from the **post-transition state** `sleep'`: good → +1.0, poor → −1.0
-- `α ∈ [0, 1]` weights the step and sleep reward components (default α = 0.9)
-- `λ = 0.05` — a small regularisation penalty per non-idle action to discourage spamming
+- `step_bin_value` maps the post-transition [step bin](#d1-step-count-encoding): inactive → 0.0, moderate → 0.5, active → 1.0
+- `sleep_value` maps [sleep quality](#d3-hidden-psychosocial-state-variables) from the **post-transition state** `sleep'`: good → +1.0, poor → −1.0
+- `alpha` weights the step and sleep reward components (default α = 0.9)
+- `action_penalty` is per-action (idle = 0.0, all others = 0.05) to discourage spamming
 - Immediate per-step time horizon (30-min post-decision, matching HeartSteps V2)
 - Burden is not subtracted from reward; its cost is expressed through reduced future activity probability
 
+### Config structure
+
+The formula is configured in `sprint1.yaml` rather than hardcoded:
+
+```yaml
+reward:
+  constants:
+    alpha: 0.9
+  variables:
+    step_bin_value:
+      source: state.step_bin
+      mapping: {inactive: 0.0, moderate: 0.5, active: 1.0}
+    sleep_value:
+      source: state.sleep
+      mapping: {good: 1.0, poor: -1.0}
+    action_penalty:
+      source: action
+      mapping: {idle: 0.0, movement_suggestion: 0.05, goal_reminder: 0.05, journal: 0.05}
+  formula: "alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty"
+```
+
+The formula string is resolved at runtime by a safe expression parser (whitelisted `+`, `-`, `*`, `/` operators via `ast` node-type allowlist — no `eval()`). Any config change (α, step values, sleep reward, penalty magnitude) takes effect without code changes.
+
 ### Rationale
 
-- [3-level reward](#d1-step-count-encoding) matches the transition-state bins — the agent is incentivised to push users from inactive→moderate (+0.5) or moderate→active (+0.5), with no artificial threshold boundary
+- Config-driven formula avoids hardcoding the reward structure — researchers can tweak weighting, add/remove terms, or adjust mappings in YAML
+- Per-action penalty in config (not uniform) enables future differentiation between action costs without code changes
+- `ast`-based parser is safe (node-type whitelist only) and zero-dependency
 - λ = 0.05 is large enough to bias the agent away from spamming but small enough that it doesn't outweigh the step gain
 - Burden handles the saturation dynamic; λ handles the immediate cost of interruption — two separate mechanisms
 - Immediate horizon learns fastest; multi-timescale (3-week body measure) deferred to Phase 2
@@ -355,14 +380,15 @@ Model-free agents only (see [D2](#d2-factored-vs-flat-state-representation) for 
 
 Included in Sprint 1:
 - **Contextual bandits:** Thompson Sampling, Epsilon-Greedy, UCB, Decaying Epsilon-Greedy (all per ActivitySteps V2 pattern)
-- **Model-free Q-learning:** optional, for non-myopic comparison
+- **Context key:** All contextual agents use the full 36-state tuple `(step_bin, burden, day_of_week, sleep)` as context — every unique state is its own partition for Q-value learning
+- **Model-free Q-learning:** deferred to future sprint (should be tested on the existing MVP first)
 
 ### Rationale
 
 - Model-based methods are infeasible in clinical deployment — the ground-truth transition matrix is never available in a real trial
 - HeartSteps V2 proved contextual bandits work in this domain (34% step increase)
 - The synthetic transition matrix serves as the environment's simulation engine; agents experience it through sampling, not direct access
-- Model-free Q-learning can be added as a comparison without changing the environment
+- Q-learning deferred: non-myopic comparison is interesting but adds scope; test on MVP first to validate the implementation
 
 ## D13. Evaluation strategy
 
@@ -372,15 +398,13 @@ Included in Sprint 1:
 
 **Baselines:**
 - Random (uniform action selection)
-- Idle-only (never intervene)
-- Fixed-ratio (intervene every other step)
+- Idle-only (always selects `idle`; no learning)
 
 **Algorithms (compared against each other and baselines):**
 - Contextual Thompson Sampling
 - Contextual Epsilon-Greedy
 - Contextual UCB
 - Contextual Decaying Epsilon-Greedy
-- Model-free Q-learning (optional)
 
 **Metrics** (matching existing MVP tex pattern):
 - Total Reward (episode sum)
@@ -388,13 +412,14 @@ Included in Sprint 1:
 - Last 50 Steps Reward (convergence measure)
 - % Gap vs Optimal Policy (where computable)
 
-**Reporting:**
-- Aggregate across all seeds
-- 50 random seeds per configuration
-- 450 timesteps (90 days × 5 steps/day)
+**Evaluation design:**
+- **One shared bootstrap:** A single transition matrix (6 tables) is bootstrapped once via Algorithm 2 (~$0.12 with DeepSeek V4 Flash caching). All 250 runs (5 agents × 50 seeds) use the same matrix as the environment — the comparison isolates agent policy quality, not bootstrap variance.
+- **Shared seeds across agents:** 50 base environment seeds. Each seed = one fixed environment seed + 5 derived agent seeds via `derive_agent_seed(base_seed, agent_index)`. Every agent type sees the same initial state and transition random draws (up to action-choice divergence) — differences are attributable to policy alone.
+- 450 timesteps per run (90 days × 5 steps/day)
 
 ### Carried forward
 
+- Per-seed bootstrapping (50 independent bootstraps to test robustness to environmental uncertainty) — Phase 2 sensitivity analysis
 - Archetype evaluation (per-persona breakdown with 4 transition matrices) deferred to Phase 2 (see [D7](#d7-action-set-composition) for action set scope)
 - Non-activity action evaluation (journal selection frequency ~0 with current reward) deferred to Phase 2 (see [D8](#d8-non-activity-action-reward) for journal reward discussion)
 - Hyperparameter sensitivity analysis (epsilon, UCB c, etc.) — follow MVP tex approach
@@ -428,6 +453,24 @@ Ensure: transition matrix P_B of size |D_state| × |A| × |D_out|
 ```
 
 Applied to 6 tables (5 within-day + 1 day-boundary). The prompt template `T_B` differs per table; see the prompt templates below.
+
+### Table file format
+
+Tables are serialized as **JSON** (human-readable, easy to inspect). Stored under `<repo>/tables/` for 6 files:
+
+```
+tables/
+  day_boundary.json
+  within_day_0.json
+  within_day_1.json
+  within_day_2.json
+  within_day_3.json
+  within_day_4.json
+```
+
+Each JSON file is a dict mapping `"{state_key}"` → `{action: {outcome: probability, ...}}`. The bootstrap script writes these; the environment's `BootstrapTransition` model loads them at init.
+
+The `table_dir` config field in `sprint1.yaml` (`transition_model.table_dir: tables`) resolves from repo root.
 
 *Referenced by:* Transition matrix size summary, total LLM cost, prompt design
 
@@ -615,6 +658,46 @@ Even without caching, DeepSeek V4 Flash is **~40× cheaper** than GPT-5.5 and **
 
 ---
 
+## Implementation summary
+
+Build targets extracted from the Sprint 1 design decisions above. Each bullet maps to a discrete change in the codebase.
+
+### Config & state
+- New `FactoredMDPConfig` pydantic model for the `state.factors` YAML structure (alongside, not replacing, the existing `MDPConfig`)
+- `load_config()` dispatches to old or new model based on top-level keys
+- Factored state dataclass `(step_bin, burden, day_of_week, sleep)` replacing flat `StateView`
+- State dimension metadata reads from config (dims, names, boundaries)
+
+### Episode loop
+- Python implementation of Algorithm 1: step-index loop with day-boundary vs within-day transition dispatch, burden update via rolling window formula, reward via expression parser
+- `Environment.step()` adapted for factored state (accepts action, returns factored next state)
+
+### Bootstrap transition model
+- New `BootstrapTransition(TransitionModel)` — loads pre-computed JSON tables from `tables/` at init, samples next state per Algorithm 2 output
+- `table_dir` config field resolves from repo root
+
+### Bootstrap script
+- Implements Algorithm 2: iterate `(s, a)` pairs per table, call DeepSeek V4 Flash via OpenRouter, parse output, normalize counts
+- Writes 6 JSON files: `day_boundary.json` + `within_day_0..4.json`
+
+### Reward expression parser
+- Safe evaluator: `ast.NodeVisitor` allowlisting `Constant`, `Name`, `BinOp(+, -, *, /)`, `UnaryOp(-)`
+- Reads config `reward.constants`, `reward.variables`, `reward.formula`; resolves variable values from runtime state and action
+- Per-action penalty from `actions.{name}.action_penalty`
+
+### Agents
+- All 4 contextual bandits use full 36-state tuple as context key (extend `_get_context_key` to accept multi-field feature list)
+- New `IdleOnlyAgent` — always selects idle, no learning
+- Q-learning deferred
+
+### Evaluation runner
+- Single bootstrap → load once → all runs share the same environment dynamics
+- 50 base seeds × 5 agent indices via `derive_agent_seed(base_seed, agent_index)`
+- Metrics: total reward, per-step reward, last-50 convergence, % gap vs optimal
+- No fixed-ratio baseline
+
+---
+
 ## Amendment log
 
 | Date | Change |
@@ -622,3 +705,4 @@ Even without caching, DeepSeek V4 Flash is **~40× cheaper** than GPT-5.5 and **
 | 2026-06-28 | Sprint 1 config locked in at `docs/sprint1/configs/sprint1.yaml` |
 | 2026-06-28 | Deferred decisions documented in `docs/research/future-sprints.md` |
 | 2026-07-01 | Sleep bins → good/poor; sleep added to reward; LLM prompts updated with persona; day-boundary action dimension removed; Algorithm 1 + Algorithm 2 added; duplicate content removed; D3/D9/D11 rationale updated |
+| 2026-07-01 | Config-driven reward formula (`constants` + `variables` + `formula`) with safe expression parser; per-action penalty in config; Q-learning deferred to sprint after MVP; fixed-ratio dropped; idle-only added; contextual agents use full 36-state context key; JSON table format (`tables/` from repo root); `FactoredMDPConfig` model; shared bootstrap + shared seeds evaluation design |
