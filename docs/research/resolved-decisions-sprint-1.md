@@ -54,7 +54,10 @@ Where:
 
 *Referenced by:* [D2](#d2-factored-vs-flat-state-representation), [D3](#d3-hidden-psychosocial-state-variables), [D5](#d5-time-of-day-encoding), [D10](#d10-burdenfatigue-model), [Transition matrix size summary](#transition-matrix-size-summary)
 
-<a id="decision-toc"></a>| <a id="toc-d1">D1</a> | Step count encoding | resolved | 3 bins: &lt;800 / 800–1600 / &gt;1600 |
+<a id="decision-toc"></a>
+| # | Decision | Status | Summary |
+|---|----------|--------|---------|
+| <a id="toc-d1">D1</a> | Step count encoding | resolved | 3 bins: &lt;800 / 800–1600 / &gt;1600 |
 | <a id="toc-d2">D2</a> | State representation | resolved | Factored: within-day + day-boundary ([Algorithm 1](#algorithm-1-episode-loop)) |
 | <a id="toc-d3">D3</a> | Psychosocial state | sleep incl. | good/poor sleep; mood/stress excluded |
 | <a id="toc-d4">D4</a> | Trend dimension | excluded | No precedent, no evidence |
