@@ -16,7 +16,7 @@ state:
     boundaries: [800, 1600]
   sleep:
     dims: 2
-    names: [rested, under_rested]
+    names: [good, poor]
   day_of_week:
     dims: 2
     names: [weekday, weekend]
@@ -32,6 +32,8 @@ actions:
 
 reward:
   step_bin: {inactive: 0.0, moderate: 0.5, active: 1.0}
+  sleep: {good: 1.0, poor: -1.0}
+  reward_weight: 0.9
   action_penalty_multiplier: 0.05
 
 # Transition model: "random" for dev (generates random weights),

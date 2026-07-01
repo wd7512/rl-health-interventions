@@ -81,7 +81,7 @@ Should the state be represented as a factored feature vector or a flat discrete 
 
 ## D3. Hidden psychosocial state variables
 
-**Status:** open
+**Status:** closed (resolved: sleep ∈ {good, poor} included as state dimension; mood/stress excluded)
 **Rationale:** Mood/stress/sleep could modify how users respond to interventions, but no deployed RL system models them as state. The only MRT that tested stress as moderator found null.
 
 Should mood, stress, or sleep be included in the state representation?
@@ -197,7 +197,7 @@ How should non-activity actions (journaling, sleep hygiene, social) be rewarded?
 
 ## D9. Mood/sleep: reward signal vs state variable
 
-**Status:** open
+**Status:** closed (partially resolved: sleep is both state and reward — dual-role pattern; mood-only deferred to Phase 2)
 **Rationale:** Same variables as D3, approached from opposite end. Cannot be both without double-counting.
 
 Should mood/sleep be used as a reward signal or a state variable?
@@ -238,7 +238,7 @@ How should action burden and cumulative fatigue be modelled?
 
 ## D11. Reward function design
 
-**Status:** open
+**Status:** closed (resolved: R = α·f(step_bin') + (1-α)·g(sleep) − λ·𝟙[action≠idle]; f={inactive:0.0, moderate:0.5, active:1.0}, g={good:+1.0, poor:−1.0}, α=0.9, λ=0.05)
 **Rationale:** Overall structure of R(s,a,s'). Proposed 3-term form but base reward and time horizon unresolved.
 
 What should the reward function look like?
@@ -326,15 +326,15 @@ Which decisions must be resolved for the current sprint and which can be deferre
 |---|----------|--------|----------------------|----------------|
 | D1 | Step count encoding | open | Strong | step-bin-evidence.md |
 | D2 | Factored vs flat | open | Moderate | reference-configs.md |
-| D3 | Hidden psychosocial state | open | Weak | hidden-state-evidence.md |
+| D3 | Hidden psychosocial state | closed | Weak | hidden-state-evidence.md |
 | D4 | Trend dimension | open | None | reference-configs.md |
 | D5 | Time-of-day encoding | open | Moderate | reference-configs.md |
 | D6 | Day type encoding | open | Moderate | reference-configs.md |
 | D7 | Action set composition | open | Moderate | reference-configs.md, non-activity-interventions.md |
 | D8 | Non-activity reward | open | None | non-activity-interventions.md |
-| D9 | Reward vs state | open | Strong/Weak | hidden-state-evidence.md, non-activity-interventions.md |
+| D9 | Reward vs state | closed | Strong/Weak | hidden-state-evidence.md, non-activity-interventions.md |
 | D10 | Burden/fatigue model | open | Weak | action-burden-evidence.md |
-| D11 | Reward function design | open | Moderate | reference-configs.md, action-burden-evidence.md |
+| D11 | Reward function design | closed | Moderate | reference-configs.md, action-burden-evidence.md |
 | D12 | Algorithm class | open | Moderate | reference-configs.md |
 | D13 | Evaluation strategy | open | None | non-activity-interventions.md |
 | D14 | Current sprint deferral | open | N/A | — |

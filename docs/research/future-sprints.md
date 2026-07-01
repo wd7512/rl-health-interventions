@@ -8,7 +8,7 @@ upstream: "resolved-decisions-sprint-1.md"
 | Item | Source | Notes |
 |---|---|---|
 | D8 — Journal reward mechanism | D8 carried forward | Mood/sleep proxy for journal acceptance |
-| D9 — Mood as reward signal | D9 carried forward | Multi-objective reward (steps + mood) |
+| D9 — Mood as reward signal | D9 carried forward | Multi-objective reward (steps + sleep + mood); sleep reward resolved in Sprint 1 — mood-only deferred |
 | Journal acceptance model | D8 discussion | Stochastic burden reduction on accept |
 | Hyperparameter sensitivity | D13 carried forward | Epsilon, UCB c, etc. |
 | D7 — 6-action set | D7 carried forward | Add motivational prompt, progress feedback |

@@ -78,9 +78,9 @@ Factored into two transition structures:
 
 ### Sleep
 
-**2 bins:** slept >7 hours (yes/no).
+**2 bins:** good quality / poor quality (qualitative LLM judgment simulating smartwatch sleep-quality output).
 
-- **Role:** A daily state dimension that transitions at the day boundary, separately from step_bin
+- **Role:** A daily state dimension that transitions at the day boundary, separately from step_bin; also a reward signal (see D11)
 - **Stochastic at day boundary:** yes — `P(sleep' | sleep, step_bin, burden, action, day_of_week)` is LLM-bootstrapped; step_bin' is sampled from within-day table #0 using the new sleep'
 - **Static within-day:** yes — once set at step 0, sleep stays constant for all 5 within-day steps
 - **Moderates within-day transitions:** yes — sleep is a context variable in the within-day LLM prompt
@@ -100,7 +100,7 @@ Excluded from Sprint 1. No deployed RL-for-health system includes them as state 
 ### Carried forward
 
 - Mood/stress may be revisited in Phase 2 (cross-cutting with D9)
-- Sleep >7 hours threshold may need sensitivity analysis
+- Sleep quality operationalisation may need sensitivity analysis vs hard threshold
 
 ## D4. Trend dimension
 
@@ -228,19 +228,23 @@ The grilling session discussed: journaling, if accepted by the user, could reduc
 
 ## D9. Mood/sleep: reward signal vs state variable
 
-**Status:** deferred to Phase 2
+**Status:** partially resolved — sleep is both state and reward (Sprint 1); mood-only deferred to Phase 2
 
-Mood is not used in Sprint 1 — neither as reward signal nor state variable. Sleep is in the state (D3) but not as a reward signal.
+Sleep is included as both a state variable (D3 — transition moderator) and a reward signal (D11 — reward component), mirroring the pattern used for `step_bin` (which also appears in both the state and reward). The two roles capture distinct constructs:
+
+- **State role:** sleep quality moderates within-day transition dynamics — a user with poor sleep may respond differently to interventions
+- **Reward role:** good sleep quality is directly valued as an outcome the agent should learn to promote
 
 ### Rationale
 
-- No deployed RL system includes mood as a reward component
-- Multi-objective reward (steps + mood) would require real data to calibrate
-- Sleep is already in the state as a transition moderator — using it as a reward signal as well would require care to avoid double-counting
+- Same dual-role pattern as `step_bin` — established pattern, not novel
+- The two roles are conceptually distinct (moderator vs. outcome) and the LLM already distinguishes them in separate prompt types
+- Mood-only component has no deployed precedent and remains deferred
+- Multi-objective reward (steps + sleep) is calibrated via α weighting, not real data
 
 ### Carried forward
 
-- Natural Phase 2 extension when real data includes mood/wellbeing measures
+- Mood as reward component — deferred to Phase 2
 - Trella 2022 recommends mood as optional reward component — consistent with Phase 2 timing
 
 ## D10. Burden/fatigue model
@@ -298,11 +302,13 @@ Day-boundary: `P(sleep' | step_bin, burden, action, day_of_week, sleep)`
 ### Final choice
 
 ```
-R = f(step_bin') - λ · 𝟙[action != idle]
+R = α · f(step_bin') + (1-α) · g(sleep) − λ · 𝟙[action != idle]
 ```
 
 Where:
 - `f` maps the post-transition step bin: inactive → 0.0, moderate → 0.5, active → 1.0
+- `g` maps sleep quality from the **current step's state**: good → +1.0, poor → −1.0
+- `α ∈ [0, 1]` weights the step and sleep reward components (default α = 0.9)
 - `λ = 0.05` — a small regularisation penalty per non-idle action to discourage spamming
 - Immediate per-step time horizon (30-min post-decision, matching HeartSteps V2)
 - Burden is not subtracted from reward; its cost is expressed through reduced future activity probability
@@ -384,9 +390,9 @@ Included in Sprint 1:
 | D6 day type | Binary weekday/weekend — moderates transitions (resolved) |
 | D7 action set | 4 actions: idle, movement_suggestion, goal_reminder, journal (resolved) |
 | D8 non-activity reward | Deferred to Phase 2 (resolved) |
-| D9 reward vs state | Deferred to Phase 2 (resolved) |
+| D9 reward vs state | Partially resolved — sleep is both state and reward (dual-role, same pattern as step_bin); mood-only deferred to Phase 2 |
 | D10 burden/fatigue | Rolling window, 3 levels — table dimension (resolved) |
-| D11 reward design | R = f(step_bin') − λ·𝟙[action≠idle], f={inactive:0.0, moderate:0.5, active:1.0}, λ=0.05 (resolved) |
+| D11 reward design | R = α·f(step_bin') + (1-α)·g(sleep) − λ·𝟙[action≠idle]; f={inactive:0.0, moderate:0.5, active:1.0}, g={good:+1.0, poor:−1.0}, α=0.9, λ=0.05 (resolved) |
 | D12 algorithm class | Model-free: contextual bandits + optional Q-learning (resolved) |
 | D13 evaluation strategy | MVP metrics; per-archetype breakdown deferred to Phase 2 (resolved) |
 
@@ -481,7 +487,7 @@ The agent observes the full state at each step:
 | Dimension | Bins | Updates | Stochastic? |
 |---|---|---|---|
 | step_bin | 3 | Every step | Yes |
-| sleep | 2 | Daily (step 0) | Yes (day-boundary table) |
+| sleep | 2 (good / poor) | Daily (step 0) | Yes (day-boundary table) |
 | day_of_week | 2 | Daily (step 0) | Deterministic |
 | burden | 3 | Every step | Deterministic (formula) |
 | time_of_day | implicit | Not a state dimension | — |
@@ -501,6 +507,8 @@ The LLM outputs raw step counts for within-day prompts; the environment bins the
 ```
 # Reference
 
+You are a generally healthy adult looking to improve your exercise and sleep habits.
+
 5 timesteps per day: morning, mid-morning, lunch, afternoon, evening
 
 Per-timestep step ranges (daily threshold / 5):
@@ -508,7 +516,7 @@ Per-timestep step ranges (daily threshold / 5):
   800-1600 steps = moderate
   >1600 steps    = active
 
-Sleep: >7h = well rested  |  ≤7h = under-rested
+Sleep quality: good / poor (based on how well you slept)
 
 Burden (notification fatigue):
   low     = 0 of last 3 timesteps had an intervention
@@ -521,7 +529,7 @@ Burden (notification fatigue):
 ```
 # Current state
 You just woke up. It is the morning. It is a {weekday/weekend}.
-You slept {>7h / ≤7h}. Your notification fatigue is {low/medium/high}.
+Your sleep quality was {good / poor}. Your notification fatigue is {low/medium/high}.
 
 {Your phone just said: {movement_suggestion / goal_reminder / journal}.
 
@@ -537,7 +545,7 @@ The LLM outputs a raw number (e.g. `800`). The environment adds it to the cumula
 It is the {mid-morning / lunch / afternoon / evening}. Last timestep
 ({morning / mid-morning / lunch / afternoon}) you took {inferred_step_count} steps.
 Your notification fatigue is {low/medium/high}. It is a {weekday/weekend}.
-You slept {>7h / ≤7h}.
+Your sleep quality was {good / poor}.
 
 {Your phone just said: {movement_suggestion / goal_reminder / journal}.
  -or- No action.}
@@ -552,7 +560,7 @@ The `{inferred_step_count}` is the midpoint of the step_bin range from the previ
 ```
 # Current state
 You are at the end of the day. It was a {weekday/weekend}.
-You slept {>7h / ≤7h} last night. Your notification fatigue is {low/medium/high}.
+Your sleep quality last night was {good / poor}. Your notification fatigue is {low/medium/high}.
 
 Your day:
   morning:      {inferred_step_count} steps ({step_bin})
@@ -563,9 +571,9 @@ Your day:
 
 Your notifications today: {morning_action}, {mid-morning_action}, {lunch_action}, {afternoon_action}, {evening_action}
 
-It's bedtime. Do you sleep >7 hours tonight?
-{"sleep_>7h": true}
-{"sleep_>7h": false}
+It's bedtime. How was your sleep quality tonight?
+{"sleep_quality": "good"}
+{"sleep_quality": "poor"}
 ```
 
 The day-boundary prompt shows the full per-timestep breakdown from the last day — each timestep's raw step count and its corresponding bin — so the LLM can reason about how the day's activity pattern affects sleep quality.
@@ -602,3 +610,4 @@ Even without caching, DeepSeek V4 Flash is **~40× cheaper** than GPT-5.5 and **
 |------|--------|
 | 2026-06-28 | Sprint 1 config locked in at `docs/sprint1/configs/sprint1.yaml` |
 | 2026-06-28 | Deferred decisions documented in `docs/research/future-sprints.md` |
+| 2026-07-01 | Sleep bins changed from >7h/≤7h to good/poor quality; sleep added to reward: R = α·f(step_bin') + (1-α)·g(sleep); LLM prompts updated with persona background and sleep quality framing |
