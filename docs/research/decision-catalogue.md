@@ -88,10 +88,6 @@ Should the state be represented as a factored feature vector or a flat discrete 
 - Sleep: 2 bins (good quality / poor quality), LLM-judged at day boundary
 - Mood/stress: excluded from Sprint 1
 
-**Sub-questions:**
-
-- Sleep quality operationalisation may need sensitivity analysis vs hard threshold
-
 **Key evidence:** Rabbi 2019 (stress null) · Trella 2022 (optional context) · Irwin 2016 (sleep interventions g=0.43)
 
 **Cross-cutting:** D9 (same variables, opposite framing), D10 (fatigue may collapse into mood state)
