@@ -7,25 +7,66 @@ upstream: "decision-catalogue.md"
 
 # Resolved Decisions — Sprint 1 MDP Design
 
-> Decisions resolved during the grilling session on 2026-06-28.
-> Each entry links to the relevant decision in the catalogue and
-> captures the rationale, evidence basis, and open questions carried forward.
+> **What this is:** Sprint 1 MDP design specification for simulated RL policy evaluation.
+> Read [Algorithm 1](#algorithm-1-episode-loop) first — it defines the simulation loop
+> that every other section implements.
+>
+> **Cost (Swapnil):** A full bootstrap costs **~$0.27** with DeepSeek V4 Flash (22,320 LLM
+> calls) or **~$0.12** with prompt caching. Cheap enough to iterate — regenerate the entire
+> transition matrix after any prompt tweak for pocket change.
+>
+> **Quick nav:** The [TOC](#decision-toc) below summarises all 13 decisions. Click any `D#` to
+> jump to the full section. Inline links connect related decisions throughout.
 
-| # | Decision | Status | Summary |
-|---|----------|--------|---------|
-| D1 | Step count encoding | resolved | 3 bins: &lt;800 / 800–1600 / &gt;1600 |
-| D2 | State representation | resolved | Factored: within-day + day-boundary (Algorithm 1) |
-| D3 | Psychosocial state | sleep incl. | good/poor sleep; mood/stress excluded |
-| D4 | Trend dimension | excluded | No precedent, no evidence |
-| D5 | Time-of-day | resolved | Implicit as table index (Algorithm 1) |
-| D6 | Day type | resolved | Binary weekday/weekend moderator |
-| D7 | Action set | resolved | 4 actions: idle, movement, goal, journal |
-| D8 | Non-activity reward | deferred | Journal mechanism → Phase 2 |
-| D9 | Mood/sleep: reward vs state | partial | Sleep dual-role resolved; mood deferred |
-| D10 | Burden/fatigue | resolved | Rolling window, 3 levels (Algorithm 1) |
-| D11 | Reward function | resolved | R = α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙 |
-| D12 | Algorithm class | resolved | Model-free: bandits + Q-learning |
-| D13 | Evaluation strategy | resolved | 5 agents × 50 seeds × 450 steps |
+### Algorithm 1: Episode loop
+
+```
+Algorithm 1: Run episode (N days)
+
+Require: N days, initial state s₀ = (step_bin, burden, day_of_week, sleep)
+Ensure: episode of 5N transitions
+
+ 1: state ← s₀
+ 2: for day = 1 to N do
+ 3:     for t = 0 to 4 do
+ 4:         a ← agent.policy(state, t)
+ 5:         if t = 0 then
+ 6:             sleep' ← sample P_day_boundary(step_bin, burden, day_of_week, sleep)
+ 7:         else
+ 8:             sleep' ← state.sleep
+ 9:         end if
+10:         step_bin' ← sample P_within_day[t](step_bin, burden, a, day_of_week, sleep')
+11:         burden' ← count_non_idle_last_3(state.burden, a)
+12:         day_of_week' ← advance(state.day_of_week) if t = 0 else state.day_of_week
+13:         r ← α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙[a ≠ idle]
+14:         next_state ← (step_bin', burden', day_of_week', sleep')
+15:         record (state, a, r, next_state)
+16:         state ← next_state
+17:     end for
+18: end for
+```
+
+Where:
+- `P_day_boundary` and `P_within_day[t]` are the 6 LLM-bootstrapped tables (see [Algorithm 2](#algorithm-2-bootstrap-transition-table-from-llm))
+- `f(x)` = {inactive: 0.0, moderate: 0.5, active: 1.0} (see [D1](#d1-step-count-encoding))
+- `g(x)` = {good: +1.0, poor: −1.0} (see [D3](#d3-hidden-psychosocial-state-variables))
+- `count_non_idle_last_3(burden, a)` is a rolling 3-step window (see [D10](#d10-burdenfatigue-model))
+
+*Referenced by:* [D2](#d2-factored-vs-flat-state-representation), [D3](#d3-hidden-psychosocial-state-variables), [D5](#d5-time-of-day-encoding), [D10](#d10-burdenfatigue-model), [Transition matrix size summary](#transition-matrix-size-summary)
+
+<a id="decision-toc"></a>| <a id="toc-d1">D1</a> | Step count encoding | resolved | 3 bins: &lt;800 / 800–1600 / &gt;1600 |
+| <a id="toc-d2">D2</a> | State representation | resolved | Factored: within-day + day-boundary ([Algorithm 1](#algorithm-1-episode-loop)) |
+| <a id="toc-d3">D3</a> | Psychosocial state | sleep incl. | good/poor sleep; mood/stress excluded |
+| <a id="toc-d4">D4</a> | Trend dimension | excluded | No precedent, no evidence |
+| <a id="toc-d5">D5</a> | Time-of-day | resolved | Implicit as table index ([Algorithm 1](#algorithm-1-episode-loop)) |
+| <a id="toc-d6">D6</a> | Day type | resolved | Binary weekday/weekend moderator |
+| <a id="toc-d7">D7</a> | Action set | resolved | 4 actions: idle, movement, goal, journal |
+| <a id="toc-d8">D8</a> | Non-activity reward | deferred | Journal mechanism → Phase 2 |
+| <a id="toc-d9">D9</a> | Mood/sleep: reward vs state | partial | Sleep dual-role resolved; mood deferred |
+| <a id="toc-d10">D10</a> | Burden/fatigue | resolved | Rolling window, 3 levels ([Algorithm 1](#algorithm-1-episode-loop)) |
+| <a id="toc-d11">D11</a> | Reward function | resolved | R = α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙 |
+| <a id="toc-d12">D12</a> | Algorithm class | resolved | Model-free: bandits + Q-learning |
+| <a id="toc-d13">D13</a> | Evaluation strategy | resolved | 5 agents × 50 seeds × 450 steps |
 
 ## D1. Step count encoding
 
@@ -40,7 +81,7 @@ upstream: "decision-catalogue.md"
 
 - Binary is too coarse — "active" masks clinical distinctions (4k vs 10k are very different health outcomes)
 - 4 bins (D1 original) exceeds the minimum useful granularity; 3 bins captures the key inflection points with fewer LLM calls
-- Reward is 3-level matching the bins (inactive=0.0, moderate=0.5, active=1.0), aligned with clinical thresholds
+- [Reward](#d11-reward-function-design) is 3-level matching the bins (inactive=0.0, moderate=0.5, active=1.0), aligned with clinical thresholds
 - LLM bootstrapping makes the marginal cost trivial: 3 × 4 × 3 = 36 (s, a) pairs vs 16 for binary
 
 ### Evidence
@@ -57,9 +98,9 @@ upstream: "decision-catalogue.md"
 
 ## D2. Factored vs flat state representation
 
-**Status:** resolved — factored with two table types (Algorithm 1)
+**Status:** resolved — factored with two table types ([Algorithm 1](#algorithm-1-episode-loop))
 
-State is factored into two table structures: day-boundary (sleep' transitions) and within-day (step_bin' transitions). The per-timestep execution is defined in [Algorithm 1](#algorithm-1-environment-episode).
+State is factored into two table structures: day-boundary (sleep' transitions) and within-day (step_bin' transitions). The per-timestep execution is defined in [Algorithm 1](#algorithm-1-episode-loop).
 
 ### Deterministic / formula-driven dimensions
 
@@ -75,7 +116,7 @@ State is factored into two table structures: day-boundary (sleep' transitions) a
 
 - Full product of all dimensions would be intractable
 - With factoring, different timescales map to different table structures naturally
-- The codebase currently uses full product (`rule_based.py` reads flat state keys) and must be refactored
+- The codebase currently uses full product (`rule_based.py` reads flat state keys) and must be refactored to match the factored design (see [D12](#d12-algorithm-class))
 - Archetypes (goal-driven, social, resistant, stable maintainer) deferred from Sprint 1 — single "blank" context with no persona
 - Profile variables (age, gender, baseline_activity) also deferred — not separate state dimensions
 
@@ -88,7 +129,7 @@ State is factored into two table structures: day-boundary (sleep' transitions) a
 **2 bins:** good / poor (qualitative LLM judgment simulating smartwatch sleep-quality output).
 
 - **Role:** A daily state dimension that transitions at the day boundary; also a reward signal (see [D11](#d11-reward-function-design))
-- **Transition:** Sampled at step 0 per Algorithm 1 lines 5-8 (stochastic at day boundary, static within-day)
+- **Transition:** Sampled at step 0 per [Algorithm 1](#algorithm-1-episode-loop) lines 5-8 (stochastic at day boundary, static within-day)
 - **Moderates within-day transitions:** yes — sleep is a context variable in the within-day LLM prompt
 
 ### Mood/stress
@@ -105,7 +146,7 @@ Excluded from Sprint 1. No deployed RL-for-health system includes them as state 
 
 ### Carried forward
 
-- Mood/stress may be revisited in Phase 2 (cross-cutting with D9)
+- Mood/stress may be revisited in Phase 2 (cross-cutting with [D9](#d9-moodsleep-reward-signal-vs-state-variable))
 - Sensitivity analysis: sleep quality vs duration threshold
 
 ## D4. Trend dimension
@@ -122,7 +163,7 @@ No trend dimension in the state.
 
 **Status:** resolved — implicit as table index (Algorithm 1)
 
-Time-of-day is **not a state dimension.** The step index selects the within-day table per Algorithm 1 line 3.
+Time-of-day is **not a state dimension.** The step index selects the within-day table per [Algorithm 1](#algorithm-1-episode-loop) line 3.
 
 ### Rationale
 
@@ -189,8 +230,8 @@ Binary weekday/weekend. Day type is a **transition moderator** — it appears in
 
 ### Carried forward
 
-- gentle_nudge vs goal_nudge separation has no RL comparison
-- 6-action set (design doc full spec) is a natural extension sprint
+- gentle_nudge vs goal_nudge separation has no RL comparison (see [D10](#d10-burdenfatigue-model) for burden implications)
+- 6-action set (design doc full spec) is a natural extension sprint (see [D13](#d13-evaluation-strategy) for evaluation scope)
 
 ## D8. Non-activity action reward
 
@@ -217,7 +258,7 @@ Two candidate approaches identified but not resolved (see [action-burden-evidenc
 
 ### Carried forward
 
-- [D9](#d9-moodsleep-reward-signal-vs-state-variable) (mood/sleep as reward vs state): if mood becomes a reward channel in Phase 2, journal gets a natural reward signal
+- [D9](#d9-moodsleep-reward-signal-vs-state-variable) (mood/sleep as reward vs state): if mood becomes a reward channel in Phase 2, journal gets a natural reward signal (see [D7](#d7-action-set-composition) for action set context)
 
 ## D9. Mood/sleep: reward signal vs state variable
 
@@ -242,9 +283,9 @@ Sleep is included as both a state variable ([D3](#d3-hidden-psychosocial-state-v
 
 ## D10. Burden/fatigue model
 
-**Status:** resolved — rolling window with 3 levels
+**Status:** resolved — rolling window with 3 levels (see [Algorithm 1](#algorithm-1-episode-loop) line 11)
 
-Burden is a rolling count of non-idle actions in the last 3 timesteps (Algorithm 1 line 11):
+Burden is a rolling count of non-idle actions in the last 3 timesteps:
 
 | Non-idle actions (last 3) | Burden level |
 |---|---|
@@ -274,7 +315,7 @@ Burden is a rolling count of non-idle actions in the last 3 timesteps (Algorithm
 
 ### Carried forward
 
-- The bootstrapped per-burden-level distributions should be sanity-checked: high burden should show lower P(step_bin' > step_bin) than low burden across all actions
+- The bootstrapped per-burden-level distributions should be sanity-checked: high burden should show lower P(step_bin' > step_bin) than low burden across all actions (see [D3](#d3-hidden-psychosocial-state-variables) for the sleep-burden interaction)
 
 ## D11. Reward function design
 
@@ -287,8 +328,8 @@ R = α · f(step_bin') + (1-α) · g(sleep') − λ · 𝟙[action != idle]
 ```
 
 Where:
-- `f` maps the post-transition step bin: inactive → 0.0, moderate → 0.5, active → 1.0
-- `g` maps sleep quality from the **post-transition state** `sleep'`: good → +1.0, poor → −1.0
+- `f` maps the post-transition [step bin](#d1-step-count-encoding): inactive → 0.0, moderate → 0.5, active → 1.0
+- `g` maps [sleep quality](#d3-hidden-psychosocial-state-variables) from the **post-transition state** `sleep'`: good → +1.0, poor → −1.0
 - `α ∈ [0, 1]` weights the step and sleep reward components (default α = 0.9)
 - `λ = 0.05` — a small regularisation penalty per non-idle action to discourage spamming
 - Immediate per-step time horizon (30-min post-decision, matching HeartSteps V2)
@@ -296,7 +337,7 @@ Where:
 
 ### Rationale
 
-- 3-level reward matches the transition-state bins — the agent is incentivised to push users from inactive→moderate (+0.5) or moderate→active (+0.5), with no artificial threshold boundary
+- [3-level reward](#d1-step-count-encoding) matches the transition-state bins — the agent is incentivised to push users from inactive→moderate (+0.5) or moderate→active (+0.5), with no artificial threshold boundary
 - λ = 0.05 is large enough to bias the agent away from spamming but small enough that it doesn't outweigh the step gain
 - Burden handles the saturation dynamic; λ handles the immediate cost of interruption — two separate mechanisms
 - Immediate horizon learns fastest; multi-timescale (3-week body measure) deferred to Phase 2
@@ -307,7 +348,7 @@ Where:
 
 ### Final choice
 
-Model-free agents only. All agents learn from environment samples (the synthetic transition matrix generates experience; agents do not read it directly).
+Model-free agents only (see [D2](#d2-factored-vs-flat-state-representation) for the factored state representation that enables this). All agents learn from environment samples (the synthetic transition matrix generates experience; agents do not read it directly).
 
 Included in Sprint 1:
 - **Contextual bandits:** Thompson Sampling, Epsilon-Greedy, UCB, Decaying Epsilon-Greedy (all per ActivitySteps V2 pattern)
@@ -351,47 +392,11 @@ Included in Sprint 1:
 
 ### Carried forward
 
-- Archetype evaluation (per-persona breakdown with 4 transition matrices) deferred to Phase 2
-- Non-activity action evaluation (journal selection frequency ~0 with current reward) deferred to Phase 2
+- Archetype evaluation (per-persona breakdown with 4 transition matrices) deferred to Phase 2 (see [D7](#d7-action-set-composition) for action set scope)
+- Non-activity action evaluation (journal selection frequency ~0 with current reward) deferred to Phase 2 (see [D8](#d8-non-activity-action-reward) for journal reward discussion)
 - Hyperparameter sensitivity analysis (epsilon, UCB c, etc.) — follow MVP tex approach
 
-## Algorithms
-
-### Algorithm 1: Episode loop
-
-```
-Algorithm 1: Run episode (N days)
-
-Require: N days, initial state s₀ = (step_bin, burden, day_of_week, sleep)
-Ensure: episode of 5N transitions
-
- 1: state ← s₀
- 2: for day = 1 to N do
- 3:     for t = 0 to 4 do
- 4:         a ← agent.policy(state, t)
- 5:         if t = 0 then
- 6:             sleep' ← sample P_day_boundary(step_bin, burden, day_of_week, sleep)
- 7:         else
- 8:             sleep' ← state.sleep
- 9:         end if
-10:         step_bin' ← sample P_within_day[t](step_bin, burden, a, day_of_week, sleep')
-11:         burden' ← count_non_idle_last_3(state.burden, a)
-12:         day_of_week' ← advance(state.day_of_week) if t = 0 else state.day_of_week
-13:         r ← α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙[a ≠ idle]
-14:         next_state ← (step_bin', burden', day_of_week', sleep')
-15:         record (state, a, r, next_state)
-16:         state ← next_state
-17:     end for
-18: end for
-```
-
-Where:
-- `P_day_boundary` and `P_within_day[t]` are the 6 LLM-bootstrapped tables (see Algorithm 2)
-- `f(x)` = {inactive: 0.0, moderate: 0.5, active: 1.0} (see D1)
-- `g(x)` = {good: +1.0, poor: −1.0} (see D3)
-- `count_non_idle_last_3(burden, a)` is a rolling 3-step window (see D10)
-
-*Referenced by:* D2, D3, D5, D10, Transition matrix size summary
+## Transition bootstrapping
 
 ### Algorithm 2: Bootstrap transition table from LLM
 
@@ -481,7 +486,7 @@ P(sleep' | step_bin, burden, day_of_week, sleep)
 
 **Calls per (s,a) pair:** 20 (day-boundary, 2 outputs) or 30 (within-day, 3 outputs) — both yield exactly 10 samples per output category via Algorithm 2.
 
-At DeepSeek V4 Flash pricing (~$0.09/M input tokens, ~$0.18/M output tokens), roughly 50–100 tokens per call → ~$0.27 total (see [Cost-benefit summary](#cost-benefit-summary)).
+At DeepSeek V4 Flash pricing (~$0.09/M input tokens, ~$0.18/M output tokens), roughly 50–100 tokens per call → ~$0.27 total (see [Bootstrapping cost](#bootstrapping-cost)).
 
 ### State space summary
 
@@ -579,7 +584,9 @@ It's bedtime. How was your sleep quality tonight?
 
 The day-boundary prompt shows the full per-timestep breakdown from the last day — each timestep's raw step count and its corresponding bin — so the LLM can reason about how the day's activity pattern affects sleep quality.
 
-### Cost-benefit summary
+### Bootstrapping cost
+
+DeepSeek V4 Flash is the default model for all transition bootstrapping. At ~$0.27 per full bootstrap (or ~$0.12 with caching), the cost is low enough to iterate freely — regenerate the full 6-table matrix after any prompt tweak or dimension change.
 
 **Usage estimate:**
 - 22,320 LLM calls (Algorithm 2, N=10 per cell)
