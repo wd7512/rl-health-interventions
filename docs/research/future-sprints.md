@@ -23,3 +23,11 @@ upstream: "resolved-decisions-sprint-1.md"
 | LLM-based user simulation | design.tex §2 | Persona-based response models |
 | Delayed reward (3-week body measures) | design.tex §3 | Multi-timescale reward |
 | Non-stationary adaptation | design.tex §2 | Distribution shift handling |
+
+---
+
+## Amendment log
+
+| Date | Change |
+|------|--------|
+| 2026-07-01 | D9 row updated: mood-only remainder noted after sleep reward resolved in Sprint 1 |

@@ -16,18 +16,15 @@ related: "state-space-design/ · action-space-design/ · decision-trees/online-v
 ```text
 ┌──────────────────────────────────────────────────────┐
 │  STATE                                                │
-│  D3 (hidden state) ←→ D9 (sleep vs reward)          │
-│  D4 (trend)     D5 (time-of-day)    D6 (day type)    │
-│  D7 (action set) ──→ D8 (non-activity reward)        │
+│  D3 ←→ D9    D4    D5    D6                          │
+│  D7 ──→ D8                                           │
 ├──────────────────────────────────────────────────────┤
 │  REWARD                                               │
-│  D1 (step encoding)   D8   D9                        │
-│              └────┬────┘                             │
-│                D11 (REWARD DESIGN)                    │
+│  D1   D8   D9 ──→ D11                                │
 ├──────────────────────────────────────────────────────┤
 │  ALGORITHM & EVALUATION                               │
-│  D2 (factored/flat) → D12 (algorithm class)           │
-│  D10 (burden) ←→ D3    D13 (evaluation) ←── D8       │
+│  D2 → D12    D10 ←→ D3    D13 ←── D8                │
+│  D7 → D10              D7 → D13                      │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -330,3 +327,11 @@ Which decisions must be resolved for the current sprint and which can be deferre
 - **Sub-questions** tagged `[parameter — sensitivity analysis]` are continuous-valued choices for sensitivity analysis
 - **Deep-dive links** point to files in `state-space-design/` or `action-space-design/`
 - **Upstream framing decision**: [decision-trees/online-vs-offline-rl.md](decision-trees/online-vs-offline-rl.md)
+
+---
+
+## Amendment log
+
+| Date | Change |
+|------|--------|
+| 2026-07-01 | D3, D9, D11 closed with resolutions and key evidence; dependency diagram restructured into STATE/REWARD/ALGO bands with cross-band arrows restored |
