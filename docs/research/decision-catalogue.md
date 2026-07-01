@@ -8,32 +8,27 @@ related: "state-space-design/ · action-space-design/ · decision-trees/online-v
 
 # Decision Catalogue — State, Action & Reward Space Design
 
-> Every open design decision for the MDP state space, action space, and
-> reward function in one place. For each decision: what needs deciding,
-> what options have been considered, what the evidence says, and where to
-> find the deep-dive evidence.
->
-> **All decisions are currently open.** Nothing has been committed to. The
-> catalogue maps the decision space — it does not resolve it.
->
-> The upstream framing decision (simulation-based policy evaluation) is
-> resolved separately in
-> [decision-trees/online-vs-offline-rl.md](decision-trees/online-vs-offline-rl.md).
+> Registry of all MDP design decisions and their resolution status.
+> Resolved decisions documented in [resolved-decisions-sprint-1.md](resolved-decisions-sprint-1.md).
 
 ## Dependency diagram
 
 ```text
-D14. Current sprint vs. next sprint deferral
-│
-├─→ D1 (step encoding) ──→ D11 (reward design) ←── D8 (non-activity reward)
-├─→ D2 (factored vs flat) ──→ D12 (algorithm class)
-├─→ D3 (hidden state) ←→ D9 (mood/sleep: reward vs state)
-├─→ D4 (trend dimension)          independent
-├─→ D5 (time-of-day)              independent
-├─→ D6 (day type)                  independent
-└─→ D7 (action set) ──→ D8 (non-activity reward)
-                       ──→ D10 (burden model) ←→ D3
-                       ──→ D13 (evaluation strategy) ←── D8
+┌──────────────────────────────────────────────────────┐
+│  STATE                                                │
+│  D3 (hidden state) ←→ D9 (sleep vs reward)          │
+│  D4 (trend)     D5 (time-of-day)    D6 (day type)    │
+│  D7 (action set) ──→ D8 (non-activity reward)        │
+├──────────────────────────────────────────────────────┤
+│  REWARD                                               │
+│  D1 (step encoding)   D8   D9                        │
+│              └────┬────┘                             │
+│                D11 (REWARD DESIGN)                    │
+├──────────────────────────────────────────────────────┤
+│  ALGORITHM & EVALUATION                               │
+│  D2 (factored/flat) → D12 (algorithm class)           │
+│  D10 (burden) ←→ D3    D13 (evaluation) ←── D8       │
+└──────────────────────────────────────────────────────┘
 ```
 
 ## D1. Step count encoding & boundaries
