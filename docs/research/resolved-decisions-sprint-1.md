@@ -74,7 +74,7 @@ Where:
 | <a id="toc-d9">D9</a> | Mood/sleep: reward vs state | partial | Sleep dual-role resolved; mood deferred |
 | <a id="toc-d10">D10</a> | Burden/fatigue | resolved | Rolling window, 3 levels ([Algorithm 1](#algorithm-1-episode-loop)) |
 | <a id="toc-d11">D11</a> | Reward function | resolved | R = α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙 |
-| <a id="toc-d12">D12</a> | Algorithm class | resolved | Model-free: bandits + Q-learning |
+| <a id="toc-d12">D12</a> | Algorithm class | resolved | Model-free: bandits (Q-learning deferred) |
 | <a id="toc-d13">D13</a> | Evaluation strategy | resolved | 5 agents × 50 seeds × 450 steps |
 
 ## D1. Step count encoding
@@ -125,7 +125,7 @@ State is factored into two table structures: day-boundary (sleep' transitions) a
 |---|---|
 | time_of_day | Implicit — step index within day selects the within-day table |
 | day_of_week | Advances deterministically, flips at 6→0 |
-| burden | Rolling formula — count non-idle in last 3 timesteps (Algorithm 1 line 11) |
+| burden | Rolling formula — count non-idle in last 3 timesteps (Algorithm 1 line 15) |
 | sleep | Transitions jointly with step_bin at day boundary only |
 | goal_progress | Dropped from transition moderators |
 
@@ -254,7 +254,7 @@ Journal has no step reward benefit in Sprint 1 — the agent will learn to avoid
 
 ### Mechanism noted for future
 
-Two candidate approaches identified but not resolved (see [action-burden-evidence.md](action-burden-evidence.md)): LLM-bootstrapped joint outcome and separate acceptance model.
+Two candidate approaches identified but not resolved (see [action-burden-evidence.md](action-space-design/action-burden-evidence.md)): LLM-bootstrapped joint outcome and separate acceptance model.
 
 ### Carried forward
 
@@ -283,7 +283,7 @@ Sleep is included as both a state variable ([D3](#d3-hidden-psychosocial-state-v
 
 ## D10. Burden/fatigue model
 
-**Status:** resolved — rolling window with 3 levels (see [Algorithm 1](#algorithm-1-episode-loop) line 11)
+**Status:** resolved — rolling window with 3 levels (see [Algorithm 1](#algorithm-1-episode-loop) line 15)
 
 Burden is a rolling count of non-idle actions in the last 3 timesteps:
 
@@ -354,6 +354,7 @@ Resolved at runtime by a safe expression parser (whitelisted `+`, `-`, `*`, `/` 
 - Per-action penalty in config (not uniform) enables future differentiation between action costs without code changes
 - `ast`-based parser is safe (node-type whitelist only) and zero-dependency
 - λ = 0.05 is large enough to bias the agent away from spamming but small enough that it doesn't outweigh the step gain
+- The sleep penalty g(poor) = −1.0 produces −0.5 reward per poor-sleep day (5 steps × 0.1 sleep weight), which is 56% of the max daily step gain (4.5) — this is intentional: carrying poor sleep forward compounds across days, giving the agent incentive to sacrifice today's steps to improve tonight's sleep
 - Burden handles the saturation dynamic; λ handles the immediate cost of interruption — two separate mechanisms
 - Immediate horizon learns fastest; multi-timescale (3-week body measure) deferred to Phase 2
 
@@ -519,7 +520,7 @@ P(sleep' | step_bin_daily, burden, day_of_week, sleep)
 
 **Calls per (s,a) pair:** 20 (day-boundary, 2 outputs) or 30 (within-day, 3 outputs) — both yield exactly 10 samples per output category via Algorithm 2.
 
-At DeepSeek V4 Flash pricing (~$0.09/M input tokens, ~$0.18/M output tokens), roughly 50–100 tokens per call → ~$0.27 total (see [Bootstrapping cost](#bootstrapping-cost)).
+At DeepSeek V4 Flash pricing (~$0.09/M input tokens, ~$0.18/M output tokens), roughly 50–100 tokens per call → ~$0.27 total (see [Bootstrapping cost](#total-llm-cost)).
 
 ### State space summary
 
