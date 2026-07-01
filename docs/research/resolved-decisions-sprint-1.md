@@ -26,24 +26,28 @@ Algorithm 1: Run episode (N days)
 Require: N days, initial state s₀ = (step_bin, burden, day_of_week, sleep)
 Ensure: episode of 5N transitions
 
- 1: state ← s₀
- 2: for day = 1 to N do
- 3:     for t = 0 to 4 do
- 4:         a ← agent.policy(state, t)
- 5:         if t = 0 then
- 6:             sleep' ← sample P_day_boundary(step_bin, burden, day_of_week, sleep)
- 7:         else
- 8:             sleep' ← state.sleep
- 9:         end if
-10:         step_bin' ← sample P_within_day[t](step_bin, burden, a, day_of_week, sleep')
-11:         burden' ← count_non_idle_last_3(state.burden, a)
-12:         day_of_week' ← advance(state.day_of_week) if t = 0 else state.day_of_week
-13:         r ← α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙[a ≠ idle]
-14:         next_state ← (step_bin', burden', day_of_week', sleep')
-15:         record (state, a, r, next_state)
-16:         state ← next_state
-17:     end for
-18: end for
+ 1: daily_total ← 0
+ 2: state ← s₀
+ 3: for day = 1 to N do
+ 4:     for t = 0 to 4 do
+ 5:         a ← agent.policy(state, t)
+ 6:         if t = 0 then
+ 7:             step_bin_daily ← bin_daily(daily_total)
+ 8:             sleep' ← sample P_day_boundary(step_bin_daily, burden, day_of_week, sleep)
+ 9:             daily_total ← 0
+10:         else
+11:             sleep' ← state.sleep
+12:         end if
+13:         step_bin' ← sample P_within_day[t](step_bin, burden, a, day_of_week, sleep')
+14:         daily_total ← daily_total + mid_point(step_bin')
+15:         burden' ← count_non_idle_last_3(state.burden, a)
+16:         day_of_week' ← advance(state.day_of_week) if t = 0 else state.day_of_week
+17:         r ← α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙[a ≠ idle]
+18:         next_state ← (step_bin', burden', day_of_week', sleep')
+19:         record (state, a, r, next_state)
+20:         state ← next_state
+21:     end for
+22: end for
 ```
 
 Where:
@@ -51,13 +55,15 @@ Where:
 - `f(x)` = {inactive: 0.0, moderate: 0.5, active: 1.0} (see [D1](#d1-step-count-encoding))
 - `g(x)` = {good: +1.0, poor: −1.0} (see [D3](#d3-hidden-psychosocial-state-variables))
 - `count_non_idle_last_3(burden, a)` is a rolling 3-step window (see [D10](#d10-burdenfatigue-model))
+- `bin_daily(total)` maps daily step total to per-day bin: <4000→inactive, 4000–8000→moderate, >8000→active (see [D1](#d1-step-count-encoding))
+- `mid_point(bin)` maps per-timestep bin to representative steps: inactive→400, moderate→1200, active→2000
 
 *Referenced by:* [D2](#d2-factored-vs-flat-state-representation), [D3](#d3-hidden-psychosocial-state-variables), [D5](#d5-time-of-day-encoding), [D10](#d10-burdenfatigue-model), [Transition matrix size summary](#transition-matrix-size-summary)
 
 <a id="decision-toc"></a>
 | # | Decision | Status | Summary |
 |---|----------|--------|---------|
-| <a id="toc-d1">D1</a> | Step count encoding | resolved | 3 bins: &lt;800 / 800–1600 / &gt;1600 |
+| <a id="toc-d1">D1</a> | Step count encoding | resolved | 3 bins; per-timestep (&lt;800/800–1600/&gt;1600) + daily (&lt;4k/4k–8k/&gt;8k) |
 | <a id="toc-d2">D2</a> | State representation | resolved | Factored: within-day + day-boundary ([Algorithm 1](#algorithm-1-episode-loop)) |
 | <a id="toc-d3">D3</a> | Psychosocial state | sleep incl. | good/poor sleep; mood/stress excluded |
 | <a id="toc-d4">D4</a> | Trend dimension | excluded | No precedent, no evidence |
@@ -75,10 +81,18 @@ Where:
 
 **Status:** resolved — 3 step bins
 
-3-level step bin based on per-timestep cumulative steps:
-- <800 steps/timestep = inactive (<4k daily)
-- 800–1,600 steps/timestep = moderate (4k–8k daily)
-- >1,600 steps/timestep = active (>8k daily)
+3-level step bin. Two thresholds depending on context:
+
+| Context | Bin | Threshold | |
+|---------|-----|-----------|--|
+| Within-day | inactive | <800 steps/timestep | |
+| | moderate | 800–1,600 steps/timestep | |
+| | active | >1,600 steps/timestep | |
+| Day-boundary | inactive | <4,000 daily total | |
+| | moderate | 4,000–8,000 daily total | |
+| | active | >8,000 daily total | |
+
+The daily thresholds are 5× the per-timestep thresholds (5 timesteps/day). Daily bins are used only by the day-boundary transition (Algorithm 1 line 7) — the state variable itself always uses per-timestep bins.
 
 ### Rationale
 
@@ -502,15 +516,15 @@ P(step_bin' | step_bin, burden, action, day_of_week, sleep)
 
 ### Day-boundary table (× 1, step 0)
 
-Predicts sleep' at the start of each day, based on the previous day's end-of-day state. Action does not affect sleep quality at the day boundary (Algorithm 1 line 6).
+Predicts sleep' from the previous day's total step activity (binned daily). Action does not affect sleep quality at the day boundary (Algorithm 1 line 6).
 
 ```
-P(sleep' | step_bin, burden, day_of_week, sleep)
+P(sleep' | step_bin_daily, burden, day_of_week, sleep)
 ```
 
 | Dimension | Bins |
 |---|---|
-| step_bin | 3 |
+| step_bin_daily | 3 (<4k / 4k–8k / >8k) |
 | sleep' | 2 |
 | burden | 3 |
 | day_of_week | 2 |
@@ -522,7 +536,7 @@ P(sleep' | step_bin, burden, day_of_week, sleep)
 
 | Table | Transition inputs (dim) | Transition outputs (dim) | Cardinality (probs) | Total LLM calls | Calls per cell |
 |---|---|---|---|---|---|
-| Day-boundary | step_bin(3)×burden(3)×day(2)×sleep(2) = **36** | sleep'(2) | 72 | 720 | 10 |
+| Day-boundary | step_bin_daily(3)×burden(3)×day(2)×sleep(2) = **36** | sleep'(2) | 72 | 720 | 10 |
 | Within-day #0 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
 | Within-day #1 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
 | Within-day #2 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
@@ -540,13 +554,15 @@ The agent observes the full state at each step (Algorithm 1):
 
 | Dimension | Bins | Updates | Stochastic? |
 |---|---|---|---|
-| step_bin | 3 | Every step | Yes |
+| step_bin | 3 (per-timestep thresholds) | Every step | Yes (within-day table) |
 | sleep | 2 (good / poor) | Daily (step 0) | Yes (day-boundary table) |
 | day_of_week | 2 | Daily (step 0) | Deterministic |
 | burden | 3 | Every step | Deterministic (formula) |
 | time_of_day | implicit | Not a state dimension | — |
 
 Total state cardinality: 3 × 2 × 2 × 3 = **36 states** (time_of_day is implicit, archetype deferred).
+
+Note: `step_bin_daily` is not a state dimension — it is computed at the day boundary from the previous day's accumulated midpoints (Algorithm 1 line 7). The state always carries the per-timestep `step_bin`.
 
 ---
 
@@ -570,6 +586,11 @@ Per-timestep step ranges (daily threshold / 5):
 
 Sleep quality: good / poor (based on how well you slept)
 
+Daily step total ranges (5 timesteps × per-timestep ranges):
+  <4000 steps total     = inactive
+  4000-8000 steps total = moderate
+  >8000 steps total     = active
+
 Burden (notification fatigue):
   low     = 0 of last 3 timesteps had an intervention
   medium  = 1 of last 3
@@ -588,7 +609,7 @@ Your sleep quality was {good / poor}. Your notification fatigue is {low/medium/h
 How many steps do you take this timestep?
 ```
 
-The LLM outputs a raw number (e.g. `800`). The environment adds it to the cumulative daily total and maps to a step bin.
+The LLM outputs a raw number (e.g. `800`). The environment maps it to a step bin for the transition and adds `mid_point(bin)` to the day's running total.
 
 ### Within-day prompt (timesteps 2–5)
 
@@ -614,13 +635,7 @@ The `{inferred_step_count}` is the midpoint of the step_bin range from the previ
 You are at the end of the day. It was a {weekday/weekend}.
 Your sleep quality last night was {good / poor}. Your notification fatigue is {low/medium/high}.
 
-Your day:
-  morning:      {inferred_step_count} steps ({step_bin})
-  mid-morning:  {inferred_step_count} steps ({step_bin})
-  lunch:        {inferred_step_count} steps ({step_bin})
-  afternoon:    {inferred_step_count} steps ({step_bin})
-  evening:      {inferred_step_count} steps ({step_bin})
-
+Today you did {daily_total} total steps ({step_bin_daily}).
 Your notifications today: {morning_action}, {mid-morning_action}, {lunch_action}, {afternoon_action}, {evening_action}
 
 It's bedtime. How was your sleep quality tonight?
@@ -628,7 +643,7 @@ It's bedtime. How was your sleep quality tonight?
 {"sleep_quality": "poor"}
 ```
 
-The day-boundary prompt shows the full per-timestep breakdown from the last day — each timestep's raw step count and its corresponding bin — so the LLM can reason about how the day's activity pattern affects sleep quality.
+The prompt gives the LLM the daily step total and bin (computed by the environment from per-timestep midpoints) plus the notification sequence for burden context.
 
 ### Bootstrapping cost
 
