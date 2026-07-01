@@ -78,7 +78,7 @@ Factored into two transition structures:
 
 ### Sleep
 
-**2 bins:** good quality / poor quality (qualitative LLM judgment simulating smartwatch sleep-quality output).
+**2 bins:** good / poor (qualitative LLM judgment simulating smartwatch sleep-quality output).
 
 - **Role:** A daily state dimension that transitions at the day boundary, separately from step_bin; also a reward signal (see D11)
 - **Stochastic at day boundary:** yes — `P(sleep' | sleep, step_bin, burden, action, day_of_week)` is LLM-bootstrapped; step_bin' is sampled from within-day table #0 using the new sleep'

@@ -85,7 +85,7 @@ Should the state be represented as a factored feature vector or a flat discrete 
 **Rationale:** Sleep quality (good/poor) is included as a binary state dimension that moderates within-day transition dynamics and also contributes to reward (see D9, D11). Mood and stress are excluded — Rabbi 2019 tested stress as moderator with null result, and no deployed RL-for-health system includes them as state variables.
 
 **Resolution:**
-- Sleep: 2 bins (good quality / poor quality), LLM-judged at day boundary
+- Sleep: 2 bins (good / poor), LLM-judged at day boundary
 - Mood/stress: excluded from Sprint 1
 
 **Key evidence:** Rabbi 2019 (stress null) · Trella 2022 (optional context) · Irwin 2016 (sleep interventions g=0.43)
