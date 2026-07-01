@@ -270,11 +270,6 @@ Burden is a rolling count of non-idle actions in the last 3 timesteps:
 - Burden is a **table dimension** — separate LLM calls per burden level produce distinct transition distributions, no approximation
 - Burden is **not** subtracted from the reward function directly (unlike StepCountJITAI's formulation). The cost of burden is expressed through reduced future activity probability.
 
-### Transition function signature
-
-Within-day: `P(step_bin' | step_bin, burden, action, day_of_week, sleep)`
-Day-boundary: `P(sleep' | step_bin, burden, action, day_of_week, sleep)`
-
 ### Rationale
 
 - StepCountJITAI uses linear accumulator with per-action penalties and decay — but their values are heuristic
@@ -443,17 +438,6 @@ P(sleep' | step_bin, burden, action, day_of_week, sleep)
 
 **(s, a) pairs:** 3 × 3 × 4 × 2 × 2 = **144**
 
-### Day execution order
-
-| Step | Table | Input sleep | Output |
-|---|---|---|---|
-| 0 (boundary) | Day-boundary | sleep (old) → sleep' (new) | sleep' |
-| 0 (within) | Within-day #0 | sleep' (just sampled) | step_bin' |
-| 1 | Within-day #1 | sleep' (from step 0) | step_bin' |
-| 2 | Within-day #2 | sleep' (from step 0) | step_bin' |
-| 3 | Within-day #3 | sleep' (from step 0) | step_bin' |
-| 4 | Within-day #4 | sleep' (from step 0) | step_bin' |
-
 ### Total LLM cost
 
 | Table | Transition inputs (dim) | Transition outputs (dim) | Cardinality (probs) | Total LLM calls | Calls per cell |
@@ -468,17 +452,7 @@ P(sleep' | step_bin, burden, action, day_of_week, sleep)
 
 **Calls per pair:** 20 (day-boundary, 2 outputs) or 30 (within-day, 3 outputs) — both yield exactly 10 samples per output category.
 
-At GPT-4o mini pricing (~$0.15/M input tokens, ~$0.60/M output tokens), roughly 50–100 tokens per call → ~$1.50 total. Trivial.
-
-### Deterministic dimensions (no hand-written probabilities needed)
-
-| Dimension | Behaviour |
-|---|---|
-| time_of_day | Implicit — step index selects the within-day table (0-4) |
-| day_of_week | Advances deterministically, flips at 6→0 |
-| burden | Rolling formula — count non-idle in last 3 |
-| goal_progress | Dropped from transition moderators |
-| previous_action, response_{t-1} | Excluded from Sprint 1 |
+At DeepSeek V4 Flash pricing (~$0.09/M input tokens, ~$0.18/M output tokens), roughly 50–100 tokens per call → ~$0.33 total (see cost-benefit comparison below).
 
 ### State space summary
 
