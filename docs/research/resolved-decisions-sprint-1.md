@@ -168,13 +168,7 @@ Excluded from Sprint 1. No deployed RL-for-health system includes them as state 
 
 ## D4. Trend dimension
 
-**Status:** excluded from Sprint 1
-
-No trend dimension in the state.
-
-### Rationale
-
-- No published RL system has used a trend dimension — no precedent, no evidence basis, no literature-backed computation method
+**Status:** excluded — no precedent, no evidence, no computation method
 
 ## D5. Time-of-day encoding
 
@@ -230,12 +224,7 @@ Binary weekday/weekend. Day type is a **transition moderator** — it appears in
 
 ### Excluded from Sprint 1
 
-| Action | Reason |
-|--------|--------|
-| Motivational prompt | Overlaps with movement_suggestion — distinct construct unclear |
-| Recovery/stretch | No evidence it's distinct from idle in transition effect |
-| Progress feedback | Overlaps with goal_reminder — deferred |
-| Social encouragement | Weakest evidence across all candidates; null in HeartSteps |
+Motivational prompt, recovery/stretch, progress feedback, social encouragement — all excluded (overlap or null evidence; see design notes).
 
 ### Evidence
 
@@ -252,30 +241,9 @@ Binary weekday/weekend. Day type is a **transition moderator** — it appears in
 
 ## D8. Non-activity action reward
 
-**Status:** deferred — mechanism noted for Phase 2
+**Status:** deferred
 
-Journal is included in the action set but its reward mechanism is deferred. In Sprint 1, journal has no step reward benefit and carries the same burden cost as any other non-idle action. The agent will learn to avoid it — which is acceptable for the MVP.
-
-### Mechanism noted for future
-
-Two candidate approaches identified but not resolved (see [action-burden-evidence.md](action-burden-evidence.md)): LLM-bootstrapped joint outcome and separate acceptance model.
-
-### Rationale
-
-- Journal → burden reduction has no empirical support — Smyth 2018 shows efficacy for depression/anxiety, not MDP burden reduction
-- Including it adds architectural complexity with no evidence base
-- The existing `response_{t-1}` in the design doc is designed for this use case
-
-### Evidence
-
-| Source | Finding |
-|--------|---------|
-| Smyth 2018 JMIR | Journaling reduces depression/anxiety — standalone efficacy, not MDP mechanism |
-| Literature review | Burden reduction via journal: **Untested** (action-burden-evidence.md) |
-
-### Carried forward
-
-- [D9](#d9-moodsleep-reward-signal-vs-state-variable) (mood/sleep as reward vs state): if mood becomes a reward channel in Phase 2, journal gets a natural reward signal (see [D7](#d7-action-set-composition) for action set context)
+Journal has no step reward benefit in Sprint 1. The agent will learn to avoid it — acceptable for the MVP. Journal reward mechanism (LLM-bootstrapped joint outcome or separate acceptance model) deferred to Phase 2.
 
 ## D9. Mood/sleep: reward signal vs state variable
 
@@ -312,14 +280,7 @@ Burden is a rolling count of non-idle actions in the last 3 timesteps:
 
 ### Mechanics
 
-- The window rolls across day boundaries — the first decision point of a new day examines the last 3 steps of the previous day
-- No separate decay parameter, no daily reset, no penalty values to tune
-- No special-case handling needed for early timesteps (the previous day's end naturally fills the window)
-
-### Rationale
-
-- Rolling-window formulation has **zero parameters to guess** — burden values are universally heuristic (action-burden-evidence.md)
-- Aligns with intuition: a user with 2-3 recent interventions is more saturated
+Rolling window across day boundaries — no reset, no decay, no penalty values to tune. Early timesteps need no special handling (previous day's end fills the window).
 
 ### Evidence
 
@@ -354,26 +315,7 @@ Where:
 
 ### Config structure
 
-The formula is configured in `sprint1.yaml` rather than hardcoded:
-
-```yaml
-reward:
-  constants:
-    alpha: 0.9
-  variables:
-    step_bin_value:
-      source: state.step_bin
-      mapping: {inactive: 0.0, moderate: 0.5, active: 1.0}
-    sleep_value:
-      source: state.sleep
-      mapping: {good: 1.0, poor: -1.0}
-    action_penalty:
-      source: action
-      mapping: {idle: 0.0, movement_suggestion: 0.05, goal_reminder: 0.05, journal: 0.05}
-  formula: "alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty"
-```
-
-The formula string is resolved at runtime by a safe expression parser (whitelisted `+`, `-`, `*`, `/` operators via `ast` node-type allowlist — no `eval()`). Any config change (α, step values, sleep reward, penalty magnitude) takes effect without code changes.
+The formula is defined in `docs/sprint1/configs/sprint1.yaml` (`reward.formula`) with configurable constants, variable mappings, and per-action penalties. Resolved at runtime by a safe expression parser (whitelisted `+`, `-`, `*`, `/` via `ast` node-type allowlist — no `eval()`).
 
 ### Rationale
 
@@ -427,8 +369,8 @@ Included in Sprint 1:
 - % Gap vs Optimal Policy (where computable)
 
 **Evaluation design:**
-- **One shared bootstrap:** A single transition matrix (6 tables) is bootstrapped once via Algorithm 2 (~$0.12 with DeepSeek V4 Flash caching). All 250 runs (5 agents × 50 seeds) use the same matrix as the environment — the comparison isolates agent policy quality, not bootstrap variance.
-- **Shared seeds across agents:** 50 base environment seeds. Each seed = one fixed environment seed + 5 derived agent seeds via `derive_agent_seed(base_seed, agent_index)`. Every agent type sees the same initial state and transition random draws (up to action-choice divergence) — differences are attributable to policy alone.
+- **One shared bootstrap** — one ~$0.12 bootstrap (Alg 2) feeds all 250 runs. Isolates policy quality, not bootstrap variance.
+- **Shared seeds across agents** — 50 base seeds × 5 agent indices via `derive_agent_seed()`. Every agent sees the same initial state and transition draws. Difference = policy alone.
 - 450 timesteps per run (90 days × 5 steps/day)
 
 ### Carried forward
@@ -644,32 +586,6 @@ It's bedtime. How was your sleep quality tonight?
 ```
 
 The prompt gives the LLM the daily step total and bin (computed by the environment from per-timestep midpoints) plus the notification sequence for burden context.
-
-### Bootstrapping cost
-
-DeepSeek V4 Flash is the default model for all transition bootstrapping. At ~$0.27 per full bootstrap (or ~$0.12 with caching), the cost is low enough to iterate freely — regenerate the full 6-table matrix after any prompt tweak or dimension change.
-
-**Usage estimate:**
-- 22,320 LLM calls (Algorithm 2, N=10 per cell)
-- ~2.7M input tokens (120 avg per within-day, 180 per day-boundary)
-- ~0.22M output tokens (10 avg per call)
-- ~75% prompt cache hit rate (system prompt + JSON key structure cached)
-
-**List prices (OpenRouter, June 2026):**
-
-| Model | Input / 1M | Output / 1M | Cache read / 1M | Est. cost (no cache) | Est. cost (75% cache) |
-|---|---|---|---|---|---|
-| DeepSeek V4 Flash | $0.09 | $0.18 | $0.09 | **~$0.27** | **~$0.12** |
-| GLM 5.2 | $0.95 | $3.00 | $0.18 | **~$3.76** | **~$1.35** |
-| Claude Sonnet 4.6 | $3.00 | $15.00 | $0.30† | **~$13.20** | **~$4.60** |
-| Claude Opus 4.8 | $5.00 | $25.00 | $0.50† | **~$22.00** | **~$7.40** |
-| GPT-5.5 | $5.00 | $30.00 | $0.50† | **~$23.20** | **~$7.80** |
-
-† Estimated cache read price (Anthropic/OpenAI don't publish separate cache pricing; ~10% of input price assumed).
-
-**Prompt caching** reduces effective cost by 60–80% when the same system prompt and JSON structure is reused across calls — which is exactly our use case (identical structure, only values vary). With caching, DeepSeek V4 Flash goes from ~$0.27 to ~$0.12.
-
-Even without caching, DeepSeek V4 Flash is **~40× cheaper** than GPT-5.5 and **~70× cheaper** output vs Claude Opus 4.8. For a bootstrapping task where any frontier model produces reasonable transition estimates, DeepSeek V4 Flash is the clear cost leader.
 
 ---
 
