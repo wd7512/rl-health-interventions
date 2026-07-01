@@ -297,12 +297,12 @@ Burden is a rolling count of non-idle actions in the last 3 timesteps:
 ### Final choice
 
 ```
-R = α · f(step_bin') + (1-α) · g(sleep) − λ · 𝟙[action != idle]
+R = α · f(step_bin') + (1-α) · g(sleep') − λ · 𝟙[action != idle]
 ```
 
 Where:
 - `f` maps the post-transition step bin: inactive → 0.0, moderate → 0.5, active → 1.0
-- `g` maps sleep quality from the **current step's state**: good → +1.0, poor → −1.0
+- `g` maps sleep quality from the **post-transition state** `sleep'`: good → +1.0, poor → −1.0
 - `α ∈ [0, 1]` weights the step and sleep reward components (default α = 0.9)
 - `λ = 0.05` — a small regularisation penalty per non-idle action to discourage spamming
 - Immediate per-step time horizon (30-min post-decision, matching HeartSteps V2)
@@ -387,7 +387,7 @@ Included in Sprint 1:
 | D8 non-activity reward | Deferred to Phase 2 (resolved) |
 | D9 reward vs state | Partially resolved — sleep is both state and reward (dual-role, same pattern as step_bin); mood-only deferred to Phase 2 |
 | D10 burden/fatigue | Rolling window, 3 levels — table dimension (resolved) |
-| D11 reward design | R = α·f(step_bin') + (1-α)·g(sleep) − λ·𝟙[action≠idle]; f={inactive:0.0, moderate:0.5, active:1.0}, g={good:+1.0, poor:−1.0}, α=0.9, λ=0.05 (resolved) |
+| D11 reward design | R = α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙[action≠idle]; f={inactive:0.0, moderate:0.5, active:1.0}, g={good:+1.0, poor:−1.0}, α=0.9, λ=0.05 (resolved) |
 | D12 algorithm class | Model-free: contextual bandits + optional Q-learning (resolved) |
 | D13 evaluation strategy | MVP metrics; per-archetype breakdown deferred to Phase 2 (resolved) |
 

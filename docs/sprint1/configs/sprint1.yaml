@@ -5,7 +5,7 @@
 
 initial_state:
   step_bin: inactive
-  sleep: rested
+  sleep: good
   day_of_week: weekday
   burden: low
 

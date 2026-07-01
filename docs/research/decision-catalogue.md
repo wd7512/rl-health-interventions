@@ -82,19 +82,15 @@ Should the state be represented as a factored feature vector or a flat discrete 
 ## D3. Hidden psychosocial state variables
 
 **Status:** closed (resolved: sleep ∈ {good, poor} included as state dimension; mood/stress excluded)
-**Rationale:** Mood/stress/sleep could modify how users respond to interventions, but no deployed RL system models them as state. The only MRT that tested stress as moderator found null.
+**Rationale:** Sleep quality (good/poor) is included as a binary state dimension that moderates within-day transition dynamics and also contributes to reward (see D9, D11). Mood and stress are excluded — Rabbi 2019 tested stress as moderator with null result, and no deployed RL-for-health system includes them as state variables.
 
-Should mood, stress, or sleep be included in the state representation?
-
-| Option | Description | Evidence |
-|--------|-------------|----------|
-| Exclude from MVP | Do not include psychosocial variables | Rabbi 2019 Depression MRT — stress tested as moderator of nudge→activity, null result; no deployed RL-for-health system includes mood/stress as state variable |
-| Include as observable context feature | Add as available context features when measured | Trella 2022 — recommends stress as optional context feature if available; 1 MRT (Rabbi 2019) tested stress, null |
-| Include as hidden latent state | Model as POMDP hidden state | No published precedent; POMDP structure; purely speculative |
+**Resolution:**
+- Sleep: 2 bins (good quality / poor quality), LLM-judged at day boundary
+- Mood/stress: excluded from Sprint 1
 
 **Sub-questions:**
 
-- Sleep vs mood/stress: stronger observational evidence (multiple wearable studies) but equally weak causal moderation
+- Sleep quality operationalisation may need sensitivity analysis vs hard threshold
 
 **Cross-cutting:** D9 (same variables, opposite framing), D10 (fatigue may collapse into mood state)
 
@@ -198,15 +194,11 @@ How should non-activity actions (journaling, sleep hygiene, social) be rewarded?
 ## D9. Mood/sleep: reward signal vs state variable
 
 **Status:** closed (partially resolved: sleep is both state and reward — dual-role pattern; mood-only deferred to Phase 2)
-**Rationale:** Same variables as D3, approached from opposite end. Cannot be both without double-counting.
+**Rationale:** Sleep follows the same dual-role pattern as step_bin — it appears as a state dimension (D3 — transition moderator) and also contributes directly to reward (D11 — reward component). These roles capture distinct constructs: state role moderates transition dynamics, reward role values good sleep as an outcome. Mood-only remains deferred to Phase 2.
 
-Should mood/sleep be used as a reward signal or a state variable?
-
-| Option | Description | Evidence |
-|--------|-------------|----------|
-| Reward signal (next sprint multi-objective) | Use mood/sleep improvement as reward component | Smyth 2018 PAJ — journaling reduces depression/anxiety; Koffel 2018 — sleep hygiene improves PSQI; consistent with Trella recommendation |
-| State variable (latent) | Include as hidden state | Rabbi 2019 null result for stress; confounded observational evidence; no moderation evidence in MRTs |
-| Exclude from MVP | Do not include | Consistent with D3 exclusion |
+**Resolution:**
+- Sleep: both state variable and reward signal (same pattern as step_bin)
+- Mood: deferred to Phase 2 as potential reward component
 
 **Cross-cutting:** D3, D8
 
@@ -238,22 +230,15 @@ How should action burden and cumulative fatigue be modelled?
 
 ## D11. Reward function design
 
-**Status:** closed (resolved: R = α·f(step_bin') + (1-α)·g(sleep) − λ·𝟙[action≠idle]; f={inactive:0.0, moderate:0.5, active:1.0}, g={good:+1.0, poor:−1.0}, α=0.9, λ=0.05)
-**Rationale:** Overall structure of R(s,a,s'). Proposed 3-term form but base reward and time horizon unresolved.
+**Status:** closed (resolved: R = α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙[action≠idle]; f={inactive:0.0, moderate:0.5, active:1.0}, g={good:+1.0, poor:−1.0}, α=0.9, λ=0.05)
+**Rationale:** Reward combines step count and sleep quality outcomes with a small penalty for non-idle actions to discourage spamming. Burden cost is expressed through reduced future activity probability (not subtracted directly from reward).
 
-What should the reward function look like?
-
-| Option | Description | Evidence |
-|--------|-------------|----------|
-| R = base_step_reward - burden - fatigue | Three-term form (proposed) | Trella 2022 + StepCountJITAI implement this form; no system validates fatigue term |
-| R = step_count_reward only | HeartSteps form | Liao 2019 — 30-min post-decision step count increase |
-| R = step_count_reward - burden only | Two-term, no fatigue | Equivalent to collapsed D10 |
-| Multi-objective (steps + mood + sleep) | Multiple reward components | RCTs show causal effects; no RL implementation; deferred to next sprint |
-
-**Sub-questions:**
-
-- Base reward definition [decision]: raw count / bin categorical / binary threshold / 30-min window. No published comparison.
-- Reward time horizon [decision]: 30-min post-decision / same-day cumulative / next-day / end-of-episode. HeartSteps uses 30-min; longer horizons more clinically meaningful but delay learning.
+**Resolution:**
+- Step reward: f maps post-transition step_bin' (inactive→0.0, moderate→0.5, active→1.0)
+- Sleep reward: g maps post-transition sleep' (good→+1.0, poor→−1.0)
+- α = 0.9 weights steps vs sleep (sweepable)
+- λ = 0.05 per non-idle action
+- 30-min immediate per-step horizon
 
 **Blocked by:** D1, D8
 
