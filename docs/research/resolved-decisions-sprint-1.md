@@ -59,7 +59,7 @@ upstream: "decision-catalogue.md"
 
 **Status:** resolved — factored with two table types
 
-Two table types: day-boundary (sleep' transitions) and within-day (step_bin' transitions). See Transition matrix size summary for full signatures and cardinalities.
+Two table types: day-boundary (sleep' transitions) and within-day (step_bin' transitions). See [Transition matrix size summary](#transition-matrix-size-summary) for full signatures and cardinalities.
 
 ### Deterministic / formula-driven dimensions
 
@@ -87,7 +87,7 @@ Two table types: day-boundary (sleep' transitions) and within-day (step_bin' tra
 
 **2 bins:** good / poor (qualitative LLM judgment simulating smartwatch sleep-quality output).
 
-- **Role:** A daily state dimension that transitions at the day boundary, separately from step_bin; also a reward signal (see D11)
+- **Role:** A daily state dimension that transitions at the day boundary, separately from step_bin; also a reward signal (see [D11](#d11-reward-function-design))
 - **Stochastic at day boundary:** yes — `P(sleep' | sleep, step_bin, burden, action, day_of_week)` is LLM-bootstrapped; step_bin' is sampled from within-day table #0 using the new sleep'
 - **Static within-day:** yes — once set at step 0, sleep stays constant for all 5 within-day steps
 - **Moderates within-day transitions:** yes — sleep is a context variable in the within-day LLM prompt
@@ -175,7 +175,7 @@ Binary weekday/weekend. Day type is a **transition moderator** — it appears in
 - idle: universal consensus, 4/6 reference systems include
 - movement_suggestion: maps to HeartSteps walking suggestion — strongest evidence
 - goal_reminder: distinct behavioral construct per Trella 2022 requirement
-- journal: non-activity action included as placeholder/exploration; see D8
+- journal: non-activity action included as placeholder/exploration; see [D8](#d8-non-activity-action-reward)
 - 4 actions × 3 step bins = 12 probability rows per within-day table
 
 ### Excluded from Sprint 1
@@ -208,7 +208,7 @@ Journal is included in the action set but its reward mechanism is deferred. In S
 
 ### Mechanism noted for future
 
-Two candidate approaches identified but not resolved (see action-burden-evidence.md): LLM-bootstrapped joint outcome and separate acceptance model.
+Two candidate approaches identified but not resolved (see [action-burden-evidence.md](action-burden-evidence.md)): LLM-bootstrapped joint outcome and separate acceptance model.
 
 ### Rationale
 
@@ -225,13 +225,13 @@ Two candidate approaches identified but not resolved (see action-burden-evidence
 
 ### Carried forward
 
-- D9 (mood/sleep as reward vs state) is closely linked: if mood becomes a reward channel in Phase 2, journal gets a natural reward signal
+- [D9](#d9-moodsleep-reward-signal-vs-state-variable) (mood/sleep as reward vs state): if mood becomes a reward channel in Phase 2, journal gets a natural reward signal
 
 ## D9. Mood/sleep: reward signal vs state variable
 
 **Status:** partially resolved — sleep is both state and reward (Sprint 1); mood-only deferred to Phase 2
 
-Sleep is included as both a state variable (D3 — transition moderator) and a reward signal (D11 — reward component), mirroring the pattern used for `step_bin` (which also appears in both the state and reward). The two roles capture distinct constructs:
+Sleep is included as both a state variable ([D3](#d3-hidden-psychosocial-state-variables) — transition moderator) and a reward signal ([D11](#d11-reward-function-design) — reward component), mirroring the pattern used for `step_bin` (which also appears in both the state and reward). The two roles capture distinct constructs:
 
 - **State role:** sleep quality moderates within-day transition dynamics — a user with poor sleep may respond differently to interventions
 - **Reward role:** good sleep quality is directly valued as an outcome the agent should learn to promote
@@ -427,7 +427,7 @@ P(sleep' | step_bin, burden, action, day_of_week, sleep)
 
 **Calls per pair:** 20 (day-boundary, 2 outputs) or 30 (within-day, 3 outputs) — both yield exactly 10 samples per output category.
 
-At DeepSeek V4 Flash pricing (~$0.09/M input tokens, ~$0.18/M output tokens), roughly 50–100 tokens per call → ~$0.33 total (see cost-benefit comparison below).
+At DeepSeek V4 Flash pricing (~$0.09/M input tokens, ~$0.18/M output tokens), roughly 50–100 tokens per call → ~$0.33 total (see [Cost-benefit summary](#cost-benefit-summary)).
 
 ### State space summary
 
