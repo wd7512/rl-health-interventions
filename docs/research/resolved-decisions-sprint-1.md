@@ -11,6 +11,22 @@ upstream: "decision-catalogue.md"
 > Each entry links to the relevant decision in the catalogue and
 > captures the rationale, evidence basis, and open questions carried forward.
 
+| # | Decision | Status | Summary |
+|---|----------|--------|---------|
+| D1 | Step count encoding | resolved | 3 bins: &lt;800 / 800–1600 / &gt;1600 |
+| D2 | State representation | resolved | Factored: within-day + day-boundary |
+| D3 | Psychosocial state | sleep incl. | good/poor sleep; mood/stress excluded |
+| D4 | Trend dimension | excluded | No precedent, no evidence |
+| D5 | Time-of-day | resolved | Implicit as table index (5 tables) |
+| D6 | Day type | resolved | Binary weekday/weekend moderator |
+| D7 | Action set | resolved | 4 actions: idle, movement, goal, journal |
+| D8 | Non-activity reward | deferred | Journal mechanism → Phase 2 |
+| D9 | Mood/sleep: reward vs state | partial | Sleep dual-role resolved; mood deferred |
+| D10 | Burden/fatigue | resolved | Rolling window, 3 levels |
+| D11 | Reward function | resolved | R = α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙 |
+| D12 | Algorithm class | resolved | Model-free: bandits + Q-learning |
+| D13 | Evaluation strategy | resolved | 5 agents × 50 seeds × 450 steps |
+
 ## D1. Step count encoding
 
 **Status:** resolved — 3 step bins
@@ -43,22 +59,13 @@ upstream: "decision-catalogue.md"
 
 **Status:** resolved — factored with two table types
 
-Factored into two transition structures:
-
-**Day-boundary (step 0 — morning boundary):** `P(sleep' | step_bin, burden, action, day_of_week, sleep)`
-- Sleep' is the previous night's sleep quality (observed at the start of each day)
-- Only sleep changes — step_bin' is sampled next from within-day table #0 using the new sleep'
-
-**Within-day (steps 0–4):** `P(step_bin' | step_bin, burden, action, day_of_week, sleep')`
-- 5 separate tables (#0–#4), one per decision point (time-of-day is implicit as the table index)
-- Only step_bin changes stochastically within a day
-- Table #0 uses sleep' (just sampled from day-boundary); tables #1–#4 use the same sleep' held constant for the day
+Two table types: day-boundary (sleep' transitions) and within-day (step_bin' transitions). See Transition matrix size summary for full signatures and cardinalities.
 
 ### Deterministic / formula-driven dimensions
 
 | Dimension | Behaviour |
 |---|---|
-| time_of_day | Implicit — step index within day selects the within-day table (0=boundary, 1-4=within-day) |
+| time_of_day | Implicit — step index within day selects the within-day table |
 | day_of_week | Advances deterministically, flips at 6→0 |
 | burden | Rolling formula — count non-idle in last 3 timesteps |
 | sleep | Transitions jointly with step_bin at day boundary only |
@@ -100,7 +107,7 @@ Excluded from Sprint 1. No deployed RL-for-health system includes them as state 
 ### Carried forward
 
 - Mood/stress may be revisited in Phase 2 (cross-cutting with D9)
-- Sleep quality operationalisation may need sensitivity analysis vs hard threshold
+- Sensitivity analysis: sleep quality vs duration threshold
 
 ## D4. Trend dimension
 
@@ -110,9 +117,7 @@ No trend dimension in the state.
 
 ### Rationale
 
-- No published RL system has used a trend dimension
-- No precedent, no evidence basis, purely novel/speculative
-- Computation method (rolling OLS, EMA, etc.) has no literature basis
+- No published RL system has used a trend dimension — no precedent, no evidence basis, no literature-backed computation method
 
 ## D5. Time-of-day encoding
 
@@ -149,7 +154,6 @@ Binary weekday/weekend. Day type is a **transition moderator** — it appears in
 ### Rationale
 
 - Universal across all 6 reference systems
-- Swapnil and Mengyan expect the design doc state space to be followed, which includes day_of_week as a context variable
 - People respond differently to interventions on weekends — more free time, different routines
 - The LLM bootstrap handles this with no extra hand-spec effort: day type is just another field in the prompt
 - 3-level (weekday/weekend/holiday) not warranted for Phase 1
@@ -204,16 +208,13 @@ Journal is included in the action set but its reward mechanism is deferred. In S
 
 ### Mechanism noted for future
 
-The grilling session discussed: journaling, if accepted by the user, could reduce burden. Two approaches were identified but **not resolved**:
+Two candidate approaches identified but not resolved (see action-burden-evidence.md): LLM-bootstrapped joint outcome and separate acceptance model.
 
-1. **LLM-bootstrapped joint outcome:** The LLM generates `(active'_30min, journal_accepted)` jointly. Burden update depends on acceptance.
-2. **Separate acceptance model:** `P(accepted | state, action)` — an additional hand-written table.
+### Rationale
 
-### Rationale for deferral
-
-- Journal → burden reduction has *no empirical support* in the literature (Smyth 2018 JMIR shows journal reduces depression/anxiety, but burden reduction as an MDP mechanism is untested)
-- Including it in Sprint 1 adds architectural complexity: stochastic burden, joint transition outputs, acceptance state tracking
-- The existing `response_{t-1}` in the design doc's state space is designed for exactly this use case
+- Journal → burden reduction has no empirical support — Smyth 2018 shows efficacy for depression/anxiety, not MDP burden reduction
+- Including it adds architectural complexity with no evidence base
+- The existing `response_{t-1}` in the design doc is designed for this use case
 
 ### Evidence
 
@@ -272,10 +273,8 @@ Burden is a rolling count of non-idle actions in the last 3 timesteps:
 
 ### Rationale
 
-- StepCountJITAI uses linear accumulator with per-action penalties and decay — but their values are heuristic
-- No published system has empirically validated its burden values (action-burden-evidence.md)
-- Rolling-window formulation has **zero parameters to guess** beyond the definition itself (3 timesteps, 3 levels)
-- Aligns with the intuition: a user with 2-3 recent interventions is more saturated
+- Rolling-window formulation has **zero parameters to guess** — burden values are universally heuristic (action-burden-evidence.md)
+- Aligns with intuition: a user with 2-3 recent interventions is more saturated
 
 ### Evidence
 
@@ -368,30 +367,6 @@ Included in Sprint 1:
 - Archetype evaluation (per-persona breakdown with 4 transition matrices) deferred to Phase 2
 - Non-activity action evaluation (journal selection frequency ~0 with current reward) deferred to Phase 2
 - Hyperparameter sensitivity analysis (epsilon, UCB c, etc.) — follow MVP tex approach
-
-## D14. Sprint scope
-
-**Status:** resolved — this session
-
-### Decisions in sprint scope
-
-| Decision | Resolution |
-|---|---|
-| D1 step encoding | 3 step bins (<800 / 800–1,600 / >1,600 per timestep) (resolved) |
-| D2 factored/flat | Factored: within-day + day-boundary tables (resolved) |
-| D3 psychosocial state | Sleep (2 bins) included; mood/stress excluded (resolved) |
-| D4 trend | Excluded (resolved) |
-| D5 time-of-day | Implicit — step index selects from 5 within-day tables (resolved) |
-| D6 day type | Binary weekday/weekend — moderates transitions (resolved) |
-| D7 action set | 4 actions: idle, movement_suggestion, goal_reminder, journal (resolved) |
-| D8 non-activity reward | Deferred to Phase 2 (resolved) |
-| D9 reward vs state | Partially resolved — sleep is both state and reward (dual-role, same pattern as step_bin); mood-only deferred to Phase 2 |
-| D10 burden/fatigue | Rolling window, 3 levels — table dimension (resolved) |
-| D11 reward design | R = α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙[action≠idle]; f={inactive:0.0, moderate:0.5, active:1.0}, g={good:+1.0, poor:−1.0}, α=0.9, λ=0.05 (resolved) |
-| D12 algorithm class | Model-free: contextual bandits + optional Q-learning (resolved) |
-| D13 evaluation strategy | MVP metrics; per-archetype breakdown deferred to Phase 2 (resolved) |
-
----
 
 ## Transition matrix size summary
 
