@@ -22,7 +22,7 @@ _RUNNER = _REPO_ROOT / "docs" / "experimental_phases" / "mvp" / "run_experiments
 _RESULTS_DIR = _REPO_ROOT / "docs" / "experimental_phases" / "mvp" / "results"
 _REL_TOLERANCE = 0.001  # 0.1% relative tolerance
 
-_METRICS = ["total_reward", "per_step", "last50"]
+_METRICS = ["total_reward", "total_std", "per_step", "last50"]
 
 
 @pytest.fixture(scope="session")
@@ -89,6 +89,12 @@ def test_mvp_regression(config_name: str, mvp_results: dict[str, dict]) -> None:
     assert fixture["seed"] == config_seed, (
         f"Fixture seed ({fixture['seed']}) != config seed ({config_seed}). "
         f"Re-baseline with: python {_RUNNER} --config {config_name} --output {_RESULTS_DIR} --json --confirm-overwrite"
+    )
+
+    # Guard against seed count drift
+    assert fixture["seeds"] == 50, (
+        f"Fixture seeds ({fixture['seeds']}) != 50. "
+        f"Re-baseline with: python {_RUNNER} --config {config_name} --seeds 50 --output {_RESULTS_DIR} --json --confirm-overwrite"
     )
 
     golden_agents = fixture["agents"]
