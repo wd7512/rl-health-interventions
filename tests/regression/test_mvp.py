@@ -85,7 +85,7 @@ def test_mvp_regression(config_name: str, mvp_results: dict[str, dict]) -> None:
         / f"{config_name}.yaml"
     )
     with config_path.open(encoding="utf-8") as f:
-        config_seed = yaml.safe_load(f).get("seed", 42)
+        config_seed = (yaml.safe_load(f) or {}).get("seed", 42)
     assert fixture["seed"] == config_seed, (
         f"Fixture seed ({fixture['seed']}) != config seed ({config_seed}). "
         f"Re-baseline with: python {_RUNNER} --config {config_name} --output {_RESULTS_DIR} --json --confirm-overwrite"
