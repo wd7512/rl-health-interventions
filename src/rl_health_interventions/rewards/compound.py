@@ -8,9 +8,8 @@ from rl_health_interventions.state import StateView
 class CompoundReward(RewardHandler):
     """Reward computed from config.reward.values and per_step_multiplier.
 
-    In the new factored config, reward is computed as:
-        reward = reward_values[state.reward_factor] * per_step_multiplier[step_idx]
-                 - action_penalty * action_penalty_multiplier
+    In sprint1 factored config, reward is computed as:
+        reward = alpha * f(step_bin') + (1-alpha) * g(sleep') - lambda * I[a != idle]
 
     For schema-ref configs, the reward must be loaded externally.
     """
@@ -31,12 +30,25 @@ class CompoundReward(RewardHandler):
         )
         self._action_penalty_mult = config.reward.action_penalty_multiplier
         self._action_configs = config.actions
+        self._alpha = (
+            config.reward.constants.get("alpha", 1.0)
+            if config.reward.constants
+            else 1.0
+        )
+        self._sleep_factor = config.reward.sleep_factor
+        self._sleep_values = config.reward.sleep_values or {}
 
     def reward(
         self, state: StateView, action: str, step_idx: int
     ) -> tuple[float, bool]:
-        factor_value = getattr(state, self._reward_factor)
-        base_reward = self._reward_values.get(factor_value, 0.0)
+        step_bin_value = self._reward_values.get(
+            getattr(state, self._reward_factor), 0.0
+        )
+        sleep_value = (
+            self._sleep_values.get(getattr(state, self._sleep_factor), 0.0)
+            if self._sleep_factor
+            else 0.0
+        )
         step_mult = (
             self._per_step_mult[step_idx]
             if step_idx < len(self._per_step_mult)
@@ -50,7 +62,8 @@ class CompoundReward(RewardHandler):
             elif isinstance(raw, dict):
                 action_penalty = raw.get("action_penalty", 0.0)
         penalty = action_penalty * self._action_penalty_mult
-        return base_reward * step_mult - penalty, False
+        r = self._alpha * step_bin_value + (1 - self._alpha) * sleep_value
+        return r * step_mult - penalty, False
 
 
 def register() -> None:

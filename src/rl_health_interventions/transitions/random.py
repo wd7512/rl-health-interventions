@@ -52,7 +52,9 @@ class RandomTransition(TransitionModel):
             return "_".join(getattr(source, name) for name in self._factor_names)
         return "_".join(source[name] for name in self._factor_names)
 
-    def _transition_updates(self, state: StateView, action: str) -> dict[str, str]:
+    def _transition_updates(
+        self, state: StateView, action: str, daily_bin: str | None = None
+    ) -> dict[str, str]:
         step = state.step_of_day
 
         if self._factored_mode:

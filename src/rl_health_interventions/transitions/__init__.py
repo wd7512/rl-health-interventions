@@ -31,6 +31,9 @@ def make(name_or_config=None, **kwargs) -> TransitionModel:
 # Each module must have a register() function that adds to REGISTRY.
 _TRANSITION_MODULES = [random, rule_based]
 
+# bootstrap is an alias for rule_based (same table-backed behavior)
+REGISTRY["bootstrap"] = rule_based.RuleBasedTransition
+
 for _mod in _TRANSITION_MODULES:
     try:
         _mod.register()

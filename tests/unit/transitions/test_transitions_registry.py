@@ -12,6 +12,8 @@ def test_registry_populated() -> None:
     assert REGISTRY["rule_based"] is RuleBasedTransition
     assert "random" in REGISTRY
     assert REGISTRY["random"] is RandomTransition
+    assert "bootstrap" in REGISTRY
+    assert REGISTRY["bootstrap"] is RuleBasedTransition
 
 
 def test_make_returns_instance(valid_config) -> None:

@@ -9,6 +9,20 @@ from rl_health_interventions.state import StateView
 
 logger = logging.getLogger(__name__)
 
+_MID_POINTS = {"inactive": 400.0, "moderate": 1200.0, "active": 2000.0}
+_DAILY_THRESHOLDS = [(4000.0, "inactive"), (8000.0, "moderate")]
+
+
+def _mid_point(step_bin: str) -> float:
+    return _MID_POINTS.get(step_bin, 0.0)
+
+
+def _bin_daily(total: float) -> str:
+    for threshold, name in _DAILY_THRESHOLDS:
+        if total < threshold:
+            return name
+    return "active"
+
 
 class Environment:
     def __init__(self, config: MDPConfig, seed: int = 42) -> None:
@@ -20,11 +34,13 @@ class Environment:
         self._current_state: StateView | None = None
         self._action_history: deque[str] = deque(maxlen=3)
         self._factor_names: set[str] = set(config.factor_configs.keys())
+        self._daily_total: float = 0.0
 
     def reset(self) -> StateView:
         self._step_count = 0
         self._done = False
         self._action_history.clear()
+        self._daily_total = 0.0
         self._current_state = StateView(
             dict(self._config.initial_state),
             day=0,
@@ -52,10 +68,20 @@ class Environment:
 
         step_of_day = self._step_count % self._config.steps_per_day
 
-        # 1. Transition returns factor updates
+        # 1a. At day boundary, compute daily bin and reset accumulator
+        daily_bin = None
+        if step_of_day == 0:
+            daily_bin = _bin_daily(self._daily_total)
+            self._daily_total = 0.0
+
+        # 1b. Transition returns factor updates
         factor_updates = self._transition._transition_updates(
-            self._current_state, action
+            self._current_state, action, daily_bin=daily_bin
         )
+
+        # 1c. Accumulate daily step total
+        if "step_bin" in factor_updates:
+            self._daily_total += _mid_point(factor_updates["step_bin"])
 
         # 2. Inject day_of_week if configured (Sprint1+)
         if "day_of_week" in self._factor_names:

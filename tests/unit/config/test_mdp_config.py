@@ -285,6 +285,17 @@ def test_sprint1_config_loads():
     assert config.reward.factor == "step_bin"
     assert config.reward.values == {"inactive": 0.0, "moderate": 0.5, "active": 1.0}
     assert config.reward.action_penalty_multiplier == 0.05
+    assert config.reward.sleep_factor == "sleep"
+    assert config.reward.sleep_values == {"rested": 1.0, "under_rested": -1.0}
+    assert config.reward.constants == {"alpha": 0.9}
+    assert len(config.agents) >= 1
+    assert config.agents[0].contextual is True
+    assert config.agents[0].context_feature == [
+        "step_bin",
+        "burden",
+        "day_of_week",
+        "sleep",
+    ]
     assert config.initial_state == {
         "step_bin": "inactive",
         "sleep": "rested",

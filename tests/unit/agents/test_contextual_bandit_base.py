@@ -25,16 +25,50 @@ def test_get_context_key_contextual_returns_tuple():
     assert agent._get_context_key(state, "nudge") == ("sedentary", "nudge")
 
 
-@pytest.mark.parametrize("invalid_feature", ["", "   ", 123, []])
-def test_init_raises_when_contextual_with_invalid_context_feature(invalid_feature):
+def test_init_raises_when_contextual_with_empty_string():
     with pytest.raises(ValueError, match="context_feature must be a non-empty string"):
-        _make_agent(contextual=True, context_feature=invalid_feature)
+        _make_agent(contextual=True, context_feature="")
+
+
+def test_init_raises_when_contextual_with_whitespace():
+    with pytest.raises(ValueError, match="context_feature must be a non-empty string"):
+        _make_agent(contextual=True, context_feature="   ")
+
+
+def test_init_raises_when_contextual_with_invalid_type():
+    with pytest.raises(
+        ValueError, match="context_feature must be a string or list of strings"
+    ):
+        _make_agent(contextual=True, context_feature=123)
+
+
+def test_init_raises_when_contextual_with_empty_list():
+    with pytest.raises(ValueError, match="context_feature must be a non-empty list"):
+        _make_agent(contextual=True, context_feature=[])
 
 
 def test_get_context_key_contextual_raises_on_none_state():
     agent = _make_agent(contextual=True, context_feature="activity")
     with pytest.raises(ValueError, match="state cannot be None"):
         agent._get_context_key(None, "nudge")
+
+
+def test_get_context_key_contextual_multi_field():
+    agent = _make_agent(
+        contextual=True,
+        context_feature=["activity", "mood"],
+    )
+    state = StateView({"activity": "sedentary", "mood": "good"}, day=0, step_of_day=0)
+    assert agent._get_context_key(state, "nudge") == (("sedentary", "good"), "nudge")
+
+
+def test_get_context_key_contextual_single_field_via_list():
+    agent = _make_agent(
+        contextual=True,
+        context_feature=["activity"],
+    )
+    state = StateView({"activity": "sedentary"}, day=0, step_of_day=0)
+    assert agent._get_context_key(state, "nudge") == ("sedentary", "nudge")
 
 
 def test_get_context_key_contextual_raises_on_missing_attribute():

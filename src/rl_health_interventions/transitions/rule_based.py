@@ -42,16 +42,28 @@ class RuleBasedTransition(TransitionModel):
             ]:
                 file_path = table_dir / f"{table_name}.json"
                 data = json.loads(file_path.read_text())
-                nested: dict[str, dict[str, tuple[list[str], np.ndarray]]] = {}
-                for state, actions in data.items():
-                    action_map: dict[str, tuple[list[str], np.ndarray]] = {}
-                    for action, probs in actions.items():
+                if table_name == "day_boundary":
+                    # No action dimension: state → {target: prob}
+                    parsed: dict[str, tuple[list[str], np.ndarray]] = {}
+                    for state, probs in data.items():
                         targets = list(probs.keys())
                         prob_values = np.array(list(probs.values()), dtype=np.float64)
                         prob_values /= prob_values.sum()
-                        action_map[action] = (targets, prob_values)
-                    nested[state] = action_map
-                self._cache[table_name] = nested
+                        parsed[state] = (targets, prob_values)
+                    self._cache[table_name] = parsed
+                else:
+                    nstd: dict[str, dict[str, tuple[list[str], np.ndarray]]] = {}
+                    for state, actions in data.items():
+                        action_map: dict[str, tuple[list[str], np.ndarray]] = {}
+                        for action, probs in actions.items():
+                            targets = list(probs.keys())
+                            prob_values = np.array(
+                                list(probs.values()), dtype=np.float64
+                            )
+                            prob_values /= prob_values.sum()
+                            action_map[action] = (targets, prob_values)
+                        nstd[state] = action_map
+                    self._cache[table_name] = nstd
         else:
             # MVP flat format: load JSON table file(s).
             if config.transition_model.table is not None:
@@ -61,6 +73,13 @@ class RuleBasedTransition(TransitionModel):
                 table_files = [table_path]
             else:
                 table_files = sorted(table_dir.glob("*.json"))
+                # Exclude factored-mode tables (day_boundary, within_day_*)
+                table_files = [
+                    f
+                    for f in table_files
+                    if "day_boundary" not in f.name
+                    and not f.name.startswith("within_day_")
+                ]
                 if not table_files:
                     raise FileNotFoundError(f"No JSON table files found in {table_dir}")
             for table_file in table_files:
@@ -79,14 +98,16 @@ class RuleBasedTransition(TransitionModel):
             return "_".join(getattr(source, name) for name in self._factor_names)
         return "_".join(source[name] for name in self._factor_names)
 
-    def _transition_updates(self, state: StateView, action: str) -> dict[str, str]:
+    def _transition_updates(
+        self, state: StateView, action: str, daily_bin: str | None = None
+    ) -> dict[str, str]:
         if self._factored_mode:
             step = state.step_of_day
             if step == 0:
-                state_key = self._make_state_key(state)
-                sleep_targets, sleep_probs = self._cache["day_boundary"][state_key][
-                    action
-                ]
+                key_parts = dict(state.factor_values)
+                key_parts["step_bin"] = daily_bin or state.step_bin
+                state_key = "_".join(key_parts[n] for n in sorted(key_parts))
+                sleep_targets, sleep_probs = self._cache["day_boundary"][state_key]
                 sleep_idx = self._rng.choice(len(sleep_targets), p=sleep_probs)
                 new_sleep = sleep_targets[sleep_idx]
 

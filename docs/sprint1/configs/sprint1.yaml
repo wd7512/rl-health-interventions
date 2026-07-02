@@ -34,6 +34,9 @@ actions:
 reward:
   factor: step_bin
   values: {inactive: 0.0, moderate: 0.5, active: 1.0}
+  sleep_factor: sleep
+  sleep_values: {rested: 1.0, under_rested: -1.0}
+  constants: {alpha: 0.9}
   action_penalty_multiplier: 0.05
 
 # Transition model: "random" for dev (generates random weights),
@@ -41,6 +44,13 @@ reward:
 transition_model:
   type: bootstrap
   table_dir: ../tables
+
+agents:
+  - type: thompson_sampling
+    contextual: true
+    context_feature: [step_bin, burden, day_of_week, sleep]
+    alpha_prior: 1.0
+    beta_prior: 1.0
 
 episode_days: 90
 steps_per_day: 5

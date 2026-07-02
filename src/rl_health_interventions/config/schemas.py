@@ -89,6 +89,11 @@ class RewardConfig(BaseModel):
     values: dict[str, float]
     action_penalty_multiplier: float = 0.0
     per_step_multiplier: list[float] | None = None
+    constants: dict[str, float] | None = None
+    variables: dict[str, dict] | None = None
+    formula: str | None = None
+    sleep_factor: str | None = None
+    sleep_values: dict[str, float] | None = None
 
 
 class StateConfig(BaseModel):
@@ -124,7 +129,7 @@ class AgentConfig(BaseModel):
     decay_steps: int | None = None
     c: float | None = None
     contextual: bool = False
-    context_feature: str | None = None
+    context_feature: str | list[str] | None = None
 
     @model_validator(mode="after")
     def _validate_agent(self) -> AgentConfig:
@@ -141,10 +146,23 @@ class AgentConfig(BaseModel):
                     f"contextual=True is only supported for thompson_sampling, "
                     f"epsilon_greedy, ucb, and decaying_epsilon_greedy, got {self.type}"
                 )
-            if self.context_feature is None or not self.context_feature.strip():
+            if self.context_feature is None:
                 raise ValueError(
-                    "context_feature must be a non-empty string when contextual=True"
+                    "context_feature must be provided when contextual=True"
                 )
+            if isinstance(self.context_feature, str):
+                if not self.context_feature.strip():
+                    raise ValueError(
+                        "context_feature must be a non-empty string when contextual=True"
+                    )
+            elif isinstance(self.context_feature, list):
+                if not self.context_feature or any(
+                    not isinstance(f, str) or not f.strip()
+                    for f in self.context_feature
+                ):
+                    raise ValueError(
+                        "context_feature must be a non-empty list of non-empty strings when contextual=True"
+                    )
         else:
             if self.context_feature is not None:
                 raise ValueError(
@@ -308,6 +326,15 @@ class MDPConfig(BaseModel):
             raise ValueError(
                 f"reward.values keys must match factor '{reward_factor}' names — "
                 f"{'; '.join(parts)}"
+            )
+
+        if (
+            self.reward.sleep_factor is not None
+            and self.reward.sleep_factor not in factor_names
+        ):
+            raise ValueError(
+                f"reward.sleep_factor '{self.reward.sleep_factor}' not found in "
+                f"state.factors. Available factors: {sorted(factor_names)}"
             )
 
         if self.reward.per_step_multiplier is not None:
