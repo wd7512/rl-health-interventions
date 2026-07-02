@@ -7,24 +7,98 @@ upstream: "decision-catalogue.md"
 
 # Resolved Decisions — Sprint 1 MDP Design
 
-> Decisions resolved during the grilling session on 2026-06-28.
-> Each entry links to the relevant decision in the catalogue and
-> captures the rationale, evidence basis, and open questions carried forward.
+> **What this is:** Sprint 1 MDP design specification for simulated RL policy evaluation.
+> Read [Algorithm 1](#algorithm-1-episode-loop) first — it defines the simulation loop
+> that every other section implements.
+>
+> **Cost (Swapnil):** A full bootstrap costs **~$0.27** with DeepSeek V4 Flash (22,320 LLM
+> calls) or **~$0.12** with prompt caching. Cheap enough to iterate — regenerate the entire
+> transition matrix after any prompt tweak for pocket change.
+>
+> **Quick nav:** The [TOC](#decision-toc) below summarises all 13 decisions. Click any `D#` to
+> jump to the full section. Inline links connect related decisions throughout.
+
+### Algorithm 1: Episode loop
+
+```
+Algorithm 1: Run episode (N days)
+
+Require: N days, initial state s₀ = (step_bin, burden, day_of_week, sleep)
+Ensure: episode of 5N transitions
+
+ 1: daily_total ← 0
+ 2: state ← s₀
+ 3: for day = 1 to N do
+ 4:     for t = 0 to 4 do
+ 5:         a ← agent.policy(state, t)
+ 6:         if t = 0 then
+ 7:             step_bin_daily ← bin_daily(daily_total)
+ 8:             sleep' ← sample P_day_boundary(step_bin_daily, burden, day_of_week, sleep)
+ 9:             daily_total ← 0
+10:         else
+11:             sleep' ← state.sleep
+12:         end if
+13:         step_bin' ← sample P_within_day[t](step_bin, burden, a, day_of_week, sleep')
+14:         daily_total ← daily_total + mid_point(step_bin')
+15:         burden' ← count_non_idle_last_3(state.burden, a)
+16:         day_of_week' ← advance(state.day_of_week) if t = 0 else state.day_of_week
+17:         r ← α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙[a ≠ idle]
+18:         next_state ← (step_bin', burden', day_of_week', sleep')
+19:         record (state, a, r, next_state)
+20:         state ← next_state
+21:     end for
+22: end for
+```
+
+Where:
+- `P_day_boundary` and `P_within_day[t]` are the 6 LLM-bootstrapped tables (see [Algorithm 2](#algorithm-2-bootstrap-transition-table-from-llm))
+- `f(x)` = {inactive: 0.0, moderate: 0.5, active: 1.0} (see [D1](#d1-step-count-encoding))
+- `g(x)` = {good: +1.0, poor: −1.0} (see [D3](#d3-hidden-psychosocial-state-variables))
+- `count_non_idle_last_3(burden, a)` is a rolling 3-step window (see [D10](#d10-burdenfatigue-model))
+- `bin_daily(total)` maps daily step total to per-day bin: <4000→inactive, 4000–8000→moderate, >8000→active (see [D1](#d1-step-count-encoding))
+- `mid_point(bin)` maps per-timestep bin to representative steps: inactive→400, moderate→1200, active→2000
+
+*Referenced by:* [D2](#d2-factored-vs-flat-state-representation), [D3](#d3-hidden-psychosocial-state-variables), [D5](#d5-time-of-day-encoding), [D10](#d10-burdenfatigue-model), [Transition matrix size summary](#transition-matrix-size-summary)
+
+<a id="decision-toc"></a>
+| # | Decision | Status | Summary |
+|---|----------|--------|---------|
+| <a id="toc-d1">D1</a> | Step count encoding | resolved | 3 bins; per-timestep (&lt;800/800–1600/&gt;1600) + daily (&lt;4k/4k–8k/&gt;8k) |
+| <a id="toc-d2">D2</a> | State representation | resolved | Factored: within-day + day-boundary ([Algorithm 1](#algorithm-1-episode-loop)) |
+| <a id="toc-d3">D3</a> | Psychosocial state | sleep incl. | good/poor sleep; mood/stress excluded |
+| <a id="toc-d4">D4</a> | Trend dimension | excluded | No precedent, no evidence |
+| <a id="toc-d5">D5</a> | Time-of-day | resolved | Implicit as table index ([Algorithm 1](#algorithm-1-episode-loop)) |
+| <a id="toc-d6">D6</a> | Day type | resolved | Binary weekday/weekend moderator |
+| <a id="toc-d7">D7</a> | Action set | resolved | 4 actions: idle, movement, goal, journal |
+| <a id="toc-d8">D8</a> | Non-activity reward | deferred | Journal mechanism → Phase 2 |
+| <a id="toc-d9">D9</a> | Mood/sleep: reward vs state | partial | Sleep dual-role resolved; mood deferred |
+| <a id="toc-d10">D10</a> | Burden/fatigue | resolved | Rolling window, 3 levels ([Algorithm 1](#algorithm-1-episode-loop)) |
+| <a id="toc-d11">D11</a> | Reward function | resolved | R = α·f(step_bin') + (1-α)·g(sleep') − λ·𝟙 |
+| <a id="toc-d12">D12</a> | Algorithm class | resolved | Model-free: bandits (Q-learning deferred) |
+| <a id="toc-d13">D13</a> | Evaluation strategy | resolved | 5 agents × 50 seeds × 450 steps |
 
 ## D1. Step count encoding
 
 **Status:** resolved — 3 step bins
 
-3-level step bin based on per-timestep cumulative steps:
-- <800 steps/timestep = inactive (<4k daily)
-- 800–1,600 steps/timestep = moderate (4k–8k daily)
-- >1,600 steps/timestep = active (>8k daily)
+3-level step bin. Two thresholds depending on context:
+
+| Context | Bin | Threshold | |
+|---------|-----|-----------|--|
+| Within-day | inactive | <800 steps/timestep | |
+| | moderate | 800–1,600 steps/timestep | |
+| | active | >1,600 steps/timestep | |
+| Day-boundary | inactive | <4,000 daily total | |
+| | moderate | 4,000–8,000 daily total | |
+| | active | >8,000 daily total | |
+
+The daily thresholds are 5× the per-timestep thresholds (5 timesteps/day). Daily bins are used only by the day-boundary transition (Algorithm 1 line 7) — the state variable itself always uses per-timestep bins.
 
 ### Rationale
 
 - Binary is too coarse — "active" masks clinical distinctions (4k vs 10k are very different health outcomes)
 - 4 bins (D1 original) exceeds the minimum useful granularity; 3 bins captures the key inflection points with fewer LLM calls
-- Reward is 3-level matching the bins (inactive=0.0, moderate=0.5, active=1.0), aligned with clinical thresholds
+- [Reward](#d11-reward-function-design) is 3-level matching the bins (inactive=0.0, moderate=0.5, active=1.0), aligned with clinical thresholds
 - LLM bootstrapping makes the marginal cost trivial: 3 × 4 × 3 = 36 (s, a) pairs vs 16 for binary
 
 ### Evidence
@@ -41,26 +115,17 @@ upstream: "decision-catalogue.md"
 
 ## D2. Factored vs flat state representation
 
-**Status:** resolved — factored with two table types
+**Status:** resolved — factored with two table types ([Algorithm 1](#algorithm-1-episode-loop))
 
-Factored into two transition structures:
-
-**Day-boundary (step 0 — morning boundary):** `P(sleep' | step_bin, burden, action, day_of_week, sleep)`
-- Sleep' is the previous night's sleep quality (observed at the start of each day)
-- Only sleep changes — step_bin' is sampled next from within-day table #0 using the new sleep'
-
-**Within-day (steps 0–4):** `P(step_bin' | step_bin, burden, action, day_of_week, sleep')`
-- 5 separate tables (#0–#4), one per decision point (time-of-day is implicit as the table index)
-- Only step_bin changes stochastically within a day
-- Table #0 uses sleep' (just sampled from day-boundary); tables #1–#4 use the same sleep' held constant for the day
+State is factored into two table structures: day-boundary (sleep' transitions) and within-day (step_bin' transitions). The per-timestep execution is defined in [Algorithm 1](#algorithm-1-episode-loop).
 
 ### Deterministic / formula-driven dimensions
 
 | Dimension | Behaviour |
 |---|---|
-| time_of_day | Implicit — step index within day selects the within-day table (0=boundary, 1-4=within-day) |
+| time_of_day | Implicit — step index within day selects the within-day table |
 | day_of_week | Advances deterministically, flips at 6→0 |
-| burden | Rolling formula — count non-idle in last 3 timesteps |
+| burden | Rolling formula — count non-idle in last 3 timesteps (Algorithm 1 line 15) |
 | sleep | Transitions jointly with step_bin at day boundary only |
 | goal_progress | Dropped from transition moderators |
 
@@ -68,7 +133,7 @@ Factored into two transition structures:
 
 - Full product of all dimensions would be intractable
 - With factoring, different timescales map to different table structures naturally
-- The codebase currently uses full product (`rule_based.py` reads flat state keys) and must be refactored
+- The config file (`docs/sprint1/configs/sprint1.yaml`) uses a `state.factors` structure with named dimensions — separate from the existing flat `MDPConfig` model. A new `FactoredMDPConfig` pydantic model will be added alongside the old one, with `load_config()` dispatching based on top-level keys.
 - Archetypes (goal-driven, social, resistant, stable maintainer) deferred from Sprint 1 — single "blank" context with no persona
 - Profile variables (age, gender, baseline_activity) also deferred — not separate state dimensions
 
@@ -78,11 +143,10 @@ Factored into two transition structures:
 
 ### Sleep
 
-**2 bins:** slept >7 hours (yes/no).
+**2 bins:** good / poor (qualitative LLM judgment simulating smartwatch sleep-quality output).
 
-- **Role:** A daily state dimension that transitions at the day boundary, separately from step_bin
-- **Stochastic at day boundary:** yes — `P(sleep' | sleep, step_bin, burden, action, day_of_week)` is LLM-bootstrapped; step_bin' is sampled from within-day table #0 using the new sleep'
-- **Static within-day:** yes — once set at step 0, sleep stays constant for all 5 within-day steps
+- **Role:** A daily state dimension that transitions at the day boundary; also a reward signal (see [D11](#d11-reward-function-design))
+- **Transition:** Sampled at step 0 per [Algorithm 1](#algorithm-1-episode-loop) lines 5-8 (stochastic at day boundary, static within-day)
 - **Moderates within-day transitions:** yes — sleep is a context variable in the within-day LLM prompt
 
 ### Mood/stress
@@ -99,38 +163,25 @@ Excluded from Sprint 1. No deployed RL-for-health system includes them as state 
 
 ### Carried forward
 
-- Mood/stress may be revisited in Phase 2 (cross-cutting with D9)
-- Sleep >7 hours threshold may need sensitivity analysis
+- Mood/stress may be revisited in Phase 2 (cross-cutting with [D9](#d9-moodsleep-reward-signal-vs-state-variable))
+- Sensitivity analysis: sleep quality vs duration threshold
 
 ## D4. Trend dimension
 
-**Status:** excluded from Sprint 1
+**Status:** excluded
 
-No trend dimension in the state.
-
-### Rationale
-
-- No published RL system has used a trend dimension
-- No precedent, no evidence basis, purely novel/speculative
-- Computation method (rolling OLS, EMA, etc.) has no literature basis
+No trend dimension. No published RL system has used one — no precedent, no evidence, no literature-backed computation method.
 
 ## D5. Time-of-day encoding
 
-**Status:** resolved — implicit as table index
+**Status:** resolved — implicit as table index (Algorithm 1)
 
-Time-of-day is **not a state dimension.** Instead, the step index within the day selects one of 5 within-day transition tables:
-
-- Step 0 (morning boundary) → day-boundary table samples sleep', then within-day table #0 samples step_bin' using new sleep'
-- Step 1 (morning P1) → within-day table #1 (using sleep' from step 0)
-- Step 2 (P2) → within-day table #2
-- Step 3 (P3) → within-day table #3
-- Step 4 (evening) → within-day table #4
+Time-of-day is **not a state dimension.** The step index selects the within-day table per [Algorithm 1](#algorithm-1-episode-loop) line 3.
 
 ### Rationale
 
 - Time-of-day is the strongest moderator in HeartSteps V2 — different times of day have different response patterns even after controlling for burden and sleep
 - Making it a table index rather than a state dimension avoids multiplying the transition table while still capturing time-specific response functions
-- 5 within-day tables (one per decision point, including step 0 after day-boundary) and 1 day-boundary table — the LLM bootstraps each separately
 - The agent doesn't need time-of-day as a context feature to learn different policies — the different transition dynamics per time slot produce different experience distributions automatically
 
 ### Evidence
@@ -149,7 +200,6 @@ Binary weekday/weekend. Day type is a **transition moderator** — it appears in
 ### Rationale
 
 - Universal across all 6 reference systems
-- Swapnil and Mengyan expect the design doc state space to be followed, which includes day_of_week as a context variable
 - People respond differently to interventions on weekends — more free time, different routines
 - The LLM bootstrap handles this with no extra hand-spec effort: day type is just another field in the prompt
 - 3-level (weekday/weekend/holiday) not warranted for Phase 1
@@ -171,17 +221,17 @@ Binary weekday/weekend. Day type is a **transition moderator** — it appears in
 - idle: universal consensus, 4/6 reference systems include
 - movement_suggestion: maps to HeartSteps walking suggestion — strongest evidence
 - goal_reminder: distinct behavioral construct per Trella 2022 requirement
-- journal: non-activity action included as placeholder/exploration; see D8
+- journal: non-activity action included as placeholder/exploration; see [D8](#d8-non-activity-action-reward)
 - 4 actions × 3 step bins = 12 probability rows per within-day table
 
 ### Excluded from Sprint 1
 
 | Action | Reason |
 |--------|--------|
-| Motivational prompt | Overlaps with movement_suggestion — distinct construct unclear |
-| Recovery/stretch | No evidence it's distinct from idle in transition effect |
-| Progress feedback | Overlaps with goal_reminder — deferred |
-| Social encouragement | Weakest evidence across all candidates; null in HeartSteps |
+| Motivational prompt | Overlaps movement_suggestion |
+| Recovery/stretch | No distinct effect vs idle |
+| Progress feedback | Overlaps goal_reminder |
+| Social encouragement | Null result in HeartSteps |
 
 ### Evidence
 
@@ -193,59 +243,47 @@ Binary weekday/weekend. Day type is a **transition moderator** — it appears in
 
 ### Carried forward
 
-- gentle_nudge vs goal_nudge separation has no RL comparison
-- 6-action set (design doc full spec) is a natural extension sprint
+- gentle_nudge vs goal_nudge separation has no RL comparison (see [D10](#d10-burdenfatigue-model) for burden implications)
+- 6-action set (design doc full spec) is a natural extension sprint (see [D13](#d13-evaluation-strategy) for evaluation scope)
 
 ## D8. Non-activity action reward
 
-**Status:** deferred — mechanism noted for Phase 2
+**Status:** deferred
 
-Journal is included in the action set but its reward mechanism is deferred. In Sprint 1, journal has no step reward benefit and carries the same burden cost as any other non-idle action. The agent will learn to avoid it — which is acceptable for the MVP.
+Journal has no step reward benefit in Sprint 1 — the agent will learn to avoid it, which is acceptable for the MVP.
 
 ### Mechanism noted for future
 
-The grilling session discussed: journaling, if accepted by the user, could reduce burden. Two approaches were identified but **not resolved**:
-
-1. **LLM-bootstrapped joint outcome:** The LLM generates `(active'_30min, journal_accepted)` jointly. Burden update depends on acceptance.
-2. **Separate acceptance model:** `P(accepted | state, action)` — an additional hand-written table.
-
-### Rationale for deferral
-
-- Journal → burden reduction has *no empirical support* in the literature (Smyth 2018 JMIR shows journal reduces depression/anxiety, but burden reduction as an MDP mechanism is untested)
-- Including it in Sprint 1 adds architectural complexity: stochastic burden, joint transition outputs, acceptance state tracking
-- The existing `response_{t-1}` in the design doc's state space is designed for exactly this use case
-
-### Evidence
-
-| Source | Finding |
-|--------|---------|
-| Smyth 2018 JMIR | Journaling reduces depression/anxiety — standalone efficacy, not MDP mechanism |
-| Literature review | Burden reduction via journal: **Untested** (action-burden-evidence.md) |
+Two candidate approaches identified but not resolved (see [action-burden-evidence.md](action-space-design/action-burden-evidence.md)): LLM-bootstrapped joint outcome and separate acceptance model.
 
 ### Carried forward
 
-- D9 (mood/sleep as reward vs state) is closely linked: if mood becomes a reward channel in Phase 2, journal gets a natural reward signal
+- [D9](#d9-moodsleep-reward-signal-vs-state-variable): if mood becomes a reward channel in Phase 2, journal gets a natural reward signal
 
 ## D9. Mood/sleep: reward signal vs state variable
 
-**Status:** deferred to Phase 2
+**Status:** partially resolved — sleep is both state and reward (Sprint 1); mood-only deferred to Phase 2
 
-Mood is not used in Sprint 1 — neither as reward signal nor state variable. Sleep is in the state (D3) but not as a reward signal.
+Sleep is included as both a state variable ([D3](#d3-hidden-psychosocial-state-variables) — transition moderator) and a reward signal ([D11](#d11-reward-function-design) — reward component), mirroring the pattern used for `step_bin` (which also appears in both the state and reward). The two roles capture distinct constructs:
+
+- **State role:** sleep quality moderates within-day transition dynamics — a user with poor sleep may respond differently to interventions
+- **Reward role:** good sleep quality is directly valued as an outcome the agent should learn to promote
 
 ### Rationale
 
-- No deployed RL system includes mood as a reward component
-- Multi-objective reward (steps + mood) would require real data to calibrate
-- Sleep is already in the state as a transition moderator — using it as a reward signal as well would require care to avoid double-counting
+- Same dual-role pattern as `step_bin` — established pattern, not novel
+- The two roles are conceptually distinct (moderator vs. outcome) and the LLM already distinguishes them in separate prompt types
+- Mood-only component has no deployed precedent and remains deferred
+- Multi-objective reward (steps + sleep) is calibrated via α weighting, not real data
 
 ### Carried forward
 
-- Natural Phase 2 extension when real data includes mood/wellbeing measures
+- Mood as reward component — deferred to Phase 2
 - Trella 2022 recommends mood as optional reward component — consistent with Phase 2 timing
 
 ## D10. Burden/fatigue model
 
-**Status:** resolved — rolling window with 3 levels
+**Status:** resolved — rolling window with 3 levels (see [Algorithm 1](#algorithm-1-episode-loop) line 15)
 
 Burden is a rolling count of non-idle actions in the last 3 timesteps:
 
@@ -257,26 +295,11 @@ Burden is a rolling count of non-idle actions in the last 3 timesteps:
 
 ### Mechanics
 
-- The window rolls across day boundaries — the first decision point of a new day examines the last 3 steps of the previous day
-- No separate decay parameter, no daily reset, no penalty values to tune
-- No special-case handling needed for early timesteps (the previous day's end naturally fills the window)
-
-### Role in the MDP
-
-- Burden is a **table dimension** — separate LLM calls per burden level produce distinct transition distributions, no approximation
-- Burden is **not** subtracted from the reward function directly (unlike StepCountJITAI's formulation). The cost of burden is expressed through reduced future activity probability.
-
-### Transition function signature
-
-Within-day: `P(step_bin' | step_bin, burden, action, day_of_week, sleep)`
-Day-boundary: `P(sleep' | step_bin, burden, action, day_of_week, sleep)`
+Rolling window across day boundaries — no reset, no decay, no penalty values to tune. Early timesteps need no special handling (previous day's end fills the window).
 
 ### Rationale
 
-- StepCountJITAI uses linear accumulator with per-action penalties and decay — but their values are heuristic
-- No published system has empirically validated its burden values (action-burden-evidence.md)
-- Rolling-window formulation has **zero parameters to guess** beyond the definition itself (3 timesteps, 3 levels)
-- Aligns with the intuition: a user with 2-3 recent interventions is more saturated
+Zero parameters to guess — burden values are universally heuristic (see action-burden-evidence.md). A user with 2-3 recent interventions is plausibly more saturated.
 
 ### Evidence
 
@@ -289,28 +312,49 @@ Day-boundary: `P(sleep' | step_bin, burden, action, day_of_week, sleep)`
 
 ### Carried forward
 
-- The bootstrapped per-burden-level distributions should be sanity-checked: high burden should show lower P(step_bin' > step_bin) than low burden across all actions
+- The bootstrapped per-burden-level distributions should be sanity-checked: high burden should show lower P(step_bin' > step_bin) than low burden across all actions (see [D3](#d3-hidden-psychosocial-state-variables) for the sleep-burden interaction)
 
 ## D11. Reward function design
 
-**Status:** resolved
+**Status:** resolved — config-driven formula
 
-### Final choice
+### Formula
 
 ```
-R = f(step_bin') - λ · 𝟙[action != idle]
+R = alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty
 ```
 
 Where:
-- `f` maps the post-transition step bin: inactive → 0.0, moderate → 0.5, active → 1.0
-- `λ = 0.05` — a small regularisation penalty per non-idle action to discourage spamming
+- `step_bin_value` maps the post-transition [step bin](#d1-step-count-encoding): inactive → 0.0, moderate → 0.5, active → 1.0
+- `sleep_value` maps [sleep quality](#d3-hidden-psychosocial-state-variables) from the **post-transition state** `sleep'`: good → +1.0, poor → −1.0
+- `alpha` weights the step and sleep reward components (default α = 0.9)
+- `action_penalty` is per-action (idle = 0.0, all others = 0.05) to discourage spamming
 - Immediate per-step time horizon (30-min post-decision, matching HeartSteps V2)
 - Burden is not subtracted from reward; its cost is expressed through reduced future activity probability
 
+### Config structure
+
+The formula is configured in `docs/sprint1/configs/sprint1.yaml`:
+
+```yaml
+reward:
+  constants: {alpha: 0.9}
+  variables:
+    step_bin_value: {source: state.step_bin, mapping: {inactive: 0.0, moderate: 0.5, active: 1.0}}
+    sleep_value:    {source: state.sleep, mapping: {good: 1.0, poor: -1.0}}
+    action_penalty: {source: action, mapping: {idle: 0.0, movement_suggestion: 0.05, goal_reminder: 0.05, journal: 0.05}}
+  formula: "alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty"
+```
+
+Resolved at runtime by a safe expression parser (whitelisted `+`, `-`, `*`, `/` via `ast` node-type allowlist — no `eval()`).
+
 ### Rationale
 
-- 3-level reward matches the transition-state bins — the agent is incentivised to push users from inactive→moderate (+0.5) or moderate→active (+0.5), with no artificial threshold boundary
+- Config-driven formula avoids hardcoding the reward structure — researchers can tweak weighting, add/remove terms, or adjust mappings in YAML
+- Per-action penalty in config (not uniform) enables future differentiation between action costs without code changes
+- `ast`-based parser is safe (node-type whitelist only) and zero-dependency
 - λ = 0.05 is large enough to bias the agent away from spamming but small enough that it doesn't outweigh the step gain
+- The sleep penalty g(poor) = −1.0 produces −0.5 reward per poor-sleep day (5 steps × 0.1 sleep weight), which is 56% of the max daily step gain (4.5) — this is intentional: carrying poor sleep forward compounds across days, giving the agent incentive to sacrifice today's steps to improve tonight's sleep
 - Burden handles the saturation dynamic; λ handles the immediate cost of interruption — two separate mechanisms
 - Immediate horizon learns fastest; multi-timescale (3-week body measure) deferred to Phase 2
 
@@ -320,18 +364,19 @@ Where:
 
 ### Final choice
 
-Model-free agents only. All agents learn from environment samples (the synthetic transition matrix generates experience; agents do not read it directly).
+Model-free agents only (see [D2](#d2-factored-vs-flat-state-representation) for the factored state representation that enables this). All agents learn from environment samples (the synthetic transition matrix generates experience; agents do not read it directly).
 
 Included in Sprint 1:
 - **Contextual bandits:** Thompson Sampling, Epsilon-Greedy, UCB, Decaying Epsilon-Greedy (all per ActivitySteps V2 pattern)
-- **Model-free Q-learning:** optional, for non-myopic comparison
+- **Context key:** All contextual agents use the full 36-state tuple `(step_bin, burden, day_of_week, sleep)` as context — every unique state is its own partition for Q-value learning
+- **Model-free Q-learning:** deferred to future sprint (should be tested on the existing MVP first)
 
 ### Rationale
 
 - Model-based methods are infeasible in clinical deployment — the ground-truth transition matrix is never available in a real trial
 - HeartSteps V2 proved contextual bandits work in this domain (34% step increase)
 - The synthetic transition matrix serves as the environment's simulation engine; agents experience it through sampling, not direct access
-- Model-free Q-learning can be added as a comparison without changing the environment
+- Q-learning deferred: non-myopic comparison is interesting but adds scope; test on MVP first to validate the implementation
 
 ## D13. Evaluation strategy
 
@@ -341,15 +386,13 @@ Included in Sprint 1:
 
 **Baselines:**
 - Random (uniform action selection)
-- Idle-only (never intervene)
-- Fixed-ratio (intervene every other step)
+- Idle-only (always selects `idle`; no learning)
 
 **Algorithms (compared against each other and baselines):**
 - Contextual Thompson Sampling
 - Contextual Epsilon-Greedy
 - Contextual UCB
 - Contextual Decaying Epsilon-Greedy
-- Model-free Q-learning (optional)
 
 **Metrics** (matching existing MVP tex pattern):
 - Total Reward (episode sum)
@@ -357,48 +400,75 @@ Included in Sprint 1:
 - Last 50 Steps Reward (convergence measure)
 - % Gap vs Optimal Policy (where computable)
 
-**Reporting:**
-- Aggregate across all seeds
-- 50 random seeds per configuration
-- 450 timesteps (90 days × 5 steps/day)
+**Evaluation design:**
+- **One shared bootstrap** — one ~$0.12 bootstrap (Alg 2) feeds all 250 runs. Isolates policy quality, not bootstrap variance.
+- **Shared seeds across agents** — 50 base seeds × 5 agent indices via `derive_agent_seed()`. Every agent sees the same initial state and transition draws. Difference = policy alone.
+- 450 timesteps per run (90 days × 5 steps/day)
 
 ### Carried forward
 
-- Archetype evaluation (per-persona breakdown with 4 transition matrices) deferred to Phase 2
-- Non-activity action evaluation (journal selection frequency ~0 with current reward) deferred to Phase 2
+- Per-seed bootstrapping (50 independent bootstraps to test robustness to environmental uncertainty) — Phase 2 sensitivity analysis
+- Archetype evaluation (per-persona breakdown with 4 transition matrices) deferred to Phase 2 (see [D7](#d7-action-set-composition) for action set scope)
+- Non-activity action evaluation (journal selection frequency ~0 with current reward) deferred to Phase 2 (see [D8](#d8-non-activity-action-reward) for journal reward discussion)
 - Hyperparameter sensitivity analysis (epsilon, UCB c, etc.) — follow MVP tex approach
 
-## D14. Sprint scope
+## Transition bootstrapping
 
-**Status:** resolved — this session
+### Algorithm 2: Bootstrap transition table from LLM
 
-### Decisions in sprint scope
+```
+Algorithm 2: Bootstrap table B from LLM
 
-| Decision | Resolution |
-|---|---|
-| D1 step encoding | 3 step bins (<800 / 800–1,600 / >1,600 per timestep) (resolved) |
-| D2 factored/flat | Factored: within-day + day-boundary tables (resolved) |
-| D3 psychosocial state | Sleep (2 bins) included; mood/stress excluded (resolved) |
-| D4 trend | Excluded (resolved) |
-| D5 time-of-day | Implicit — step index selects from 5 within-day tables (resolved) |
-| D6 day type | Binary weekday/weekend — moderates transitions (resolved) |
-| D7 action set | 4 actions: idle, movement_suggestion, goal_reminder, journal (resolved) |
-| D8 non-activity reward | Deferred to Phase 2 (resolved) |
-| D9 reward vs state | Deferred to Phase 2 (resolved) |
-| D10 burden/fatigue | Rolling window, 3 levels — table dimension (resolved) |
-| D11 reward design | R = f(step_bin') − λ·𝟙[action≠idle], f={inactive:0.0, moderate:0.5, active:1.0}, λ=0.05 (resolved) |
-| D12 algorithm class | Model-free: contextual bandits + optional Q-learning (resolved) |
-| D13 evaluation strategy | MVP metrics; per-archetype breakdown deferred to Phase 2 (resolved) |
+Require: state dims D_state = step_bin × burden × day_of_week × sleep,
+         action set A, prompt template T_B(·), samples per cell N = 10
+Ensure: transition matrix P_B of size |D_state| × |A| × |D_out|
 
----
+ 1: for each s ∈ D_state do
+ 2:     for each a ∈ A do
+ 3:         prompt ← T_B.render(state = s, action = a)
+ 4:         counts ← zero(|D_out|)
+ 5:         for i = 1 to N do
+ 6:             response ← LLM.generate(prompt)
+ 7:             v_out ← parse(response)
+ 8:             counts[v_out] += 1
+ 9:         end for
+10:         for each v_out ∈ D_out do
+11:             P_B(v_out | s, a) ← counts[v_out] / N
+12:         end for
+13:     end for
+14: end for
+15: return P_B
+```
+
+Applied to 6 tables (5 within-day + 1 day-boundary). The prompt template `T_B` differs per table; see the prompt templates below.
+
+### Table file format
+
+Tables are serialized as **JSON** (human-readable, easy to inspect). Stored under `<repo>/tables/` for 6 files:
+
+```
+tables/
+  day_boundary.json
+  within_day_0.json
+  within_day_1.json
+  within_day_2.json
+  within_day_3.json
+  within_day_4.json
+```
+
+Each JSON file is a dict mapping `"{state_key}"` → `{action: {outcome: probability, ...}}`. The bootstrap script writes these; the environment's `BootstrapTransition` model loads them at init.
+
+The `table_dir` config field in `sprint1.yaml` (`transition_model.table_dir: tables`) resolves from repo root.
+
+*Referenced by:* Transition matrix size summary, total LLM cost, prompt design
 
 ## Transition matrix size summary
 
-Six LLM-bootstrapped tables. **All dimensions are table dimensions** (separately sampled), no prompt-context approximations.
+Six tables bootstrapped via [Algorithm 2](#algorithm-2-bootstrap-transition-table-from-llm). **All dimensions are table dimensions** (separately sampled), no prompt-context approximations.
 
 ### Within-day tables (× 5, one per time step)
 
-Five tables, each predicting step_bin' at a specific time slot. Step 0 uses the updated `sleep'` from the day-boundary table; steps 1–4 use the `sleep` that was set at the start of the day.
+Five tables, each predicting step_bin' at a specific time slot. Per [Algorithm 1](#algorithm-1-episode-loop), step 0 uses the updated `sleep'` from the day-boundary table; steps 1–4 use the `sleep` set at the start of the day.
 
 **All five tables have the same signature:**
 
@@ -420,86 +490,66 @@ P(step_bin' | step_bin, burden, action, day_of_week, sleep)
 
 ### Day-boundary table (× 1, step 0)
 
-Predicts sleep' at the start of each day, based on the previous day's end-of-day state:
+Predicts sleep' from the previous day's total step activity (binned daily). Action does not affect sleep quality at the day boundary (Algorithm 1 line 6).
 
 ```
-P(sleep' | step_bin, burden, action, day_of_week, sleep)
+P(sleep' | step_bin_daily, burden, day_of_week, sleep)
 ```
 
 | Dimension | Bins |
 |---|---|
-| step_bin | 3 |
+| step_bin_daily | 3 (<4k / 4k–8k / >8k) |
 | sleep' | 2 |
-| action | 4 |
 | burden | 3 |
 | day_of_week | 2 |
 | sleep | 2 |
 
-**(s, a) pairs:** 3 × 3 × 4 × 2 × 2 = **144**
-
-### Day execution order
-
-| Step | Table | Input sleep | Output |
-|---|---|---|---|
-| 0 (boundary) | Day-boundary | sleep (old) → sleep' (new) | sleep' |
-| 0 (within) | Within-day #0 | sleep' (just sampled) | step_bin' |
-| 1 | Within-day #1 | sleep' (from step 0) | step_bin' |
-| 2 | Within-day #2 | sleep' (from step 0) | step_bin' |
-| 3 | Within-day #3 | sleep' (from step 0) | step_bin' |
-| 4 | Within-day #4 | sleep' (from step 0) | step_bin' |
+**(s, a) pairs:** 3 × 3 × 2 × 2 = **36** (no action dimension)
 
 ### Total LLM cost
 
 | Table | Transition inputs (dim) | Transition outputs (dim) | Cardinality (probs) | Total LLM calls | Calls per cell |
 |---|---|---|---|---|---|
-| Day-boundary | step_bin(3)×burden(3)×action(4)×day(2)×sleep(2) = **144** | sleep'(2) | 288 | 2,880 | 10 |
+| Day-boundary | step_bin_daily(3)×burden(3)×day(2)×sleep(2) = **36** | sleep'(2) | 72 | 720 | 10 |
 | Within-day #0 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
 | Within-day #1 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
 | Within-day #2 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
 | Within-day #3 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
 | Within-day #4 | 144 | step_bin'(3) | 432 | 4,320 | 10 |
-| **Total** | **864** | | **2,448** | **24,480** | **10** |
+| **Total** | **756** | | **2,232** | **22,320** | **10** |
 
-**Calls per pair:** 20 (day-boundary, 2 outputs) or 30 (within-day, 3 outputs) — both yield exactly 10 samples per output category.
+**Calls per (s,a) pair:** 20 (day-boundary, 2 outputs) or 30 (within-day, 3 outputs) — both yield exactly 10 samples per output category via Algorithm 2.
 
-At GPT-4o mini pricing (~$0.15/M input tokens, ~$0.60/M output tokens), roughly 50–100 tokens per call → ~$1.50 total. Trivial.
-
-### Deterministic dimensions (no hand-written probabilities needed)
-
-| Dimension | Behaviour |
-|---|---|
-| time_of_day | Implicit — step index selects the within-day table (0-4) |
-| day_of_week | Advances deterministically, flips at 6→0 |
-| burden | Rolling formula — count non-idle in last 3 |
-| goal_progress | Dropped from transition moderators |
-| previous_action, response_{t-1} | Excluded from Sprint 1 |
+At DeepSeek V4 Flash pricing (~$0.09/M input tokens, ~$0.18/M output tokens), roughly 50–100 tokens per call → ~$0.27 total (see [Bootstrapping cost](#total-llm-cost)).
 
 ### State space summary
 
-The agent observes the full state at each step:
+The agent observes the full state at each step (Algorithm 1):
 
 | Dimension | Bins | Updates | Stochastic? |
 |---|---|---|---|
-| step_bin | 3 | Every step | Yes |
-| sleep | 2 | Daily (step 0) | Yes (day-boundary table) |
+| step_bin | 3 (per-timestep thresholds) | Every step | Yes (within-day table) |
+| sleep | 2 (good / poor) | Daily (step 0) | Yes (day-boundary table) |
 | day_of_week | 2 | Daily (step 0) | Deterministic |
 | burden | 3 | Every step | Deterministic (formula) |
 | time_of_day | implicit | Not a state dimension | — |
 
 Total state cardinality: 3 × 2 × 2 × 3 = **36 states** (time_of_day is implicit, archetype deferred).
 
+Note: `step_bin_daily` is not a state dimension — it is computed at the day boundary from the previous day's accumulated midpoints (Algorithm 1 line 7). The state always carries the per-timestep `step_bin`.
+
 ---
 
 ## LLM bootstrapping prompt design
 
-All 6 transition tables are bootstrapped via LLM calls through OpenRouter using **DeepSeek V4 Flash** ($0.09/M input tokens, $0.18/M output tokens).
-
-The LLM outputs raw step counts for within-day prompts; the environment bins the result into the 3-level step_bin. The day-boundary prompt outputs a binary JSON choice.
+All 6 transition tables are bootstrapped via [Algorithm 2](#algorithm-2-bootstrap-transition-table-from-llm) through OpenRouter using **DeepSeek V4 Flash** ($0.09/M input tokens, $0.18/M output tokens). The LLM outputs raw step counts for within-day prompts (environment bins to 3-level step_bin); the day-boundary prompt outputs a binary JSON choice.
 
 ### System prompt (cached once)
 
 ```
 # Reference
+
+You are a generally healthy adult looking to improve your exercise and sleep habits.
 
 5 timesteps per day: morning, mid-morning, lunch, afternoon, evening
 
@@ -508,7 +558,12 @@ Per-timestep step ranges (daily threshold / 5):
   800-1600 steps = moderate
   >1600 steps    = active
 
-Sleep: >7h = well rested  |  ≤7h = under-rested
+Sleep quality: good / poor (based on how well you slept)
+
+Daily step total ranges (5 timesteps × per-timestep ranges):
+  <4000 steps total     = inactive
+  4000-8000 steps total = moderate
+  >8000 steps total     = active
 
 Burden (notification fatigue):
   low     = 0 of last 3 timesteps had an intervention
@@ -521,14 +576,14 @@ Burden (notification fatigue):
 ```
 # Current state
 You just woke up. It is the morning. It is a {weekday/weekend}.
-You slept {>7h / ≤7h}. Your notification fatigue is {low/medium/high}.
+Your sleep quality was {good / poor}. Your notification fatigue is {low/medium/high}.
 
 {Your phone just said: {movement_suggestion / goal_reminder / journal}.
 
 How many steps do you take this timestep?
 ```
 
-The LLM outputs a raw number (e.g. `800`). The environment adds it to the cumulative daily total and maps to a step bin.
+The LLM outputs a raw number (e.g. `800`). The environment maps it to a step bin for the transition and adds `mid_point(bin)` to the day's running total.
 
 ### Within-day prompt (timesteps 2–5)
 
@@ -537,7 +592,7 @@ The LLM outputs a raw number (e.g. `800`). The environment adds it to the cumula
 It is the {mid-morning / lunch / afternoon / evening}. Last timestep
 ({morning / mid-morning / lunch / afternoon}) you took {inferred_step_count} steps.
 Your notification fatigue is {low/medium/high}. It is a {weekday/weekend}.
-You slept {>7h / ≤7h}.
+Your sleep quality was {good / poor}.
 
 {Your phone just said: {movement_suggestion / goal_reminder / journal}.
  -or- No action.}
@@ -552,47 +607,57 @@ The `{inferred_step_count}` is the midpoint of the step_bin range from the previ
 ```
 # Current state
 You are at the end of the day. It was a {weekday/weekend}.
-You slept {>7h / ≤7h} last night. Your notification fatigue is {low/medium/high}.
+Your sleep quality last night was {good / poor}. Your notification fatigue is {low/medium/high}.
 
-Your day:
-  morning:      {inferred_step_count} steps ({step_bin})
-  mid-morning:  {inferred_step_count} steps ({step_bin})
-  lunch:        {inferred_step_count} steps ({step_bin})
-  afternoon:    {inferred_step_count} steps ({step_bin})
-  evening:      {inferred_step_count} steps ({step_bin})
-
+Today you did {daily_total} total steps ({step_bin_daily}).
 Your notifications today: {morning_action}, {mid-morning_action}, {lunch_action}, {afternoon_action}, {evening_action}
 
-It's bedtime. Do you sleep >7 hours tonight?
-{"sleep_>7h": true}
-{"sleep_>7h": false}
+It's bedtime. How was your sleep quality tonight?
+{"sleep_quality": "good"}
+{"sleep_quality": "poor"}
 ```
 
-The day-boundary prompt shows the full per-timestep breakdown from the last day — each timestep's raw step count and its corresponding bin — so the LLM can reason about how the day's activity pattern affects sleep quality.
+The prompt gives the LLM the daily step total and bin (computed by the environment from per-timestep midpoints) plus the notification sequence for burden context.
 
-### Cost-benefit summary
+---
 
-**Usage estimate (all models):**
-- 24,480 LLM calls
-- ~3.2M input tokens (120 avg per within-day, 180 per day-boundary)
-- ~0.24M output tokens (10 avg per call)
-- ~75% prompt cache hit rate (system prompt + JSON key structure cached)
+## Implementation summary
 
-**List prices (OpenRouter, June 2026):**
+Build targets extracted from the Sprint 1 design decisions above. Each bullet maps to a discrete change in the codebase.
 
-| Model | Input / 1M | Output / 1M | Cache read / 1M | Est. cost (no cache) | Est. cost (75% cache) |
-|---|---|---|---|---|---|
-| DeepSeek V4 Flash | $0.09 | $0.18 | $0.09 | **~$0.33** | **~$0.15** |
-| GLM 5.2 | $0.95 | $3.00 | $0.18 | **~$3.76** | **~$1.35** |
-| Claude Sonnet 4.6 | $3.00 | $15.00 | $0.30† | **~$13.20** | **~$4.60** |
-| Claude Opus 4.8 | $5.00 | $25.00 | $0.50† | **~$22.00** | **~$7.40** |
-| GPT-5.5 | $5.00 | $30.00 | $0.50† | **~$23.20** | **~$7.80** |
+### Config & state
+- New `FactoredMDPConfig` pydantic model for the `state.factors` YAML structure (alongside, not replacing, the existing `MDPConfig`)
+- `load_config()` dispatches to old or new model based on top-level keys
+- Factored state dataclass `(step_bin, burden, day_of_week, sleep)` replacing flat `StateView`
+- State dimension metadata reads from config (dims, names, boundaries)
 
-† Estimated cache read price (Anthropic/OpenAI don't publish separate cache pricing; ~10% of input price assumed).
+### Episode loop
+- Python implementation of Algorithm 1: step-index loop with day-boundary vs within-day transition dispatch, burden update via rolling window formula, reward via expression parser
+- `Environment.step()` adapted for factored state (accepts action, returns factored next state)
 
-**Prompt caching** reduces effective cost by 60–80% when the same system prompt and JSON structure is reused across calls — which is exactly our use case (identical structure, only values vary). With caching, DeepSeek V4 Flash goes from ~$0.33 to ~$0.15.
+### Bootstrap transition model
+- New `BootstrapTransition(TransitionModel)` — loads pre-computed JSON tables from `tables/` at init, samples next state per Algorithm 2 output
+- `table_dir` config field resolves from repo root
 
-Even without caching, DeepSeek V4 Flash is **~40× cheaper** than GPT-5.5 and **~70× cheaper** output vs Claude Opus 4.8. For a bootstrapping task where any frontier model produces reasonable transition estimates, DeepSeek V4 Flash is the clear cost leader.
+### Bootstrap script
+- Implements Algorithm 2: iterate `(s, a)` pairs per table, call DeepSeek V4 Flash via OpenRouter, parse output, normalize counts
+- Writes 6 JSON files: `day_boundary.json` + `within_day_0..4.json`
+
+### Reward expression parser
+- Safe evaluator: `ast.NodeVisitor` allowlisting `Constant`, `Name`, `BinOp(+, -, *, /)`, `UnaryOp(-)`
+- Reads config `reward.constants`, `reward.variables`, `reward.formula`; resolves variable values from runtime state and action
+- Per-action penalty from `actions.{name}.action_penalty`
+
+### Agents
+- All 4 contextual bandits use full 36-state tuple as context key (extend `_get_context_key` to accept multi-field feature list)
+- New `IdleOnlyAgent` — always selects idle, no learning
+- Q-learning deferred
+
+### Evaluation runner
+- Single bootstrap → load once → all runs share the same environment dynamics
+- 50 base seeds × 5 agent indices via `derive_agent_seed(base_seed, agent_index)`
+- Metrics: total reward, per-step reward, last-50 convergence, % gap vs optimal
+- No fixed-ratio baseline
 
 ---
 
@@ -602,3 +667,5 @@ Even without caching, DeepSeek V4 Flash is **~40× cheaper** than GPT-5.5 and **
 |------|--------|
 | 2026-06-28 | Sprint 1 config locked in at `docs/sprint1/configs/sprint1.yaml` |
 | 2026-06-28 | Deferred decisions documented in `docs/research/future-sprints.md` |
+| 2026-07-01 | Sleep bins → good/poor; sleep added to reward; LLM prompts updated with persona; day-boundary action dimension removed; Algorithm 1 + Algorithm 2 added; duplicate content removed; D3/D9/D11 rationale updated |
+| 2026-07-01 | Config-driven reward formula (`constants` + `variables` + `formula`) with safe expression parser; per-action penalty in config; Q-learning deferred to sprint after MVP; fixed-ratio dropped; idle-only added; contextual agents use full 36-state context key; JSON table format (`tables/` from repo root); `FactoredMDPConfig` model; shared bootstrap + shared seeds evaluation design |
