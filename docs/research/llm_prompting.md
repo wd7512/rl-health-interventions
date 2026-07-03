@@ -54,8 +54,8 @@ Each of 5 daily time slots (morning, mid-morning, lunch, afternoon, evening) get
 - Day type (weekday/weekend)
 - Sleep quality (good/poor)
 - Burden level (low/medium/high)
-- Previous timestep's step count (inferred midpoint)
-- Action taken (or "No action")
+- Previous timestep's activity bin (inactive / moderately active / active)
+- Action taken (no notification sentence for idle)
 
 The LLM outputs a raw step count (e.g., "800"), which the environment bins into the 3-level step_bin.
 
@@ -537,11 +537,3 @@ The factored state (step_bin, burden, day_of_week, sleep) captures some temporal
 39. Kopec, J.A., et al. (2013). "POHEM-PA: Microsimulation of physical activity." *Statistics Canada.* — Microsimulation of physical activity using population-level health data. Closest prior work on MDP-based physical activity modeling.
 
 *Next update: After Sprint 1 validation results are available*
-
-### Additional References (cited in Self-Grill)
-
-37. Klasnja, P., et al. (2018). "Microrandomized Trials for HeartSteps V2." *Journal of Medical Internet Research.* — Foundational JITAI trial showing +34% step increase with context-aware nudges. Used as anchor for action effect size expectations.
-
-38. Doherty, A., et al. (2017). "Large scale population-level physical activity monitoring." *International Conference on Ambient Intelligence.* — Published autocorrelation values for step counts (lag-1 ~0.3–0.5). Used as reference for temporal dependency validation.
-
-39. Kopec, J.A., et al. (2013). "POHEM-PA: Microsimulation of physical activity." *Statistics Canada.* — Microsimulation of physical activity using population-level health data. Closest prior work on MDP-based physical activity modeling.
