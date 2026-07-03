@@ -44,14 +44,14 @@ def _read_csv_dict(path: Path) -> list[dict[str, str]]:
         return list(reader)
 
 
-def _to_numeric(value: str) -> float | int:
-    """Convert string to numeric (float or int)."""
+def _to_numeric(value: str) -> float | int | None:
+    """Convert string to numeric (float or int). Returns None if not numeric."""
     try:
         if "." in value:
             return float(value)
         return int(value)
     except ValueError:
-        return value
+        return None
 
 
 def _parse_eg_df(rows: list[dict[str, str]]) -> tuple[list[dict], list[dict]]:
