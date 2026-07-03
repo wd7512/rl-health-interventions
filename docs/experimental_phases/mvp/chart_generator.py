@@ -44,16 +44,6 @@ def _read_csv_dict(path: Path) -> list[dict[str, str]]:
         return list(reader)
 
 
-def _to_numeric(value: str) -> float | int | None:
-    """Convert string to numeric (float or int). Returns None if not numeric."""
-    try:
-        if "." in value:
-            return float(value)
-        return int(value)
-    except ValueError:
-        return None
-
-
 def _parse_eg_df(rows: list[dict[str, str]]) -> tuple[list[dict], list[dict]]:
     """Parse epsilon-greedy results into standard and contextual groups."""
     std = []
@@ -76,13 +66,19 @@ def _parse_eg_df(rows: list[dict[str, str]]) -> tuple[list[dict], list[dict]]:
 def _extract_float(params: str, pattern: str) -> float:
     """Extract float value from params string using regex."""
     match = re.search(pattern, params)
-    return float(match.group(1)) if match else 0.0
+    if not match:
+        logger.warning("Pattern %r did not match params %r", pattern, params)
+        return 0.0
+    return float(match.group(1))
 
 
 def _extract_int(params: str, pattern: str) -> int:
     """Extract int value from params string using regex."""
     match = re.search(pattern, params)
-    return int(match.group(1)) if match else 0
+    if not match:
+        logger.warning("Pattern %r did not match params %r", pattern, params)
+        return 0
+    return int(match.group(1))
 
 
 def _parse_ucb_df(rows: list[dict[str, str]]) -> tuple[list[dict], list[dict]]:
