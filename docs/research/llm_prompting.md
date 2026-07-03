@@ -76,6 +76,8 @@ The LLM outputs a binary JSON choice: `{"sleep_quality": "good"}` or `{"sleep_qu
 | Within-day ×5 | P(step_bin' \| step_bin, burden, action, day, sleep) | 3×4×3×2×2 = 144 | step_bin'(3) | 144 | 4,320 |
 | **Total** | | **756** | | | **22,320** |
 
+> **Counting convention:** Each (s,a) pair produces a distribution over outcomes. The LLM is called multiple times to sample from this distribution: 20 calls/pair for day-boundary (2 outcomes: good/poor), 30 calls/pair for within-day (3 outcomes: inactive/moderate/active). Both yield exactly 10 samples per output category. Total: 36×20 + 720×30 = 22,320 calls.
+
 Each (s,a) pair is sampled **10 times** (Algorithm 2), yielding 10 draws per outcome category. This sampling approach converts LLM generation into a stochastic estimator of transition probabilities.
 
 ### Cost Breakdown
@@ -413,7 +415,7 @@ Papers are ordered by relevance to our LLM transition bootstrap approach (highes
 
 29. **Jiang, Y., et al. (2024).** "Can Language Models Serve as Text-Based World Simulators?" arXiv. *GPT-4 as world simulator: impressive but unreliable.* [arXiv:2406.06485](https://arxiv.org/abs/2406.06485)
 
-30. **Kopec, J.A., et al. (2013).** "Development of a Population-Based Microsimulation Model of Physical Activity in Canada." Health Reports. *POHEM-PA module simulating physical activity trajectories.* [statcan.gc.ca](https://www150.statcan.gc.nlc/pub/82-003-x/2013001/article/11777-eng.htm)
+30. **Kopec, J.A., et al. (2013).** "Development of a Population-Based Microsimulation Model of Physical Activity in Canada." Health Reports. *POHEM-PA module simulating physical activity trajectories.* [statcan.gc.ca](https://www150.statcan.gc.ca/pub/82-003-x/2013001/article/11777-eng.htm)
 
 31. **Alomana, et al. (2026).** "When Correct Isn't Usable: Improving Structured Output Reliability in Small Language Models." arXiv. *Smaller models struggle with format compliance; prompt optimization helps.* [arXiv:2605.02363](https://arxiv.org/abs/2605.02363)
 
@@ -525,4 +527,21 @@ The factored state (step_bin, burden, day_of_week, sleep) captures some temporal
 
 *Compiled: July 3, 2026*
 *Reviewers: 9 parallel search agents + self-grill*
+
+### Additional References (cited in Self-Grill)
+
+37. Klasnja, P., et al. (2018). "Microrandomized Trials for HeartSteps V2." *Journal of Medical Internet Research.* — Foundational JITAI trial showing +34% step increase with context-aware nudges. Used as anchor for action effect size expectations.
+
+38. Doherty, A., et al. (2017). "Large scale population-level physical activity monitoring." *International Conference on Ambient Intelligence.* — Published autocorrelation values for step counts (lag-1 ~0.3-0.5). Used as reference for temporal dependency validation.
+
+39. Kopec, J.A., et al. (2013). "POHEM-PA: Microsimulation of physical activity." *Statistics Canada.* — Microsimulation of physical activity using population-level health data. Closest prior work on MDP-based physical activity modeling.
+
 *Next update: After Sprint 1 validation results are available*
+
+### Additional References (cited in Self-Grill)
+
+37. Klasnja, P., et al. (2018). "Microrandomized Trials for HeartSteps V2." *Journal of Medical Internet Research.* — Foundational JITAI trial showing +34% step increase with context-aware nudges. Used as anchor for action effect size expectations.
+
+38. Doherty, A., et al. (2017). "Large scale population-level physical activity monitoring." *International Conference on Ambient Intelligence.* — Published autocorrelation values for step counts (lag-1 ~0.3–0.5). Used as reference for temporal dependency validation.
+
+39. Kopec, J.A., et al. (2013). "POHEM-PA: Microsimulation of physical activity." *Statistics Canada.* — Microsimulation of physical activity using population-level health data. Closest prior work on MDP-based physical activity modeling.
