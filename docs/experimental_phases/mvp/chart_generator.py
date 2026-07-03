@@ -39,7 +39,7 @@ IMAGES_DIR = Path(__file__).resolve().parent / "images"
 
 def _read_csv_dict(path: Path) -> list[dict[str, str]]:
     """Read CSV file and return list of dictionaries."""
-    with open(path, newline="") as f:
+    with open(path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         return list(reader)
 
