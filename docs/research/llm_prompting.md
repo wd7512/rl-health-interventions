@@ -536,4 +536,47 @@ The factored state (step_bin, burden, day_of_week, sleep) captures some temporal
 
 39. Kopec, J.A., et al. (2013). "POHEM-PA: Microsimulation of physical activity." *Statistics Canada.* — Microsimulation of physical activity using population-level health data. Closest prior work on MDP-based physical activity modeling.
 
+---
+
+## Prompt Scorecard & Applied Improvements
+
+This section scores the current Sprint 1 bootstrapping prompts against criteria derived from the literature review, then documents the concrete improvements applied and why.
+
+### Scorecard
+
+| Criterion | Current | Target | Gap | Key Literature |
+|-----------|---------|--------|-----|----------------|
+| Behavioral mechanism in prompt | Variables listed, no causal framing | Prompt communicates *why* variables matter | 3/10 | Patient-Ψ (Wang 2024): cognitive-model grounding improves fidelity; MHC-Coach (2025): theory-grounded prompts more appropriate |
+| Persona variance | Single "healthy adult" centroid | Multiple dimensions to avoid collapse to training mean | 2/10 | Park (2024): single centroids miss heterogeneity; Argollo da Costa (2025): subgroup differentiation remains challenging |
+| State-label alignment | Midpoint numbers (e.g. "1200") in prompt diverge from environment's stored bins | LLM self-narrative matches simulation state | 4/10 | Jiang (2024): consistent self-narrative improves world model fidelity; Lu (2025): cumulative drift over long horizons |
+| Clean action templates | `-or- No action` formatting ambiguous; idle has no natural rendering | Per-action natural sentences; idle omitted to avoid priming bias | 4/10 | Alomana (2026): unambiguous templates improve compliance; Structured Output literature (SLOT, XGrammar): simple schemas reduce format errors |
+| Pre-bootstrap sanity checks | No defined probe procedure before full 22,320-call run | Systematic check of 3-5 cells for burden monotonicity, action sensitivity, sleep-step correlation | 0/10 | Self-Grill Q1 (this document); Bayley (2025): robustness to noisy priors requires baseline calibration |
+| Multi-persona extension path | Persona is hardcoded, no configurable slot | Template supports `{persona}` variable for Phase 2 archetypes | 3/10 | Deferred to Phase 2 (per resolved-decisions doc D13); Park (2024) and Argollo da Costa (2025) provide the evidence base |
+
+### Applied Improvements
+
+Two changes were made to the within-day prompt templates in [`resolved-decisions-sprint-1.md`](../resolved-decisions-sprint-1.md#llm-bootstrapping-prompt-design). Both are documented here with their literature rationale.
+
+**1. Bin labels replace midpoint numbers.** The within-day prompts (timesteps 2–5) previously read `you took {inferred_step_count} steps` where `{inferred_step_count}` was the numeric midpoint of the previous bin (e.g., 1200 for "moderate"). This is now `you were {inactive / moderately active / active}`, using the bin label directly.
+
+*Rationale:* The environment discretizes the LLM's raw output to a 3-level bin, but the next prompt back-filled the midpoint — introducing a consistent ~200-400 step error every timestep. Over 450 timesteps this self-narrative drift compounds. Jiang et al. (2024) find that LLM world model accuracy depends on consistent self-narrative; Lu et al. (2025) show that behavioral fidelity degrades over long horizons partly due to accumulated state misrepresentation. Using the bin label keeps the LLM's view congruent with the simulation state.
+
+**2. Natural per-action sentences with idle omission.** The action line previously used a mixed template: `{Your phone just said: {movement_suggestion / goal_reminder / journal}. -or- No action.}` This is replaced:
+- **idle:** No notification sentence (action line omitted entirely)
+- **movement_suggestion:** `Your phone buzzes with a movement suggestion.`
+- **goal_reminder:** `Your phone reminds you of your step goal.`
+- **journal:** `Your phone prompts you to write in your journal.`
+
+*Rationale:* The `-or- No action` construction was ambiguous — it was unclear whether "No action" was a phone message or a separate state. For idle, rendering any notification sentence risks priming the LLM toward a different behavioral response than true absence of intervention (a framing concern discussed during review). Alomana et al. (2026) show that clean, unambiguous templates improve format compliance, especially in smaller models. The structured output literature (SLOT, XGrammar) consistently recommends avoiding mixed-condition templates.
+
+### Gaps Not Addressed in This Pass
+
+Two gaps from the scorecard table remain open:
+
+1. **Pre-bootstrap sanity checks** (0/10) — A formal probe procedure (50–100 samples on 3–5 `(s,a)` cells; check burden monotonicity, action sensitivity, sleep-step correlation) should be defined before the first full bootstrap run. This is cheap (<$0.01) and the most impactful next step for prompt quality.
+
+2. **Multi-persona bootstrapping** (3/10) — A configurable `{persona}` slot in the prompt template is deferred to Phase 2 along with the archetypes framework (resolved-decisions doc D13).
+
+---
+
 *Next update: After Sprint 1 validation results are available*

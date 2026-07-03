@@ -574,33 +574,34 @@ Burden (notification fatigue):
 ### Within-day prompt (timestep 1 — morning)
 
 ```
+
 # Current state
 You just woke up. It is the morning. It is a {weekday/weekend}.
 Your sleep quality was {good / poor}. Your notification fatigue is {low/medium/high}.
 
-{Your phone just said: {movement_suggestion / goal_reminder / journal}.
+{Your phone buzzes with a movement suggestion. / Your phone reminds you of your step goal. / Your phone prompts you to write in your journal.}
 
 How many steps do you take this timestep?
 ```
 
-The LLM outputs a raw number (e.g. `800`). The environment maps it to a step bin for the transition and adds `mid_point(bin)` to the day's running total.
+The LLM outputs a raw number (e.g. `800`). The environment maps it to a step bin for the transition and adds `mid_point(bin)` to the day's running total. The action sentence is only rendered for non-idle actions (idle: no notification sentence).
 
 ### Within-day prompt (timesteps 2–5)
 
 ```
+
 # Current state
 It is the {mid-morning / lunch / afternoon / evening}. Last timestep
-({morning / mid-morning / lunch / afternoon}) you took {inferred_step_count} steps.
+({morning / mid-morning / lunch / afternoon}) you were {inactive / moderately active / active}.
 Your notification fatigue is {low/medium/high}. It is a {weekday/weekend}.
 Your sleep quality was {good / poor}.
 
-{Your phone just said: {movement_suggestion / goal_reminder / journal}.
- -or- No action.}
+{Your phone buzzes with a movement suggestion. / Your phone reminds you of your step goal. / Your phone prompts you to write in your journal.}
 
 How many steps do you take this timestep?
 ```
 
-The `{inferred_step_count}` is the midpoint of the step_bin range from the previous timestep's output.
+The bin label (`{inactive / moderately active / active}`) is the step bin from the previous timestep's output. The action sentence is only rendered for non-idle actions (idle: no notification sentence).
 
 ### Day-boundary prompt
 
@@ -669,3 +670,4 @@ Build targets extracted from the Sprint 1 design decisions above. Each bullet ma
 | 2026-06-28 | Deferred decisions documented in `docs/research/future-sprints.md` |
 | 2026-07-01 | Sleep bins → good/poor; sleep added to reward; LLM prompts updated with persona; day-boundary action dimension removed; Algorithm 1 + Algorithm 2 added; duplicate content removed; D3/D9/D11 rationale updated |
 | 2026-07-01 | Config-driven reward formula (`constants` + `variables` + `formula`) with safe expression parser; per-action penalty in config; Q-learning deferred to sprint after MVP; fixed-ratio dropped; idle-only added; contextual agents use full 36-state context key; JSON table format (`tables/` from repo root); `FactoredMDPConfig` model; shared bootstrap + shared seeds evaluation design |
+| 2026-07-03 | Within-day prompts: bin labels replace midpoint numbers for self-narrative consistency (Jiang et al. 2024, Lu et al. 2025); natural per-action sentences with idle omission (Alomana et al. 2026). See `llm_prompting.md §Prompt-Scorecard` for rationale. |
