@@ -2,6 +2,11 @@ from __future__ import annotations
 
 
 class StateView:
+    _factors: dict[str, str]
+    _day: int
+    _step_of_day: int
+    _steps_per_day: int
+
     def __init__(
         self,
         factors: dict[str, str],
@@ -54,9 +59,7 @@ class StateView:
         new_factors = {**self._factors, **updates}
         return StateView(new_factors, self._day, self._step_of_day, self._steps_per_day)
 
-    def with_advance(
-        self, step_idx: int | None = None
-    ) -> StateView:
+    def with_advance(self, step_idx: int | None = None) -> StateView:
         """Advance to the next timestep. Called by the environment after a step."""
         step = self._step_of_day + 1 if step_idx is None else step_idx
         next_step_of_day = step % self._steps_per_day
@@ -80,6 +83,4 @@ class StateView:
 
     def __repr__(self) -> str:
         factors_repr = ", ".join(f"{k}={v!r}" for k, v in sorted(self._factors.items()))
-        return (
-            f"StateView({factors_repr}, day={self._day}, step_of_day={self._step_of_day})"
-        )
+        return f"StateView({factors_repr}, day={self._day}, step_of_day={self._step_of_day})"

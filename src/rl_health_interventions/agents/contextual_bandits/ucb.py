@@ -45,7 +45,7 @@ class UCBAgent(ContextualBanditAgent):
             self.q_values = dict.fromkeys(self._actions, 0.0)
             self.counts = dict.fromkeys(self._actions, 0)
 
-    def _ensure_params(self, key: str | tuple[str, str]) -> None:
+    def _ensure_params(self, key: str | tuple[str, ...]) -> None:
         if key not in self.q_values:
             self.q_values[key] = 0.0
             self.counts[key] = 0

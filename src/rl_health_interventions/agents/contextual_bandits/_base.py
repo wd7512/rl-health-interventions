@@ -24,6 +24,7 @@ class ContextualBanditAgent(Agent):
             context_feature is None
             or (isinstance(context_feature, str) and not context_feature.strip())
             or (isinstance(context_feature, list) and not context_feature)
+            or not isinstance(context_feature, (str, list))
         ):
             raise ValueError(
                 "context_feature must be a non-empty string or list when contextual=True"
