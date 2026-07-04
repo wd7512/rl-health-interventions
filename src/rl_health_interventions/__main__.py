@@ -59,7 +59,7 @@ def main() -> None:
     env_seed = args.seed if args.seed is not None else config.seed
     agent_seed = derive_agent_seed(env_seed)
 
-    agent = make_agent(agent_name, seed=agent_seed, actions=config.actions)
+    agent = make_agent(agent_name, seed=agent_seed, actions=config.action_names)
 
     output_path = Path(args.output)
     df = run_episode(config, agent, output_csv=output_path, seed=env_seed)
