@@ -68,10 +68,10 @@ def test_agent_config_accepts_contextual_fields():
         alpha_prior=1,
         beta_prior=1,
         contextual=True,
-        context_feature="activity",
+        context_feature="activity_level",
     )
     assert config.contextual is True
-    assert config.context_feature == "activity"
+    assert config.context_feature == "activity_level"
 
 
 def test_non_contextual_config_no_regression():
@@ -92,7 +92,7 @@ def test_contextual_ts_learns_context_dependent_optimal_actions():
         alpha_prior=1.0,
         beta_prior=1.0,
         contextual=True,
-        context_feature="activity",
+        context_feature="activity_level",
     )
     rng = np.random.default_rng(42)
     contexts = ["sedentary", "active"]
@@ -100,7 +100,7 @@ def test_contextual_ts_learns_context_dependent_optimal_actions():
 
     for _ in range(n_iterations):
         ctx = rng.choice(contexts)
-        state = StateView(activity=ctx, day=0, step_of_day=0)
+        state = StateView(factors={"activity_level": ctx}, day=0, step_of_day=0)
         action = agent.select_action(state)
         if ctx == "sedentary":
             reward = 1.0 if rng.random() < (0.8 if action == "nudge" else 0.2) else 0.0
@@ -129,14 +129,14 @@ def test_contextual_ts_uniform_rewards():
         alpha_prior=1.0,
         beta_prior=1.0,
         contextual=True,
-        context_feature="activity",
+        context_feature="activity_level",
     )
     rng = np.random.default_rng(42)
     contexts = ["sedentary", "active"]
 
     for _ in range(2000):
         ctx = rng.choice(contexts)
-        state = StateView(activity=ctx, day=0, step_of_day=0)
+        state = StateView(factors={"activity_level": ctx}, day=0, step_of_day=0)
         action = agent.select_action(state)
         reward = 1.0 if rng.random() < 0.5 else 0.0
         agent.update(state, action, reward, state)

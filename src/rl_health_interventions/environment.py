@@ -41,7 +41,7 @@ class Environment:
         next_val = self._transition.transition(current_val, action)
 
         step_idx = self._step_count % self._config.steps_per_day
-        reward, _ = self._reward.reward(self._current_state, action, step_idx)
+        reward, _ = self._reward.reward(next_val, action, step_idx)
 
         self._step_count += 1
         self._current_state = self._current_state.with_factors(

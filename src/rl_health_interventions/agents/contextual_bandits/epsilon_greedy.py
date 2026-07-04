@@ -39,7 +39,7 @@ class EpsilonGreedyAgent(ContextualBanditAgent):
             self.q_values = {a: 0.0 for a in self._actions}
             self.counts = {a: 0 for a in self._actions}
 
-    def _ensure_params(self, key: str | tuple[str, str]) -> None:
+    def _ensure_params(self, key: str | tuple[str, ...]) -> None:
         if key not in self.q_values:
             self.q_values[key] = 0.0
             self.counts[key] = 0

@@ -17,24 +17,13 @@ def test_mdp_config_loaded_from_yaml():
     config = MDPConfig.model_validate(raw)
     assert config.steps_per_day == 5
     assert config.episode_days == 90
-    assert config.initial_state == "sedentary"
+    assert config.initial_state == {"activity_level": "sedentary"}
     assert config.seed == 42
-    assert set(config.states) == {"sedentary", "active"}
-    assert config.actions == ["nudge", "idle"]
+    assert "activity_level" in config.state.variables
+    assert config.action_names == ["nudge", "idle"]
     assert config.transition_model.type == "rule_based"
     assert len(config.agents) == 1
     assert config.agents[0].type == "thompson_sampling"
-
-
-def test_mdp_config_precomputes_per_step_reward():
-    path = ASSETS / "valid_mdp_config.yaml"
-    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
-    config = MDPConfig.model_validate(raw)
-    assert config.per_step_reward is not None
-    assert len(config.per_step_reward) == 5
-    for step_reward in config.per_step_reward:
-        assert step_reward["sedentary"] == 0.0
-        assert step_reward["active"] == 1.0
 
 
 def test_load_config_reads_yaml_file():
@@ -58,13 +47,3 @@ def test_mdp_config_rejects_negative_episode_days():
     raw["episode_days"] = -1
     with pytest.raises(Exception):
         MDPConfig.model_validate(raw)
-
-
-def test_mdp_config_with_reward_multiplier():
-    path = ASSETS / "valid_mdp_config.yaml"
-    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
-    raw["reward_multiplier_by_step"] = [1, 1, 1, 1, 0]
-    config = MDPConfig.model_validate(raw)
-    assert config.per_step_reward is not None
-    assert config.per_step_reward[4]["active"] == 0.0
-    assert config.per_step_reward[0]["active"] == 1.0

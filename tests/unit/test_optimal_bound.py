@@ -12,12 +12,12 @@ import pytest
 
 from rl_health_interventions.config.schemas import (
     MDPConfig,
+    RewardConfig,
+    StateConfig,
     TransitionModelConfig,
     TransitionProbabilities,
 )
 
-# The optimal_bound.py module imports from _shared at module level.
-# Make the mvp directory importable so compute_bounds can be imported.
 _mvp_dir = (
     pathlib.Path(__file__).resolve().parents[2] / "docs" / "experimental_phases" / "mvp"
 )
@@ -61,37 +61,21 @@ def test_returns_expected_keys(valid_config):
     assert isinstance(bounds["fixed_rewards"], dict)
 
 
-def test_compute_bounds_raises_for_empty_states():
+def test_compute_bounds_raises_for_empty_variables():
     config = MDPConfig.model_construct(
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        initial_state="sedentary",
-        states={},
-        actions=["nudge"],
+        state=StateConfig.model_validate({"variables": {}, "parameters": {}}),
+        initial_state={},
+        actions={},
+        reward=RewardConfig.model_validate({"variables": {}, "formula": "0"}),
         transition_model=TransitionModelConfig(
             type="rule_based",
             transition_probabilities=None,
         ),
     )
-    with pytest.raises(ValueError, match="config.states is required"):
-        compute_bounds(config)
-
-
-def test_compute_bounds_raises_for_empty_actions():
-    config = MDPConfig.model_construct(
-        episode_days=1,
-        steps_per_day=1,
-        seed=42,
-        initial_state="sedentary",
-        states={"sedentary": {"reward": 0.0}},
-        actions=[],
-        transition_model=TransitionModelConfig(
-            type="rule_based",
-            transition_probabilities=None,
-        ),
-    )
-    with pytest.raises(ValueError, match="config.actions is required"):
+    with pytest.raises(ValueError, match="variables is required"):
         compute_bounds(config)
 
 
@@ -100,9 +84,27 @@ def test_compute_bounds_raises_for_missing_transition_probabilities():
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        initial_state="sedentary",
-        states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
-        actions=["nudge"],
+        state=StateConfig.model_validate(
+            {
+                "variables": {
+                    "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
+                },
+                "parameters": {},
+            }
+        ),
+        initial_state={"activity_level": "sedentary"},
+        actions={"nudge": {}, "idle": {}},
+        reward=RewardConfig.model_validate(
+            {
+                "variables": {
+                    "value": {
+                        "source": "state.activity_level",
+                        "mapping": {"sedentary": 0.0, "active": 1.0},
+                    }
+                },
+                "formula": "value",
+            }
+        ),
         transition_model=TransitionModelConfig(
             type="rule_based",
             transition_probabilities=None,
@@ -113,21 +115,26 @@ def test_compute_bounds_raises_for_missing_transition_probabilities():
 
 
 def test_symmetric_two_state_mdp():
-    """2-state MDP where both actions are identical 50/50 transitions.
-
-    Stationary dist = [0.5, 0.5]; E[r] per step = 0.5 * 0 + 0.5 * 1 = 0.5.
-    All bounds should be the same since actions are identical.
-    """
     config = MDPConfig(
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        initial_state="sedentary",
-        states={
-            "sedentary": {"reward": 0.0},
-            "active": {"reward": 1.0},
+        state={
+            "variables": {
+                "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
+            }
         },
+        initial_state={"activity_level": "sedentary"},
         actions=["nudge", "idle"],
+        reward={
+            "variables": {
+                "value": {
+                    "source": "state.activity_level",
+                    "mapping": {"sedentary": 0.0, "active": 1.0},
+                }
+            },
+            "formula": "value",
+        },
         transition_model={
             "type": "rule_based",
             "transition_probabilities": {
@@ -150,14 +157,22 @@ def test_symmetric_two_state_mdp():
 
 
 def test_compute_bounds_raises_for_invalid_state_count():
-    """_stationary is specific to 2x2 transition matrices — reject other sizes."""
     config = MDPConfig(
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        initial_state="a",
-        states={"a": {"reward": 0.0}, "b": {"reward": 0.5}, "c": {"reward": 1.0}},
+        state={"variables": {"category": {"dims": 3, "names": ["a", "b", "c"]}}},
+        initial_state={"category": "a"},
         actions=["nudge"],
+        reward={
+            "variables": {
+                "value": {
+                    "source": "state.category",
+                    "mapping": {"a": 0.0, "b": 0.5, "c": 1.0},
+                }
+            },
+            "formula": "value",
+        },
         transition_model=TransitionModelConfig(
             type="rule_based",
             transition_probabilities=TransitionProbabilities(
@@ -171,22 +186,4 @@ def test_compute_bounds_raises_for_invalid_state_count():
         agents=[],
     )
     with pytest.raises(ValueError, match="exactly 2 states"):
-        compute_bounds(config)
-
-
-def test_compute_bounds_raises_for_schema_reference():
-    """compute_bounds should raise ValueError for schema-referenced configs."""
-    config = MDPConfig.model_construct(
-        episode_days=1,
-        steps_per_day=1,
-        seed=42,
-        initial_state="sedentary",
-        states={"schema": "some_schema_ref"},
-        actions=["nudge"],
-        transition_model=TransitionModelConfig(
-            type="rule_based",
-            transition_probabilities=None,
-        ),
-    )
-    with pytest.raises(ValueError, match="actual state definitions"):
         compute_bounds(config)

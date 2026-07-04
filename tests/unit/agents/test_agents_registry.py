@@ -7,6 +7,7 @@ from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAge
 from rl_health_interventions.agents.epsilon_greedy import EpsilonGreedyAgent
 from rl_health_interventions.agents.random import RandomAgent
 from rl_health_interventions.agents.ucb import UCBAgent
+from rl_health_interventions.agents.fixed import FixedAgent
 
 
 def test_all_agents_registered():
@@ -14,6 +15,7 @@ def test_all_agents_registered():
     assert "epsilon_greedy" in REGISTRY
     assert "random" in REGISTRY
     assert "ucb" in REGISTRY
+    assert "fixed" in REGISTRY
 
 
 def test_make_thompson_sampling():
@@ -34,6 +36,11 @@ def test_make_random():
 def test_make_ucb():
     instance = make("ucb")
     assert isinstance(instance, UCBAgent)
+
+
+def test_make_fixed():
+    instance = make("fixed")
+    assert isinstance(instance, FixedAgent)
 
 
 def test_make_unknown_raises_keyerror():
@@ -73,3 +80,8 @@ def test_make_ucb_with_custom_c():
     agent = make("ucb", c=1.5, seed=42)
     assert isinstance(agent, UCBAgent)
     assert agent.c == 1.5
+
+
+def test_make_fixed_with_action():
+    agent = make("fixed", action="nudge")
+    assert isinstance(agent, FixedAgent)

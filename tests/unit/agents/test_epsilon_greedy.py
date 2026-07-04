@@ -51,11 +51,11 @@ def test_contextual_epsilon_greedy_learns_per_context():
         epsilon=0.0,
         seed=42,
         contextual=True,
-        context_feature="activity",
+        context_feature="activity_level",
     )
 
-    sed = StateView(activity="sedentary", day=0, step_of_day=0)
-    act = StateView(activity="active", day=0, step_of_day=0)
+    sed = StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
+    act = StateView(factors={"activity_level": "active"}, day=0, step_of_day=0)
 
     for _ in range(100):
         agent.update(sed, "nudge", reward=0.0, next_state=sed)

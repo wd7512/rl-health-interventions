@@ -7,9 +7,22 @@ def _config(steps_per_day=5, episode_days=90) -> MDPConfig:
         episode_days=episode_days,
         steps_per_day=steps_per_day,
         seed=42,
-        initial_state="sedentary",
-        states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
+        state={
+            "variables": {
+                "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
+            }
+        },
+        initial_state={"activity_level": "sedentary"},
         actions=["nudge", "idle"],
+        reward={
+            "variables": {
+                "value": {
+                    "source": "state.activity_level",
+                    "mapping": {"sedentary": 0.0, "active": 1.0},
+                }
+            },
+            "formula": "value",
+        },
         transition_model={
             "type": "rule_based",
             "transition_probabilities": {
@@ -29,7 +42,7 @@ def _config(steps_per_day=5, episode_days=90) -> MDPConfig:
 def test_reset_returns_initial_state(valid_config):
     env = Environment(valid_config, seed=42)
     state = env.reset()
-    assert state.activity == "sedentary"
+    assert state.activity_level == "sedentary"
     assert state.day == 0
     assert state.step_of_day == 0
 
@@ -38,7 +51,7 @@ def test_step_returns_tuple(valid_config):
     env = Environment(valid_config, seed=42)
     env.reset()
     next_state, reward, done = env.step("nudge")
-    assert isinstance(next_state.activity, str)
+    assert isinstance(next_state.activity_level, str)
     assert isinstance(reward, float)
     assert isinstance(done, bool)
 
@@ -79,14 +92,26 @@ def test_step_before_reset_raises():
 def test_reward_multiplier_affects_reward():
     from rl_health_interventions.config.schemas import MDPConfig
 
-    # Deterministic transitions: always go to "active"
     config = MDPConfig(
         episode_days=1,
         steps_per_day=3,
         seed=42,
-        initial_state="sedentary",
-        states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
+        state={
+            "variables": {
+                "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
+            }
+        },
+        initial_state={"activity_level": "sedentary"},
         actions=["nudge", "idle"],
+        reward={
+            "variables": {
+                "value": {
+                    "source": "state.activity_level",
+                    "mapping": {"sedentary": 0.0, "active": 1.0},
+                }
+            },
+            "formula": "value",
+        },
         transition_model={
             "type": "rule_based",
             "transition_probabilities": {
@@ -104,9 +129,9 @@ def test_reward_multiplier_affects_reward():
     )
     env = Environment(config, seed=42)
     env.reset()
-    _, reward_0, _ = env.step("nudge")  # step_idx=0, always active → 1.0 * 1.0
-    _, reward_1, _ = env.step("nudge")  # step_idx=1, always active → 1.0 * 1.0
-    _, reward_2, _ = env.step("nudge")  # step_idx=2, always active → 1.0 * 0.0
+    _, reward_0, _ = env.step("nudge")
+    _, reward_1, _ = env.step("nudge")
+    _, reward_2, _ = env.step("nudge")
     assert reward_0 == 1.0
     assert reward_1 == 1.0
     assert reward_2 == 0.0

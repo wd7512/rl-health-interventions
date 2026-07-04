@@ -12,6 +12,7 @@ _ALLOWED_NODES = frozenset(
         ast.Expression,
         ast.Constant,
         ast.Name,
+        ast.Load,
         ast.BinOp,
         ast.Add,
         ast.Sub,
@@ -53,7 +54,7 @@ class ExpressionParser:
     def evaluate(self, variables: dict[str, float]) -> float:
         def _eval(node: ast.AST) -> float:
             if isinstance(node, ast.Constant):
-                return float(node.value)
+                return float(node.value)  # ty:ignore[invalid-argument-type]
             if isinstance(node, ast.Name):
                 try:
                     return variables[node.id]
@@ -66,7 +67,7 @@ class ExpressionParser:
                 left = _eval(node.left)
                 right = _eval(node.right)
                 try:
-                    op = _BINARY_OPS[type(node.op)]
+                    op = _BINARY_OPS[type(node.op)]  # ty:ignore[invalid-argument-type]
                 except KeyError:
                     raise ValueError(
                         f"Unsupported binary operator: {type(node.op).__name__}"
@@ -75,7 +76,7 @@ class ExpressionParser:
             if isinstance(node, ast.UnaryOp):
                 operand = _eval(node.operand)
                 try:
-                    op = _UNARY_OPS[type(node.op)]
+                    op = _UNARY_OPS[type(node.op)]  # ty:ignore[invalid-argument-type]
                 except KeyError:
                     raise ValueError(
                         f"Unsupported unary operator: {type(node.op).__name__}"

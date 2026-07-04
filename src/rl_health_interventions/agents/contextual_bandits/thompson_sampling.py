@@ -49,7 +49,7 @@ class ThompsonSamplingAgent(ContextualBanditAgent):
                 for action in self._actions
             }
 
-    def _ensure_params(self, key: str | tuple[str, str]) -> None:
+    def _ensure_params(self, key: str | tuple[str, ...]) -> None:
         if key not in self.posteriors:
             self.posteriors[key] = Posterior(
                 alpha=self.alpha_prior, beta=self.beta_prior

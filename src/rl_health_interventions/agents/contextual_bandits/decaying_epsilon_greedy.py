@@ -75,7 +75,7 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
             self.q_values = {a: 0.0 for a in self._actions}
             self.counts = {a: 0 for a in self._actions}
 
-    def _ensure_params(self, key: str | tuple[str, str]) -> None:
+    def _ensure_params(self, key: str | tuple[str, ...]) -> None:
         """
         Ensure Q-value and count entries are initialized for the given key.
 
