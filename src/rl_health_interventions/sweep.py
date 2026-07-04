@@ -20,7 +20,7 @@ def run_experiment(config_path: str | Path) -> dict[str, float]:
             for k, v in agent_cfg.model_dump().items()
             if v is not None and k != "type"
         }
-        kwargs["actions"] = config.actions
+        kwargs["actions"] = config.action_names
         kwargs["seed"] = derive_agent_seed(config.seed, agent_index=i)
         agent = make_agent(agent_cfg.type, **kwargs)
         records = run_episode(config, agent, seed=config.seed)
