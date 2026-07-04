@@ -5,6 +5,7 @@ import logging
 from rl_health_interventions.agents import (
     decaying_epsilon_greedy,
     epsilon_greedy,
+    fixed,
     random,
     thompson_sampling,
     ucb,
@@ -38,6 +39,7 @@ def make(name: str, **kwargs) -> Agent:
 _AGENT_MODULES = [
     thompson_sampling,
     epsilon_greedy,
+    fixed,
     random,
     ucb,
     decaying_epsilon_greedy,
