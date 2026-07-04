@@ -1,4 +1,6 @@
-from rl_health_interventions.agents.ucb import UCBAgent
+import pytest
+
+from rl_health_interventions.agents.contextual_bandits.ucb import UCBAgent
 
 
 def test_select_action_returns_string_action(state_view):
@@ -53,18 +55,14 @@ def test_seed_reproducibility(state_view):
     assert actions1 == actions2
 
 
-def test_c_validation():
-    import pytest
-
+@pytest.mark.parametrize("c", [0.0, -1.0])
+def test_c_validation(c):
     with pytest.raises(ValueError, match="strictly positive"):
-        UCBAgent(c=0.0)
-    with pytest.raises(ValueError, match="strictly positive"):
-        UCBAgent(c=-1.0)
+        UCBAgent(c=c)
 
 
-def test_contextual_ucb_learns_per_context():
-    from rl_health_interventions.state import StateView
-
+def test_contextual_ucb_learns_per_context(sed_and_act):
+    sed, act = sed_and_act
     agent = UCBAgent(
         actions=["nudge", "idle"],
         c=0.1,
@@ -72,9 +70,6 @@ def test_contextual_ucb_learns_per_context():
         contextual=True,
         context_feature="activity_level",
     )
-
-    sed = StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
-    act = StateView(factors={"activity_level": "active"}, day=0, step_of_day=0)
 
     for _ in range(100):
         agent.update(sed, "nudge", reward=0.0, next_state=sed)

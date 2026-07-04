@@ -3,8 +3,12 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-from rl_health_interventions.agents.epsilon_greedy import EpsilonGreedyAgent
-from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
+from rl_health_interventions.agents.contextual_bandits.epsilon_greedy import (
+    EpsilonGreedyAgent,
+)
+from rl_health_interventions.agents.contextual_bandits.thompson_sampling import (
+    ThompsonSamplingAgent,
+)
 from rl_health_interventions.episode import run_episode
 
 
@@ -56,11 +60,7 @@ def test_run_experiment_returns_rewards(tmp_path):
         "episode_days": 1,
         "steps_per_day": 1,
         "seed": 42,
-        "state": {
-            "variables": {
-                "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
-            }
-        },
+        "state": {"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
         "initial_state": {"activity_level": "sedentary"},
         "actions": ["nudge", "idle"],
         "reward": {

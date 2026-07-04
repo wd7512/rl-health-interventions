@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from rl_health_interventions import (
     __version__,
     make_agent,
@@ -17,21 +19,9 @@ def test_version_exists() -> None:
     assert len(parts) == 3, f"expected semver, got {__version__!r}"
 
 
-def test_make_transition_imported() -> None:
-    assert callable(make_transition)
-
-
-def test_make_reward_imported() -> None:
-    assert callable(make_reward)
-
-
-def test_make_agent_imported() -> None:
-    assert callable(make_agent)
-
-
-def test_make_response_model_imported() -> None:
-    assert callable(make_response_model)
-
-
-def test_make_dataset_imported() -> None:
-    assert callable(make_dataset)
+@pytest.mark.parametrize(
+    "func",
+    [make_transition, make_reward, make_agent, make_response_model, make_dataset],
+)
+def test_make_functions_imported(func):
+    assert callable(func)

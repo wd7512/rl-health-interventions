@@ -2,64 +2,42 @@ import pytest
 from rl_health_interventions.rewards.expression import ExpressionParser
 
 
-def test_simple_constant():
-    p = ExpressionParser("42")
-    assert p.evaluate({}) == 42.0
+@pytest.mark.parametrize(
+    "expr,variables,expected",
+    [
+        ("42", {}, 42.0),
+        ("x", {"x": 3.5}, 3.5),
+        ("x + y * 2", {"x": 1.0, "y": 3.0}, 7.0),
+        ("x - y", {"x": 10.0, "y": 3.0}, 7.0),
+        ("x / y", {"x": 10.0, "y": 2.0}, 5.0),
+        ("-x", {"x": 5.0}, -5.0),
+        pytest.param(
+            "alpha * step_bin + (1 - alpha) * sleep - penalty",
+            {"alpha": 0.9, "step_bin": 1.0, "sleep": 0.5, "penalty": 0.1},
+            0.9 * 1.0 + (1 - 0.9) * 0.5 - 0.1,
+            id="complex-expression",
+        ),
+    ],
+)
+def test_evaluate(expr, variables, expected):
+    assert ExpressionParser(expr).evaluate(variables) == pytest.approx(expected)
 
 
-def test_variable_lookup():
-    p = ExpressionParser("x")
-    assert p.evaluate({"x": 3.5}) == 3.5
-
-
-def test_simple_arithmetic():
-    p = ExpressionParser("x + y * 2")
-    assert p.evaluate({"x": 1.0, "y": 3.0}) == 7.0
-
-
-def test_subtraction():
-    p = ExpressionParser("x - y")
-    assert p.evaluate({"x": 10.0, "y": 3.0}) == 7.0
-
-
-def test_division():
-    p = ExpressionParser("x / y")
-    assert p.evaluate({"x": 10.0, "y": 2.0}) == 5.0
-
-
-def test_unary_minus():
-    p = ExpressionParser("-x")
-    assert p.evaluate({"x": 5.0}) == -5.0
-
-
-def test_complex_expression():
-    p = ExpressionParser("alpha * step_bin + (1 - alpha) * sleep - penalty")
-    variables = {"alpha": 0.9, "step_bin": 1.0, "sleep": 0.5, "penalty": 0.1}
-    expected = 0.9 * 1.0 + (1 - 0.9) * 0.5 - 0.1
-    assert p.evaluate(variables) == pytest.approx(expected)
-
-
-def test_missing_variable_raises():
-    p = ExpressionParser("x + y")
-    with pytest.raises(ValueError, match="Unknown variable"):
-        p.evaluate({"x": 1.0})
-
-
-def test_unsafe_node_rejected():
-    with pytest.raises(ValueError, match="Unsupported"):
-        ExpressionParser("__import__('os')")
-
-
-def test_unsafe_function_call_rejected():
-    with pytest.raises(ValueError, match="Unsupported"):
-        ExpressionParser("max(1, 2)")
-
-
-def test_unsafe_attribute_rejected():
-    with pytest.raises(ValueError, match="Unsupported"):
-        ExpressionParser("x.__class__")
-
-
-def test_unsafe_binary_op_rejected():
-    with pytest.raises(ValueError, match="Unsupported"):
-        ExpressionParser("x ** 2")
+@pytest.mark.parametrize(
+    "expr,evaluate_vars,expected_match",
+    [
+        ("__import__('os')", {}, "Unsupported"),
+        ("max(1, 2)", {}, "Unsupported"),
+        ("x.__class__", {}, "Unsupported"),
+        ("x ** 2", {}, "Unsupported"),
+        ("x + y", {"x": 1.0}, "Unknown variable"),
+    ],
+)
+def test_expression_errors(expr, evaluate_vars, expected_match):
+    if evaluate_vars:
+        p = ExpressionParser(expr)
+        with pytest.raises(ValueError, match=expected_match):
+            p.evaluate(evaluate_vars)
+    else:
+        with pytest.raises(ValueError, match=expected_match):
+            ExpressionParser(expr)

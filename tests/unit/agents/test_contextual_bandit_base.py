@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import pytest
-
-from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
+from rl_health_interventions.agents.contextual_bandits.thompson_sampling import (
+    ThompsonSamplingAgent,
+)
 from rl_health_interventions.state import StateView
 
 
@@ -14,16 +15,14 @@ def _make_agent(**kwargs):
     )
 
 
-def test_get_context_key_non_contextual_returns_action():
+def test_get_context_key_non_contextual_returns_action(sedentary_state):
     agent = _make_agent(contextual=False)
-    state = StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
-    assert agent._get_context_key(state, "nudge") == "nudge"
+    assert agent._get_context_key(sedentary_state, "nudge") == "nudge"
 
 
-def test_get_context_key_contextual_returns_tuple():
+def test_get_context_key_contextual_returns_tuple(sedentary_state):
     agent = _make_agent(contextual=True, context_feature="activity_level")
-    state = StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
-    assert agent._get_context_key(state, "nudge") == ("sedentary", "nudge")
+    assert agent._get_context_key(sedentary_state, "nudge") == ("sedentary", "nudge")
 
 
 @pytest.mark.parametrize("invalid_feature", ["", "   ", 123, []])
@@ -38,11 +37,10 @@ def test_get_context_key_contextual_raises_on_none_state():
         agent._get_context_key(None, "nudge")
 
 
-def test_get_context_key_contextual_raises_on_missing_attribute():
+def test_get_context_key_contextual_raises_on_missing_attribute(sedentary_state):
     agent = _make_agent(contextual=True, context_feature="nonexistent")
-    state = StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
     with pytest.raises(AttributeError):
-        agent._get_context_key(state, "nudge")
+        agent._get_context_key(sedentary_state, "nudge")
 
 
 def test_get_context_key_multi_field_contextual_returns_tuple():

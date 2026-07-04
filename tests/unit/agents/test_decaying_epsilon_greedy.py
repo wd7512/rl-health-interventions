@@ -1,4 +1,6 @@
-from rl_health_interventions.agents.decaying_epsilon_greedy import (
+import pytest
+
+from rl_health_interventions.agents.contextual_bandits.decaying_epsilon_greedy import (
     DecayingEpsilonGreedyAgent,
 )
 
@@ -91,9 +93,8 @@ def test_seed_reproducibility(state_view):
     assert a1 == a2
 
 
-def test_contextual_learns_per_context():
-    from rl_health_interventions.state import StateView
-
+def test_contextual_learns_per_context(sed_and_act):
+    sed, act = sed_and_act
     agent = DecayingEpsilonGreedyAgent(
         actions=["nudge", "idle"],
         epsilon_start=0.0,
@@ -103,8 +104,6 @@ def test_contextual_learns_per_context():
         contextual=True,
         context_feature="activity_level",
     )
-    sed = StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
-    act = StateView(factors={"activity_level": "active"}, day=0, step_of_day=0)
     for _ in range(100):
         agent.update(sed, "nudge", reward=0.0, next_state=sed)
         agent.update(sed, "idle", reward=1.0, next_state=sed)
@@ -129,17 +128,18 @@ def test_epsilon_constant_when_min_equals_start(state_view):
     assert agent._current_epsilon() == 0.5
 
 
-def test_invalid_params_raise():
-    import pytest
-
-    with pytest.raises(ValueError, match=r"between 0.0 and 1.0"):
-        DecayingEpsilonGreedyAgent(epsilon_start=1.5)
-    with pytest.raises(ValueError, match=r"between 0.0 and 1.0"):
-        DecayingEpsilonGreedyAgent(epsilon_start=0.5, epsilon_min=1.5)
-    with pytest.raises(ValueError, match=r"epsilon_min must not exceed"):
-        DecayingEpsilonGreedyAgent(epsilon_start=0.1, epsilon_min=0.5)
-    with pytest.raises(ValueError, match="decay_steps must be positive"):
-        DecayingEpsilonGreedyAgent(epsilon_start=0.5, decay_steps=0)
+@pytest.mark.parametrize(
+    "kwargs,match",
+    [
+        (dict(epsilon_start=1.5), "between 0.0 and 1.0"),
+        (dict(epsilon_start=0.5, epsilon_min=1.5), "between 0.0 and 1.0"),
+        (dict(epsilon_start=0.1, epsilon_min=0.5), "epsilon_min must not exceed"),
+        (dict(epsilon_start=0.5, decay_steps=0), "decay_steps must be positive"),
+    ],
+)
+def test_invalid_params_raise(kwargs, match):
+    with pytest.raises(ValueError, match=match):
+        DecayingEpsilonGreedyAgent(**kwargs)
 
 
 def test_registration_in_registry():

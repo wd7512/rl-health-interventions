@@ -28,22 +28,11 @@ class TransitionProbabilities(RootModel):
 
 
 class FactorConfig(BaseModel):
-    dims: int = Field(ge=1)
     names: list[str]
-    boundaries: list[float] | None = None
-
-
-class ParameterConfig(BaseModel):
-    advance: str
 
 
 class StateConfig(BaseModel):
     variables: dict[str, FactorConfig] = {}
-    parameters: dict[str, ParameterConfig] = {}
-
-
-class ActionConfig(BaseModel):
-    pass
 
 
 class RewardVariable(BaseModel):
@@ -197,7 +186,7 @@ class AgentConfig(BaseModel):
 class MDPConfig(BaseModel):
     state: StateConfig
     initial_state: dict[str, str]
-    actions: dict[str, ActionConfig]
+    actions: dict[str, dict] = {}
     reward: RewardConfig
     transition_model: TransitionModelConfig
     episode_days: int = Field(ge=1)
@@ -222,8 +211,7 @@ class MDPConfig(BaseModel):
     @model_validator(mode="after")
     def _validate_initial_state(self) -> MDPConfig:
         variable_names = set(self.state.variables.keys())
-        parameter_names = set(self.state.parameters.keys())
-        valid_keys = variable_names | parameter_names
+        valid_keys = variable_names
         initial_keys = set(self.initial_state.keys())
         if not initial_keys:
             raise ValueError("initial_state must be non-empty")
@@ -231,7 +219,7 @@ class MDPConfig(BaseModel):
             extra = initial_keys - valid_keys
             raise ValueError(
                 f"initial_state keys {sorted(extra)} not found in "
-                f"state.variables or state.parameters: {sorted(valid_keys)}"
+                f"state.variables: {sorted(valid_keys)}"
             )
         for key, value in self.initial_state.items():
             if key in variable_names:

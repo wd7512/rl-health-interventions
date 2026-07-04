@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import logging
-
+from rl_health_interventions._registry import Registry
+from rl_health_interventions.simulation._base import ResponseModel
 from rl_health_interventions.simulation import rule_based
 from rl_health_interventions.simulation._base import ResponseModel
 
-logger = logging.getLogger(__name__)
-
-REGISTRY: dict[str, type[ResponseModel]] = {}
+REGISTRY: Registry = Registry("response model")
 
 
 def make(name: str, **kwargs) -> ResponseModel:
@@ -22,8 +20,4 @@ def make(name: str, **kwargs) -> ResponseModel:
 # function that adds to REGISTRY.
 _SIMULATION_MODULES = [rule_based]
 
-for _mod in _SIMULATION_MODULES:
-    try:
-        _mod.register()
-    except Exception:
-        logger.exception("Failed to register %s", _mod.__name__)
+REGISTRY.load_modules(_SIMULATION_MODULES, logger_name=__name__)

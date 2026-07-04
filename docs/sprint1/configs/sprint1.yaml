@@ -12,17 +12,12 @@ initial_state:
 state:
   variables:
     step_bin:
-      dims: 3
       names: [inactive, moderate, active]
-      boundaries: [800, 1600]
     sleep:
-      dims: 2
       names: [good, poor]
     day_of_week:
-      dims: 2
       names: [weekday, weekend]
     burden:
-      dims: 3
       names: [low, medium, high]
 
 actions:

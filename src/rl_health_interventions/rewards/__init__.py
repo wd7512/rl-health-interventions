@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-import logging
-
+from rl_health_interventions._registry import Registry
 from rl_health_interventions.rewards._base import RewardHandler
 from rl_health_interventions.rewards import expression
 
-logger = logging.getLogger(__name__)
-
-REGISTRY: dict[str, type[RewardHandler]] = {}
+REGISTRY: Registry = Registry("reward")
 
 
 def make(name_or_config=None, **kwargs) -> RewardHandler:
@@ -27,8 +24,4 @@ def make(name_or_config=None, **kwargs) -> RewardHandler:
 
 _REWARD_MODULES = [expression]
 
-for _mod in _REWARD_MODULES:
-    try:
-        _mod.register()
-    except Exception:
-        logger.exception("Failed to register %s", _mod.__name__)
+REGISTRY.load_modules(_REWARD_MODULES, logger_name=__name__)

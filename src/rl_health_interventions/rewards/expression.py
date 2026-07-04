@@ -122,4 +122,4 @@ class ExpressionReward(RewardHandler):
 def register() -> None:
     from rl_health_interventions.rewards import REGISTRY
 
-    REGISTRY["expression"] = ExpressionReward
+    REGISTRY.register("expression", ExpressionReward)

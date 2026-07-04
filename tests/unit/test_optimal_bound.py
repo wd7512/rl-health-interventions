@@ -66,7 +66,7 @@ def test_compute_bounds_raises_for_empty_variables():
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        state=StateConfig.model_validate({"variables": {}, "parameters": {}}),
+        state=StateConfig.model_validate({"variables": {}}),
         initial_state={},
         actions={},
         reward=RewardConfig.model_validate({"variables": {}, "formula": "0"}),
@@ -86,10 +86,7 @@ def test_compute_bounds_raises_for_missing_transition_probabilities():
         seed=42,
         state=StateConfig.model_validate(
             {
-                "variables": {
-                    "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
-                },
-                "parameters": {},
+                "variables": {"activity_level": {"names": ["sedentary", "active"]}},
             }
         ),
         initial_state={"activity_level": "sedentary"},
@@ -119,11 +116,7 @@ def test_symmetric_two_state_mdp():
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        state={
-            "variables": {
-                "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
-            }
-        },
+        state={"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
         initial_state={"activity_level": "sedentary"},
         actions=["nudge", "idle"],
         reward={
@@ -161,7 +154,7 @@ def test_compute_bounds_raises_for_invalid_state_count():
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        state={"variables": {"category": {"dims": 3, "names": ["a", "b", "c"]}}},
+        state={"variables": {"category": {"names": ["a", "b", "c"]}}},
         initial_state={"category": "a"},
         actions=["nudge"],
         reward={

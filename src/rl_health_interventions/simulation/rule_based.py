@@ -14,4 +14,4 @@ class RuleBasedResponse(ResponseModel):
 def register() -> None:
     from rl_health_interventions.simulation import REGISTRY
 
-    REGISTRY["rule_based"] = RuleBasedResponse
+    REGISTRY.register("rule_based", RuleBasedResponse)
