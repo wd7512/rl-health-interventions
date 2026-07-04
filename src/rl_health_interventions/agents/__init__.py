@@ -6,6 +6,7 @@ from typing import Type
 from rl_health_interventions.agents._base import Agent
 from rl_health_interventions.agents import decaying_epsilon_greedy
 from rl_health_interventions.agents import epsilon_greedy
+from rl_health_interventions.agents import fixed
 from rl_health_interventions.agents import random
 from rl_health_interventions.agents import thompson_sampling
 from rl_health_interventions.agents import ucb
@@ -37,6 +38,7 @@ def make(name: str, **kwargs) -> Agent:
 _AGENT_MODULES = [
     thompson_sampling,
     epsilon_greedy,
+    fixed,
     random,
     ucb,
     decaying_epsilon_greedy,
