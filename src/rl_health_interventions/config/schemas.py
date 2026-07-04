@@ -29,6 +29,7 @@ class TransitionProbabilities(RootModel):
 class FactorConfig(BaseModel):
     dims: int = Field(ge=1)
     names: list[str]
+    boundaries: list[float] | None = None
 
 
 class ParameterConfig(BaseModel):

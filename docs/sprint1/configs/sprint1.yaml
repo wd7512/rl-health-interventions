@@ -10,7 +10,7 @@ initial_state:
   burden: low
 
 state:
-  factors:
+  variables:
     step_bin:
       dims: 3
       names: [inactive, moderate, active]
@@ -26,10 +26,10 @@ state:
       names: [low, medium, high]
 
 actions:
-  idle: {action_penalty: 0.0}
-  movement_suggestion: {action_penalty: 0.05}
-  goal_reminder: {action_penalty: 0.05}
-  journal: {action_penalty: 0.05}
+  idle: {}
+  movement_suggestion: {}
+  goal_reminder: {}
+  journal: {}
 
 reward:
   constants:

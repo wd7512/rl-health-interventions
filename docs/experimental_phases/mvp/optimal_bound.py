@@ -31,6 +31,31 @@ def _stationary(P: np.ndarray) -> np.ndarray:
     return np.array([pi_s, pi_a])
 
 
+def _get_state_names_and_rewards(config: MDPConfig) -> tuple[list[str], np.ndarray]:
+    """Extract state names and rewards from the new factored config.
+
+    For MVP (single variable), uses the first state variable's names and the
+    reward variable that sources from it.
+    """
+    if not config.state.variables:
+        raise ValueError("config.state.variables is required for computing bounds")
+    first_var_name = next(iter(config.state.variables))
+    first_var = config.state.variables[first_var_name]
+    state_names = sorted(first_var.names)
+
+    reward_var = None
+    for var_cfg in config.reward.variables.values():
+        if var_cfg.source == f"state.{first_var_name}":
+            reward_var = var_cfg
+            break
+    if reward_var is None:
+        raise ValueError(
+            f"No reward variable sources from state.{first_var_name}"
+        )
+    state_rewards = np.array([reward_var.mapping[s] for s in state_names])
+    return state_names, state_rewards
+
+
 def compute_bounds(config: MDPConfig) -> dict:
     """Compute theoretical per-step expected reward bounds from an MDP config.
 
@@ -45,18 +70,15 @@ def compute_bounds(config: MDPConfig) -> dict:
         ctx_stationary          — stationary distribution under optimal policy
         fixed_rewards           — {action: expected reward} for fixed-action policies
     """
-    if not config.states:
-        raise ValueError("config.states is required for computing bounds")
-    if isinstance(config.states, dict) and "schema" in config.states:
-        raise ValueError("config.states must contain actual state definitions (schema references are not supported)")
-    if not config.actions:
+    state_names, state_rewards = _get_state_names_and_rewards(config)
+    action_names = config.action_names
+
+    if not action_names:
         raise ValueError("config.actions is required for computing bounds")
-    if isinstance(config.actions, dict) and "schema" in config.actions:
-        raise ValueError("config.actions must contain actual action definitions (schema references are not supported)")
+
     if not config.transition_model:
         raise ValueError("config.transition_model is required for computing bounds")
-    state_names = sorted(config.states.keys())
-    state_rewards = np.array([config.states[s]["reward"] for s in state_names])
+
     state_idx = {s: i for i, s in enumerate(state_names)}
     n_states = len(state_names)
 
@@ -71,7 +93,7 @@ def compute_bounds(config: MDPConfig) -> dict:
     tprobs = tprobs_obj.root
 
     action_mats: dict[str, np.ndarray] = {}
-    for a in config.actions:
+    for a in action_names:
         P = np.zeros((n_states, n_states))
         for s_from in state_names:
             i = state_idx[s_from]
@@ -81,13 +103,13 @@ def compute_bounds(config: MDPConfig) -> dict:
         action_mats[a] = P
 
     imm_reward: dict[str, np.ndarray] = {}
-    for a in config.actions:
+    for a in action_names:
         imm_reward[a] = action_mats[a] @ state_rewards
 
     opt_actions: list[str] = []
     for s in state_names:
         i = state_idx[s]
-        best_a = max(config.actions, key=lambda a: imm_reward[a][i])
+        best_a = max(action_names, key=lambda a: imm_reward[a][i])
         opt_actions.append(best_a)
 
     P_opt = np.array([action_mats[a][i] for i, a in enumerate(opt_actions)])
@@ -95,7 +117,7 @@ def compute_bounds(config: MDPConfig) -> dict:
     ctx_full = float(ctx_stationary @ (P_opt @ state_rewards))
 
     fixed_rewards: dict[str, float] = {}
-    for a in config.actions:
+    for a in action_names:
         π = _stationary(action_mats[a])
         fixed_rewards[a] = float(π @ (action_mats[a] @ state_rewards))
     best_fixed_action = max(fixed_rewards, key=fixed_rewards.__getitem__)
@@ -162,7 +184,7 @@ def main() -> None:
     logger.info("Reward multiplier: %s  (mean=%.4f)", mult_str, mask_frac)
     logger.info("")
     logger.info("Optimal per-action (per full step):")
-    for a in config.actions:
+    for a in config.action_names:
         π = _stationary(action_mats[a])
         logger.info(
             "  %s: E[r]=%.4f  (stationary π=%s, imm E[r]=%s)",
