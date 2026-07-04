@@ -59,9 +59,9 @@ class StateView:
         new_factors = {**self._factors, **updates}
         return StateView(new_factors, self._day, self._step_of_day, self._steps_per_day)
 
-    def with_advance(self, step_idx: int | None = None) -> StateView:
+    def with_advance(self) -> StateView:
         """Advance to the next timestep. Called by the environment after a step."""
-        step = self._step_of_day + 1 if step_idx is None else step_idx
+        step = self._step_of_day + 1
         next_step_of_day = step % self._steps_per_day
         next_day = self._day + (1 if next_step_of_day == 0 else 0)
         return StateView(self._factors, next_day, next_step_of_day, self._steps_per_day)

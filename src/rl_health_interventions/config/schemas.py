@@ -27,22 +27,11 @@ class TransitionProbabilities(RootModel):
 
 
 class FactorConfig(BaseModel):
-    dims: int = Field(ge=1)
     names: list[str]
-    boundaries: list[float] | None = None
-
-
-class ParameterConfig(BaseModel):
-    advance: str
 
 
 class StateConfig(BaseModel):
     variables: dict[str, FactorConfig] = {}
-    parameters: dict[str, ParameterConfig] = {}
-
-
-class ActionConfig(BaseModel):
-    pass
 
 
 class RewardVariable(BaseModel):
@@ -196,7 +185,7 @@ class AgentConfig(BaseModel):
 class MDPConfig(BaseModel):
     state: StateConfig
     initial_state: dict[str, str]
-    actions: dict[str, ActionConfig]
+    actions: dict[str, dict] = {}
     reward: RewardConfig
     transition_model: TransitionModelConfig
     episode_days: int = Field(ge=1)
@@ -221,8 +210,7 @@ class MDPConfig(BaseModel):
     @model_validator(mode="after")
     def _validate_initial_state(self) -> MDPConfig:
         variable_names = set(self.state.variables.keys())
-        parameter_names = set(self.state.parameters.keys())
-        valid_keys = variable_names | parameter_names
+        valid_keys = variable_names
         initial_keys = set(self.initial_state.keys())
         if not initial_keys:
             raise ValueError("initial_state must be non-empty")
@@ -230,7 +218,7 @@ class MDPConfig(BaseModel):
             extra = initial_keys - valid_keys
             raise ValueError(
                 f"initial_state keys {sorted(extra)} not found in "
-                f"state.variables or state.parameters: {sorted(valid_keys)}"
+                f"state.variables: {sorted(valid_keys)}"
             )
         for key, value in self.initial_state.items():
             if key in variable_names:
@@ -342,102 +330,5 @@ class MDPConfig(BaseModel):
                     f"reward_multiplier_by_step length "
                     f"{len(self.reward_multiplier_by_step)} "
                     f"must equal steps_per_day {self.steps_per_day}"
-                )
-        return self
-        if self.contextual:
-            if self.type not in (
-                "thompson_sampling",
-                "epsilon_greedy",
-                "ucb",
-                "decaying_epsilon_greedy",
-            ):
-                raise ValueError(
-                    f"contextual=True is only supported for thompson_sampling, "
-                    f"epsilon_greedy, ucb, and decaying_epsilon_greedy, got {self.type}"
-                )
-            if self.context_feature is None:
-                raise ValueError(
-                    "context_feature must be provided when contextual=True"
-                )
-            if (
-                isinstance(self.context_feature, str)
-                and not self.context_feature.strip()
-            ):
-                raise ValueError(
-                    "context_feature must be a non-empty string when contextual=True"
-                )
-            if isinstance(self.context_feature, list) and not self.context_feature:
-                raise ValueError(
-                    "context_feature must be a non-empty list when contextual=True"
-                )
-        else:
-            if self.context_feature is not None:
-                raise ValueError(
-                    "context_feature must not be provided when contextual=False"
-                )
-        if self.type == "thompson_sampling":
-            if self.alpha_prior is None or self.alpha_prior <= 0:
-                raise ValueError("alpha_prior must be > 0 for thompson_sampling")
-            if self.beta_prior is None or self.beta_prior <= 0:
-                raise ValueError("beta_prior must be > 0 for thompson_sampling")
-            if self.epsilon is not None or self.c is not None:
-                raise ValueError("thompson_sampling agent does not accept epsilon or c")
-        if self.type == "epsilon_greedy":
-            if self.epsilon is None or not (0 <= self.epsilon <= 1):
-                raise ValueError("epsilon must be in [0, 1] for epsilon_greedy")
-            if (
-                self.alpha_prior is not None
-                or self.beta_prior is not None
-                or self.c is not None
-            ):
-                raise ValueError(
-                    "epsilon_greedy agent does not accept alpha_prior, beta_prior, or c"
-                )
-        if self.type == "ucb":
-            if self.c is None or self.c <= 0:
-                raise ValueError("c must be > 0 for ucb")
-            if (
-                self.alpha_prior is not None
-                or self.beta_prior is not None
-                or self.epsilon is not None
-            ):
-                raise ValueError(
-                    "ucb agent does not accept alpha_prior, beta_prior, or epsilon"
-                )
-        if self.type == "random":
-            if (
-                self.alpha_prior is not None
-                or self.beta_prior is not None
-                or self.epsilon is not None
-                or self.c is not None
-            ):
-                raise ValueError("random agent does not accept any hyperparameters")
-        if self.type == "decaying_epsilon_greedy":
-            if self.epsilon_start is None or not (0 <= self.epsilon_start <= 1):
-                raise ValueError(
-                    "epsilon_start must be in [0, 1] for decaying_epsilon_greedy"
-                )
-            if self.epsilon_min is not None and not (0 <= self.epsilon_min <= 1):
-                raise ValueError(
-                    "epsilon_min must be in [0, 1] for decaying_epsilon_greedy"
-                )
-            if (
-                self.epsilon_min is not None
-                and self.epsilon_start is not None
-                and self.epsilon_min > self.epsilon_start
-            ):
-                raise ValueError(
-                    "epsilon_min must not exceed epsilon_start for decaying_epsilon_greedy"
-                )
-            if self.decay_steps is not None and self.decay_steps <= 0:
-                raise ValueError("decay_steps must be > 0 for decaying_epsilon_greedy")
-            if (
-                self.alpha_prior is not None
-                or self.beta_prior is not None
-                or self.epsilon is not None
-                or self.c is not None
-            ):
-                raise ValueError(
-                    "decaying_epsilon_greedy agent does not accept alpha_prior, beta_prior, epsilon, or c"
                 )
         return self

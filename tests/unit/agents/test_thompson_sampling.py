@@ -1,4 +1,8 @@
-from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
+import pytest
+
+from rl_health_interventions.agents.contextual_bandits.thompson_sampling import (
+    ThompsonSamplingAgent,
+)
 
 
 def test_select_action_returns_string_action(state_view):
@@ -7,22 +11,22 @@ def test_select_action_returns_string_action(state_view):
     assert action in ("nudge", "idle")
 
 
-def test_update_increases_alpha_on_positive_reward(state_view):
+@pytest.mark.parametrize(
+    "action,reward,expected_alpha,expected_beta",
+    [
+        ("nudge", 1.0, 2.0, 1.0),
+        ("idle", 0.0, 1.0, 2.0),
+    ],
+)
+def test_update_updates_posterior(
+    state_view, action, reward, expected_alpha, expected_beta
+):
     agent = ThompsonSamplingAgent(
         actions=["nudge", "idle"], seed=42, alpha_prior=1.0, beta_prior=1.0
     )
-    agent.update(state_view, "nudge", reward=1.0, next_state=state_view)
-    assert agent.posteriors["nudge"].alpha == 2.0
-    assert agent.posteriors["nudge"].beta == 1.0
-
-
-def test_update_increases_beta_on_zero_reward(state_view):
-    agent = ThompsonSamplingAgent(
-        actions=["nudge", "idle"], seed=42, alpha_prior=1.0, beta_prior=1.0
-    )
-    agent.update(state_view, "idle", reward=0.0, next_state=state_view)
-    assert agent.posteriors["idle"].alpha == 1.0
-    assert agent.posteriors["idle"].beta == 2.0
+    agent.update(state_view, action, reward=reward, next_state=state_view)
+    assert agent.posteriors[action].alpha == expected_alpha
+    assert agent.posteriors[action].beta == expected_beta
 
 
 def test_thompson_sampling_converges_to_better_arm(state_view):

@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-import logging
-from typing import Type
-
+from rl_health_interventions._registry import Registry
 from rl_health_interventions.transitions._base import TransitionModel
 from rl_health_interventions.transitions import rule_based
 
-logger = logging.getLogger(__name__)
-
-REGISTRY: dict[str, Type[TransitionModel]] = {}
+REGISTRY: Registry = Registry("transition")
 
 
 def make(name_or_config=None, **kwargs) -> TransitionModel:
@@ -30,8 +26,4 @@ def make(name_or_config=None, **kwargs) -> TransitionModel:
 # Each module must have a register() function that adds to REGISTRY.
 _TRANSITION_MODULES = [rule_based]
 
-for _mod in _TRANSITION_MODULES:
-    try:
-        _mod.register()
-    except Exception:
-        logger.exception("Failed to register %s", _mod.__name__)
+REGISTRY.load_modules(_TRANSITION_MODULES, logger_name=__name__)

@@ -14,4 +14,4 @@ class FixedAgent(Agent):
 def register() -> None:
     from rl_health_interventions.agents import REGISTRY
 
-    REGISTRY["fixed"] = FixedAgent
+    REGISTRY.register("fixed", FixedAgent)

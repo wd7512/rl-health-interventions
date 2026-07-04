@@ -1,41 +1,39 @@
 from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.environment import Environment
 
+_BASE = {
+    "seed": 42,
+    "state": {"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
+    "initial_state": {"activity_level": "sedentary"},
+    "actions": ["nudge", "idle"],
+    "reward": {
+        "variables": {
+            "value": {
+                "source": "state.activity_level",
+                "mapping": {"sedentary": 0.0, "active": 1.0},
+            }
+        },
+        "formula": "value",
+    },
+    "transition_model": {
+        "type": "rule_based",
+        "transition_probabilities": {
+            "sedentary": {
+                "nudge": {"active": 0.3, "sedentary": 0.7},
+                "idle": {"active": 0.1, "sedentary": 0.9},
+            },
+            "active": {
+                "nudge": {"active": 0.5, "sedentary": 0.5},
+                "idle": {"active": 0.6, "sedentary": 0.4},
+            },
+        },
+    },
+}
+
 
 def _config(steps_per_day=5, episode_days=90) -> MDPConfig:
     return MDPConfig(
-        episode_days=episode_days,
-        steps_per_day=steps_per_day,
-        seed=42,
-        state={
-            "variables": {
-                "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
-            }
-        },
-        initial_state={"activity_level": "sedentary"},
-        actions=["nudge", "idle"],
-        reward={
-            "variables": {
-                "value": {
-                    "source": "state.activity_level",
-                    "mapping": {"sedentary": 0.0, "active": 1.0},
-                }
-            },
-            "formula": "value",
-        },
-        transition_model={
-            "type": "rule_based",
-            "transition_probabilities": {
-                "sedentary": {
-                    "nudge": {"active": 0.3, "sedentary": 0.7},
-                    "idle": {"active": 0.1, "sedentary": 0.9},
-                },
-                "active": {
-                    "nudge": {"active": 0.5, "sedentary": 0.5},
-                    "idle": {"active": 0.6, "sedentary": 0.4},
-                },
-            },
-        },
+        **{**_BASE, "steps_per_day": steps_per_day, "episode_days": episode_days}
     )
 
 
@@ -96,11 +94,7 @@ def test_reward_multiplier_affects_reward():
         episode_days=1,
         steps_per_day=3,
         seed=42,
-        state={
-            "variables": {
-                "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
-            }
-        },
+        state={"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
         initial_state={"activity_level": "sedentary"},
         actions=["nudge", "idle"],
         reward={

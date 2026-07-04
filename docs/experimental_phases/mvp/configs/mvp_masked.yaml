@@ -5,7 +5,6 @@ seed: 42
 state:
   variables:
     activity_level:
-      dims: 2
       names: [sedentary, active]
 
 initial_state:

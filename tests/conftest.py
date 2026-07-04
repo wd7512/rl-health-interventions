@@ -29,11 +29,7 @@ def valid_config() -> MDPConfig:
         episode_days=90,
         steps_per_day=5,
         seed=42,
-        state={
-            "variables": {
-                "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
-            }
-        },
+        state={"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
         initial_state={"activity_level": "sedentary"},
         actions=["nudge", "idle"],
         reward={
@@ -68,11 +64,7 @@ def minimal_config() -> MDPConfig:
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        state={
-            "variables": {
-                "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
-            }
-        },
+        state={"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
         initial_state={"activity_level": "sedentary"},
         actions=["nudge", "idle"],
         reward={
@@ -106,3 +98,27 @@ def state_view():
     from rl_health_interventions.state import StateView
 
     return StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
+
+
+@pytest.fixture
+def sedentary_state():
+    from rl_health_interventions.state import StateView
+
+    return StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
+
+
+@pytest.fixture
+def active_state():
+    from rl_health_interventions.state import StateView
+
+    return StateView(factors={"activity_level": "active"}, day=0, step_of_day=0)
+
+
+@pytest.fixture
+def sed_and_act():
+    from rl_health_interventions.state import StateView
+
+    return (
+        StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0),
+        StateView(factors={"activity_level": "active"}, day=0, step_of_day=0),
+    )

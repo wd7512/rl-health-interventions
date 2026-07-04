@@ -3,10 +3,14 @@ from __future__ import annotations
 import pytest
 
 from rl_health_interventions.agents import REGISTRY, make
-from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
-from rl_health_interventions.agents.epsilon_greedy import EpsilonGreedyAgent
+from rl_health_interventions.agents.contextual_bandits.thompson_sampling import (
+    ThompsonSamplingAgent,
+)
+from rl_health_interventions.agents.contextual_bandits.epsilon_greedy import (
+    EpsilonGreedyAgent,
+)
 from rl_health_interventions.agents.random import RandomAgent
-from rl_health_interventions.agents.ucb import UCBAgent
+from rl_health_interventions.agents.contextual_bandits.ucb import UCBAgent
 from rl_health_interventions.agents.fixed import FixedAgent
 
 
@@ -18,29 +22,37 @@ def test_all_agents_registered():
     assert "fixed" in REGISTRY
 
 
-def test_make_thompson_sampling():
-    instance = make("thompson_sampling")
-    assert isinstance(instance, ThompsonSamplingAgent)
+@pytest.mark.parametrize(
+    "agent_type,expected_cls",
+    [
+        ("thompson_sampling", ThompsonSamplingAgent),
+        ("epsilon_greedy", EpsilonGreedyAgent),
+        ("random", RandomAgent),
+        ("ucb", UCBAgent),
+        ("fixed", FixedAgent),
+    ],
+)
+def test_make_agent(agent_type, expected_cls):
+    assert isinstance(make(agent_type), expected_cls)
 
 
-def test_make_epsilon_greedy():
-    instance = make("epsilon_greedy")
-    assert isinstance(instance, EpsilonGreedyAgent)
-
-
-def test_make_random():
-    instance = make("random")
-    assert isinstance(instance, RandomAgent)
-
-
-def test_make_ucb():
-    instance = make("ucb")
-    assert isinstance(instance, UCBAgent)
-
-
-def test_make_fixed():
-    instance = make("fixed")
-    assert isinstance(instance, FixedAgent)
+@pytest.mark.parametrize(
+    "agent_type,kwargs,check_attr,expected_val",
+    [
+        ("epsilon_greedy", {"epsilon": 0.5}, "epsilon", 0.5),
+        (
+            "thompson_sampling",
+            {"alpha_prior": 2.0, "beta_prior": 3.0},
+            "alpha_prior",
+            2.0,
+        ),
+        ("ucb", {"c": 1.5}, "c", 1.5),
+        ("fixed", {"action": "nudge"}, "_action", "nudge"),
+    ],
+)
+def test_make_with_kwargs(agent_type, kwargs, check_attr, expected_val):
+    agent = make(agent_type, **kwargs)
+    assert getattr(agent, check_attr) == expected_val
 
 
 def test_make_unknown_raises_keyerror():
@@ -61,27 +73,3 @@ def test_ts_negative_prior_raises():
 def test_eg_out_of_range_epsilon_raises():
     with pytest.raises(ValueError, match="between 0.0 and 1.0"):
         EpsilonGreedyAgent(epsilon=1.5)
-
-
-def test_make_passes_kwargs_to_constructor():
-    agent = make("epsilon_greedy", epsilon=0.5, seed=99)
-    assert isinstance(agent, EpsilonGreedyAgent)
-    assert agent.epsilon == 0.5
-
-
-def test_make_ts_with_explicit_priors():
-    agent = make("thompson_sampling", alpha_prior=2.0, beta_prior=3.0, seed=42)
-    assert isinstance(agent, ThompsonSamplingAgent)
-    assert agent.alpha_prior == 2.0
-    assert agent.beta_prior == 3.0
-
-
-def test_make_ucb_with_custom_c():
-    agent = make("ucb", c=1.5, seed=42)
-    assert isinstance(agent, UCBAgent)
-    assert agent.c == 1.5
-
-
-def test_make_fixed_with_action():
-    agent = make("fixed", action="nudge")
-    assert isinstance(agent, FixedAgent)

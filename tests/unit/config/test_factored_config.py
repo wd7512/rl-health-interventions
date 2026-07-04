@@ -10,11 +10,7 @@ def test_valid_minimal_config():
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        state={
-            "variables": {
-                "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
-            }
-        },
+        state={"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
         initial_state={"activity_level": "sedentary"},
         actions=["nudge", "idle"],
         reward={
@@ -48,11 +44,7 @@ def test_reward_with_action_variable():
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        state={
-            "variables": {
-                "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
-            }
-        },
+        state={"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
         initial_state={"activity_level": "sedentary"},
         actions={"nudge": {}, "idle": {}},
         reward={
@@ -91,11 +83,7 @@ def test_reward_missing_action_in_mapping_rejected():
         MDPConfig(
             episode_days=1,
             steps_per_day=1,
-            state={
-                "variables": {
-                    "activity_level": {"dims": 2, "names": ["sedentary", "active"]}
-                }
-            },
+            state={"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
             initial_state={"activity_level": "sedentary"},
             actions=["nudge", "idle"],
             reward={

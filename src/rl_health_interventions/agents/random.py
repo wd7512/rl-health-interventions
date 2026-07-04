@@ -23,4 +23,4 @@ class RandomAgent(Agent):
 def register() -> None:
     from rl_health_interventions.agents import REGISTRY
 
-    REGISTRY["random"] = RandomAgent
+    REGISTRY.register("random", RandomAgent)
