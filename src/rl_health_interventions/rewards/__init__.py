@@ -4,7 +4,7 @@ import logging
 from typing import Type
 
 from rl_health_interventions.rewards._base import RewardHandler
-from rl_health_interventions.rewards import compound
+from rl_health_interventions.rewards import expression
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ REGISTRY: dict[str, Type[RewardHandler]] = {}
 
 def make(name_or_config=None, **kwargs) -> RewardHandler:
     if name_or_config is not None and not isinstance(name_or_config, str):
-        name = "compound"
+        name = "expression"
         kwargs.setdefault("config", name_or_config)
     elif isinstance(name_or_config, str):
         name = name_or_config
@@ -26,9 +26,7 @@ def make(name_or_config=None, **kwargs) -> RewardHandler:
     return REGISTRY[name](**kwargs)
 
 
-# NOTE: Import new reward handler module above and append it here so register() runs on import.
-# Each module must have a register() function that adds to REGISTRY.
-_REWARD_MODULES = [compound]
+_REWARD_MODULES = [expression]
 
 for _mod in _REWARD_MODULES:
     try:
