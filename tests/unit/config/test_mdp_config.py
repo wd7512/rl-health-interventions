@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pydantic
 import pytest
 import yaml
 
@@ -48,7 +49,7 @@ def test_mdp_config_rejects_missing_transition_model():
     path = ASSETS / "valid_mdp_config.yaml"
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     del raw["transition_model"]
-    with pytest.raises(Exception):
+    with pytest.raises(pydantic.ValidationError):
         MDPConfig.model_validate(raw)
 
 
@@ -56,7 +57,7 @@ def test_mdp_config_rejects_negative_episode_days():
     path = ASSETS / "valid_mdp_config.yaml"
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     raw["episode_days"] = -1
-    with pytest.raises(Exception):
+    with pytest.raises(pydantic.ValidationError):
         MDPConfig.model_validate(raw)
 
 

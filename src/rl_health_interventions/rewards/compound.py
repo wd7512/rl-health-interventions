@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing_extensions import override
+
 from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.rewards._base import RewardHandler
 
@@ -15,6 +17,7 @@ class CompoundReward(RewardHandler):
             )
         self._per_step_reward = p
 
+    @override
     def reward(self, state: str, action: str, step_idx: int) -> tuple[float, bool]:
         return self._per_step_reward[step_idx][state], False
 

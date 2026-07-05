@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Type
 
-from rl_health_interventions.data import synthetic, feature_pipeline
+from rl_health_interventions.data import feature_pipeline, synthetic
 
 logger = logging.getLogger(__name__)
 
-REGISTRY: dict[str, Type] = {}
+REGISTRY: dict[str, type] = {}
 
 
 def make(name: str, **kwargs) -> object:

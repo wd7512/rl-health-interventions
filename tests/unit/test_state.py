@@ -26,4 +26,4 @@ def test_state_view_is_frozen():
 
     sv = StateView("sedentary", 0, 0)
     with pytest.raises(AttributeError):
-        setattr(sv, "activity", "active")
+        sv.activity = "active"

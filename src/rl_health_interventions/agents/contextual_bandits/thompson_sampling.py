@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
+from typing_extensions import override
+
 from rl_health_interventions.agents.contextual_bandits._base import (
     ContextualBanditAgent,
 )
@@ -55,6 +57,7 @@ class ThompsonSamplingAgent(ContextualBanditAgent):
                 alpha=self.alpha_prior, beta=self.beta_prior
             )
 
+    @override
     def select_action(self, state) -> str:
         samples = {}
         for action in self._actions:
@@ -64,6 +67,7 @@ class ThompsonSamplingAgent(ContextualBanditAgent):
             samples[action] = float(self._rng.beta(posterior.alpha, posterior.beta))
         return max(samples, key=lambda a: samples[a])
 
+    @override
     def update(self, state, action: str, reward: float, next_state) -> None:
         key = self._get_context_key(state, action)
         self._ensure_params(key)

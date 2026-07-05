@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from rl_health_interventions.agents.contextual_bandits.epsilon_greedy import (  # noqa: F401
+from rl_health_interventions.agents.contextual_bandits.epsilon_greedy import (
     EpsilonGreedyAgent,
 )
 

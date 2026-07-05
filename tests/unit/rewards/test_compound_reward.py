@@ -55,6 +55,7 @@ def test_per_step_reward_uses_step_index():
 
 def test_schema_ref_config_raises_not_implemented():
     import pytest
+
     from rl_health_interventions.config.schemas import MDPConfig
 
     config = MDPConfig(
