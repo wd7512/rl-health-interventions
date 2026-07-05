@@ -22,9 +22,7 @@ def derive_agent_seed(base_seed: int, agent_index: int = 0) -> int:
 
 
 def make(name: str, **kwargs) -> Agent:
-    if name not in REGISTRY:
-        raise KeyError(f"Unknown agent: {name}. Known: {list(REGISTRY)}")
-    return REGISTRY[name](**kwargs)
+    return REGISTRY.make(name, **kwargs)
 
 
 # NOTE: Import new agent module above and append it here so register() runs on import.

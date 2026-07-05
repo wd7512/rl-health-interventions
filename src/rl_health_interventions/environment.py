@@ -36,6 +36,8 @@ class Environment:
         if self._current_state is None:
             raise RuntimeError("Call reset() before step().")
 
+        if not self._config.state.variables:
+            raise ValueError("state.variables must not be empty")
         primary_var = next(iter(self._config.state.variables))
         current_val = getattr(self._current_state, primary_var)
         next_val = self._transition.transition(current_val, action)

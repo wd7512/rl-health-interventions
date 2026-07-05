@@ -7,8 +7,8 @@ class FixedAgent(Agent):
     def __init__(
         self,
         action: str = "idle",
-        seed: int | None = None,
-        actions: list[str] | None = None,
+        seed: int | None = None,  # Unused — satisfies Agent interface contract
+        actions: list[str] | None = None,  # Unused — satisfies Agent interface contract
     ) -> None:
         self._action = action
 
