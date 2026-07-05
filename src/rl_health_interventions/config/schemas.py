@@ -11,7 +11,15 @@ class TransitionProbabilities(RootModel):
     @model_validator(mode="after")
     def _check_probabilities(self) -> TransitionProbabilities:
         for state, actions in self.root.items():
+            if not actions:
+                raise ValueError(
+                    f"Transition probabilities for state '{state}' has no actions"
+                )
             for action, probs in actions.items():
+                if not probs:
+                    raise ValueError(
+                        f"Transition probabilities for ({state}, {action}) is empty"
+                    )
                 for target, p in probs.items():
                     if p < 0.0:
                         raise ValueError(
@@ -221,12 +229,11 @@ class MDPConfig(BaseModel):
                 f"state.variables: {sorted(valid_keys)}"
             )
         for key, value in self.initial_state.items():
-            if key in variable_names:
-                cfg = self.state.variables[key]
-                if value not in cfg.names:
-                    raise ValueError(
-                        f"initial_state.{key}={value!r} not in variable {cfg.names}"
-                    )
+            cfg = self.state.variables[key]
+            if value not in cfg.names:
+                raise ValueError(
+                    f"initial_state.{key}={value!r} not in variable {cfg.names}"
+                )
         return self
 
     @model_validator(mode="after")
