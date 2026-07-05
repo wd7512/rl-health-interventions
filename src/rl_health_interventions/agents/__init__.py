@@ -1,18 +1,19 @@
 from __future__ import annotations
 
 import logging
-from typing import Type
 
+from rl_health_interventions.agents import (
+    decaying_epsilon_greedy,
+    epsilon_greedy,
+    random,
+    thompson_sampling,
+    ucb,
+)
 from rl_health_interventions.agents._base import Agent
-from rl_health_interventions.agents import decaying_epsilon_greedy
-from rl_health_interventions.agents import epsilon_greedy
-from rl_health_interventions.agents import random
-from rl_health_interventions.agents import thompson_sampling
-from rl_health_interventions.agents import ucb
 
 logger = logging.getLogger(__name__)
 
-REGISTRY: dict[str, Type[Agent]] = {}
+REGISTRY: dict[str, type[Agent]] = {}
 
 _KNUTH_MULT = 2654435761  # Knuth multiplicative hash constant
 

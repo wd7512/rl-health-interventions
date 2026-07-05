@@ -139,12 +139,10 @@ def test_data_config_empty_file_path_rejected() -> None:
 
 
 def test_data_config_invalid_file_format_rejected() -> None:
-    from pydantic import ValidationError
+    # Build dict and validate, bypassing type checker
+    from pydantic import TypeAdapter, ValidationError
 
     from rl_health_interventions.data._base import DataConfig
-
-    # Build dict and validate, bypassing type checker
-    from pydantic import TypeAdapter
 
     adapter = TypeAdapter(DataConfig)
     with pytest.raises(ValidationError):

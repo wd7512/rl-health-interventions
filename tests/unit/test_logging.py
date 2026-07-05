@@ -55,8 +55,9 @@ def test_json_formatter_with_exc_info() -> None:
         exc_info=None,
     )
     # Simulate an exception info tuple
+    msg = "test error"
     try:
-        raise ValueError("test error")
+        raise ValueError(msg)
     except ValueError:
         import sys
 

@@ -5,8 +5,8 @@ import logging
 from pathlib import Path
 from typing import Protocol
 
-from rl_health_interventions.environment import Environment
 from rl_health_interventions.config.schemas import MDPConfig
+from rl_health_interventions.environment import Environment
 
 logger = logging.getLogger(__name__)
 

@@ -15,6 +15,7 @@ dependencies = [
     "polars>=1.0.0",
     "pydantic>=2.0.0",
     "pyyaml>=6.0",
+    "typing-extensions>=4.6.0",
     "ucimlrepo>=0.0.7",
     "wfdb>=4.3.1",
 ]
@@ -34,6 +35,137 @@ dev = [
 line-length = 88
 target-version = "py311"
 extend-exclude = ["docs", "tests/scripts"]
+
+# --- SUPERCHARGED EXTENSIONS START HERE ---
+
+[tool.ruff.lint]
+# Select highly targeted rule families to guard against complex architecture
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # Pyflakes (unused imports, undefined names)
+    "I",    # isort (clean, structured import blocks)
+    "N",    # pep8-naming (strict variable, function, class casings)
+    "UP",   # pyupgrade (forces modern Python 3.11+ syntax idioms)
+    "YTT",  # sys.version misuse checks
+    "BLE",  # blind-except (bans raw `except:` or `except Exception:`)
+    "B",    # flake8-bugbear (catches subtle runtime/logic design footguns)
+    "A",    # flake8-builtins (prevents overriding built-in keywords)
+    "C4",   # flake8-comprehensions (forces native list/dict comprehensions)
+    "T10",  # flake8-debugger (bans forgot-to-remove breakpoints)
+    "EM",   # flake8-errmsg (forces clean, scannable exception strings)
+    "FA",   # flake8-future-annotations (keeps your types clean)
+    "ISC",  # flake8-implicit-str-concat
+    "ICN",  # flake8-import-conventions (forces standard np, pl aliases)
+    "PT",   # flake8-pytest-style (keeps your testing framework uniform)
+    "Q",    # flake8-quotes
+    "RSE",  # flake8-raise
+    "RET",  # flake8-return (forces early returns / guard clauses)
+    "SIM",  # flake8-simplify (aggressively refactors nested or wordy code)
+    "TID",  # flake8-tidy-imports (bans messy relative or specific imports)
+    "ARG",  # flake8-unused-arguments (flags dead code signatures)
+    "PIE",  # flake8-pie (clean code patterns)
+    "C90",  # McCabe Cyclomatic Complexity (caps function nesting depth)
+    "PL",   # Pylint rules (enforces deep structural clean code practices)
+    "RUF",  # Ruff-specific internal rules
+]
+
+ignore = [
+    "PLR0913", # Allow >5 arguments when injecting environment configurations or simulation states
+]
+
+[tool.ruff.lint.mccabe]
+# Hard limit on cognitive nesting. A score > 5 forces code extraction into simple helpers.
+max-complexity = 5
+
+[tool.ruff.lint.pylint]
+# Restricts maximum branches, statements, and returns to keep functions small
+max-branches = 6
+max-statements = 30
+max-returns = 4
+
+[tool.ruff.lint.flake8-import-conventions.aliases]
+# Enforce idiomatic science/data namespaces for your time-series and array tracking
+numpy = "np"
+polars = "pl"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "ARG001",   # pytest hook params must match hookspec names
+    "PLC0415",  # Allow non-top-level imports in test functions
+    "PLR2004",  # Allow magic values in test assertions
+]
+"src/rl_health_interventions/data/loaders.py" = [
+    "BLE001",   # Blind except is pragmatic for heterogeneous data sources
+    "C901",     # Complex loader functions accepted
+    "EM101",    # Exception string literals in validation
+    "EM102",    # Exception f-string literals in validation
+    "PLC0415",  # Imports inside register() and conditional imports
+    "PLR0911",  # Many return statements accepted
+    "PLR0912",  # Many branches accepted
+    "PLR0915",  # Many statements accepted
+    "PLR2004",  # Magic values in array operations
+    "ARG001",   # Unused data_dir param in interface stubs
+    "E501",     # Long comments/docstrings
+]
+"src/rl_health_interventions/config/schemas.py" = [
+    "C901",     # Complex validator accepted
+    "EM101",    # Exception string literals in validation
+    "EM102",    # Exception f-string literals in validation
+    "PLR0912",  # Many branches accepted
+    "PLR0915",  # Many statements accepted
+    "E501",     # Long error message lines
+]
+"src/rl_health_interventions/data/**" = [
+    "BLE001",   # Blind except is pragmatic for I/O operations
+    "EM101",    # Exception string literals
+    "EM102",    # Exception f-string literals
+    "PLC0415",  # Imports inside register() and conditional imports
+    "ARG001",   # Unused args in interface stubs
+]
+"src/rl_health_interventions/environment.py" = [
+    "EM101",    # Exception string literals
+]
+"src/rl_health_interventions/agents/**" = [
+    "EM101",    # Exception string literals
+    "EM102",    # Exception f-string literals
+    "PLC0415",  # Imports inside register()
+]
+"src/rl_health_interventions/agents/_base.py" = [
+    "B027",     # update() intentionally a no-op for non-learning agents
+]
+"src/rl_health_interventions/rewards/**" = [
+    "EM101",    # Exception string literals
+    "EM102",    # Exception f-string literals
+    "PLC0415",  # Imports inside register()
+]
+"src/rl_health_interventions/simulation/**" = [
+    "PLC0415",  # Imports inside register()
+]
+"src/rl_health_interventions/transitions/**" = [
+    "EM101",    # Exception string literals
+    "PLC0415",  # Imports inside register()
+]
+"scripts/**" = [
+    "BLE001",   # Blind except is pragmatic for data exploration scripts
+    "B905",     # zip strict= is overkill for one-off data processing
+    "C901",     # Complex describe functions accepted for EDA
+    "PLR0124",  # NaN self-comparison is idiomatic for float checks
+    "PLR0912",  # Many branches accepted for diverse dataset stats
+    "PLR0915",  # Many statements accepted for detailed reporting
+    "PLR2004",  # Magic values in array comparisons
+    "RUF001",   # × vs x is intentional for pretty printing
+]
+
+# --- TY CONFIGURATION ---
+# Configures Astral's native type-checking engine for your workspace
+[tool.ty.environment]
+# Read Python 3.11 core definitions
+python-version = "3.11"
+
+[tool.ty.rules]
+# Enable strict validation flags matching your engineering ethos
+all = "error"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from rl_health_interventions.agents import derive_agent_seed, make as make_agent
+from rl_health_interventions.agents import derive_agent_seed
+from rl_health_interventions.agents import make as make_agent
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.episode import run_episode
 

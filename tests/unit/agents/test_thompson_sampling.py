@@ -84,6 +84,7 @@ def test_non_contextual_config_no_regression():
 
 def test_contextual_ts_learns_context_dependent_optimal_actions():
     import numpy as np
+
     from rl_health_interventions.state import StateView
 
     agent = ThompsonSamplingAgent(
@@ -121,6 +122,7 @@ def test_contextual_ts_learns_context_dependent_optimal_actions():
 
 def test_contextual_ts_uniform_rewards():
     import numpy as np
+
     from rl_health_interventions.state import StateView
 
     agent = ThompsonSamplingAgent(

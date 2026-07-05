@@ -8,7 +8,7 @@ class FeaturePipeline:
         self._transforms: list[dict[str, Any]] = []
 
     @classmethod
-    def from_config(cls, config: dict[str, Any] | None = None) -> FeaturePipeline:
+    def from_config(cls, _config: dict[str, Any] | None = None) -> FeaturePipeline:
         # Stub: config is accepted but ignored. Real implementation in subphase 1A.
         return cls()
 

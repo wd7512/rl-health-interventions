@@ -18,8 +18,9 @@ class TransitionProbabilities(RootModel):
                             f"Probability for {state} -> {target} under {action} "
                             f"cannot be negative: {p}"
                         )
+                _epsilon = 1e-6
                 total = sum(probs.values())
-                if abs(total - 1.0) > 1e-6:
+                if abs(total - 1.0) > _epsilon:
                     raise ValueError(
                         f"Probabilities for ({state}, {action}) sum to {total}, expected 1.0"
                     )
@@ -77,11 +78,10 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "context_feature must be a non-empty string when contextual=True"
                 )
-        else:
-            if self.context_feature is not None:
-                raise ValueError(
-                    "context_feature must not be provided when contextual=False"
-                )
+        elif self.context_feature is not None:
+            raise ValueError(
+                "context_feature must not be provided when contextual=False"
+            )
         if self.type == "thompson_sampling":
             if self.alpha_prior is None or self.alpha_prior <= 0:
                 raise ValueError("alpha_prior must be > 0 for thompson_sampling")
@@ -111,14 +111,13 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "ucb agent does not accept alpha_prior, beta_prior, or epsilon"
                 )
-        if self.type == "random":
-            if (
-                self.alpha_prior is not None
-                or self.beta_prior is not None
-                or self.epsilon is not None
-                or self.c is not None
-            ):
-                raise ValueError("random agent does not accept any hyperparameters")
+        if self.type == "random" and (
+            self.alpha_prior is not None
+            or self.beta_prior is not None
+            or self.epsilon is not None
+            or self.c is not None
+        ):
+            raise ValueError("random agent does not accept any hyperparameters")
         if self.type == "decaying_epsilon_greedy":
             if self.epsilon_start is None or not (0 <= self.epsilon_start <= 1):
                 raise ValueError(
@@ -252,12 +251,14 @@ class MDPConfig(BaseModel):
 
     @model_validator(mode="after")
     def _validate_reward_multiplier(self) -> MDPConfig:
-        if self.reward_multiplier_by_step is not None:
-            if len(self.reward_multiplier_by_step) != self.steps_per_day:
-                raise ValueError(
-                    f"reward_multiplier_by_step length {len(self.reward_multiplier_by_step)} "
-                    f"must equal steps_per_day {self.steps_per_day}"
-                )
+        if (
+            self.reward_multiplier_by_step is not None
+            and len(self.reward_multiplier_by_step) != self.steps_per_day
+        ):
+            raise ValueError(
+                f"reward_multiplier_by_step length {len(self.reward_multiplier_by_step)} "
+                f"must equal steps_per_day {self.steps_per_day}"
+            )
         return self
 
     @model_validator(mode="after")

@@ -74,7 +74,7 @@ def test_compute_bounds_raises_for_empty_states():
             transition_probabilities=None,
         ),
     )
-    with pytest.raises(ValueError, match="config.states is required"):
+    with pytest.raises(ValueError, match=r"config.states is required"):
         compute_bounds(config)
 
 
@@ -91,7 +91,7 @@ def test_compute_bounds_raises_for_empty_actions():
             transition_probabilities=None,
         ),
     )
-    with pytest.raises(ValueError, match="config.actions is required"):
+    with pytest.raises(ValueError, match=r"config.actions is required"):
         compute_bounds(config)
 
 

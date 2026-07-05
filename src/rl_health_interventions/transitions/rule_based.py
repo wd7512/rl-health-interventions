@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+from typing_extensions import override
 
 from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.transitions._base import TransitionModel
@@ -23,6 +24,7 @@ class RuleBasedTransition(TransitionModel):
                 prob_values /= prob_values.sum()
                 self._cache[(state, action)] = (targets, prob_values)
 
+    @override
     def transition(self, state: str, action: str) -> str:
         targets, probs = self._cache[(state, action)]
         idx = self._rng.choice(len(targets), p=probs)

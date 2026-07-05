@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 
 from rl_health_interventions.agents import REGISTRY, make
-from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
 from rl_health_interventions.agents.epsilon_greedy import EpsilonGreedyAgent
 from rl_health_interventions.agents.random import RandomAgent
+from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
 from rl_health_interventions.agents.ucb import UCBAgent
 
 
@@ -52,7 +52,7 @@ def test_ts_negative_prior_raises():
 
 
 def test_eg_out_of_range_epsilon_raises():
-    with pytest.raises(ValueError, match="between 0.0 and 1.0"):
+    with pytest.raises(ValueError, match=r"between 0.0 and 1.0"):
         EpsilonGreedyAgent(epsilon=1.5)
 
 

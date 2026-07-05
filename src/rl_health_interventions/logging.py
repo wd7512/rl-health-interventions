@@ -4,8 +4,11 @@ import json
 import logging
 import logging.handlers
 
+from typing_extensions import override
+
 
 class JsonFormatter(logging.Formatter):
+    @override
     def format(self, record: logging.LogRecord) -> str:
         log_data = {
             "asctime": self.formatTime(record),

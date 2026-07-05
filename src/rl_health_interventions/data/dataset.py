@@ -15,13 +15,14 @@ class Dataset:
 
     def validate(self) -> None:
         n_users = self.user_ids.shape[0]
-        if self.timestamps.ndim != 2 or self.timestamps.shape[0] != n_users:
+        _ndim = 2
+        if self.timestamps.ndim != _ndim or self.timestamps.shape[0] != n_users:
             raise ValueError(
                 f"timestamps shape {self.timestamps.shape} does not match "
                 f"user_ids shape ({n_users},) — expected 2D array"
             )
         for name, arr in self.features.items():
-            if arr.ndim != 2 or arr.shape[0] != n_users:
+            if arr.ndim != _ndim or arr.shape[0] != n_users:
                 raise ValueError(
                     f"feature '{name}' shape {arr.shape} does not match "
                     f"user_ids shape ({n_users},) — expected 2D array"
