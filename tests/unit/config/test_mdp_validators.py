@@ -196,6 +196,14 @@ def _del(raw, *keys):
             ),
             "does not accept any hyperparameters",
         ),
+        (
+            lambda raw: _set(
+                raw,
+                "agents",
+                [{"type": "fixed", "action": "idle", "contextual": True}],
+            ),
+            "fixed agent does not accept learning hyperparameters or contextual",
+        ),
     ],
 )
 def test_validation_error(mutate, expected_match):
@@ -216,7 +224,7 @@ def test_validation_error(mutate, expected_match):
                 {"type": "random"},
                 {"type": "epsilon_greedy", "epsilon": 0.1},
                 {"type": "ucb", "c": 2.0},
-                {"type": "fixed"},
+                {"type": "fixed", "action": "idle"},
             ],
         ),
         lambda raw: _set(
@@ -234,7 +242,6 @@ def test_validation_error(mutate, expected_match):
         ),
         lambda raw: _set(raw, "transition_model", {"type": "learned"}),
         lambda raw: _set(raw, "agents", [{"type": "fixed", "action": "idle"}]),
-        lambda raw: _set(raw, "agents", [{"type": "fixed", "contextual": True}]),
         lambda raw: _set(
             raw,
             "agents",

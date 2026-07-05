@@ -23,14 +23,26 @@ class ContextualBanditAgent(Agent):
         if contextual and (
             context_feature is None
             or (isinstance(context_feature, str) and not context_feature.strip())
-            or (isinstance(context_feature, list) and not context_feature)
+            or (
+                isinstance(context_feature, list)
+                and (
+                    not context_feature
+                    or not all(
+                        isinstance(f, str) and f.strip() for f in context_feature
+                    )
+                )
+            )
             or not isinstance(context_feature, (str, list))
         ):
             raise ValueError(
-                "context_feature must be a non-empty string or list when contextual=True"
+                "context_feature must be a non-empty string or list of non-empty strings when contextual=True"
             )
         self.contextual = contextual
-        self.context_feature = context_feature
+        self.context_feature = (
+            tuple(context_feature)
+            if isinstance(context_feature, list)
+            else context_feature
+        )
         self._actions = actions or ["nudge", "idle"]
         self._rng = np.random.default_rng(seed)
 

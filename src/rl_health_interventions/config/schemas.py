@@ -90,6 +90,22 @@ class AgentConfig(BaseModel):
         if self.type not in _KNOWN_AGENT_TYPES:
             raise ValueError(f"Unknown agent type: {self.type}")
         if self.type == "fixed":
+            if self.action is None:
+                raise ValueError("action must be provided for fixed agent")
+            if not isinstance(self.action, str) or not self.action.strip():
+                raise ValueError("action must be a non-empty string for fixed agent")
+            if (
+                self.alpha_prior is not None
+                or self.beta_prior is not None
+                or self.epsilon is not None
+                or self.epsilon_start is not None
+                or self.c is not None
+                or self.decay_steps is not None
+                or self.contextual
+            ):
+                raise ValueError(
+                    "fixed agent does not accept learning hyperparameters or contextual"
+                )
             return self
         if self.contextual:
             if self.type not in (
@@ -113,10 +129,17 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "context_feature must be a non-empty string when contextual=True"
                 )
-            if isinstance(self.context_feature, list) and not self.context_feature:
-                raise ValueError(
-                    "context_feature must be a non-empty list when contextual=True"
-                )
+            if isinstance(self.context_feature, list):
+                if not self.context_feature:
+                    raise ValueError(
+                        "context_feature must be a non-empty list when contextual=True"
+                    )
+                if not all(
+                    isinstance(f, str) and f.strip() for f in self.context_feature
+                ):
+                    raise ValueError(
+                        "context_feature list elements must be non-empty strings"
+                    )
         else:
             if self.context_feature is not None:
                 raise ValueError(
@@ -212,7 +235,7 @@ class MDPConfig(BaseModel):
         if isinstance(data, dict):
             actions = data.get("actions")
             if isinstance(actions, list):
-                data["actions"] = {a: {} for a in actions}
+                data = {**data, "actions": {a: {} for a in actions}}
         return data
 
     @model_validator(mode="after")
@@ -327,6 +350,11 @@ class MDPConfig(BaseModel):
                             f"Target distribution for ({sv}, {action_name}) "
                             f"must cover all {first_var_name} values"
                         )
+        if len(self.state.variables) > 1:
+            raise ValueError(
+                "transition_probabilities currently supports only one state variable; "
+                f"got {len(self.state.variables)}: {list(self.state.variables.keys())}"
+            )
         return self
 
     @model_validator(mode="after")
