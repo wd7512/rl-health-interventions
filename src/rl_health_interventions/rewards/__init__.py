@@ -17,9 +17,7 @@ def make(name_or_config=None, **kwargs) -> RewardHandler:
         name = kwargs.pop("name")
     else:
         raise TypeError("make() requires either a config or name argument")
-    if name not in REGISTRY:
-        raise KeyError(f"Unknown reward handler: {name}. Known: {list(REGISTRY)}")
-    return REGISTRY[name](**kwargs)
+    return REGISTRY.make(name, **kwargs)
 
 
 _REWARD_MODULES = [expression]
