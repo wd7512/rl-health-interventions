@@ -54,7 +54,11 @@ class ExpressionParser:
     def evaluate(self, variables: dict[str, float]) -> float:
         def _eval(node: ast.AST) -> float:
             if isinstance(node, ast.Constant):
-                return float(node.value)  # ty:ignore[invalid-argument-type]
+                if not isinstance(node.value, (int, float)):
+                    raise ValueError(
+                        f"Non-numeric constant: {node.value!r} (expected a number)"
+                    )
+                return float(node.value)
             if isinstance(node, ast.Name):
                 try:
                     return variables[node.id]
@@ -72,7 +76,12 @@ class ExpressionParser:
                     raise ValueError(
                         f"Unsupported binary operator: {type(node.op).__name__}"
                     )
-                return op(left, right)
+                try:
+                    return op(left, right)
+                except ZeroDivisionError:
+                    raise ValueError(
+                        f"Division by zero in expression: {left} / {right}"
+                    )
             if isinstance(node, ast.UnaryOp):
                 operand = _eval(node.operand)
                 try:

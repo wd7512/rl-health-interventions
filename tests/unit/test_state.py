@@ -65,3 +65,48 @@ def test_state_view_factor_values():
         factors={"activity_level": "active", "sleep": "good"}, day=0, step_of_day=0
     )
     assert sv.factor_values == {"activity_level": "active", "sleep": "good"}
+
+
+def test_state_view_hash_eq_contract():
+    """hash(a)==hash(b) must hold when a==b."""
+    sv1 = StateView(
+        factors={"activity_level": "active"}, day=0, step_of_day=0, steps_per_day=5
+    )
+    sv2 = StateView(
+        factors={"activity_level": "active"}, day=0, step_of_day=0, steps_per_day=5
+    )
+    assert sv1 == sv2
+    assert hash(sv1) == hash(sv2)
+
+
+def test_state_view_hash_differs_with_steps_per_day():
+    """Different steps_per_day → different hash (consistent with __eq__)."""
+    sv1 = StateView(
+        factors={"activity_level": "active"}, day=0, step_of_day=0, steps_per_day=5
+    )
+    sv2 = StateView(
+        factors={"activity_level": "active"}, day=0, step_of_day=0, steps_per_day=7
+    )
+    assert sv1 != sv2
+    assert hash(sv1) != hash(sv2)
+
+
+def test_state_view_eq_returns_not_implemented_for_non_stateview():
+    sv = StateView(factors={"activity_level": "active"}, day=0, step_of_day=0)
+    assert sv.__eq__("not a state view") is NotImplemented
+
+
+def test_state_view_with_advance():
+    sv = StateView(
+        factors={"activity_level": "active"}, day=0, step_of_day=0, steps_per_day=5
+    )
+    sv2 = sv.with_advance()
+    assert sv2.step_of_day == 1
+    assert sv2.day == 0
+    assert sv2.factor_values == sv.factor_values
+    sv5 = StateView(
+        factors={"activity_level": "active"}, day=0, step_of_day=4, steps_per_day=5
+    )
+    sv6 = sv5.with_advance()
+    assert sv6.step_of_day == 0
+    assert sv6.day == 1

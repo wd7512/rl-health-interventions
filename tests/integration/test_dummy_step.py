@@ -58,3 +58,20 @@ def test_layer3_dummy_step(minimal_config) -> None:
     assert isinstance(rew, float)
     assert isinstance(done, bool)
     assert next_state in ("sedentary", "active")
+
+
+def test_fixed_agent_layer2_compatibility() -> None:
+    from rl_health_interventions.agents._base import Agent
+
+    agent = make_agent("fixed", action="nudge")
+    assert isinstance(agent, Agent)
+    assert agent.select_action(None) == "nudge"
+
+
+def test_fixed_agent_layer3_dummy_step(minimal_config) -> None:
+    agent = make_agent("fixed", action="nudge", actions=["nudge", "idle"])
+    state = "sedentary"
+    action = agent.select_action(state)
+    assert action == "nudge"
+    agent.update(state, action, 1.0, "active")
+    assert agent.select_action(state) == "nudge"
