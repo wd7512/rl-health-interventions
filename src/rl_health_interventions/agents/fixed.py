@@ -4,7 +4,12 @@ from rl_health_interventions.agents._base import Agent
 
 
 class FixedAgent(Agent):
-    def __init__(self, action: str = "idle", **kwargs) -> None:
+    def __init__(
+        self,
+        action: str = "idle",
+        seed: int | None = None,
+        actions: list[str] | None = None,
+    ) -> None:
         self._action = action
 
     def select_action(self, state) -> str:
