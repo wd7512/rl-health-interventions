@@ -1,3 +1,4 @@
+# Status: ready — validates and runs
 episode_days: 90
 steps_per_day: 5
 seed: 42
