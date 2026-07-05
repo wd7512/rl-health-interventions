@@ -25,7 +25,7 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
         decay_steps: int = 200,
         seed: int = 42,
         contextual: bool = False,
-        context_features: str | None = None,
+        context_features: str | list[str] | None = None,
     ) -> None:
         """
         Initialize a DecayingEpsilonGreedyAgent.

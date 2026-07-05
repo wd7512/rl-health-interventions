@@ -29,7 +29,7 @@ class ThompsonSamplingAgent(ContextualBanditAgent):
         beta_prior: float = 1.0,
         seed: int = 42,
         contextual: bool = False,
-        context_features: str | None = None,
+        context_features: str | list[str] | None = None,
     ) -> None:
         super().__init__(
             actions=actions,

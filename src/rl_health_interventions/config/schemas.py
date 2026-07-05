@@ -239,6 +239,8 @@ class MDPConfig(BaseModel):
 
     @model_validator(mode="after")
     def _validate_initial_state(self) -> MDPConfig:
+        if not self.actions:
+            raise ValueError("actions must be non-empty")
         variable_names = set(self.state.variables.keys())
         valid_keys = variable_names
         initial_keys = set(self.initial_state.keys())

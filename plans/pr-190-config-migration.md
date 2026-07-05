@@ -22,7 +22,7 @@ and test fixture. End state: one config format, one model, zero legacy paths.
 5. **Single factor name for MVP**: `activity_level`.
 6. **FixedAgent**: Configurable fixed action (default `"idle"`). Replaces spec's
    non-existent `IdleOnlyAgent`.
-7. **Contextual agents**: `context_feature` accepts `str | list[str]`; `_get_context_key`
+7. **Contextual agents**: `context_features` accepts `str | list[str]`; `_get_context_key`
    produces tuple keys for multi-field context.
 8. **Transition probabilities**: Kept as an optional inline field alongside `table_dir` for
    table-backed transitions. MVP configs use inline probs, sprint1 uses JSON table files.
@@ -37,7 +37,7 @@ and test fixture. End state: one config format, one model, zero legacy paths.
 
 | File | Action |
 |---|---|
-| `config/schemas.py` | Replace `MDPConfig` with unified model — `state.variables` + `state.parameters`, formula reward, empty `ActionConfig`, multi-field `context_feature`, inline `transition_probabilities` kept optional |
+| `config/schemas.py` | Replace `MDPConfig` with unified model — `state.variables` + `state.parameters`, formula reward, empty `ActionConfig`, multi-field `context_features`, inline `transition_probabilities` kept optional |
 | `config/loader.py` | Resolve `table_dir` relative to config path; remove dispatch (one model now) |
 | `state.py` | Rewrite `StateView` as dict-backed with `__getattr__` factor resolution |
 | `environment.py` | Update for new `StateView`; no sprint1 features |
@@ -45,7 +45,7 @@ and test fixture. End state: one config format, one model, zero legacy paths.
 | `rewards/__init__.py` | Remove `CompoundReward`; always return `ExpressionReward` |
 | `rewards/compound.py` | Delete entirely |
 | `agents/__init__.py` | Register `fixed` |
-| `agents/contextual_bandits/_base.py` | Accept `list[str]` context_feature; tuple-key `_get_context_key` |
+| `agents/contextual_bandits/_base.py` | Accept `list[str]` context_features; tuple-key `_get_context_key` |
 | `sweep.py` | `config.actions` → `config.action_names` |
 | `__main__.py` | `config.actions` → `config.action_names` |
 | **NEW** `rewards/expression.py` | `ExpressionParser` (AST safe evaluator) + `ExpressionReward` |
@@ -56,7 +56,7 @@ and test fixture. End state: one config format, one model, zero legacy paths.
 | File | Action |
 |---|---|
 | `config/rule_based.yaml` | Rewrite to new format — factor `activity_level`, inline probs preserved |
-| `docs/sprint1/configs/sprint1.yaml` | `state.factors` → `state.variables` + `state.parameters`. Add `agents` block with `context_feature: [step_bin, burden, day_of_week, sleep]` |
+| `docs/sprint1/configs/sprint1.yaml` | `state.factors` → `state.variables` + `state.parameters`. Add `agents` block with `context_features: [step_bin, burden, day_of_week, sleep]` |
 | `docs/experimental_phases/mvp/configs/mvp.yaml` | Rewrite |
 | `docs/experimental_phases/mvp/configs/mvp_masked.yaml` | Rewrite |
 | `docs/experimental_phases/mvp/configs/mvp_extensions.yaml` | Rewrite |
@@ -81,7 +81,7 @@ and test fixture. End state: one config format, one model, zero legacy paths.
 | `test_mdp_config.py` | Updated YAML shapes |
 | `test_mdp_validators.py` | Updated validation rules |
 | `test_agents_registry.py` | Add `fixed` to known types |
-| `test_contextual_bandit_base.py` | Add multi-field `context_feature` tests |
+| `test_contextual_bandit_base.py` | Add multi-field `context_features` tests |
 | `test_compound_reward.py` | Delete or repurpose |
 | `test_dummy_step.py` | Updated config construction |
 | `mvp_expected_rewards.json` | Re-base (should still be 165.0) |
