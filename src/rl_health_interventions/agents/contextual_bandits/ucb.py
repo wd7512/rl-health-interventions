@@ -22,13 +22,13 @@ class UCBAgent(ContextualBanditAgent):
         c: float = 2.0,
         seed: int = 42,
         contextual: bool = False,
-        context_feature: str | None = None,
+        context_features: str | None = None,
     ) -> None:
         super().__init__(
             actions=actions,
             seed=seed,
             contextual=contextual,
-            context_feature=context_feature,
+            context_features=context_features,
         )
         if c <= 0.0:
             raise ValueError("c must be strictly positive.")

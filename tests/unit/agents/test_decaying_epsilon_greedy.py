@@ -102,7 +102,7 @@ def test_contextual_learns_per_context(sed_and_act):
         decay_steps=100,
         seed=42,
         contextual=True,
-        context_feature="activity_level",
+        context_features="activity_level",
     )
     for _ in range(100):
         agent.update(sed, "nudge", reward=0.0, next_state=sed)

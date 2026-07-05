@@ -52,7 +52,7 @@ def test_contextual_epsilon_greedy_learns_per_context(sed_and_act):
         epsilon=0.0,
         seed=42,
         contextual=True,
-        context_feature="activity_level",
+        context_features="activity_level",
     )
 
     for _ in range(100):

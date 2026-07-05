@@ -40,7 +40,7 @@ def run_agent(config, agent_cfg, n_seeds: int) -> np.ndarray:
     """Run one agent variant over n_seeds. Returns per-step rewards (n_seeds, n_steps)."""
     exclude = {"type"}
     if not agent_cfg.contextual:
-        exclude |= {"contextual", "context_feature"}
+        exclude |= {"contextual", "context_features"}
     rewards = []
     for seed in range(1, n_seeds + 1):
         kwargs = agent_cfg.model_dump(exclude=exclude, exclude_none=True)

@@ -19,13 +19,13 @@ class EpsilonGreedyAgent(ContextualBanditAgent):
         epsilon: float = 0.1,
         seed: int = 42,
         contextual: bool = False,
-        context_feature: str | None = None,
+        context_features: str | None = None,
     ) -> None:
         super().__init__(
             actions=actions,
             seed=seed,
             contextual=contextual,
-            context_feature=context_feature,
+            context_features=context_features,
         )
         if not (0.0 <= epsilon <= 1.0):
             raise ValueError("epsilon must be between 0.0 and 1.0 inclusive.")
