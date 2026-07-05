@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from rl_health_interventions._registry import Registry
-from rl_health_interventions.simulation._base import ResponseModel
 from rl_health_interventions.simulation import rule_based
 from rl_health_interventions.simulation._base import ResponseModel
 

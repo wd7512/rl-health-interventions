@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing_extensions import override
+
 
 class StateView:
     _factors: dict[str, str]
@@ -23,13 +25,16 @@ class StateView:
         try:
             return self._factors[name]
         except KeyError:
-            raise AttributeError(
+            msg = (
                 f"StateView has no factor '{name}'. "
                 f"Available factors: {sorted(self._factors)}"
             )
+            raise AttributeError(msg) from None
 
+    @override
     def __setattr__(self, name: str, value: object) -> None:
-        raise AttributeError("StateView is immutable")
+        msg = "StateView is immutable"
+        raise AttributeError(msg)
 
     @property
     def day(self) -> int:
@@ -66,6 +71,7 @@ class StateView:
         next_day = self._day + (1 if next_step_of_day == 0 else 0)
         return StateView(self._factors, next_day, next_step_of_day, self._steps_per_day)
 
+    @override
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, StateView):
             return NotImplemented
@@ -76,6 +82,7 @@ class StateView:
             and self._steps_per_day == other._steps_per_day
         )
 
+    @override
     def __hash__(self) -> int:
         return hash(
             (
@@ -86,6 +93,10 @@ class StateView:
             )
         )
 
+    @override
     def __repr__(self) -> str:
         factors_repr = ", ".join(f"{k}={v!r}" for k, v in sorted(self._factors.items()))
-        return f"StateView({factors_repr}, day={self._day}, step_of_day={self._step_of_day})"
+        return (
+            f"StateView({factors_repr},"
+            f" day={self._day}, step_of_day={self._step_of_day})"
+        )

@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from rl_health_interventions.agents.contextual_bandits.epsilon_greedy import (
-    EpsilonGreedyAgent,
-)
-from rl_health_interventions.agents.contextual_bandits.ucb import UCBAgent
-from rl_health_interventions.agents.contextual_bandits.thompson_sampling import (
-    ThompsonSamplingAgent,
-)
 from rl_health_interventions.agents.contextual_bandits.decaying_epsilon_greedy import (
     DecayingEpsilonGreedyAgent,
 )
+from rl_health_interventions.agents.contextual_bandits.epsilon_greedy import (
+    EpsilonGreedyAgent,
+)
+from rl_health_interventions.agents.contextual_bandits.thompson_sampling import (
+    ThompsonSamplingAgent,
+)
+from rl_health_interventions.agents.contextual_bandits.ucb import UCBAgent
 
 
 def register() -> None:

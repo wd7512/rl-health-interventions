@@ -3,6 +3,8 @@ from __future__ import annotations
 import ast
 import operator
 
+from typing_extensions import override
+
 from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.rewards._base import RewardHandler
 from rl_health_interventions.state import StateView
@@ -51,8 +53,8 @@ class ExpressionParser:
         for child in ast.iter_child_nodes(node):
             self._validate(child)
 
-    def evaluate(self, variables: dict[str, float]) -> float:
-        def _eval(node: ast.AST) -> float:
+    def evaluate(self, variables: dict[str, float]) -> float:  # noqa: C901
+        def _eval(node: ast.AST) -> float:  # noqa: C901, PLR0912
             if isinstance(node, ast.Constant):
                 if not isinstance(node.value, (int, float)):
                     raise ValueError(
@@ -66,7 +68,7 @@ class ExpressionParser:
                     raise ValueError(
                         f"Unknown variable '{node.id}' in formula. "
                         f"Available: {sorted(variables)}"
-                    )
+                    ) from None
             if isinstance(node, ast.BinOp):
                 left = _eval(node.left)
                 right = _eval(node.right)
@@ -75,13 +77,13 @@ class ExpressionParser:
                 except KeyError:
                     raise ValueError(
                         f"Unsupported binary operator: {type(node.op).__name__}"
-                    )
+                    ) from None
                 try:
                     return op(left, right)
-                except ZeroDivisionError:
+                except ZeroDivisionError as err:
                     raise ValueError(
                         f"Division by zero in expression: {left} / {right}"
-                    )
+                    ) from err
             if isinstance(node, ast.UnaryOp):
                 operand = _eval(node.operand)
                 try:
@@ -89,7 +91,7 @@ class ExpressionParser:
                 except KeyError:
                     raise ValueError(
                         f"Unsupported unary operator: {type(node.op).__name__}"
-                    )
+                    ) from None
                 return op(operand)
             raise ValueError(f"Unexpected node: {type(node).__name__}")
 
@@ -117,6 +119,7 @@ class ExpressionReward(RewardHandler):
                     result[name] = var_cfg.mapping[factor_value]
         return result
 
+    @override
     def reward(
         self, state: StateView | str, action: str, step_idx: int
     ) -> tuple[float, bool]:

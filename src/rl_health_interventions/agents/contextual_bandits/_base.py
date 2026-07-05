@@ -35,7 +35,8 @@ class ContextualBanditAgent(Agent):
             or not isinstance(context_features, (str, list))
         ):
             raise ValueError(
-                "context_features must be a non-empty string or list of non-empty strings when contextual=True"
+                "context_features must be a non-empty string or list"
+                " of non-empty strings when contextual=True"
             )
         self.contextual = contextual
         self.context_features = (
@@ -62,4 +63,4 @@ class ContextualBanditAgent(Agent):
             value = getattr(state, self.context_features)
             return (value, action)
         values = tuple(getattr(state, f) for f in self.context_features)
-        return values + (action,)
+        return (*values, action)

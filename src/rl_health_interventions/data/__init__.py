@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from rl_health_interventions._registry import Registry
-from rl_health_interventions.data import synthetic, feature_pipeline
+from rl_health_interventions.data import feature_pipeline, synthetic
 
 REGISTRY: Registry = Registry("data component")
 

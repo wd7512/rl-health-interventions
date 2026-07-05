@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Type
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -11,22 +11,21 @@ class Registry:
 
     def __init__(self, name: str) -> None:
         self._name = name
-        self._entries: dict[str, Type] = {}
+        self._entries: dict[str, type] = {}
 
-    def register(self, key: str, cls: Type) -> None:
+    def register(self, key: str, cls: type) -> None:
         self._entries[key] = cls
 
     def make(self, name: str, **kwargs: Any) -> Any:
         if name not in self._entries:
-            raise KeyError(
-                f"Unknown {self._name}: {name}. Known: {list(self._entries)}"
-            )
+            msg = f"Unknown {self._name}: {name}. Known: {list(self._entries)}"
+            raise KeyError(msg)
         return self._entries[name](**kwargs)
 
     def __contains__(self, key: str) -> bool:
         return key in self._entries
 
-    def __getitem__(self, key: str) -> Type:
+    def __getitem__(self, key: str) -> type:
         return self._entries[key]
 
     def keys(self) -> Any:
@@ -49,6 +48,5 @@ class Registry:
                 log.exception("Failed to register %s", mod.__name__)
                 errors.append(f"{mod.__name__}: {exc}")
         if errors:
-            raise RuntimeError(
-                f"Failed to register {len(errors)} module(s): {'; '.join(errors)}"
-            )
+            msg = f"Failed to register {len(errors)} module(s): {'; '.join(errors)}"
+            raise RuntimeError(msg)

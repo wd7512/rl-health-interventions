@@ -27,9 +27,11 @@ def make(name: str, **kwargs) -> Agent:
 
 # NOTE: Import new agent module above and append it here so register() runs on import.
 # Each module must have a register() function that adds to REGISTRY.
-from rl_health_interventions.agents import contextual_bandits  # noqa: E402
-from rl_health_interventions.agents import fixed  # noqa: E402
-from rl_health_interventions.agents import random  # noqa: E402
+from rl_health_interventions.agents import (  # noqa: E402
+    contextual_bandits,
+    fixed,
+    random,
+)
 
 _AGENT_MODULES = [
     contextual_bandits,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from rl_health_interventions.agents.contextual_bandits.thompson_sampling import (
     ThompsonSamplingAgent,
 )

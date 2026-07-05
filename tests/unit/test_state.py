@@ -20,7 +20,7 @@ def test_state_view_is_immutable():
 
     sv = StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
     with pytest.raises(AttributeError, match="immutable"):
-        setattr(sv, "activity_level", "active")
+        sv.activity_level = "active"
 
 
 def test_state_view_unknown_factor_raises():

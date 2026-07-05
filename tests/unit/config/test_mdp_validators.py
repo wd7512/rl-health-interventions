@@ -55,7 +55,7 @@ def _del(raw, *keys):
 
 
 @pytest.mark.parametrize(
-    "mutate,expected_match",
+    ("mutate", "expected_match"),
     [
         (
             lambda raw: _set(

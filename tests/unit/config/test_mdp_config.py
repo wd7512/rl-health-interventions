@@ -45,5 +45,5 @@ def test_mdp_config_rejects_invalid(mutate):
     path = ASSETS / "valid_mdp_config.yaml"
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     mutate(raw)
-    with pytest.raises(Exception):
+    with pytest.raises(pydantic.ValidationError):
         MDPConfig.model_validate(raw)

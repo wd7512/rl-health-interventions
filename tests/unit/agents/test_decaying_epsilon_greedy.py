@@ -129,12 +129,12 @@ def test_epsilon_constant_when_min_equals_start(state_view):
 
 
 @pytest.mark.parametrize(
-    "kwargs,match",
+    ("kwargs", "match"),
     [
-        (dict(epsilon_start=1.5), "between 0.0 and 1.0"),
-        (dict(epsilon_start=0.5, epsilon_min=1.5), "between 0.0 and 1.0"),
-        (dict(epsilon_start=0.1, epsilon_min=0.5), "epsilon_min must not exceed"),
-        (dict(epsilon_start=0.5, decay_steps=0), "decay_steps must be positive"),
+        ({"epsilon_start": 1.5}, "between 0.0 and 1.0"),
+        ({"epsilon_start": 0.5, "epsilon_min": 1.5}, "between 0.0 and 1.0"),
+        ({"epsilon_start": 0.1, "epsilon_min": 0.5}, "epsilon_min must not exceed"),
+        ({"epsilon_start": 0.5, "decay_steps": 0}, "decay_steps must be positive"),
     ],
 )
 def test_invalid_params_raise(kwargs, match):

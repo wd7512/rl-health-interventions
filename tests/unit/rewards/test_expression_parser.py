@@ -1,9 +1,10 @@
 import pytest
+
 from rl_health_interventions.rewards.expression import ExpressionParser
 
 
 @pytest.mark.parametrize(
-    "expr,variables,expected",
+    ("expr", "variables", "expected"),
     [
         ("42", {}, 42.0),
         ("x", {"x": 3.5}, 3.5),
@@ -24,7 +25,7 @@ def test_evaluate(expr, variables, expected):
 
 
 @pytest.mark.parametrize(
-    "expr,evaluate_vars,expected_match",
+    ("expr", "evaluate_vars", "expected_match"),
     [
         ("__import__('os')", {}, "Unsupported"),
         ("max(1, 2)", {}, "Unsupported"),

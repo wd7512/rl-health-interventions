@@ -12,7 +12,7 @@ def test_select_action_returns_string_action(state_view):
 
 
 @pytest.mark.parametrize(
-    "action,reward,expected_alpha,expected_beta",
+    ("action", "reward", "expected_alpha", "expected_beta"),
     [
         ("nudge", 1.0, 2.0, 1.0),
         ("idle", 0.0, 1.0, 2.0),

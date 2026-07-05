@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from rl_health_interventions._registry import Registry
-from rl_health_interventions.transitions._base import TransitionModel
 from rl_health_interventions.transitions import rule_based
 from rl_health_interventions.transitions._base import TransitionModel
 

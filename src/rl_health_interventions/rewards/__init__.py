@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from rl_health_interventions._registry import Registry
-from rl_health_interventions.rewards._base import RewardHandler
 from rl_health_interventions.rewards import expression
+from rl_health_interventions.rewards._base import RewardHandler
 
 REGISTRY: Registry = Registry("reward")
 

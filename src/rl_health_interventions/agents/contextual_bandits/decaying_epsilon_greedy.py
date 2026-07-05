@@ -37,7 +37,8 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
             decay_steps: Number of steps over which epsilon decays linearly.
             seed: RNG seed for reproducibility.
             contextual: If True, maintain separate Q-values per (context, action).
-            context_features: Name of the context feature column (required when contextual=True).
+            context_features: Name of the context feature column
+                (required when contextual=True).
 
         Raises:
             ValueError: If epsilon_start or epsilon_min are not in [0.0, 1.0],
