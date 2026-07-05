@@ -1,5 +1,6 @@
 from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.rewards.expression import ExpressionReward
+from rl_health_interventions.state import StateView
 
 _BASE = {
     "episode_days": 1,
@@ -73,3 +74,57 @@ def test_reward_with_string_state():
     reward, done = r.reward("active", "nudge", step_idx=0)
     assert reward == 1.0
     assert done is False
+
+
+def test_expression_reward_multi_factor():
+    """Formula combines a state-derived variable with multiple constants."""
+    import pytest
+
+    config = MDPConfig.model_validate(
+        {
+            "episode_days": 1,
+            "steps_per_day": 1,
+            "state": {
+                "variables": {
+                    "activity_level": {"names": ["sedentary", "active"]},
+                }
+            },
+            "initial_state": {"activity_level": "sedentary"},
+            "actions": {"nudge": {}, "idle": {}},
+            "reward": {
+                "constants": {"active_bonus": 1.0, "sleep_bonus": 0.5},
+                "variables": {
+                    "activity_value": {
+                        "source": "state.activity_level",
+                        "mapping": {"sedentary": 0.0, "active": 1.0},
+                    },
+                },
+                "formula": "activity_value * active_bonus + sleep_bonus",
+            },
+            "transition_model": {
+                "type": "rule_based",
+                "transition_probabilities": {
+                    "sedentary": {
+                        "nudge": {"active": 0.3, "sedentary": 0.7},
+                        "idle": {"active": 0.1, "sedentary": 0.9},
+                    },
+                    "active": {
+                        "nudge": {"active": 0.5, "sedentary": 0.5},
+                        "idle": {"active": 0.6, "sedentary": 0.4},
+                    },
+                },
+            },
+        }
+    )
+
+    handler = ExpressionReward(config)
+    state = StateView(factors={"activity_level": "active"}, day=0, step_of_day=0)
+    reward, done = handler.reward(state, "nudge", step_idx=0)
+    # activity_value=1.0 * active_bonus=1.0 + sleep_bonus=0.5 = 1.5
+    assert reward == pytest.approx(1.5)
+    assert done is False
+
+    state2 = StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
+    reward2, _ = handler.reward(state2, "idle", step_idx=0)
+    # activity_value=0.0 * active_bonus=1.0 + sleep_bonus=0.5 = 0.5
+    assert reward2 == pytest.approx(0.5)
