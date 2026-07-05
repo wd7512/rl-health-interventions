@@ -63,10 +63,11 @@ def main() -> None:
         "seed": agent_seed,
         "actions": config.action_names,
     }
-    if agent_name == "fixed":
-        agent_cfg = next((a for a in config.agents if a.type == "fixed"), None)
-        if agent_cfg and agent_cfg.action:
-            agent_kwargs["action"] = agent_cfg.action
+    agent_cfg = next((a for a in config.agents if a.type == agent_name), None)
+    if agent_cfg is not None:
+        agent_kwargs.update(
+            agent_cfg.model_dump(exclude_unset=True, exclude={"type"})
+        )
     agent = make_agent(agent_name, **agent_kwargs)
 
     output_path = Path(args.output)
