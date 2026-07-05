@@ -35,6 +35,73 @@ line-length = 88
 target-version = "py311"
 extend-exclude = ["docs", "tests/scripts"]
 
+# --- SUPERCHARGED EXTENSIONS START HERE ---
+
+[tool.ruff.lint]
+# Select highly targeted rule families to guard against complex architecture
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # Pyflakes (unused imports, undefined names)
+    "I",    # isort (clean, structured import blocks)
+    "N",    # pep8-naming (strict variable, function, class casings)
+    "UP",   # pyupgrade (forces modern Python 3.11+ syntax idioms)
+    "YTT",  # sys.version misuse checks
+    "BLE",  # blind-except (bans raw `except:` or `except Exception:`)
+    "B",    # flake8-bugbear (catches subtle runtime/logic design footguns)
+    "A",    # flake8-builtins (prevents overriding built-in keywords)
+    "C4",   # flake8-comprehensions (forces native list/dict comprehensions)
+    "T10",  # flake8-debugger (bans forgot-to-remove breakpoints)
+    "EM",   # flake8-errmsg (forces clean, scannable exception strings)
+    "FA",   # flake8-future-annotations (keeps your types clean)
+    "ISC",  # flake8-implicit-str-concat
+    "ICN",  # flake8-import-conventions (forces standard np, pl aliases)
+    "PT",   # flake8-pytest-style (keeps your testing framework uniform)
+    "Q",    # flake8-quotes
+    "RSE",  # flake8-raise
+    "RET",  # flake8-return (forces early returns / guard clauses)
+    "SIM",  # flake8-simplify (aggressively refactors nested or wordy code)
+    "TID",  # flake8-tidy-imports (bans messy relative or specific imports)
+    "ARG",  # flake8-unused-arguments (flags dead code signatures)
+    "PIE",  # flake8-pie (clean code patterns)
+    "C90",  # McCabe Cyclomatic Complexity (caps function nesting depth)
+    "PL",   # Pylint rules (enforces deep structural clean code practices)
+    "RUF",  # Ruff-specific internal rules
+]
+
+ignore = [
+    "PLR0913", # Allow >5 arguments when injecting environment configurations or simulation states
+]
+
+[tool.ruff.lint.mccabe]
+# Hard limit on cognitive nesting. A score > 5 forces code extraction into simple helpers.
+max-complexity = 5
+
+[tool.ruff.lint.pylint]
+# Restricts maximum branches, statements, and returns to keep functions small
+max-branches = 6
+max-statements = 30
+max-returns = 4
+
+[tool.ruff.lint.flake8-import-conventions.aliases]
+# Enforce idiomatic science/data namespaces for your time-series and array tracking
+numpy = "np"
+polars = "pl"
+
+# --- TY CONFIGURATION ---
+# Configures Astral's native type-checking engine for your workspace
+[tool.ty.environment]
+# Read Python 3.11 core definitions
+python-version = "3.11"
+
+[tool.ty.rules]
+# Enable strict validation flags matching your engineering ethos
+all = "error"
+
+# Relax specific rule configurations inside your test directory
+[[tool.ty.overrides]]
+include = ["tests/**/*.py"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 timeout = 10

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
 from rl_health_interventions.state import StateView
 

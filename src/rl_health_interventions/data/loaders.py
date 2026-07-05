@@ -11,9 +11,10 @@ import logging
 import os
 import tarfile
 import zipfile
+from collections.abc import Callable
 from io import StringIO
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 from urllib.parse import urljoin
 
 import numpy as np

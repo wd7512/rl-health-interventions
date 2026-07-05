@@ -3,12 +3,12 @@ from __future__ import annotations
 import logging
 from typing import Type
 
-from rl_health_interventions.simulation._base import ResponseModel
 from rl_health_interventions.simulation import rule_based
+from rl_health_interventions.simulation._base import ResponseModel
 
 logger = logging.getLogger(__name__)
 
-REGISTRY: dict[str, Type[ResponseModel]] = {}
+REGISTRY: dict[str, type[ResponseModel]] = {}
 
 
 def make(name: str, **kwargs) -> ResponseModel:

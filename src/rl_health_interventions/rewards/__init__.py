@@ -3,12 +3,12 @@ from __future__ import annotations
 import logging
 from typing import Type
 
-from rl_health_interventions.rewards._base import RewardHandler
 from rl_health_interventions.rewards import compound
+from rl_health_interventions.rewards._base import RewardHandler
 
 logger = logging.getLogger(__name__)
 
-REGISTRY: dict[str, Type[RewardHandler]] = {}
+REGISTRY: dict[str, type[RewardHandler]] = {}
 
 
 def make(name_or_config=None, **kwargs) -> RewardHandler:

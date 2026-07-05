@@ -3,12 +3,12 @@ from __future__ import annotations
 import logging
 from typing import Type
 
-from rl_health_interventions.transitions._base import TransitionModel
 from rl_health_interventions.transitions import rule_based
+from rl_health_interventions.transitions._base import TransitionModel
 
 logger = logging.getLogger(__name__)
 
-REGISTRY: dict[str, Type[TransitionModel]] = {}
+REGISTRY: dict[str, type[TransitionModel]] = {}
 
 
 def make(name_or_config=None, **kwargs) -> TransitionModel:

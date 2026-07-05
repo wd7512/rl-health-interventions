@@ -40,8 +40,8 @@ class UCBAgent(ContextualBanditAgent):
         self.q_values: dict = {}
         self.counts: dict = {}
         if not self.contextual:
-            self.q_values = {a: 0.0 for a in self._actions}
-            self.counts = {a: 0 for a in self._actions}
+            self.q_values = dict.fromkeys(self._actions, 0.0)
+            self.counts = dict.fromkeys(self._actions, 0)
 
     def _ensure_params(self, key: str | tuple[str, str]) -> None:
         if key not in self.q_values:

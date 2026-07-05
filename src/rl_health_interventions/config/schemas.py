@@ -77,11 +77,10 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "context_feature must be a non-empty string when contextual=True"
                 )
-        else:
-            if self.context_feature is not None:
-                raise ValueError(
-                    "context_feature must not be provided when contextual=False"
-                )
+        elif self.context_feature is not None:
+            raise ValueError(
+                "context_feature must not be provided when contextual=False"
+            )
         if self.type == "thompson_sampling":
             if self.alpha_prior is None or self.alpha_prior <= 0:
                 raise ValueError("alpha_prior must be > 0 for thompson_sampling")

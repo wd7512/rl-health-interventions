@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 
 from rl_health_interventions.agents import REGISTRY, make
-from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
 from rl_health_interventions.agents.epsilon_greedy import EpsilonGreedyAgent
 from rl_health_interventions.agents.random import RandomAgent
+from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
 from rl_health_interventions.agents.ucb import UCBAgent
 
 
