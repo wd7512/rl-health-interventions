@@ -39,14 +39,14 @@ class Environment:
         primary_var = next(iter(self._config.state.variables))
         current_val = getattr(self._current_state, primary_var)
         next_val = self._transition.transition(current_val, action)
-
-        step_idx = self._step_count % self._config.steps_per_day
-        reward, _ = self._reward.reward(next_val, action, step_idx)
-
-        self._step_count += 1
         self._current_state = self._current_state.with_factors(
             **{primary_var: next_val}
         )
+
+        step_idx = self._step_count % self._config.steps_per_day
+        reward, _ = self._reward.reward(self._current_state, action, step_idx)
+
+        self._step_count += 1
         self._current_state = self._current_state.with_advance()
 
         if self._step_count >= self._config.steps_per_day * self._config.episode_days:
