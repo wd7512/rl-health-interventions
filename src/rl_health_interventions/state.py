@@ -78,7 +78,12 @@ class StateView:
 
     def __hash__(self) -> int:
         return hash(
-            (tuple(sorted(self._factors.items())), self._day, self._step_of_day)
+            (
+                tuple(sorted(self._factors.items())),
+                self._day,
+                self._step_of_day,
+                self._steps_per_day,
+            )
         )
 
     def __repr__(self) -> str:
