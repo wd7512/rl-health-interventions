@@ -52,7 +52,7 @@ def test_ts_negative_prior_raises():
 
 
 def test_eg_out_of_range_epsilon_raises():
-    with pytest.raises(ValueError, match="between 0.0 and 1.0"):
+    with pytest.raises(ValueError, match=r"between 0.0 and 1.0"):
         EpsilonGreedyAgent(epsilon=1.5)
 
 

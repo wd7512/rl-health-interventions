@@ -343,7 +343,7 @@ class TestAgentValidation:
     def test_initial_state_not_in_states_rejected(self):
         raw = _valid_raw()
         raw["initial_state"] = "nonexistent"
-        with pytest.raises(ValidationError, match="initial_state.*not in states"):
+        with pytest.raises(ValidationError, match=r"initial_state.*not in states"):
             MDPConfig.model_validate(raw)
 
 

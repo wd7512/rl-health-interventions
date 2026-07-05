@@ -88,13 +88,15 @@ def test_mvp_regression(config_name: str, mvp_results: dict[str, dict]) -> None:
         config_seed = (yaml.safe_load(f) or {}).get("seed", 42)
     assert fixture["seed"] == config_seed, (
         f"Fixture seed ({fixture['seed']}) != config seed ({config_seed}). "
-        f"Re-baseline with: python {_RUNNER} --config {config_name} --output {_RESULTS_DIR} --json --confirm-overwrite"
+        f"Re-baseline with: python {_RUNNER} --config {config_name}"
+        f" --output {_RESULTS_DIR} --json --confirm-overwrite"
     )
 
     # Guard against seed count drift
     assert fixture["seeds"] == 50, (
         f"Fixture seeds ({fixture['seeds']}) != 50. "
-        f"Re-baseline with: python {_RUNNER} --config {config_name} --seeds 50 --output {_RESULTS_DIR} --json --confirm-overwrite"
+        f"Re-baseline with: python {_RUNNER} --config {config_name}"
+        f" --seeds 50 --output {_RESULTS_DIR} --json --confirm-overwrite"
     )
 
     golden_agents = fixture["agents"]
@@ -102,9 +104,11 @@ def test_mvp_regression(config_name: str, mvp_results: dict[str, dict]) -> None:
 
     missing_from_live = set(golden_agents) - set(live_agents)
     extra_from_live = set(live_agents) - set(golden_agents)
-    assert not missing_from_live and not extra_from_live, (
-        f"Agent set mismatch for {config_name}: "
-        f"missing={missing_from_live}, extra={extra_from_live}"
+    assert not missing_from_live, (
+        f"Agents missing from live results for {config_name}: {missing_from_live}"
+    )
+    assert not extra_from_live, (
+        f"Extra agents in live results for {config_name}: {extra_from_live}"
     )
 
     for agent_label, golden_metrics in golden_agents.items():

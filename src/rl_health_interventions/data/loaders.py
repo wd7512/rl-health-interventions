@@ -7,6 +7,7 @@ handled gracefully — the function logs a warning and returns ``None``.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import tarfile
@@ -77,18 +78,14 @@ def _check_kaggle_auth() -> bool:
         return True
     if (home / ".kaggle" / "access_token").exists():
         return True
-    if os.environ.get("KAGGLE_API_TOKEN"):
-        return True
-    return False
+    return bool(os.environ.get("KAGGLE_API_TOKEN"))
 
 
 def _check_physionet_auth() -> bool:
     """Return ``True`` if PhysioNet credentials are configured."""
     if os.environ.get("PHYSIONET_USERNAME") and os.environ.get("PHYSIONET_PASSWORD"):
         return True
-    if os.environ.get("WFDB_USERNAME") and os.environ.get("WFDB_PASSWORD"):
-        return True
-    return False
+    return bool(os.environ.get("WFDB_USERNAME") and os.environ.get("WFDB_PASSWORD"))
 
 
 # ---------------------------------------------------------------------------
@@ -327,10 +324,7 @@ def load_harth(
 
     raw = ds[split].to_polars()  # type: ignore[union-attr]
     # to_polars can return an Iterator for large datasets → collect
-    if isinstance(raw, pl.DataFrame):
-        df = raw
-    else:
-        df = pl.concat(list(raw), how="diagonal")
+    df = raw if isinstance(raw, pl.DataFrame) else pl.concat(list(raw), how="diagonal")
 
     # Standardise columns
     col_map: dict[str, str] = {}
@@ -925,10 +919,8 @@ def load_4tu_step_goals(
             # Move the CSV up one level for easier access
             for csv_file in dest_dir.rglob("*.csv"):
                 if csv_file != main_csv:
-                    try:
+                    with contextlib.suppress(FileExistsError):
                         csv_file.rename(main_csv)
-                    except FileExistsError:
-                        pass
             marker.touch()
         except Exception:
             logger.exception("Failed to extract 4TU data")

@@ -28,7 +28,9 @@ def scan_csv_with_timeout(
         try:
             return future.result(timeout=timeout_s)
         except FuturesTimeout:
-            raise TimeoutError(f"CSV scan timed out after {timeout_s}s: {path}")
+            raise TimeoutError(
+                f"CSV scan timed out after {timeout_s}s: {path}"
+            ) from None
 
 
 def scan_parquet_with_timeout(
@@ -39,4 +41,6 @@ def scan_parquet_with_timeout(
         try:
             return future.result(timeout=timeout_s)
         except FuturesTimeout:
-            raise TimeoutError(f"Parquet scan timed out after {timeout_s}s: {path}")
+            raise TimeoutError(
+                f"Parquet scan timed out after {timeout_s}s: {path}"
+            ) from None

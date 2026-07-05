@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import math
 
+from typing_extensions import override
+
 from rl_health_interventions.agents.contextual_bandits._base import (
     ContextualBanditAgent,
 )
@@ -48,6 +50,7 @@ class UCBAgent(ContextualBanditAgent):
             self.q_values[key] = 0.0
             self.counts[key] = 0
 
+    @override
     def select_action(self, state) -> str:
         for action in self._actions:
             key = self._get_context_key(state, action)
@@ -73,6 +76,7 @@ class UCBAgent(ContextualBanditAgent):
         idx = self._rng.integers(len(best))
         return best[idx]
 
+    @override
     def update(self, state, action: str, reward: float, next_state) -> None:
         self._total_steps += 1
         key = self._get_context_key(state, action)

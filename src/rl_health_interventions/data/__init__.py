@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Type
 
 from rl_health_interventions.data import feature_pipeline, synthetic
 

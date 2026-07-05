@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing_extensions import override
+
 from rl_health_interventions.agents.contextual_bandits._base import (
     ContextualBanditAgent,
 )
@@ -35,7 +37,8 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
             decay_steps: Number of steps over which epsilon decays linearly.
             seed: RNG seed for reproducibility.
             contextual: If True, maintain separate Q-values per (context, action).
-            context_feature: Name of the context feature column (required when contextual=True).
+            context_feature: Name of the context feature column
+                (required when contextual=True).
 
         Raises:
             ValueError: If epsilon_start or epsilon_min are not in [0.0, 1.0],
@@ -80,7 +83,8 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
         Ensure Q-value and count entries are initialized for the given key.
 
         Parameters:
-            key (str | tuple[str, str]): The parameter key; either an action string or a (context_value, action) tuple.
+            key: The parameter key; either an action string or a
+                (context_value, action) tuple.
         """
         if key not in self.q_values:
             self.q_values[key] = 0.0
@@ -91,11 +95,13 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
         Compute the current exploration rate with linear decay.
 
         Returns:
-            float: The exploration rate (epsilon) for the current step, between epsilon_min and epsilon_start.
+            float: The exploration rate (epsilon) for the current step,
+                between epsilon_min and epsilon_start.
         """
         decayed = self.epsilon_start * (1 - self._step / self.decay_steps)
         return max(self.epsilon_min, decayed)
 
+    @override
     def select_action(self, state) -> str:
         """
         Select an action according to the epsilon-greedy policy.
@@ -125,6 +131,7 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
         idx = self._rng.integers(len(best))
         return best[idx]
 
+    @override
     def update(self, state, action: str, reward: float, next_state) -> None:
         """
         Update the Q-value estimate for a state-action pair.

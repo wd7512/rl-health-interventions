@@ -132,11 +132,11 @@ def test_epsilon_constant_when_min_equals_start(state_view):
 def test_invalid_params_raise():
     import pytest
 
-    with pytest.raises(ValueError, match="between 0.0 and 1.0"):
+    with pytest.raises(ValueError, match=r"between 0.0 and 1.0"):
         DecayingEpsilonGreedyAgent(epsilon_start=1.5)
-    with pytest.raises(ValueError, match="between 0.0 and 1.0"):
+    with pytest.raises(ValueError, match=r"between 0.0 and 1.0"):
         DecayingEpsilonGreedyAgent(epsilon_start=0.5, epsilon_min=1.5)
-    with pytest.raises(ValueError, match="epsilon_min must not exceed"):
+    with pytest.raises(ValueError, match=r"epsilon_min must not exceed"):
         DecayingEpsilonGreedyAgent(epsilon_start=0.1, epsilon_min=0.5)
     with pytest.raises(ValueError, match="decay_steps must be positive"):
         DecayingEpsilonGreedyAgent(epsilon_start=0.5, decay_steps=0)

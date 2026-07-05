@@ -46,7 +46,7 @@ def test_run_episode_reproducible_with_seed(valid_config):
     assert [r["reward"] for r in df1] == [r["reward"] for r in df2]
 
 
-def test_run_experiment_returns_rewards(valid_config, tmp_path):
+def test_run_experiment_returns_rewards(tmp_path):
     from rl_health_interventions.sweep import run_experiment
 
     config_path = tmp_path / "test_config.yaml"

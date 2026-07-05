@@ -15,6 +15,7 @@ dependencies = [
     "polars>=1.0.0",
     "pydantic>=2.0.0",
     "pyyaml>=6.0",
+    "typing-extensions>=4.6.0",
     "ucimlrepo>=0.0.7",
     "wfdb>=4.3.1",
 ]
@@ -88,6 +89,64 @@ max-returns = 4
 numpy = "np"
 polars = "pl"
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "ARG001",   # pytest hook params must match hookspec names
+    "PLC0415",  # Allow non-top-level imports in test functions
+    "PLR2004",  # Allow magic values in test assertions
+]
+"src/rl_health_interventions/data/loaders.py" = [
+    "BLE001",   # Blind except is pragmatic for heterogeneous data sources
+    "C901",     # Complex loader functions accepted
+    "EM101",    # Exception string literals in validation
+    "EM102",    # Exception f-string literals in validation
+    "PLC0415",  # Imports inside register() and conditional imports
+    "PLR0911",  # Many return statements accepted
+    "PLR0912",  # Many branches accepted
+    "PLR0915",  # Many statements accepted
+    "PLR2004",  # Magic values in array operations
+    "ARG001",   # Unused data_dir param in interface stubs
+    "E501",     # Long comments/docstrings
+]
+"src/rl_health_interventions/config/schemas.py" = [
+    "C901",     # Complex validator accepted
+    "EM101",    # Exception string literals in validation
+    "EM102",    # Exception f-string literals in validation
+    "PLR0912",  # Many branches accepted
+    "PLR0915",  # Many statements accepted
+    "E501",     # Long error message lines
+]
+"src/rl_health_interventions/data/**" = [
+    "BLE001",   # Blind except is pragmatic for I/O operations
+    "EM101",    # Exception string literals
+    "EM102",    # Exception f-string literals
+    "PLC0415",  # Imports inside register() and conditional imports
+    "ARG001",   # Unused args in interface stubs
+]
+"src/rl_health_interventions/environment.py" = [
+    "EM101",    # Exception string literals
+]
+"src/rl_health_interventions/agents/**" = [
+    "EM101",    # Exception string literals
+    "EM102",    # Exception f-string literals
+    "PLC0415",  # Imports inside register()
+]
+"src/rl_health_interventions/agents/_base.py" = [
+    "B027",     # update() intentionally a no-op for non-learning agents
+]
+"src/rl_health_interventions/rewards/**" = [
+    "EM101",    # Exception string literals
+    "EM102",    # Exception f-string literals
+    "PLC0415",  # Imports inside register()
+]
+"src/rl_health_interventions/simulation/**" = [
+    "PLC0415",  # Imports inside register()
+]
+"src/rl_health_interventions/transitions/**" = [
+    "EM101",    # Exception string literals
+    "PLC0415",  # Imports inside register()
+]
+
 # --- TY CONFIGURATION ---
 # Configures Astral's native type-checking engine for your workspace
 [tool.ty.environment]
@@ -97,10 +156,6 @@ python-version = "3.11"
 [tool.ty.rules]
 # Enable strict validation flags matching your engineering ethos
 all = "error"
-
-# Relax specific rule configurations inside your test directory
-[[tool.ty.overrides]]
-include = ["tests/**/*.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
