@@ -146,6 +146,16 @@ polars = "pl"
     "EM101",    # Exception string literals
     "PLC0415",  # Imports inside register()
 ]
+"scripts/**" = [
+    "BLE001",   # Blind except is pragmatic for data exploration scripts
+    "B905",     # zip strict= is overkill for one-off data processing
+    "C901",     # Complex describe functions accepted for EDA
+    "PLR0124",  # NaN self-comparison is idiomatic for float checks
+    "PLR0912",  # Many branches accepted for diverse dataset stats
+    "PLR0915",  # Many statements accepted for detailed reporting
+    "PLR2004",  # Magic values in array comparisons
+    "RUF001",   # × vs x is intentional for pretty printing
+]
 
 # --- TY CONFIGURATION ---
 # Configures Astral's native type-checking engine for your workspace
