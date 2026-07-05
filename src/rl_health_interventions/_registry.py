@@ -41,8 +41,14 @@ class Registry:
     def load_modules(self, modules: list, logger_name: str | None = None) -> None:
         """Call register() on each module, logging failures."""
         log = logging.getLogger(logger_name or __name__)
+        errors: list[str] = []
         for mod in modules:
             try:
                 mod.register()
-            except Exception:
+            except Exception as exc:
                 log.exception("Failed to register %s", mod.__name__)
+                errors.append(f"{mod.__name__}: {exc}")
+        if errors:
+            raise RuntimeError(
+                f"Failed to register {len(errors)} module(s): {'; '.join(errors)}"
+            )

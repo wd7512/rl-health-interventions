@@ -18,10 +18,7 @@ def make(name_or_config=None, **kwargs) -> TransitionModel:
         name = kwargs.pop("name")
     else:
         raise TypeError("make() requires either a config or name argument")
-    if name not in REGISTRY:
-        _msg = f"Unknown transition model: {name}. Known: {list(REGISTRY)}"
-        raise KeyError(_msg)
-    return REGISTRY[name](**kwargs)
+    return REGISTRY.make(name, **kwargs)
 
 
 # NOTE: Import new transition model module above and append it here

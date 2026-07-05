@@ -9,10 +9,7 @@ REGISTRY: Registry = Registry("response model")
 
 
 def make(name: str, **kwargs) -> ResponseModel:
-    if name not in REGISTRY:
-        _msg = f"Unknown response model: {name}. Known: {list(REGISTRY)}"
-        raise KeyError(_msg)
-    return REGISTRY[name](**kwargs)
+    return REGISTRY.make(name, **kwargs)
 
 
 # NOTE: Import new simulation response model module above and append it here

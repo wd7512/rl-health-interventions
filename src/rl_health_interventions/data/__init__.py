@@ -7,9 +7,7 @@ REGISTRY: Registry = Registry("data component")
 
 
 def make(name: str, **kwargs) -> object:
-    if name not in REGISTRY:
-        raise KeyError(f"Unknown data component: {name}. Known: {list(REGISTRY)}")
-    return REGISTRY[name](**kwargs)
+    return REGISTRY.make(name, **kwargs)
 
 
 _DATA_COMPONENT_MODULES = [synthetic, feature_pipeline]
