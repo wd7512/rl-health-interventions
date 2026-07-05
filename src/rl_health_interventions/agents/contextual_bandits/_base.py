@@ -18,30 +18,30 @@ class ContextualBanditAgent(Agent):
         actions: list[str] | None = None,
         seed: int = 42,
         contextual: bool = False,
-        context_feature: str | list[str] | None = None,
+        context_features: str | list[str] | None = None,
     ) -> None:
         if contextual and (
-            context_feature is None
-            or (isinstance(context_feature, str) and not context_feature.strip())
+            context_features is None
+            or (isinstance(context_features, str) and not context_features.strip())
             or (
-                isinstance(context_feature, list)
+                isinstance(context_features, list)
                 and (
-                    not context_feature
+                    not context_features
                     or not all(
-                        isinstance(f, str) and f.strip() for f in context_feature
+                        isinstance(f, str) and f.strip() for f in context_features
                     )
                 )
             )
-            or not isinstance(context_feature, (str, list))
+            or not isinstance(context_features, (str, list))
         ):
             raise ValueError(
-                "context_feature must be a non-empty string or list of non-empty strings when contextual=True"
+                "context_features must be a non-empty string or list of non-empty strings when contextual=True"
             )
         self.contextual = contextual
-        self.context_feature = (
-            tuple(context_feature)
-            if isinstance(context_feature, list)
-            else context_feature
+        self.context_features = (
+            tuple(context_features)
+            if isinstance(context_features, list)
+            else context_features
         )
         self._actions = actions or ["nudge", "idle"]
         self._rng = np.random.default_rng(seed)
@@ -57,9 +57,9 @@ class ContextualBanditAgent(Agent):
             return action
         if state is None:
             raise ValueError("state cannot be None when contextual=True")
-        assert self.context_feature is not None
-        if isinstance(self.context_feature, str):
-            value = getattr(state, self.context_feature)
+        assert self.context_features is not None
+        if isinstance(self.context_features, str):
+            value = getattr(state, self.context_features)
             return (value, action)
-        values = tuple(getattr(state, f) for f in self.context_feature)
+        values = tuple(getattr(state, f) for f in self.context_features)
         return values + (action,)

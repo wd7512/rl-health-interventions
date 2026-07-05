@@ -25,7 +25,7 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
         decay_steps: int = 200,
         seed: int = 42,
         contextual: bool = False,
-        context_feature: str | None = None,
+        context_features: str | None = None,
     ) -> None:
         """
         Initialize a DecayingEpsilonGreedyAgent.
@@ -37,8 +37,7 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
             decay_steps: Number of steps over which epsilon decays linearly.
             seed: RNG seed for reproducibility.
             contextual: If True, maintain separate Q-values per (context, action).
-            context_feature: Name of the context feature column
-                (required when contextual=True).
+            context_features: Name of the context feature column (required when contextual=True).
 
         Raises:
             ValueError: If epsilon_start or epsilon_min are not in [0.0, 1.0],
@@ -48,7 +47,7 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
             actions=actions,
             seed=seed,
             contextual=contextual,
-            context_feature=context_feature,
+            context_features=context_features,
         )
         if not (0.0 <= epsilon_start <= 1.0):
             raise ValueError("epsilon_start must be between 0.0 and 1.0 inclusive.")

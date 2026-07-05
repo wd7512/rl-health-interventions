@@ -68,7 +68,7 @@ def test_contextual_ucb_learns_per_context(sed_and_act):
         c=0.1,
         seed=42,
         contextual=True,
-        context_feature="activity_level",
+        context_features="activity_level",
     )
 
     for _ in range(100):

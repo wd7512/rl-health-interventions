@@ -37,4 +37,4 @@ agents:
     alpha_prior: 1
     beta_prior: 1
     contextual: true
-    context_feature: activity
+    context_features: activity

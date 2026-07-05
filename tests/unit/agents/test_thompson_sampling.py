@@ -72,10 +72,10 @@ def test_agent_config_accepts_contextual_fields():
         alpha_prior=1,
         beta_prior=1,
         contextual=True,
-        context_feature="activity_level",
+        context_features="activity_level",
     )
     assert config.contextual is True
-    assert config.context_feature == "activity_level"
+    assert config.context_features == "activity_level"
 
 
 def test_non_contextual_config_no_regression():
@@ -83,7 +83,7 @@ def test_non_contextual_config_no_regression():
 
     config = AgentConfig(type="thompson_sampling", alpha_prior=1, beta_prior=1)
     assert config.contextual is False
-    assert config.context_feature is None
+    assert config.context_features is None
 
 
 def test_contextual_ts_learns_context_dependent_optimal_actions():
@@ -97,7 +97,7 @@ def test_contextual_ts_learns_context_dependent_optimal_actions():
         alpha_prior=1.0,
         beta_prior=1.0,
         contextual=True,
-        context_feature="activity_level",
+        context_features="activity_level",
     )
     rng = np.random.default_rng(42)
     contexts = ["sedentary", "active"]
@@ -135,7 +135,7 @@ def test_contextual_ts_uniform_rewards():
         alpha_prior=1.0,
         beta_prior=1.0,
         contextual=True,
-        context_feature="activity_level",
+        context_features="activity_level",
     )
     rng = np.random.default_rng(42)
     contexts = ["sedentary", "active"]

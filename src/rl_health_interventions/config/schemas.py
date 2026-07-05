@@ -83,7 +83,7 @@ class AgentConfig(BaseModel):
     decay_steps: int | None = None
     c: float | None = None
     contextual: bool = False
-    context_feature: str | list[str] | None = None
+    context_features: str | list[str] | None = None
     action: str | None = None
 
     @model_validator(mode="after")
@@ -119,32 +119,32 @@ class AgentConfig(BaseModel):
                     f"contextual=True is only supported for thompson_sampling, "
                     f"epsilon_greedy, ucb, and decaying_epsilon_greedy, got {self.type}"
                 )
-            if self.context_feature is None:
+            if self.context_features is None:
                 raise ValueError(
-                    "context_feature must be provided when contextual=True"
+                    "context_features must be provided when contextual=True"
                 )
             if (
-                isinstance(self.context_feature, str)
-                and not self.context_feature.strip()
+                isinstance(self.context_features, str)
+                and not self.context_features.strip()
             ):
                 raise ValueError(
-                    "context_feature must be a non-empty string when contextual=True"
+                    "context_features must be a non-empty string when contextual=True"
                 )
-            if isinstance(self.context_feature, list):
-                if not self.context_feature:
+            if isinstance(self.context_features, list):
+                if not self.context_features:
                     raise ValueError(
-                        "context_feature must be a non-empty list when contextual=True"
+                        "context_features must be a non-empty list when contextual=True"
                     )
                 if not all(
-                    isinstance(f, str) and f.strip() for f in self.context_feature
+                    isinstance(f, str) and f.strip() for f in self.context_features
                 ):
                     raise ValueError(
-                        "context_feature list elements must be non-empty strings"
+                        "context_features list elements must be non-empty strings"
                     )
         else:
-            if self.context_feature is not None:
+            if self.context_features is not None:
                 raise ValueError(
-                    "context_feature must not be provided when contextual=False"
+                    "context_features must not be provided when contextual=False"
                 )
         if self.type == "thompson_sampling":
             if self.alpha_prior is None or self.alpha_prior <= 0:

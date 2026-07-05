@@ -49,7 +49,7 @@ agents:
     beta_prior: 1.0
   - type: thompson_sampling
     contextual: true
-    context_feature: activity_level
+    context_features: activity_level
     alpha_prior: 1.0
     beta_prior: 1.0
 
@@ -57,7 +57,7 @@ agents:
     epsilon: 0.05
   - type: epsilon_greedy
     contextual: true
-    context_feature: activity_level
+    context_features: activity_level
     epsilon: 0.05
 
   - type: decaying_epsilon_greedy
@@ -66,7 +66,7 @@ agents:
     decay_steps: 200
   - type: decaying_epsilon_greedy
     contextual: true
-    context_feature: activity_level
+    context_features: activity_level
     epsilon_start: 0.2
     epsilon_min: 0.01
     decay_steps: 200
@@ -75,5 +75,5 @@ agents:
     c: 0.5
   - type: ucb
     contextual: true
-    context_feature: activity_level
+    context_features: activity_level
     c: 0.5

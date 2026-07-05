@@ -169,7 +169,7 @@ def _del(raw, *keys):
                     {
                         "type": "random",
                         "contextual": True,
-                        "context_feature": "activity_level",
+                        "context_features": "activity_level",
                     }
                 ],
             ),
@@ -183,11 +183,11 @@ def _del(raw, *keys):
                     {
                         "type": "epsilon_greedy",
                         "epsilon": 0.1,
-                        "context_feature": "activity_level",
+                        "context_features": "activity_level",
                     }
                 ],
             ),
-            "context_feature must not be provided",
+            "context_features must not be provided",
         ),
         (
             lambda raw: _set(
@@ -237,7 +237,7 @@ def test_validation_error(mutate, expected_match):
                     "alpha_prior": 1,
                     "beta_prior": 1,
                     "contextual": True,
-                    "context_feature": "activity_level",
+                    "context_features": "activity_level",
                 }
             ],
         ),
@@ -252,7 +252,7 @@ def test_validation_error(mutate, expected_match):
                     "alpha_prior": 1,
                     "beta_prior": 1,
                     "contextual": True,
-                    "context_feature": ["step_bin", "burden"],
+                    "context_features": ["step_bin", "burden"],
                 }
             ],
         ),
