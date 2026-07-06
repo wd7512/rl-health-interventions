@@ -1,0 +1,31 @@
+{
+  "config": "sprint1_random/configs/sprint1_random.yaml",
+  "seed": 42,
+  "seeds": 50,
+  "agents": {
+    "Std TS": {
+      "total_reward": 184.11199999999997,
+      "total_std": 82.05052380088745,
+      "per_step": 0.4091377777777777,
+      "last50": 0.4029
+    },
+    "Std EG": {
+      "total_reward": 188.588,
+      "total_std": 82.71954095617309,
+      "per_step": 0.4190844444444444,
+      "last50": 0.4208
+    },
+    "Std UCB": {
+      "total_reward": 184.295,
+      "total_std": 82.56946605737498,
+      "per_step": 0.40954444444444443,
+      "last50": 0.4036
+    },
+    "Random": {
+      "total_reward": 183.46399999999994,
+      "total_std": 82.6730446034256,
+      "per_step": 0.4076977777777778,
+      "last50": 0.40164
+    }
+  }
+}
