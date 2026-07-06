@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, RootModel, model_validator
+
+_KNOWN_TRANSITION_TYPES = frozenset({"rule_based", "random"})
 
 
 class TransitionProbabilities(RootModel):
@@ -35,8 +37,28 @@ class TransitionProbabilities(RootModel):
         return self
 
 
+class CyclicAdvance(BaseModel):
+    type: Literal["cyclic"] = "cyclic"
+    granularity: Literal["daily", "step_wise"] = "daily"
+    pattern: list[str]
+
+
+class Condition(BaseModel):
+    factor: str
+    type: Literal["in"]
+    values: list[str]
+
+
+class RollingWindowCountAdvance(BaseModel):
+    type: Literal["rolling_window_count"] = "rolling_window_count"
+    window_size: int = 3
+    conditions: list[Condition]
+    mapping: dict[int, str]
+
+
 class FactorConfig(BaseModel):
     names: list[str]
+    advanced: CyclicAdvance | RollingWindowCountAdvance | None = None
 
 
 class StateConfig(BaseModel):
@@ -310,15 +332,26 @@ class MDPConfig(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def _validate_transition_probabilities(self) -> MDPConfig:
+    def _validate_transition_model(self) -> MDPConfig:
+        tm = self.transition_model
+        if tm.type not in _KNOWN_TRANSITION_TYPES:
+            raise ValueError(
+                f"Unknown transition model type: {tm.type}. "
+                f"Known: {sorted(_KNOWN_TRANSITION_TYPES)}"
+            )
         if (
-            self.transition_model.type == "rule_based"
-            and self.transition_model.transition_probabilities is None
+            tm.type == "rule_based"
+            and tm.transition_probabilities is None
+            and tm.table_dir is None
         ):
             raise ValueError(
-                "transition_probabilities must be provided for rule_based transition model"
+                "rule_based transition requires either transition_probabilities or table_dir"
             )
-        tprobs = self.transition_model.transition_probabilities
+        if tm.type == "random" and tm.transition_probabilities is not None:
+            raise ValueError(
+                "random transition does not accept transition_probabilities"
+            )
+        tprobs = tm.transition_probabilities
         if tprobs is not None:
             if not self.state.variables:
                 raise ValueError(
@@ -344,6 +377,11 @@ class MDPConfig(BaseModel):
                     f"Transition probabilities must cover exactly the declared "
                     f"state variable '{first_var_name}' values — {'; '.join(parts)}"
                 )
+            if len(self.state.variables) > 1:
+                raise ValueError(
+                    "inline transition_probabilities only support one state variable; "
+                    f"got {len(self.state.variables)}: {list(self.state.variables.keys())}"
+                )
             for sv, actions_dict in probs_root.items():
                 for action_name in self.action_names:
                     if action_name not in actions_dict:
@@ -361,11 +399,49 @@ class MDPConfig(BaseModel):
                             f"Target distribution for ({sv}, {action_name}) "
                             f"must cover all {first_var_name} values"
                         )
-        if len(self.state.variables) > 1:
-            raise ValueError(
-                "transition_probabilities currently supports only one state variable; "
-                f"got {len(self.state.variables)}: {list(self.state.variables.keys())}"
-            )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_advanced_configs(self) -> MDPConfig:
+        for fname, fcfg in self.state.variables.items():
+            if fcfg.advanced is None:
+                continue
+            names_set = set(fcfg.names)
+            if isinstance(fcfg.advanced, CyclicAdvance):
+                for val in fcfg.advanced.pattern:
+                    if val not in names_set:
+                        raise ValueError(
+                            f"state.variables.{fname}.advanced.pattern value "
+                            f"'{val}' not in variable names: {fcfg.names}"
+                        )
+            elif isinstance(fcfg.advanced, RollingWindowCountAdvance):
+                expected_keys = set(range(fcfg.advanced.window_size + 1))
+                actual_keys = set(fcfg.advanced.mapping.keys())
+                if actual_keys != expected_keys:
+                    raise ValueError(
+                        f"state.variables.{fname}.advanced.mapping keys "
+                        f"{sorted(actual_keys)} must cover {sorted(expected_keys)}"
+                    )
+                for val in fcfg.advanced.mapping.values():
+                    if val not in names_set:
+                        raise ValueError(
+                            f"state.variables.{fname}.advanced.mapping value "
+                            f"'{val}' not in variable names: {fcfg.names}"
+                        )
+                for cond in fcfg.advanced.conditions:
+                    if (
+                        cond.factor not in self.state.variables
+                        and cond.factor != "action"
+                    ):
+                        raise ValueError(
+                            f"state.variables.{fname}.advanced.conditions.factor "
+                            f"'{cond.factor}' is not a declared variable or 'action'"
+                        )
+                    if cond.type != "in":
+                        raise ValueError(
+                            f"state.variables.{fname}.advanced.conditions.type "
+                            f"must be 'in', got '{cond.type}'"
+                        )
         return self
 
     @model_validator(mode="after")

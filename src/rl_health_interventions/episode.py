@@ -28,16 +28,19 @@ def run_episode(
     state = env.reset()
     records: list[dict] = []
     done = False
+    declared_vars = set(config.state.variables.keys())
     while not done:
         action = agent.select_action(state)
         next_state, reward, done = env.step(action)
-        primary_var = next(iter(config.state.variables))
+        state_factors = {
+            k: v for k, v in state.factor_values.items() if k in declared_vars
+        }
         records.append(
             {
                 "step": state.global_step,
                 "day": state.day,
                 "step_of_day": state.step_of_day,
-                "state": getattr(state, primary_var),
+                **state_factors,
                 "action": action,
                 "reward": reward,
             }

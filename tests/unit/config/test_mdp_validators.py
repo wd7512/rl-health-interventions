@@ -99,7 +99,7 @@ def _del(raw, *keys):
         (lambda raw: _set(raw, "reward", "constants", {"value": 0.5}), "conflict"),
         (
             lambda raw: _del(raw, "transition_model", "transition_probabilities"),
-            "must be provided for rule_based",
+            "requires either",
         ),
         (
             lambda raw: _del(
@@ -251,7 +251,7 @@ def test_validation_error(mutate, expected_match):
                 }
             ],
         ),
-        lambda raw: _set(raw, "transition_model", {"type": "learned"}),
+        lambda raw: _set(raw, "transition_model", {"type": "random"}),
         lambda raw: _set(raw, "agents", [{"type": "fixed", "action": "idle"}]),
         lambda raw: _set(
             raw,
