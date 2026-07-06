@@ -205,6 +205,16 @@ def _del(raw, *keys):
             ),
             "fixed agent does not accept learning hyperparameters or contextual",
         ),
+        (
+            lambda raw: _set(
+                raw,
+                "state",
+                "variables",
+                "day",
+                {"names": ["monday", "tuesday"]},
+            ),
+            "reserved names",
+        ),
     ],
 )
 def test_validation_error(mutate, expected_match):
