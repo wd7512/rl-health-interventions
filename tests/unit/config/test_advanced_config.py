@@ -101,3 +101,20 @@ class TestRollingWindowAdvance:
         }
         # Valid config should pass (type "in" is accepted)
         MDPConfig.model_validate(raw)
+
+    def test_window_size_must_be_positive(self) -> None:
+        raw = self._raw_with_rolling({0: "a", 1: "b", 2: "c"}, window_size=0)
+        with pytest.raises(ValidationError, match="greater than"):
+            MDPConfig.model_validate(raw)
+
+
+class TestCyclicAdvanceConstraints:
+    def test_empty_pattern_rejected(self) -> None:
+        raw = _base_raw()
+        raw["state"]["variables"]["x"]["advanced"] = {
+            "type": "cyclic",
+            "granularity": "daily",
+            "pattern": [],
+        }
+        with pytest.raises(ValidationError, match="too_short"):
+            MDPConfig.model_validate(raw)

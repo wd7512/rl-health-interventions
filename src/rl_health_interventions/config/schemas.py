@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, RootModel, model_validator
 
@@ -40,7 +40,7 @@ class TransitionProbabilities(RootModel):
 class CyclicAdvance(BaseModel):
     type: Literal["cyclic"] = "cyclic"
     granularity: Literal["daily"] = "daily"
-    pattern: list[str]
+    pattern: Annotated[list[str], Field(min_length=1)]
 
 
 class Condition(BaseModel):
@@ -51,7 +51,7 @@ class Condition(BaseModel):
 
 class RollingWindowCountAdvance(BaseModel):
     type: Literal["rolling_window_count"] = "rolling_window_count"
-    window_size: int = 3
+    window_size: Annotated[int, Field(gt=0)] = 3
     conditions: list[Condition]
     mapping: dict[int, str]
 
