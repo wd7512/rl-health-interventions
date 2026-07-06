@@ -79,5 +79,5 @@ This is a **research spike** — a focused investigation with prototype code. Th
 ## Related
 - Issue #1 (extended action space — matrices need it)
 - Issue #3 (hand-curated matrices — comparison target)
-- `config/llm_based.yaml` (already exists as a placeholder)
-- `config/learned.yaml` (placeholder for learned transitions)
+- `config/llm_based_aspirational.yaml` (placeholder — not yet functional)
+- `config/learned_aspirational.yaml` (placeholder — not yet functional)

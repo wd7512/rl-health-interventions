@@ -31,12 +31,13 @@ def run_episode(
     while not done:
         action = agent.select_action(state)
         next_state, reward, done = env.step(action)
+        primary_var = next(iter(config.state.variables))
         records.append(
             {
                 "step": state.global_step,
                 "day": state.day,
                 "step_of_day": state.step_of_day,
-                "state": state.activity,
+                "state": getattr(state, primary_var),
                 "action": action,
                 "reward": reward,
             }

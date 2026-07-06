@@ -22,7 +22,7 @@ class Environment:
         self._step_count = 0
         self._done = False
         self._current_state = StateView(
-            activity=self._config.initial_state,
+            factors=dict(self._config.initial_state),
             day=0,
             step_of_day=0,
             steps_per_day=self._config.steps_per_day,
@@ -36,22 +36,20 @@ class Environment:
         if self._current_state is None:
             raise RuntimeError("Call reset() before step().")
 
-        next_activity = self._transition.transition(
-            self._current_state.activity, action
+        if not self._config.state.variables:
+            raise ValueError("state.variables must not be empty")
+        primary_var = next(iter(self._config.state.variables))
+        current_val = getattr(self._current_state, primary_var)
+        next_val = self._transition.transition(current_val, action)
+        self._current_state = self._current_state.with_factors(
+            **{primary_var: next_val}
         )
 
         step_idx = self._step_count % self._config.steps_per_day
-        reward, _ = self._reward.reward(next_activity, action, step_idx)
+        reward, _ = self._reward.reward(self._current_state, action, step_idx)
 
         self._step_count += 1
-        next_step_of_day = self._step_count % self._config.steps_per_day
-        next_day = self._step_count // self._config.steps_per_day
-        self._current_state = StateView(
-            activity=next_activity,
-            day=next_day,
-            step_of_day=next_step_of_day,
-            steps_per_day=self._config.steps_per_day,
-        )
+        self._current_state = self._current_state.with_advance()
 
         if self._step_count >= self._config.steps_per_day * self._config.episode_days:
             self._done = True

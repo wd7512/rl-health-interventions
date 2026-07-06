@@ -29,12 +29,18 @@ def valid_config() -> MDPConfig:
         episode_days=90,
         steps_per_day=5,
         seed=42,
-        initial_state="sedentary",
-        states={
-            "sedentary": {"reward": 0.0},
-            "active": {"reward": 1.0},
-        },
+        state={"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
+        initial_state={"activity_level": "sedentary"},
         actions=["nudge", "idle"],
+        reward={
+            "variables": {
+                "value": {
+                    "source": "state.activity_level",
+                    "mapping": {"sedentary": 0.0, "active": 1.0},
+                }
+            },
+            "formula": "value",
+        },
         transition_model={
             "type": "rule_based",
             "transition_probabilities": {
@@ -58,12 +64,18 @@ def minimal_config() -> MDPConfig:
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        initial_state="sedentary",
-        states={
-            "sedentary": {"reward": 0.0},
-            "active": {"reward": 1.0},
-        },
+        state={"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
+        initial_state={"activity_level": "sedentary"},
         actions=["nudge", "idle"],
+        reward={
+            "variables": {
+                "value": {
+                    "source": "state.activity_level",
+                    "mapping": {"sedentary": 0.0, "active": 1.0},
+                }
+            },
+            "formula": "value",
+        },
         transition_model={
             "type": "rule_based",
             "transition_probabilities": {
@@ -85,4 +97,28 @@ def minimal_config() -> MDPConfig:
 def state_view():
     from rl_health_interventions.state import StateView
 
-    return StateView(activity="sedentary", day=0, step_of_day=0)
+    return StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
+
+
+@pytest.fixture
+def sedentary_state():
+    from rl_health_interventions.state import StateView
+
+    return StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
+
+
+@pytest.fixture
+def active_state():
+    from rl_health_interventions.state import StateView
+
+    return StateView(factors={"activity_level": "active"}, day=0, step_of_day=0)
+
+
+@pytest.fixture
+def sed_and_act():
+    from rl_health_interventions.state import StateView
+
+    return (
+        StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0),
+        StateView(factors={"activity_level": "active"}, day=0, step_of_day=0),
+    )

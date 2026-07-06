@@ -2,18 +2,12 @@ from __future__ import annotations
 
 import logging
 
-from rl_health_interventions.agents import (
-    decaying_epsilon_greedy,
-    epsilon_greedy,
-    random,
-    thompson_sampling,
-    ucb,
-)
+from rl_health_interventions._registry import Registry
 from rl_health_interventions.agents._base import Agent
 
 logger = logging.getLogger(__name__)
 
-REGISTRY: dict[str, type[Agent]] = {}
+REGISTRY: Registry = Registry("agent")
 
 _KNUTH_MULT = 2654435761  # Knuth multiplicative hash constant
 
@@ -28,23 +22,21 @@ def derive_agent_seed(base_seed: int, agent_index: int = 0) -> int:
 
 
 def make(name: str, **kwargs) -> Agent:
-    if name not in REGISTRY:
-        raise KeyError(f"Unknown agent: {name}. Known: {list(REGISTRY)}")
-    return REGISTRY[name](**kwargs)
+    return REGISTRY.make(name, **kwargs)
 
 
 # NOTE: Import new agent module above and append it here so register() runs on import.
 # Each module must have a register() function that adds to REGISTRY.
-_AGENT_MODULES = [
-    thompson_sampling,
-    epsilon_greedy,
+from rl_health_interventions.agents import (  # noqa: E402
+    contextual_bandits,
+    fixed,
     random,
-    ucb,
-    decaying_epsilon_greedy,
+)
+
+_AGENT_MODULES = [
+    contextual_bandits,
+    fixed,
+    random,
 ]
 
-for _mod in _AGENT_MODULES:
-    try:
-        _mod.register()
-    except Exception:
-        logger.exception("Failed to register %s", _mod.__name__)
+REGISTRY.load_modules(_AGENT_MODULES, logger_name=__name__)

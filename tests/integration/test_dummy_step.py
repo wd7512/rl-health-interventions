@@ -1,41 +1,15 @@
 from __future__ import annotations
 
 from rl_health_interventions.agents import make as make_agent
-from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.data import make as make_dataset
 from rl_health_interventions.rewards import make as make_reward
 from rl_health_interventions.simulation import make as make_response_model
 from rl_health_interventions.transitions import make as make_transition
 
 
-def _minimal_config() -> MDPConfig:
-    return MDPConfig(
-        episode_days=1,
-        steps_per_day=1,
-        seed=42,
-        initial_state="sedentary",
-        states={"sedentary": {"reward": 0.0}, "active": {"reward": 1.0}},
-        actions=["nudge", "idle"],
-        transition_model={
-            "type": "rule_based",
-            "transition_probabilities": {
-                "sedentary": {
-                    "nudge": {"active": 0.5, "sedentary": 0.5},
-                    "idle": {"active": 0.5, "sedentary": 0.5},
-                },
-                "active": {
-                    "nudge": {"active": 0.5, "sedentary": 0.5},
-                    "idle": {"active": 0.5, "sedentary": 0.5},
-                },
-            },
-        },
-    )
-
-
-def test_layer2_component_compatibility() -> None:
-    config = _minimal_config()
-    transition = make_transition(config)
-    reward = make_reward(config)
+def test_layer2_component_compatibility(minimal_config) -> None:
+    transition = make_transition(minimal_config)
+    reward = make_reward(minimal_config)
     agent = make_agent("thompson_sampling")
     response = make_response_model("rule_based")
     dataset = make_dataset("synthetic")
@@ -68,10 +42,9 @@ def test_layer2_unknown_component_fails() -> None:
         make_dataset("DoesNotExist")
 
 
-def test_layer3_dummy_step() -> None:
-    config = _minimal_config()
-    transition = make_transition(config)
-    reward = make_reward(config)
+def test_layer3_dummy_step(minimal_config) -> None:
+    transition = make_transition(minimal_config)
+    reward = make_reward(minimal_config)
     agent = make_agent("thompson_sampling")
     response = make_response_model("rule_based")
 
@@ -85,3 +58,20 @@ def test_layer3_dummy_step() -> None:
     assert isinstance(rew, float)
     assert isinstance(done, bool)
     assert next_state in ("sedentary", "active")
+
+
+def test_fixed_agent_layer2_compatibility() -> None:
+    from rl_health_interventions.agents._base import Agent
+
+    agent = make_agent("fixed", action="nudge")
+    assert isinstance(agent, Agent)
+    assert agent.select_action(None) == "nudge"
+
+
+def test_fixed_agent_layer3_dummy_step(minimal_config) -> None:
+    agent = make_agent("fixed", action="nudge", actions=["nudge", "idle"])
+    state = "sedentary"
+    action = agent.select_action(state)
+    assert action == "nudge"
+    agent.update(state, action, 1.0, "active")
+    assert agent.select_action(state) == "nudge"

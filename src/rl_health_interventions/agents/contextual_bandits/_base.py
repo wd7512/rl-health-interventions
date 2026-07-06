@@ -18,33 +18,49 @@ class ContextualBanditAgent(Agent):
         actions: list[str] | None = None,
         seed: int = 42,
         contextual: bool = False,
-        context_feature: str | None = None,
+        context_features: str | list[str] | None = None,
     ) -> None:
         if contextual and (
-            not isinstance(context_feature, str) or not context_feature.strip()
+            context_features is None
+            or (isinstance(context_features, str) and not context_features.strip())
+            or (
+                isinstance(context_features, list)
+                and (
+                    not context_features
+                    or not all(
+                        isinstance(f, str) and f.strip() for f in context_features
+                    )
+                )
+            )
+            or not isinstance(context_features, (str, list))
         ):
             raise ValueError(
-                "context_feature must be a non-empty string when contextual=True"
+                "context_features must be a non-empty string or list"
+                " of non-empty strings when contextual=True"
             )
         self.contextual = contextual
-        self.context_feature = context_feature
+        self.context_features = (
+            tuple(context_features)
+            if isinstance(context_features, list)
+            else context_features
+        )
         self._actions = actions or ["nudge", "idle"]
         self._rng = np.random.default_rng(seed)
 
-    def _get_context_key(self, state, action: str) -> str | tuple[str, str]:
+    def _get_context_key(self, state, action: str) -> str | tuple[str, ...]:
         """Return a key for parameter lookup.
 
         Non-contextual mode: just the action name.
-        Contextual mode: ``(context_value, action)`` tuple.
-
-        Note: ``context_feature`` validation happens in ``__init__`` — by the time
-        this method runs in contextual mode, ``context_feature`` is guaranteed to
-        be a non-empty string.
+        Contextual mode with string feature: ``(context_value, action)`` tuple.
+        Contextual mode with list of features: ``(val1, val2, ..., action)`` tuple.
         """
         if not self.contextual:
             return action
         if state is None:
             raise ValueError("state cannot be None when contextual=True")
-        assert self.context_feature is not None
-        value = getattr(state, self.context_feature)
-        return (value, action)
+        assert self.context_features is not None
+        if isinstance(self.context_features, str):
+            value = getattr(state, self.context_features)
+            return (value, action)
+        values = tuple(getattr(state, f) for f in self.context_features)
+        return (*values, action)

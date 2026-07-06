@@ -7,7 +7,7 @@ Grid:
   - ucb:  c [0.1, 0.2, 0.3, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 5.0, 7.0, 10.0]
 
 Each combination: 50 seeds, record mean total reward + last-50-step mean.
-Runs both standard and contextual (context_feature="activity") variants.
+Runs both standard and contextual (context_features="activity") variants.
 Output: CSV to docs/mvp/hyperparam_results*.csv, one per config.
 """
 
@@ -34,7 +34,7 @@ C_VALUES = [0.1, 0.2, 0.3, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 5.0, 7.0, 10.0]
 DECAY_STEPS_VALUES = [25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700]
 N_SEEDS = 50
 
-CTX_KWARGS = {"contextual": True, "context_feature": "activity"}
+CTX_KWARGS = {"contextual": True, "context_features": "activity"}
 
 
 def _eg_grid(ctx: bool = False) -> list[tuple[dict, str]]:

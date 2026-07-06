@@ -1,4 +1,8 @@
-from rl_health_interventions.agents.thompson_sampling import ThompsonSamplingAgent
+import pytest
+
+from rl_health_interventions.agents.contextual_bandits.thompson_sampling import (
+    ThompsonSamplingAgent,
+)
 
 
 def test_select_action_returns_string_action(state_view):
@@ -7,22 +11,22 @@ def test_select_action_returns_string_action(state_view):
     assert action in ("nudge", "idle")
 
 
-def test_update_increases_alpha_on_positive_reward(state_view):
+@pytest.mark.parametrize(
+    ("action", "reward", "expected_alpha", "expected_beta"),
+    [
+        ("nudge", 1.0, 2.0, 1.0),
+        ("idle", 0.0, 1.0, 2.0),
+    ],
+)
+def test_update_updates_posterior(
+    state_view, action, reward, expected_alpha, expected_beta
+):
     agent = ThompsonSamplingAgent(
         actions=["nudge", "idle"], seed=42, alpha_prior=1.0, beta_prior=1.0
     )
-    agent.update(state_view, "nudge", reward=1.0, next_state=state_view)
-    assert agent.posteriors["nudge"].alpha == 2.0
-    assert agent.posteriors["nudge"].beta == 1.0
-
-
-def test_update_increases_beta_on_zero_reward(state_view):
-    agent = ThompsonSamplingAgent(
-        actions=["nudge", "idle"], seed=42, alpha_prior=1.0, beta_prior=1.0
-    )
-    agent.update(state_view, "idle", reward=0.0, next_state=state_view)
-    assert agent.posteriors["idle"].alpha == 1.0
-    assert agent.posteriors["idle"].beta == 2.0
+    agent.update(state_view, action, reward=reward, next_state=state_view)
+    assert agent.posteriors[action].alpha == expected_alpha
+    assert agent.posteriors[action].beta == expected_beta
 
 
 def test_thompson_sampling_converges_to_better_arm(state_view):
@@ -68,10 +72,10 @@ def test_agent_config_accepts_contextual_fields():
         alpha_prior=1,
         beta_prior=1,
         contextual=True,
-        context_feature="activity",
+        context_features="activity_level",
     )
     assert config.contextual is True
-    assert config.context_feature == "activity"
+    assert config.context_features == "activity_level"
 
 
 def test_non_contextual_config_no_regression():
@@ -79,7 +83,7 @@ def test_non_contextual_config_no_regression():
 
     config = AgentConfig(type="thompson_sampling", alpha_prior=1, beta_prior=1)
     assert config.contextual is False
-    assert config.context_feature is None
+    assert config.context_features is None
 
 
 def test_contextual_ts_learns_context_dependent_optimal_actions():
@@ -93,7 +97,7 @@ def test_contextual_ts_learns_context_dependent_optimal_actions():
         alpha_prior=1.0,
         beta_prior=1.0,
         contextual=True,
-        context_feature="activity",
+        context_features="activity_level",
     )
     rng = np.random.default_rng(42)
     contexts = ["sedentary", "active"]
@@ -101,7 +105,7 @@ def test_contextual_ts_learns_context_dependent_optimal_actions():
 
     for _ in range(n_iterations):
         ctx = rng.choice(contexts)
-        state = StateView(activity=ctx, day=0, step_of_day=0)
+        state = StateView(factors={"activity_level": ctx}, day=0, step_of_day=0)
         action = agent.select_action(state)
         if ctx == "sedentary":
             reward = 1.0 if rng.random() < (0.8 if action == "nudge" else 0.2) else 0.0
@@ -131,14 +135,14 @@ def test_contextual_ts_uniform_rewards():
         alpha_prior=1.0,
         beta_prior=1.0,
         contextual=True,
-        context_feature="activity",
+        context_features="activity_level",
     )
     rng = np.random.default_rng(42)
     contexts = ["sedentary", "active"]
 
     for _ in range(2000):
         ctx = rng.choice(contexts)
-        state = StateView(activity=ctx, day=0, step_of_day=0)
+        state = StateView(factors={"activity_level": ctx}, day=0, step_of_day=0)
         action = agent.select_action(state)
         reward = 1.0 if rng.random() < 0.5 else 0.0
         agent.update(state, action, reward, state)
