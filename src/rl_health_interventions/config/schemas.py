@@ -4,7 +4,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, RootModel, model_validator
 
-_KNOWN_TRANSITION_TYPES = frozenset({"rule_based", "random"})
+_KNOWN_TRANSITION_TYPES = frozenset({"bootstrap", "rule_based", "random"})
 
 
 class TransitionProbabilities(RootModel):

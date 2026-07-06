@@ -54,7 +54,8 @@ reward:
   formula: "alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty"
 
 transition_model:
-  type: random
+  type: bootstrap
+  table_dir: tables/
 
 episode_days: 90
 steps_per_day: 5

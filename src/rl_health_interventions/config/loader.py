@@ -7,12 +7,20 @@ import yaml
 from rl_health_interventions.config.schemas import MDPConfig
 
 
+def _find_project_root(start: Path) -> Path:
+    for parent in [start, *list(start.parents)]:
+        if (parent / "pyproject.toml").exists():
+            return parent
+    return start
+
+
 def load_config(path: str | Path) -> MDPConfig:
     path = Path(path)
     with path.open(encoding="utf-8") as f:
         raw = yaml.safe_load(f)
     config = MDPConfig.model_validate(raw)
     if config.transition_model.table_dir is not None:
-        resolved = path.parent / config.transition_model.table_dir
+        project_root = _find_project_root(path.resolve())
+        resolved = project_root / config.transition_model.table_dir
         config.transition_model.table_dir = str(resolved)
     return config
