@@ -12,10 +12,7 @@ def load_config(path: str | Path) -> MDPConfig:
     with path.open(encoding="utf-8") as f:
         raw = yaml.safe_load(f)
     config = MDPConfig.model_validate(raw)
-    if (
-        config.transition_model.table_dir is not None
-        and config.transition_model.type != "rule_based"
-    ):
+    if config.transition_model.table_dir is not None:
         resolved = path.parent / config.transition_model.table_dir
         config.transition_model.table_dir = str(resolved)
     return config

@@ -20,11 +20,13 @@ def test_run_episode_returns_list_with_correct_columns(valid_config):
         "step",
         "day",
         "step_of_day",
-        "state",
         "action",
         "reward",
     }
     assert expected_cols.issubset(set(records[0].keys()))
+    # Each declared state variable appears as its own column
+    for var_name in valid_config.state.variables:
+        assert var_name in records[0]
     assert len(records) == 450
 
 

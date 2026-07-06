@@ -43,21 +43,23 @@ def test_layer2_unknown_component_fails() -> None:
 
 
 def test_layer3_dummy_step(minimal_config) -> None:
+    from rl_health_interventions.state import StateView
+
     transition = make_transition(minimal_config)
     reward = make_reward(minimal_config)
     agent = make_agent("thompson_sampling")
     response = make_response_model("rule_based")
 
-    state = "sedentary"
+    state = StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
     action = agent.select_action(state)
     agent.update(state, action, 0.0, state)
-    next_state = transition.transition(state, action)
+    next_updates = transition.transition(state, action)
     rew, done = reward.reward(state, action, step_idx=0)
     resp = response.response(state, action)
     assert isinstance(resp, float)
     assert isinstance(rew, float)
     assert isinstance(done, bool)
-    assert next_state in ("sedentary", "active")
+    assert next_updates["activity_level"] in ("sedentary", "active")
 
 
 def test_fixed_agent_layer2_compatibility() -> None:

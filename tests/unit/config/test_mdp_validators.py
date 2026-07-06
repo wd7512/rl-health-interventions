@@ -99,7 +99,7 @@ def _del(raw, *keys):
         (lambda raw: _set(raw, "reward", "constants", {"value": 0.5}), "conflict"),
         (
             lambda raw: _del(raw, "transition_model", "transition_probabilities"),
-            "must be provided for rule_based",
+            "requires either",
         ),
         (
             lambda raw: _del(
@@ -216,6 +216,29 @@ def _del(raw, *keys):
             "reserved names",
         ),
     ],
+    ids=[
+        "negative_prob",
+        "prob_sum",
+        "initial_state_not_found",
+        "initial_state_value_not_in_names",
+        "reward_unknown_state_variable",
+        "reward_constant_variable_conflict",
+        "rule_based_requires_tprobs_or_table_dir",
+        "tprobs_missing_state",
+        "tprobs_target_not_in_names",
+        "tprobs_incomplete_distribution",
+        "tprobs_missing_action_entry",
+        "reward_multiplier_wrong_length",
+        "thompson_sampling_alpha_prior_zero",
+        "epsilon_greedy_epsilon_out_of_range",
+        "ucb_c_non_positive",
+        "unknown_agent_type",
+        "random_contextual_not_supported",
+        "context_features_without_contextual",
+        "random_rejects_hyperparameters",
+        "fixed_agent_rejects_contextual",
+        "reserved_state_name",
+    ],
 )
 def test_validation_error(mutate, expected_match):
     raw = _valid_raw()
@@ -251,7 +274,7 @@ def test_validation_error(mutate, expected_match):
                 }
             ],
         ),
-        lambda raw: _set(raw, "transition_model", {"type": "learned"}),
+        lambda raw: _set(raw, "transition_model", {"type": "random"}),
         lambda raw: _set(raw, "agents", [{"type": "fixed", "action": "idle"}]),
         lambda raw: _set(
             raw,

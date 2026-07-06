@@ -17,8 +17,20 @@ state:
       names: [good, poor]
     day_of_week:
       names: [weekday, weekend]
+      advanced:
+        type: cyclic
+        granularity: daily
+        pattern: [weekday, weekday, weekday, weekday, weekday, weekend, weekend]
     burden:
       names: [low, medium, high]
+      advanced:
+        type: rolling_window_count
+        window_size: 3
+        conditions:
+          - factor: action
+            type: in
+            values: [movement_suggestion, goal_reminder, journal]
+        mapping: {0: low, 1: medium, 2: high, 3: high}
 
 actions:
   idle: {}
@@ -42,8 +54,7 @@ reward:
   formula: "alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty"
 
 transition_model:
-  type: bootstrap
-  table_dir: tables
+  type: random
 
 episode_days: 90
 steps_per_day: 5
