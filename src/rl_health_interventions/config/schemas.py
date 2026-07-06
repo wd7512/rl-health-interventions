@@ -39,7 +39,7 @@ class TransitionProbabilities(RootModel):
 
 class CyclicAdvance(BaseModel):
     type: Literal["cyclic"] = "cyclic"
-    granularity: Literal["daily", "step_wise"] = "daily"
+    granularity: Literal["daily"] = "daily"
     pattern: list[str]
 
 
@@ -97,6 +97,14 @@ _KNOWN_AGENT_TYPES = frozenset(
         "fixed",
     }
 )
+
+
+def _check_name(fname: str, field: str, val: str, names: set[str]) -> None:
+    if val not in names:
+        raise ValueError(
+            f"state.variables.{fname}.advanced.{field} value "
+            f"'{val}' not in variable names: {sorted(names)}"
+        )
 
 
 class AgentConfig(BaseModel):
@@ -409,11 +417,7 @@ class MDPConfig(BaseModel):
             names_set = set(fcfg.names)
             if isinstance(fcfg.advanced, CyclicAdvance):
                 for val in fcfg.advanced.pattern:
-                    if val not in names_set:
-                        raise ValueError(
-                            f"state.variables.{fname}.advanced.pattern value "
-                            f"'{val}' not in variable names: {fcfg.names}"
-                        )
+                    _check_name(fname, "pattern", val, names_set)
             elif isinstance(fcfg.advanced, RollingWindowCountAdvance):
                 expected_keys = set(range(fcfg.advanced.window_size + 1))
                 actual_keys = set(fcfg.advanced.mapping.keys())
@@ -423,11 +427,7 @@ class MDPConfig(BaseModel):
                         f"{sorted(actual_keys)} must cover {sorted(expected_keys)}"
                     )
                 for val in fcfg.advanced.mapping.values():
-                    if val not in names_set:
-                        raise ValueError(
-                            f"state.variables.{fname}.advanced.mapping value "
-                            f"'{val}' not in variable names: {fcfg.names}"
-                        )
+                    _check_name(fname, "mapping", val, names_set)
                 for cond in fcfg.advanced.conditions:
                     if (
                         cond.factor not in self.state.variables
@@ -436,11 +436,6 @@ class MDPConfig(BaseModel):
                         raise ValueError(
                             f"state.variables.{fname}.advanced.conditions.factor "
                             f"'{cond.factor}' is not a declared variable or 'action'"
-                        )
-                    if cond.type != "in":
-                        raise ValueError(
-                            f"state.variables.{fname}.advanced.conditions.type "
-                            f"must be 'in', got '{cond.type}'"
                         )
         return self
 

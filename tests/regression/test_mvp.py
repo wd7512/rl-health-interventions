@@ -25,7 +25,7 @@ _REL_TOLERANCE = 0.001  # 0.1% relative tolerance
 _METRICS = ["total_reward", "total_std", "per_step", "last50"]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def mvp_results() -> dict[str, dict]:
     """Run the MVP benchmark once and return all config results as structured data."""
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -59,6 +59,7 @@ def mvp_results() -> dict[str, dict]:
         return results
 
 
+@pytest.mark.timeout(30)
 @pytest.mark.parametrize(
     "config_name",
     ["mvp", "mvp_masked", "mvp_extensions", "mvp_extensions_masked"],

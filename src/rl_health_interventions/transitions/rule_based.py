@@ -10,16 +10,10 @@ from rl_health_interventions.transitions._base import TransitionModel
 
 class RuleBasedTransition(TransitionModel):
     def __init__(self, config: MDPConfig, seed: int = 42) -> None:
+        super().__init__(config, seed=seed)
         self._rng = np.random.default_rng(seed)
-        self._config = config
         self._cache: dict[tuple[str, str], tuple[list[str], np.ndarray]] = {}
         self._build_cache(config)
-
-    @property
-    def _stochastic_factors(self) -> list[str]:
-        return [
-            n for n, c in self._config.state.variables.items() if c.advanced is None
-        ]
 
     def _build_cache(self, config: MDPConfig) -> None:
         prob_config = config.transition_model.transition_probabilities
