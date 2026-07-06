@@ -104,23 +104,29 @@ def test_chat_completion_http_error():
     )
     http_error.read = error_resp.read
 
-    with patch("urllib.request.urlopen", side_effect=http_error):
-        with pytest.raises(LLMClientError, match="API error 401"):
-            chat_completion([{"role": "user", "content": "test"}], api_key="test-key")
+    with (
+        patch("urllib.request.urlopen", side_effect=http_error),
+        pytest.raises(LLMClientError, match="API error 401"),
+    ):
+        chat_completion([{"role": "user", "content": "test"}], api_key="test-key")
 
 
 def test_chat_completion_network_error():
     from urllib.error import URLError
 
-    with patch("urllib.request.urlopen", side_effect=URLError("Connection refused")):
-        with pytest.raises(LLMClientError, match="Network error"):
-            chat_completion([{"role": "user", "content": "test"}], api_key="test-key")
+    with (
+        patch("urllib.request.urlopen", side_effect=URLError("Connection refused")),
+        pytest.raises(LLMClientError, match="Network error"),
+    ):
+        chat_completion([{"role": "user", "content": "test"}], api_key="test-key")
 
 
 def test_chat_completion_no_api_key():
-    with patch.dict("os.environ", {}, clear=True):
-        with pytest.raises(LLMClientError, match="OPENCODE_API_KEY not set"):
-            chat_completion([{"role": "user", "content": "test"}])
+    with (
+        patch.dict("os.environ", {}, clear=True),
+        pytest.raises(LLMClientError, match="OPENCODE_API_KEY not set"),
+    ):
+        chat_completion([{"role": "user", "content": "test"}])
 
 
 def test_chat_text_convenience():
@@ -136,25 +142,31 @@ def test_chat_text_convenience():
 def test_chat_text_malformed_response_missing_choices():
     """chat_text raises LLMClientError when response has no 'choices' key."""
     resp_body = {"error": "something went wrong"}
-    with patch("urllib.request.urlopen", return_value=_make_response(resp_body)):
-        with pytest.raises(LLMClientError, match="Failed to parse API response"):
-            chat_text("test", api_key="test-key")
+    with (
+        patch("urllib.request.urlopen", return_value=_make_response(resp_body)),
+        pytest.raises(LLMClientError, match="Failed to parse API response"),
+    ):
+        chat_text("test", api_key="test-key")
 
 
 def test_chat_text_malformed_response_empty_choices():
     """chat_text raises LLMClientError when choices list is empty."""
     resp_body = {"choices": []}
-    with patch("urllib.request.urlopen", return_value=_make_response(resp_body)):
-        with pytest.raises(LLMClientError, match="Failed to parse API response"):
-            chat_text("test", api_key="test-key")
+    with (
+        patch("urllib.request.urlopen", return_value=_make_response(resp_body)),
+        pytest.raises(LLMClientError, match="Failed to parse API response"),
+    ):
+        chat_text("test", api_key="test-key")
 
 
 def test_chat_text_malformed_response_missing_message():
     """chat_text raises LLMClientError when message key is missing."""
     resp_body = {"choices": [{"finish_reason": "stop"}]}
-    with patch("urllib.request.urlopen", return_value=_make_response(resp_body)):
-        with pytest.raises(LLMClientError, match="Failed to parse API response"):
-            chat_text("test", api_key="test-key")
+    with (
+        patch("urllib.request.urlopen", return_value=_make_response(resp_body)),
+        pytest.raises(LLMClientError, match="Failed to parse API response"),
+    ):
+        chat_text("test", api_key="test-key")
 
 
 def test_default_base_url():
@@ -163,26 +175,12 @@ def test_default_base_url():
 
 def test_init_reexports():
     """cli.__init__ should re-export symbols from cli.llm, not duplicate them."""
-    from rl_health_interventions.cli import (
-        DEFAULT_BASE_URL as init_base,
-        DEFAULT_MODEL as init_model,
-        LLMClientError as init_err,
-        chat_completion as init_cc,
-        chat_text as init_ct,
-        get_api_key as init_gak,
-    )
-    from rl_health_interventions.cli.llm import (
-        DEFAULT_BASE_URL,
-        DEFAULT_MODEL,
-        LLMClientError,
-        chat_completion,
-        chat_text,
-        get_api_key,
-    )
+    from rl_health_interventions import cli as init_cli
+    from rl_health_interventions.cli import llm
 
-    assert init_base is DEFAULT_BASE_URL
-    assert init_model is DEFAULT_MODEL
-    assert init_err is LLMClientError
-    assert init_cc is chat_completion
-    assert init_ct is chat_text
-    assert init_gak is get_api_key
+    assert init_cli.DEFAULT_BASE_URL is llm.DEFAULT_BASE_URL
+    assert init_cli.DEFAULT_MODEL is llm.DEFAULT_MODEL
+    assert init_cli.LLMClientError is llm.LLMClientError
+    assert init_cli.chat_completion is llm.chat_completion
+    assert init_cli.chat_text is llm.chat_text
+    assert init_cli.get_api_key is llm.get_api_key

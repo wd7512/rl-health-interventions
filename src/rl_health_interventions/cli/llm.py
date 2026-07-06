@@ -10,13 +10,13 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
+import json
 import logging
 import os
-from typing import Any
-
-import urllib.request
 import urllib.error
-import json
+import urllib.request
+from typing import Any
 
 DEFAULT_BASE_URL = "https://opencode.ai/zen/v1"
 DEFAULT_MODEL = "nemotron-3-ultra-free"
@@ -32,28 +32,13 @@ def get_api_key() -> str:
     """Resolve API key from environment."""
     key = os.environ.get("OPENCODE_API_KEY")
     if not key:
-        raise LLMClientError(
-            "OPENCODE_API_KEY not set. Export it before calling the API."
-        )
+        msg = "OPENCODE_API_KEY not set. Export it before calling the API."
+        raise LLMClientError(msg)
     return key
 
 
-def chat_completion(
-    messages: list[dict[str, Any]],
-    *,
-    model: str = DEFAULT_MODEL,
-    base_url: str = DEFAULT_BASE_URL,
-    api_key: str | None = None,
-    temperature: float | None = None,
-    max_tokens: int | None = None,
-) -> dict[str, Any]:
-    """Send a chat completion request to OpenCode Zen.
-
-    Returns the raw parsed JSON response.
-    """
-    if api_key is None:
-        api_key = get_api_key()
-
+def _build_request(messages, model, base_url, api_key, temperature, max_tokens):
+    """Build and send a chat completion request, return parsed response."""
     url = f"{base_url}/chat/completions"
     payload: dict[str, Any] = {"model": model, "messages": messages}
     if temperature is not None:
@@ -79,9 +64,30 @@ def chat_completion(
             return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         error_body = e.read().decode("utf-8", errors="replace")
-        raise LLMClientError(f"API error {e.code}: {error_body}") from e
+        msg = f"API error {e.code}: {error_body}"
+        raise LLMClientError(msg) from e
     except urllib.error.URLError as e:
-        raise LLMClientError(f"Network error: {e.reason}") from e
+        msg = f"Network error: {e.reason}"
+        raise LLMClientError(msg) from e
+
+
+def chat_completion(
+    messages: list[dict[str, Any]],
+    *,
+    model: str = DEFAULT_MODEL,
+    base_url: str = DEFAULT_BASE_URL,
+    api_key: str | None = None,
+    temperature: float | None = None,
+    max_tokens: int | None = None,
+) -> dict[str, Any]:
+    """Send a chat completion request to OpenCode Zen.
+
+    Returns the raw parsed JSON response.
+    """
+    if api_key is None:
+        api_key = get_api_key()
+
+    return _build_request(messages, model, base_url, api_key, temperature, max_tokens)
 
 
 def chat_text(
@@ -105,12 +111,11 @@ def chat_text(
     try:
         return resp["choices"][0]["message"]["content"]
     except (KeyError, IndexError, TypeError) as e:
-        raise LLMClientError(f"Failed to parse API response: {e}") from e
+        msg = f"Failed to parse API response: {e}"
+        raise LLMClientError(msg) from e
 
 
 def main() -> None:
-    import argparse
-
     parser = argparse.ArgumentParser(description="OpenCode Zen one-shot chat")
     parser.add_argument("prompt", help="Message to send")
     parser.add_argument(
