@@ -29,13 +29,13 @@ class ThompsonSamplingAgent(ContextualBanditAgent):
         beta_prior: float = 1.0,
         seed: int = 42,
         contextual: bool = False,
-        context_feature: str | None = None,
+        context_features: str | list[str] | None = None,
     ) -> None:
         super().__init__(
             actions=actions,
             seed=seed,
             contextual=contextual,
-            context_feature=context_feature,
+            context_features=context_features,
         )
         self.alpha_prior = alpha_prior
         self.beta_prior = beta_prior
@@ -51,7 +51,7 @@ class ThompsonSamplingAgent(ContextualBanditAgent):
                 for action in self._actions
             }
 
-    def _ensure_params(self, key: str | tuple[str, str]) -> None:
+    def _ensure_params(self, key: str | tuple[str, ...]) -> None:
         if key not in self.posteriors:
             self.posteriors[key] = Posterior(
                 alpha=self.alpha_prior, beta=self.beta_prior

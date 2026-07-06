@@ -1,4 +1,6 @@
-from rl_health_interventions.agents.epsilon_greedy import EpsilonGreedyAgent
+from rl_health_interventions.agents.contextual_bandits.epsilon_greedy import (
+    EpsilonGreedyAgent,
+)
 
 
 def test_select_action_returns_string_action(state_view):
@@ -43,19 +45,15 @@ def test_seed_reproducibility(state_view):
     assert actions1 == actions2
 
 
-def test_contextual_epsilon_greedy_learns_per_context():
-    from rl_health_interventions.state import StateView
-
+def test_contextual_epsilon_greedy_learns_per_context(sed_and_act):
+    sed, act = sed_and_act
     agent = EpsilonGreedyAgent(
         actions=["nudge", "idle"],
         epsilon=0.0,
         seed=42,
         contextual=True,
-        context_feature="activity",
+        context_features="activity_level",
     )
-
-    sed = StateView(activity="sedentary", day=0, step_of_day=0)
-    act = StateView(activity="active", day=0, step_of_day=0)
 
     for _ in range(100):
         agent.update(sed, "nudge", reward=0.0, next_state=sed)

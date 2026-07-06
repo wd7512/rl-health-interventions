@@ -4,11 +4,13 @@ import numpy as np
 from typing_extensions import override
 
 from rl_health_interventions.config.schemas import MDPConfig
+from rl_health_interventions.state import StateView
 from rl_health_interventions.transitions._base import TransitionModel
 
 
 class RuleBasedTransition(TransitionModel):
     def __init__(self, config: MDPConfig, seed: int = 42) -> None:
+        super().__init__(config, seed=seed)
         self._rng = np.random.default_rng(seed)
         self._cache: dict[tuple[str, str], tuple[list[str], np.ndarray]] = {}
         self._build_cache(config)
@@ -25,13 +27,17 @@ class RuleBasedTransition(TransitionModel):
                 self._cache[(state, action)] = (targets, prob_values)
 
     @override
-    def transition(self, state: str, action: str) -> str:
-        targets, probs = self._cache[(state, action)]
-        idx = self._rng.choice(len(targets), p=probs)
-        return targets[idx]
+    def transition(self, state: StateView, action: str) -> dict[str, str]:
+        updates: dict[str, str] = {}
+        for factor_name in self._stochastic_factors:
+            current_val = getattr(state, factor_name)
+            targets, probs = self._cache[(current_val, action)]
+            idx = self._rng.choice(len(targets), p=probs)
+            updates[factor_name] = targets[idx]
+        return updates
 
 
 def register() -> None:
     from rl_health_interventions.transitions import REGISTRY
 
-    REGISTRY["rule_based"] = RuleBasedTransition
+    REGISTRY.register("rule_based", RuleBasedTransition)

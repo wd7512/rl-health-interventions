@@ -33,13 +33,13 @@
 
 | File | Description |
 |------|-------------|
-| `learned_specification.tex` | Placeholder — learned transition models from real wearable data. See `config/learned.yaml`. |
+| `learned_specification.tex` | Placeholder — learned transition models from real wearable data. See `config/learned_aspirational.yaml`. |
 
 ## llm/
 
 | File | Description |
 |------|-------------|
-| `llm_specification.tex` | Placeholder — LLM-based user simulation. See `config/llm_based.yaml`. |
+| `llm_specification.tex` | Placeholder — LLM-based user simulation. See `config/llm_based_aspirational.yaml`. |
 
 ## plans/
 

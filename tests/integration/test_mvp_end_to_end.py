@@ -38,10 +38,10 @@ def test_mvp_end_to_end(tmp_path: Path) -> None:
         "step",
         "day",
         "step_of_day",
-        "state",
         "action",
         "reward",
     }
+    assert "activity_level" in df.columns
     assert df["reward"].isin([0.0, 1.0]).all()
 
 

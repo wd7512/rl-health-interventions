@@ -29,7 +29,7 @@
 | `mvp.yaml` | **Delete.** Deprecated new-format file |
 | `rule_based.yaml` | **Update.** Add `agents` block |
 | `rule_based_with_mask.yaml` | **Update.** Add `reward_multiplier_by_step: [1,1,1,1,0]` + `agents` block |
-| `learned.yaml`, `llm_based.yaml` | **Keep.** Schema-reference mode stubs handle them gracefully |
+| `learned_aspirational.yaml`, `llm_based_aspirational.yaml` | **Keep.** Schema-reference mode stubs handle them gracefully |
 | `reward_multiplier_by_step` | **Optional field.** Only active when present. Defaults to uniform `1.0` when absent. Precomputed in config. |
 | Cross-reference validators | **In scope.** Structural checks on states, actions, transition probs, agents |
 | Schema-reference mode stub | **In scope.** `NotImplementedError` seam |
@@ -143,7 +143,7 @@ agents:
     beta_prior: 1
 ```
 
-### 3.3 Forward reference: `learned.yaml` / `heartsteps_learned.yaml`
+### 3.3 Forward reference: `learned_aspirational.yaml` / `heartsteps_learned.yaml`
 
 Out of scope for this PR, but confirmed the YAML shape is consistent with the learned-model path. The schema-reference mode stub handles it gracefully with `NotImplementedError`.
 
@@ -276,8 +276,8 @@ Both `make()` factories are already registered in the package `__init__.py`. The
 ### Keep (unchanged)
 | File | Reason |
 |---|---|
-| `config/learned.yaml` | Schema-ref stub handles it at load time |
-| `config/llm_based.yaml` | Schema-ref stub handles it at load time |
+| `config/learned_aspirational.yaml` | Schema-ref stub handles it at load time |
+| `config/llm_based_aspirational.yaml` | Schema-ref stub handles it at load time |
 
 ### Rewrite (source)
 | File | Changes |
@@ -370,7 +370,7 @@ Fixture shape (values populated by running the generator):
 - [ ] All agents — `Action` → `str`
 - [ ] All tests pass: `uv run ruff check`, `uv run ty check`, `uv run pytest`
 - [ ] Regression test written; fixture committed
-- [ ] `learned.yaml`, `llm_based.yaml` load without error (schema-ref stub)
+- [ ] `learned_aspirational.yaml`, `llm_based_aspirational.yaml` load without error (schema-ref stub)
 - [ ] Smoke test: `uv run rl-health-interventions --config config/rule_based.yaml`
 - [ ] PDF rebuilt to include UCB results
 - [ ] README reverted to near-original; only delta this PR directly requires

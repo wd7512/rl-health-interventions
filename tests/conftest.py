@@ -29,12 +29,18 @@ def valid_config() -> MDPConfig:
         episode_days=90,
         steps_per_day=5,
         seed=42,
-        initial_state="sedentary",
-        states={
-            "sedentary": {"reward": 0.0},
-            "active": {"reward": 1.0},
-        },
+        state={"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
+        initial_state={"activity_level": "sedentary"},
         actions=["nudge", "idle"],
+        reward={
+            "variables": {
+                "value": {
+                    "source": "state.activity_level",
+                    "mapping": {"sedentary": 0.0, "active": 1.0},
+                }
+            },
+            "formula": "value",
+        },
         transition_model={
             "type": "rule_based",
             "transition_probabilities": {
@@ -58,12 +64,18 @@ def minimal_config() -> MDPConfig:
         episode_days=1,
         steps_per_day=1,
         seed=42,
-        initial_state="sedentary",
-        states={
-            "sedentary": {"reward": 0.0},
-            "active": {"reward": 1.0},
-        },
+        state={"variables": {"activity_level": {"names": ["sedentary", "active"]}}},
+        initial_state={"activity_level": "sedentary"},
         actions=["nudge", "idle"],
+        reward={
+            "variables": {
+                "value": {
+                    "source": "state.activity_level",
+                    "mapping": {"sedentary": 0.0, "active": 1.0},
+                }
+            },
+            "formula": "value",
+        },
         transition_model={
             "type": "rule_based",
             "transition_probabilities": {
@@ -85,4 +97,111 @@ def minimal_config() -> MDPConfig:
 def state_view():
     from rl_health_interventions.state import StateView
 
-    return StateView(activity="sedentary", day=0, step_of_day=0)
+    return StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
+
+
+@pytest.fixture
+def sedentary_state():
+    from rl_health_interventions.state import StateView
+
+    return StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0)
+
+
+@pytest.fixture
+def active_state():
+    from rl_health_interventions.state import StateView
+
+    return StateView(factors={"activity_level": "active"}, day=0, step_of_day=0)
+
+
+@pytest.fixture
+def sed_and_act():
+    from rl_health_interventions.state import StateView
+
+    return (
+        StateView(factors={"activity_level": "sedentary"}, day=0, step_of_day=0),
+        StateView(factors={"activity_level": "active"}, day=0, step_of_day=0),
+    )
+
+
+@pytest.fixture
+def sprint1_config() -> MDPConfig:
+    return MDPConfig(
+        episode_days=90,
+        steps_per_day=5,
+        seed=42,
+        state={
+            "variables": {
+                "step_bin": {"names": ["inactive", "moderate", "active"]},
+                "sleep": {"names": ["good", "poor"]},
+                "day_of_week": {
+                    "names": ["weekday", "weekend"],
+                    "advanced": {
+                        "type": "cyclic",
+                        "granularity": "daily",
+                        "pattern": [
+                            "weekday",
+                            "weekday",
+                            "weekday",
+                            "weekday",
+                            "weekday",
+                            "weekend",
+                            "weekend",
+                        ],
+                    },
+                },
+                "burden": {
+                    "names": ["low", "medium", "high"],
+                    "advanced": {
+                        "type": "rolling_window_count",
+                        "window_size": 3,
+                        "conditions": [
+                            {
+                                "factor": "action",
+                                "type": "in",
+                                "values": [
+                                    "movement_suggestion",
+                                    "goal_reminder",
+                                    "journal",
+                                ],
+                            }
+                        ],
+                        "mapping": {0: "low", 1: "medium", 2: "high", 3: "high"},
+                    },
+                },
+            }
+        },
+        initial_state={
+            "step_bin": "inactive",
+            "sleep": "good",
+            "day_of_week": "weekday",
+            "burden": "low",
+        },
+        actions=["idle", "movement_suggestion", "goal_reminder", "journal"],
+        reward={
+            "constants": {"alpha": 0.9},
+            "variables": {
+                "step_bin_value": {
+                    "source": "state.step_bin",
+                    "mapping": {"inactive": 0.0, "moderate": 0.5, "active": 1.0},
+                },
+                "sleep_value": {
+                    "source": "state.sleep",
+                    "mapping": {"good": 1.0, "poor": -1.0},
+                },
+                "action_penalty": {
+                    "source": "action",
+                    "mapping": {
+                        "idle": 0.0,
+                        "movement_suggestion": 0.05,
+                        "goal_reminder": 0.05,
+                        "journal": 0.05,
+                    },
+                },
+            },
+            "formula": "alpha * step_bin_value + "
+            "(1 - alpha) * sleep_value - action_penalty",
+        },
+        transition_model={"type": "random"},
+        agents=[],
+    )
