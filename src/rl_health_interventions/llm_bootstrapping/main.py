@@ -16,12 +16,20 @@ os.environ["OPENROUTER_API_BASE"] = OPENROUTER_BASE_URL
 
 MODEL = "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free"
 
-test_message = [{"role": "user", "content": "Write a short poem"}]
-
-response = completion(
-    model=MODEL,
-    messages=test_message,
-    base_url=OPENROUTER_BASE_URL,
-)
-
-print(response.choices[0].message.content)
+from litellm import batch_completion  
+  
+messages_list = [  
+    [{"role": "user", "content": "Write a short poem"}]  
+    for _ in range(100)  
+]  
+  
+responses = batch_completion(  
+    model=MODEL,  
+    messages=messages_list,  
+    base_url=OPENROUTER_BASE_URL,  
+    max_workers=100,  
+)  
+  
+for r in responses:  
+    if not isinstance(r, Exception):  
+        print(r.choices[0].message.content)
