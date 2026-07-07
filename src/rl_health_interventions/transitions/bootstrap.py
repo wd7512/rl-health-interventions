@@ -98,7 +98,6 @@ class BootstrapTransition(TransitionModel):
             db_key = self._build_key(state, action, for_day_boundary=True)
             sleep_next = self._sample(self._tables["day_boundary"], db_key)
             updates["sleep"] = sleep_next
-            state = state.with_factors(sleep=sleep_next)
 
         wd_key = self._build_key(state, action)
         table_idx = min(state.step_of_day, 4)

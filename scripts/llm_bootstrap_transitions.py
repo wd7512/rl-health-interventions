@@ -20,6 +20,7 @@ import argparse
 import json
 import logging
 import re
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -327,6 +328,8 @@ def _build_day_boundary_table(
         if key not in counts:
             counts[key] = {"good": 0, "poor": 0}
 
+    lock = threading.Lock()
+
     def _run(task: dict[str, Any]) -> tuple[str, str]:
         response = _call_llm(task["prompt"], model, temperature, base_url, api_key)
         return task["key"], task["parser"](response)
@@ -337,7 +340,8 @@ def _build_day_boundary_table(
         for i, fut in enumerate(as_completed(futures), 1):
             try:
                 key, parsed = fut.result()
-                counts[key][parsed] += 1
+                with lock:
+                    counts[key][parsed] += 1
             except Exception:
                 logger.exception("Day-boundary LLM call %d/%d failed", i, total)
                 raise
@@ -389,6 +393,8 @@ def _build_within_day_table(
         if key not in counts:
             counts[key] = {"inactive": 0, "moderate": 0, "active": 0}
 
+    lock = threading.Lock()
+
     def _run(task: dict[str, Any]) -> tuple[str, str]:
         response = _call_llm(task["prompt"], model, temperature, base_url, api_key)
         return task["key"], task["parser"](response)
@@ -399,7 +405,8 @@ def _build_within_day_table(
         for i, fut in enumerate(as_completed(futures), 1):
             try:
                 key, parsed = fut.result()
-                counts[key][parsed] += 1
+                with lock:
+                    counts[key][parsed] += 1
             except Exception:
                 logger.exception(
                     "Within-day %d LLM call %d/%d failed", timestep, i, total
