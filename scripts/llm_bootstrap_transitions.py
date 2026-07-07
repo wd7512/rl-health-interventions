@@ -20,6 +20,7 @@ import argparse
 import json
 import logging
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
@@ -222,14 +223,25 @@ def _call_llm(
     messages = [_SYSTEM_MESSAGE, {"role": "user", "content": prompt}]
     last_error: Exception | None = None
     for attempt in range(_MAX_RETRIES):
-        body = chat_completion(
-            messages=messages,
-            model=model,
-            base_url=base_url,
-            api_key=api_key,
-            temperature=temperature,
-            max_tokens=_MAX_TOKENS,
-        )
+        try:
+            body = chat_completion(
+                messages=messages,
+                model=model,
+                base_url=base_url,
+                api_key=api_key,
+                temperature=temperature,
+                max_tokens=_MAX_TOKENS,
+            )
+        except LLMClientError as e:
+            if "429" in str(e):
+                wait = 30 if attempt < 3 else 120
+                logger.warning(
+                    "Rate limited (attempt %d), waiting %ds", attempt + 1, wait
+                )
+                time.sleep(wait)
+                last_error = e
+                continue
+            raise
         try:
             msg = body["choices"][0]["message"]
             content = str(msg.get("content") or "")
@@ -239,16 +251,17 @@ def _call_llm(
                 reasoning = str(msg.get("reasoning_content") or "")
                 # Try to extract the answer from reasoning:
                 # 1. JSON pattern {"sleep_quality": "good"}
-                # 2. Bare number (for within-day step count)
+                # 2. Bare number (only if no JSON in reasoning — avoids
+                #    grabbing step-count numbers from day-boundary reasoning)
                 for candidate in [reasoning, content]:
                     match = re.search(r"\{[^}]+\}", candidate)
                     if match:
                         content = match.group()
                         break
-                    match = re.search(r"\b(\d{1,5})\b", candidate)
+                if not content.strip() and "{" not in reasoning:
+                    match = re.search(r"\b(\d{1,5})\b", reasoning)
                     if match:
                         content = match.group(1)
-                        break
         except (KeyError, IndexError, TypeError) as e:
             msg_err = f"Failed to parse API response: {e}"
             raise LLMClientError(msg_err) from e

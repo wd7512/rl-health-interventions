@@ -64,6 +64,14 @@ def _build_request(messages, model, base_url, api_key, temperature, max_tokens):
             return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         error_body = e.read().decode("utf-8", errors="replace")
+        if e.code == 429:
+            # Rate limited — extract retry-after if available
+            import re as _re
+            retry_match = _re.search(r'"retry-after":\s*(\d+)', error_body)
+            wait = int(retry_match.group(1)) if retry_match else 60
+            raise LLMClientError(
+                f"Rate limited (429). Retry after {wait}s. Body: {error_body}"
+            ) from e
         msg = f"API error {e.code}: {error_body}"
         raise LLMClientError(msg) from e
     except urllib.error.URLError as e:
