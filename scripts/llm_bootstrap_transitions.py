@@ -70,22 +70,9 @@ _BIN_MIDPOINTS: dict[str, int] = {
 # ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT = (
-    "# Reference\n\n"
-    "You are a generally healthy adult looking to improve your exercise and sleep habits.\n\n"  # noqa: E501
-    "5 timesteps per day: morning, mid-morning, lunch, afternoon, evening\n\n"
-    "Per-timestep step ranges (daily threshold / 5):\n"
-    "  <800 steps     = inactive\n"
-    "  800-1600 steps = moderate\n"
-    "  >1600 steps    = active\n\n"
-    "Sleep quality: good / poor (based on how well you slept)\n\n"
-    "Daily step total ranges (5 timesteps x per-timestep ranges):\n"
-    "  <4000 steps total     = inactive\n"
-    "  4000-8000 steps total = moderate\n"
-    "  >8000 steps total     = active\n\n"
-    "Burden (notification fatigue):\n"
-    "  low     = 0 of last 3 timesteps had an intervention\n"
-    "  medium  = 1 of last 3\n"
-    "  high    = 2 or 3 of last 3"
+    "Rules: steps <800=inactive, 800-1600=moderate, >1600=active per timestep. "  # noqa: E501
+    "Daily <4k=inactive, 4-8k=moderate, >8k=active. "
+    "Sleep=good|poor. Burden=low|medium|high."
 )
 
 WITHIN_DAY_PROMPT_TIMESTEP_0 = (
@@ -221,8 +208,8 @@ _SYSTEM_MESSAGE = {"role": "system", "content": SYSTEM_PROMPT}
 # Reasoning models (deepseek-v4-flash, etc.) allocate tokens to internal
 # thinking before producing output.  Give them enough headroom so the
 # actual reply isn't starved.
-_MAX_TOKENS = 4096
-_MAX_RETRIES = 3
+_MAX_TOKENS = 128
+_MAX_RETRIES = 5
 
 
 def _call_llm(
@@ -433,7 +420,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--temperature", type=float, default=0.7, help="Sampling temperature"
     )
-    parser.add_argument("--workers", type=int, default=10, help="Concurrent workers")
+    parser.add_argument("--workers", type=int, default=100, help="Concurrent workers")
     parser.add_argument(
         "--dry-run", action="store_true", help="Minimal pairs to verify format"
     )
