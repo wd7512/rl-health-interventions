@@ -20,7 +20,7 @@ import urllib.request
 from typing import Any
 
 DEFAULT_BASE_URL = "https://opencode.ai/zen/v1"
-DEFAULT_MODEL = "nemotron-3-ultra-free"
+DEFAULT_MODEL = "deepseek-v4-flash-free"
 _RATE_LIMIT_CODE = 429
 
 logger = logging.getLogger(__name__)
