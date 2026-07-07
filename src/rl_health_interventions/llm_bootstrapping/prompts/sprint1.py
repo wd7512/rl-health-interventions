@@ -1,14 +1,35 @@
-"""Sprint 1 prompt definitions for bootstrap transition tables."""
+"""Sprint 1 prompt definitions for bootstrap transition tables.
+
+Matches resolved-decisions-sprint-1.md §LLM bootstrapping prompt design.
+"""
 
 from __future__ import annotations
 
 import itertools
 
-SYSTEM_PROMPT = (
-    "Rules: steps <800=inactive, 800-1600=moderate, >1600=active "
-    "per timestep. Daily <4k=inactive, 4-8k=moderate, >8k=active. "
-    "Sleep=good|poor. Burden=low|medium|high."
-)
+SYSTEM_PROMPT = """\
+# Reference
+
+You are a generally healthy adult looking to improve your exercise and sleep habits.
+
+5 timesteps per day: morning, mid-morning, lunch, afternoon, evening
+
+Per-timestep step ranges (daily threshold / 5):
+  <800 steps     = inactive
+  800-1600 steps = moderate
+  >1600 steps    = active
+
+Sleep quality: good / poor (based on how well you slept)
+
+Daily step total ranges (5 timesteps x per-timestep ranges):
+  <4000 steps total     = inactive
+  4000-8000 steps total = moderate
+  >8000 steps total     = active
+
+Burden (notification fatigue):
+  low     = 0 of last 3 timesteps had an intervention
+  medium  = 1 of last 3
+  high    = 2 or 3 of last 3"""
 
 STEP_BINS = ["inactive", "moderate", "active"]
 BURDENS = ["low", "medium", "high"]
@@ -23,6 +44,13 @@ TIMESTEP_NAMES = [
     ("afternoon", "lunch"),
     ("evening", "afternoon"),
 ]
+
+# Decisions doc uses "moderately active" for previous step bin display
+STEP_BIN_DISPLAY = {
+    "inactive": "inactive",
+    "moderate": "moderately active",
+    "active": "active",
+}
 
 ACTION_SENTENCES = {
     "idle": "",
@@ -47,41 +75,43 @@ def _render_within_day(
     act = ACTION_SENTENCES[action]
     if timestep == 0:
         return (
-            f"# Current state\n"
-            f"You just woke up. It is the morning. "
+            "# Current state\n"
+            "You just woke up. It is the morning. "
             f"It is a {day_type}.\n"
             f"Your sleep quality was {sleep}. "
             f"Your notification fatigue is {burden}.\n"
             f"{act}\n"
-            f"How many steps do you take this timestep?"
+            "How many steps do you take this timestep?"
         )
+    prev_display = STEP_BIN_DISPLAY[step_bin]
     return (
-        f"# Current state\n"
+        "# Current state\n"
         f"It is the {time_name}. Last timestep "
-        f"({prev_time_name}) you were {step_bin}.\n"
+        f"({prev_time_name}) you were {prev_display}.\n"
         f"Your notification fatigue is {burden}. "
         f"It is a {day_type}.\n"
         f"Your sleep quality was {sleep}.\n"
         f"{act}\n"
-        f"How many steps do you take this timestep?"
+        "How many steps do you take this timestep?"
     )
 
 
-def _render_day_boundary(step_bin_daily, burden, day_type, sleep):
+def _render_day_boundary(
+    step_bin_daily, burden, day_type, sleep, notifications
+):
     midpoint = BIN_MIDPOINTS.get(step_bin_daily, 4000)
     steps_estimate = midpoint * 5
-    seq = NOTIFICATION_SEQUENCES.get(
-        burden, "idle, idle, idle, idle, idle"
-    )
     return (
-        f"# Current state\n"
+        "# Current state\n"
         f"You are at the end of the day. It was a {day_type}.\n"
         f"Your sleep quality last night was {sleep}. "
-        f"Your notification fatigue is {burden}.\n"
-        f"Today you did ~{steps_estimate} total steps "
+        f"Your notification fatigue is {burden}.\n\n"
+        f"Today you did {steps_estimate} total steps "
         f"({step_bin_daily}).\n"
-        f"Your notifications today: {seq}\n\n"
-        f"It's bedtime. How was your sleep quality tonight?"
+        f"Your notifications today: {notifications}\n\n"
+        "It's bedtime. How was your sleep quality tonight?\n"
+        '{"sleep_quality": "good"}\n'
+        '{"sleep_quality": "poor"}'
     )
 
 
@@ -89,17 +119,25 @@ def _day_boundary_prompts():
     combos = itertools.product(
         STEP_BINS, BURDENS, DAY_TYPES, SLEEP_TYPES
     )
-    return [
-        _render_day_boundary(sbd, b, d, s)
-        for sbd, b, d, s in combos
-    ]
+    prompts = []
+    for step_bin_daily, burden, day_type, sleep in combos:
+        # Notification sequence depends on burden level
+        notifications = NOTIFICATION_SEQUENCES[burden]
+        prompts.append(
+            _render_day_boundary(
+                step_bin_daily, burden, day_type,
+                sleep, notifications,
+            )
+        )
+    return prompts
 
 
 def _within_day_prompts():
     prompts = []
     for timestep in range(5):
         combos = itertools.product(
-            STEP_BINS, BURDENS, ACTIONS, DAY_TYPES, SLEEP_TYPES
+            STEP_BINS, BURDENS, ACTIONS,
+            DAY_TYPES, SLEEP_TYPES,
         )
         for sb, b, a, d, s in combos:
             prompts.append(

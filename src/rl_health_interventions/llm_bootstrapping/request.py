@@ -62,7 +62,6 @@ def batch_complete(
     *,
     system_prompt: str | None = None,
     temperature: float = 0.7,
-    max_tokens: int = 128,
     max_workers: int = 100,
 ) -> list[dict[str, Any]]:
     """Send batch completions to OpenRouter via litellm."""
@@ -78,7 +77,6 @@ def batch_complete(
         model=MODEL,
         messages=messages_list,
         temperature=temperature,
-        max_tokens=max_tokens,
         max_workers=max_workers,
     )
 
