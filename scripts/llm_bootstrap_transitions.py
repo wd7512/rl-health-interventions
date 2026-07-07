@@ -71,7 +71,7 @@ _BIN_MIDPOINTS: dict[str, int] = {
 # ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT = (
-    "Rules: steps <800=inactive, 800-1600=moderate, >1600=active per timestep. "  # noqa: E501
+    "Rules: steps <800=inactive, 800-1600=moderate, >1600=active per timestep. "
     "Daily <4k=inactive, 4-8k=moderate, >8k=active. "
     "Sleep=good|poor. Burden=low|medium|high."
 )

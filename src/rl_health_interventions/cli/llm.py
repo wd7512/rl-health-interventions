@@ -14,12 +14,14 @@ import argparse
 import json
 import logging
 import os
+import re
 import urllib.error
 import urllib.request
 from typing import Any
 
 DEFAULT_BASE_URL = "https://opencode.ai/zen/v1"
 DEFAULT_MODEL = "nemotron-3-ultra-free"
+_RATE_LIMIT_CODE = 429
 
 logger = logging.getLogger(__name__)
 
@@ -38,18 +40,34 @@ def get_api_key() -> str:
 
 
 def _build_request(messages, model, base_url, api_key, temperature, max_tokens):
-    """Build and send a chat completion request, return parsed response."""
-    url = f"{base_url}/chat/completions"
+    """Build and send a chat completion request.
+
+    Returns the parsed JSON response.
+    """
+    return _send_request(
+        _build_payload(messages, model, temperature, max_tokens),
+        base_url,
+        api_key,
+        model,
+    )
+
+
+def _build_payload(messages, model, temperature, max_tokens):
+    """Build the JSON payload for a chat completion request."""
     payload: dict[str, Any] = {"model": model, "messages": messages}
     if temperature is not None:
         payload["temperature"] = temperature
     if max_tokens is not None:
         payload["max_tokens"] = max_tokens
+    return json.dumps(payload).encode("utf-8")
 
-    body = json.dumps(payload).encode("utf-8")
+
+def _send_request(payload, base_url, api_key, model):
+    """Send the HTTP request and handle errors."""
+    url = f"{base_url}/chat/completions"
     req = urllib.request.Request(
         url,
-        data=body,
+        data=payload,
         headers={
             "X-API-Key": api_key,
             "Content-Type": "application/json",
@@ -57,21 +75,17 @@ def _build_request(messages, model, base_url, api_key, temperature, max_tokens):
         },
         method="POST",
     )
-
     logger.debug("POST %s model=%s", url, model)
     try:
         with urllib.request.urlopen(req, timeout=120) as resp:
             return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         error_body = e.read().decode("utf-8", errors="replace")
-        if e.code == 429:
-            # Rate limited — extract retry-after if available
-            import re as _re
-            retry_match = _re.search(r'"retry-after":\s*(\d+)', error_body)
+        if e.code == _RATE_LIMIT_CODE:
+            retry_match = re.search(r'"retry-after":\s*(\d+)', error_body)
             wait = int(retry_match.group(1)) if retry_match else 60
-            raise LLMClientError(
-                f"Rate limited (429). Retry after {wait}s. Body: {error_body}"
-            ) from e
+            msg = f"Rate limited. Retry after {wait}s. Body: {error_body}"
+            raise LLMClientError(msg) from e
         msg = f"API error {e.code}: {error_body}"
         raise LLMClientError(msg) from e
     except urllib.error.URLError as e:
