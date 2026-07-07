@@ -78,7 +78,8 @@ class BootstrapTransition(TransitionModel):
     def _sample(self, table: dict[str, dict[str, float]], key: str) -> str:
         probs = table[key]
         outcomes = list(probs.keys())
-        probabilities = list(probs.values())
+        probabilities = np.array(list(probs.values()), dtype=np.float64)
+        probabilities /= probabilities.sum()  # normalize for numpy tolerance
         return str(self._rng.choice(outcomes, p=probabilities))
 
     @override

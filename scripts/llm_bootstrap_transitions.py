@@ -162,11 +162,18 @@ def _render_day_boundary_prompt(
 
 
 def _parse_step_count(response: str) -> str:
-    numbers = re.findall(r"\d+", response)
-    if not numbers:
-        msg = f"Could not parse step count from: {response!r}"
-        raise ValueError(msg)
-    count = int(numbers[0])
+    # Try to find a number followed by "step" (handles "1,500 steps")
+    match = re.search(r"(\d[\d,]*)\s*step", response, re.IGNORECASE)
+    if match:
+        count = int(match.group(1).replace(",", ""))
+    else:
+        # Fallback: first number, stripping commas
+        cleaned = response.replace(",", "")
+        numbers = re.findall(r"\d+", cleaned)
+        if not numbers:
+            msg = f"Could not parse step count from: {response!r}"
+            raise ValueError(msg)
+        count = int(numbers[0])
     if count < 800:
         return "inactive"
     if count <= 1600:
@@ -274,7 +281,8 @@ def _call_llm(
         logger.warning(
             "Empty content from %s (attempt %d), retrying", model, attempt + 1
         )
-    raise last_error  # type: ignore[misc]
+    assert last_error is not None  # guaranteed by loop body
+    raise last_error
 
 
 # ---------------------------------------------------------------------------
