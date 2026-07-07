@@ -60,7 +60,7 @@ def _build_request(messages, model, base_url, api_key, temperature, max_tokens):
 
     logger.debug("POST %s model=%s", url, model)
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=120) as resp:
             return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         error_body = e.read().decode("utf-8", errors="replace")

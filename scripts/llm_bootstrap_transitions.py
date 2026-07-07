@@ -218,6 +218,12 @@ def _parse_sleep_quality(response: str) -> str:
 
 _SYSTEM_MESSAGE = {"role": "system", "content": SYSTEM_PROMPT}
 
+# Reasoning models (deepseek-v4-flash, etc.) allocate tokens to internal
+# thinking before producing output.  Give them enough headroom so the
+# actual reply isn't starved.
+_MAX_TOKENS = 4096
+_MAX_RETRIES = 3
+
 
 def _call_llm(
     prompt: str,
@@ -226,19 +232,43 @@ def _call_llm(
     base_url: str,
     api_key: str,
 ) -> str:
-    body = chat_completion(
-        messages=[_SYSTEM_MESSAGE, {"role": "user", "content": prompt}],
-        model=model,
-        base_url=base_url,
-        api_key=api_key,
-        temperature=temperature,
-        max_tokens=64,
-    )
-    try:
-        return str(body["choices"][0]["message"]["content"])
-    except (KeyError, IndexError, TypeError) as e:
-        msg = f"Failed to parse API response: {e}"
-        raise LLMClientError(msg) from e
+    messages = [_SYSTEM_MESSAGE, {"role": "user", "content": prompt}]
+    last_error: Exception | None = None
+    for attempt in range(_MAX_RETRIES):
+        body = chat_completion(
+            messages=messages,
+            model=model,
+            base_url=base_url,
+            api_key=api_key,
+            temperature=temperature,
+            max_tokens=_MAX_TOKENS,
+        )
+        try:
+            msg = body["choices"][0]["message"]
+            content = str(msg.get("content") or "")
+            # Reasoning models (deepseek-v4-flash, etc.) may put the
+            # answer in reasoning_content when content is empty.
+            if not content.strip():
+                reasoning = str(msg.get("reasoning_content") or "")
+                # Try to extract the last JSON-looking fragment
+                for candidate in [reasoning, content]:
+                    match = re.search(r"\{[^}]+\}", candidate)
+                    if match:
+                        content = match.group()
+                        break
+        except (KeyError, IndexError, TypeError) as e:
+            msg_err = f"Failed to parse API response: {e}"
+            raise LLMClientError(msg_err) from e
+        if content.strip():
+            return content
+        # Reasoning model used all tokens for thinking — retry
+        last_error = LLMClientError(
+            f"Empty content on attempt {attempt + 1}/{_MAX_RETRIES}"
+        )
+        logger.warning(
+            "Empty content from %s (attempt %d), retrying", model, attempt + 1
+        )
+    raise last_error  # type: ignore[misc]
 
 
 # ---------------------------------------------------------------------------
