@@ -237,11 +237,17 @@ def _call_llm(
             # answer in reasoning_content when content is empty.
             if not content.strip():
                 reasoning = str(msg.get("reasoning_content") or "")
-                # Try to extract the last JSON-looking fragment
+                # Try to extract the answer from reasoning:
+                # 1. JSON pattern {"sleep_quality": "good"}
+                # 2. Bare number (for within-day step count)
                 for candidate in [reasoning, content]:
                     match = re.search(r"\{[^}]+\}", candidate)
                     if match:
                         content = match.group()
+                        break
+                    match = re.search(r"\b(\d{1,5})\b", candidate)
+                    if match:
+                        content = match.group(1)
                         break
         except (KeyError, IndexError, TypeError) as e:
             msg_err = f"Failed to parse API response: {e}"
