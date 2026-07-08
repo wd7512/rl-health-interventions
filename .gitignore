@@ -228,7 +228,8 @@ marimo/_lsp/
 __marimo__/
 
 # Downloaded datasets
-/data/
+/data/*
+!/data/bootstrap/
 
 # Hermes agent session files (not part of this project)
 .hermes/
