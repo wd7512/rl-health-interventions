@@ -146,6 +146,16 @@ def _within_day_prompts():
     return prompts
 
 
-def generate_prompts():
-    """Return (system_prompt, list of prompt strings)."""
-    return SYSTEM_PROMPT, _day_boundary_prompts() + _within_day_prompts()
+def generate_prompts(samples_per_cell: int = 10):
+    """Return (system_prompt, list of prompt strings).
+
+    Each prompt is repeated samples_per_cell times per output category
+    (Algorithm 2, resolved-decisions-sprint-1.md).
+    """
+    day_boundary = _day_boundary_prompts()
+    within_day = _within_day_prompts()
+    repeated = (
+        [p for p in day_boundary for _ in range(2 * samples_per_cell)]
+        + [p for p in within_day for _ in range(3 * samples_per_cell)]
+    )
+    return SYSTEM_PROMPT, repeated
