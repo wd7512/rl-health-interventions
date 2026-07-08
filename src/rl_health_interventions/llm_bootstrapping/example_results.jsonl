@@ -1,10 +1,10 @@
-{"index": 0, "content": '800'}
-{"index": 1, "content": '500'}
-{"index": 2, "content": '1600'}
-{"index": 3, "content": '1200'}
-{"index": 4, "content": '500'}
-{"index": 5, "content": '1000'}
-{"index": 6, "content": '500'}
-{"index": 7, "content": '500'}
-{"index": 8, "content": '1200'}
-{"index": 9, "content": '500'}
+{"index": 0, "content": '{"steps": 500, "step_bin": "inactive"}'}
+{"index": 1, "content": '{"steps": 800, "step_bin": "inactive"}'}
+{"index": 2, "content": '{"steps": 1000, "step_bin": "moderate"}'}
+{"index": 3, "content": '{"steps": 1200, "step_bin": "moderate"}'}
+{"index": 4, "content": '{"steps": 800, "step_bin": "moderate"}'}
+{"index": 5, "content": '{"steps": 1200, "step_bin": "moderate"}'}
+{"index": 6, "content": '{"steps": 200, "step_bin": "inactive"}'}
+{"index": 7, "content": '{"steps": 500, "step_bin": "inactive"}'}
+{"index": 8, "content": '{"steps": 500, "step_bin": "inactive"}'}
+{"index": 9, "content": '{"steps": 800, "step_bin": "inactive"}'}

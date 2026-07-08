@@ -100,16 +100,12 @@ def batch_complete(
     return results
 
 
-def save_jsonl(
-    results: list[dict[str, Any]], path: Path, offset: int = 0
-) -> None:
+def save_jsonl(results: list[dict[str, Any]], path: Path, offset: int = 0) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:
         for i, r in enumerate(results):
             f.write(json.dumps({"index": offset + i, **r}) + "\n")
-    logger.info(
-        "Wrote %d records to %s (offset %d)", len(results), path, offset
-    )
+    logger.info("Wrote %d records to %s (offset %d)", len(results), path, offset)
 
 
 def main() -> None:
@@ -140,10 +136,15 @@ def main() -> None:
         total_batches = (total + chunk_size - 1) // chunk_size
         logger.info(
             "Batch %d/%d: prompts %d-%d",
-            batch_num, total_batches, offset, offset + len(chunk),
+            batch_num,
+            total_batches,
+            offset,
+            offset + len(chunk),
         )
         results = batch_complete(
-            chunk, system_prompt=system_prompt, max_workers=max_workers,
+            chunk,
+            system_prompt=system_prompt,
+            max_workers=max_workers,
         )
         save_jsonl(results, out_path, offset=offset)
     logger.info("All done: %d prompts written to %s", total, out_path)

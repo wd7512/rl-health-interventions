@@ -68,9 +68,7 @@ NOTIFICATION_SEQUENCES = {
 BIN_MIDPOINTS = {"inactive": 400, "moderate": 1200, "active": 2000}
 
 
-def _render_within_day(
-    timestep, step_bin, burden, action, day_type, sleep
-):
+def _render_within_day(timestep, step_bin, burden, action, day_type, sleep):
     time_name, prev_time_name = TIMESTEP_NAMES[timestep]
     act = ACTION_SENTENCES[action]
     if timestep == 0:
@@ -81,7 +79,8 @@ def _render_within_day(
             f"Your sleep quality was {sleep}. "
             f"Your notification fatigue is {burden}.\n"
             f"{act}\n"
-            "How many steps do you take this timestep?"
+            "How many steps do you take this timestep?\n"
+            'Output as: {"steps": N, "step_bin": "inactive"/"moderate"/"active"}'
         )
     prev_display = STEP_BIN_DISPLAY[step_bin]
     return (
@@ -92,13 +91,12 @@ def _render_within_day(
         f"It is a {day_type}.\n"
         f"Your sleep quality was {sleep}.\n"
         f"{act}\n"
-        "How many steps do you take this timestep?"
+        "How many steps do you take this timestep?\n"
+        'Output as: {"steps": N, "step_bin": "inactive"/"moderate"/"active"}'
     )
 
 
-def _render_day_boundary(
-    step_bin_daily, burden, day_type, sleep, notifications
-):
+def _render_day_boundary(step_bin_daily, burden, day_type, sleep, notifications):
     midpoint = BIN_MIDPOINTS.get(step_bin_daily, 4000)
     steps_estimate = midpoint * 5
     return (
@@ -116,17 +114,18 @@ def _render_day_boundary(
 
 
 def _day_boundary_prompts():
-    combos = itertools.product(
-        STEP_BINS, BURDENS, DAY_TYPES, SLEEP_TYPES
-    )
+    combos = itertools.product(STEP_BINS, BURDENS, DAY_TYPES, SLEEP_TYPES)
     prompts = []
     for step_bin_daily, burden, day_type, sleep in combos:
         # Notification sequence depends on burden level
         notifications = NOTIFICATION_SEQUENCES[burden]
         prompts.append(
             _render_day_boundary(
-                step_bin_daily, burden, day_type,
-                sleep, notifications,
+                step_bin_daily,
+                burden,
+                day_type,
+                sleep,
+                notifications,
             )
         )
     return prompts
@@ -136,13 +135,14 @@ def _within_day_prompts():
     prompts = []
     for timestep in range(5):
         combos = itertools.product(
-            STEP_BINS, BURDENS, ACTIONS,
-            DAY_TYPES, SLEEP_TYPES,
+            STEP_BINS,
+            BURDENS,
+            ACTIONS,
+            DAY_TYPES,
+            SLEEP_TYPES,
         )
         for sb, b, a, d, s in combos:
-            prompts.append(
-                _render_within_day(timestep, sb, b, a, d, s)
-            )
+            prompts.append(_render_within_day(timestep, sb, b, a, d, s))
     return prompts
 
 

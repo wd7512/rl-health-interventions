@@ -542,7 +542,7 @@ Note: `step_bin_daily` is not a state dimension — it is computed at the day bo
 
 ## LLM bootstrapping prompt design
 
-All 6 transition tables are bootstrapped via [Algorithm 2](#algorithm-2-bootstrap-transition-table-from-llm) through OpenRouter using **DeepSeek V4 Flash** ($0.09/M input tokens, $0.18/M output tokens). The LLM outputs raw step counts for within-day prompts (environment bins to 3-level step_bin); the day-boundary prompt outputs a binary JSON choice.
+All 6 transition tables are bootstrapped via [Algorithm 2](#algorithm-2-bootstrap-transition-table-from-llm) through OpenRouter using **DeepSeek V4 Flash** ($0.09/M input tokens, $0.18/M output tokens). Within-day prompts ask the LLM to output a structured JSON object `{"steps": N, "step_bin": "..."}`; the day-boundary prompt constrains output to a binary JSON choice `{"sleep_quality": "good"}` or `{"sleep_quality": "poor"}`.
 
 ### System prompt (cached once)
 
@@ -578,13 +578,13 @@ Burden (notification fatigue):
 # Current state
 You just woke up. It is the morning. It is a {weekday/weekend}.
 Your sleep quality was {good / poor}. Your notification fatigue is {low/medium/high}.
-
 {Your phone buzzes with a movement suggestion. / Your phone reminds you of your step goal. / Your phone prompts you to write in your journal.}
 
 How many steps do you take this timestep?
+Output as: {"steps": N, "step_bin": "inactive"/"moderate"/"active"}
 ```
 
-The LLM outputs a raw number (e.g. `800`). The environment maps it to a step bin for the transition and adds `mid_point(bin)` to the day's running total. The action sentence is only rendered for non-idle actions (idle: no notification sentence).
+The LLM outputs a structured JSON object (e.g. `{"steps": 800, "step_bin": "moderate"}`). The environment maps it to a step bin for the transition and adds `mid_point(bin)` to the day's running total. The action sentence is only rendered for non-idle actions (idle: no notification sentence).
 
 ### Within-day prompt (timesteps 2–5)
 
@@ -599,6 +599,7 @@ Your sleep quality was {good / poor}.
 {Your phone buzzes with a movement suggestion. / Your phone reminds you of your step goal. / Your phone prompts you to write in your journal.}
 
 How many steps do you take this timestep?
+Output as: {"steps": N, "step_bin": "inactive"/"moderate"/"active"}
 ```
 
 The bin label (`{inactive / moderately active / active}`) is the step bin from the previous timestep's output. The action sentence is only rendered for non-idle actions (idle: no notification sentence).
@@ -671,3 +672,4 @@ Build targets extracted from the Sprint 1 design decisions above. Each bullet ma
 | 2026-07-01 | Sleep bins → good/poor; sleep added to reward; LLM prompts updated with persona; day-boundary action dimension removed; Algorithm 1 + Algorithm 2 added; duplicate content removed; D3/D9/D11 rationale updated |
 | 2026-07-01 | Config-driven reward formula (`constants` + `variables` + `formula`) with safe expression parser; per-action penalty in config; Q-learning deferred to sprint after MVP; fixed-ratio dropped; idle-only added; contextual agents use full 36-state context key; JSON table format (`tables/` from repo root); `FactoredMDPConfig` model; shared bootstrap + shared seeds evaluation design |
 | 2026-07-03 | Within-day prompts: bin labels replace midpoint numbers for self-narrative consistency (Jiang et al. 2024, Lu et al. 2025); natural per-action sentences with idle omission (Alomana et al. 2026). See `llm_prompting.md §Prompt-Scorecard` for rationale. |
+| 2026-07-08 | Within-day prompts: structured JSON output format (`{"steps": N, "step_bin": "..."}`) replaces raw number to improve parse reliability (results.jsonl showed range responses, markdown, and verbose reasoning). See `parse.py` for parsing stubs. |
