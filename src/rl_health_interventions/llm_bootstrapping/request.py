@@ -109,7 +109,7 @@ def save_jsonl(results: list[dict[str, Any]], path: Path, offset: int = 0) -> No
 
 
 def main() -> None:
-    max_workers = 50
+    max_workers = 200
     chunk_size = max_workers * 10
 
     logging.basicConfig(
