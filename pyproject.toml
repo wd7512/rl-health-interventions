@@ -16,6 +16,7 @@ dependencies = [
     "polars>=1.0.0",
     "pydantic>=2.0.0",
     "pyyaml>=6.0",
+    "tenacity>=9.1.4",
     "typing-extensions>=4.6.0",
     "ucimlrepo>=0.0.7",
     "wfdb>=4.3.1",
@@ -123,6 +124,11 @@ polars = "pl"
     "EM102",    # Exception f-string literals
     "PLC0415",  # Imports inside register() and conditional imports
     "ARG001",   # Unused args in interface stubs
+]
+"src/rl_health_interventions/llm_bootstrapping/request.py" = [
+    "C901",     # CLI script with flag dispatch — complexity is inherent
+    "PLR0912",  # Many branches accepted
+    "PLR0915",  # Many statements accepted
 ]
 "src/rl_health_interventions/environment.py" = [
     "EM101",    # Exception string literals

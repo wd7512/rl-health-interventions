@@ -108,6 +108,68 @@ def save_jsonl(results: list[dict[str, Any]], path: Path, offset: int = 0) -> No
     logger.info("Wrote %d records to %s (offset %d)", len(results), path, offset)
 
 
+def _load_existing_results(path: Path) -> list[dict[str, Any]]:
+    """Load existing JSONL results, skipping malformed lines."""
+    if not path.exists():
+        return []
+    results: list[dict[str, Any]] = []
+    with path.open(encoding="utf-8") as f:
+        for raw_line in f:
+            stripped = raw_line.strip()
+            if not stripped:
+                continue
+            try:
+                results.append(json.loads(stripped))
+            except json.JSONDecodeError:
+                logger.warning("Skipping malformed line in %s", path)
+    return results
+
+
+def _resolve_run_mode(sys_args: list[str], out_path: Path, total: int) -> set[int]:
+    """Determine which prompt indices to process based on CLI flags."""
+    resume = "--resume" in sys_args
+    retry_errors = "--retry-errors" in sys_args
+
+    if not resume and not retry_errors:
+        if out_path.exists():
+            logger.info(
+                "Warning: %s exists. Use --resume or --retry-errors. "
+                "Starting from scratch.",
+                out_path,
+            )
+        return set(range(total))
+
+    existing = _load_existing_results(out_path)
+    if not existing:
+        return set(range(total))
+
+    succeeded = {r["index"] for r in existing if "content" in r}
+    error_indices = {r["index"] for r in existing if "error" in r}
+
+    if retry_errors:
+        non_error = [r for r in existing if "index" not in error_indices]
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with out_path.open("w", encoding="utf-8") as f:
+            for r in non_error:
+                f.write(json.dumps(r) + "\n")
+        logger.info(
+            "Retry-errors: removed %d error records, re-running %d",
+            len(error_indices),
+            len(error_indices),
+        )
+        return error_indices
+
+    # --resume
+    to_process = set(range(total)) - succeeded
+    logger.info(
+        "Resume: %d/%d already succeeded, re-running %d",
+        len(succeeded),
+        total,
+        len(to_process),
+    )
+    return to_process
+
+
 def main() -> None:
     max_workers = 200
     chunk_size = max_workers * 10
@@ -121,7 +183,8 @@ def main() -> None:
         load_dotenv(env_path)
 
     system_prompt, prompts = generate_prompts()
-    logger.info("Generated %d prompts from sprint1", len(prompts))
+    total = len(prompts)
+    logger.info("Generated %d prompts from sprint1", total)
 
     if "--dry-run" in sys.argv:
         for i, m in enumerate(build_messages(prompts, system_prompt)):
@@ -129,25 +192,39 @@ def main() -> None:
         return
 
     out_path = Path("results.jsonl")
-    total = len(prompts)
-    for offset in range(0, total, chunk_size):
-        chunk = prompts[offset : offset + chunk_size]
-        batch_num = offset // chunk_size + 1
-        total_batches = (total + chunk_size - 1) // chunk_size
+    to_process = _resolve_run_mode(sys.argv, out_path, total)
+
+    if not to_process:
+        logger.info("Nothing to process.")
+        return
+
+    sorted_indices = sorted(to_process)
+    total_to_process = len(sorted_indices)
+    logger.info("Processing %d prompts", total_to_process)
+
+    for batch_start in range(0, total_to_process, chunk_size):
+        batch_indices = sorted_indices[batch_start : batch_start + chunk_size]
+        batch_num = batch_start // chunk_size + 1
+        total_batches = (total_to_process + chunk_size - 1) // chunk_size
+        batch_prompts = [prompts[i] for i in batch_indices]
         logger.info(
-            "Batch %d/%d: prompts %d-%d",
+            "Batch %d/%d: %d prompts (index range %d-%d)",
             batch_num,
             total_batches,
-            offset,
-            offset + len(chunk),
+            len(batch_prompts),
+            batch_indices[0],
+            batch_indices[-1],
         )
         results = batch_complete(
-            chunk,
+            batch_prompts,
             system_prompt=system_prompt,
             max_workers=max_workers,
         )
-        save_jsonl(results, out_path, offset=offset)
-    logger.info("All done: %d prompts written to %s", total, out_path)
+        with out_path.open("a", encoding="utf-8") as f:
+            for i, r in enumerate(results):
+                f.write(json.dumps({"index": batch_indices[i], **r}) + "\n")
+
+    logger.info("Done: %d prompts processed -> %s", total_to_process, out_path)
 
 
 if __name__ == "__main__":
