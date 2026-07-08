@@ -130,6 +130,11 @@ polars = "pl"
     "PLR0912",  # Many branches accepted
     "PLR0915",  # Many statements accepted
 ]
+"src/rl_health_interventions/llm_bootstrapping/request_helper.py" = [
+    "C901",     # CLI script with flag dispatch — complexity is inherent
+    "PLR0912",  # Many branches accepted
+    "PLR0915",  # Many statements accepted
+]
 "src/rl_health_interventions/environment.py" = [
     "EM101",    # Exception string literals
 ]
