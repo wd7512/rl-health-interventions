@@ -18,6 +18,7 @@ os.environ["OPENROUTER_API_KEY"] = OPENROUTER_API_KEY
 os.environ["OPENROUTER_API_BASE"] = OPENROUTER_BASE_URL
 
 MODEL = "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free"
+MODEL = "openrouter/deepseek/deepseek-v4-flash"
 
 single_prompt = [
     {

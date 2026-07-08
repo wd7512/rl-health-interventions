@@ -62,7 +62,8 @@ def batch_complete(
     *,
     system_prompt: str | None = None,
     temperature: float = 0.7,
-    max_workers: int = 100,
+    max_workers: int = 50,
+    num_retries: int = 7,
 ) -> list[dict[str, Any]]:
     """Send batch completions to OpenRouter via litellm."""
     api_key = _resolve_api_key()
@@ -78,17 +79,20 @@ def batch_complete(
         messages=messages_list,
         temperature=temperature,
         max_workers=max_workers,
+        num_retries=num_retries,
     )
 
     results: list[dict[str, Any]] = []
     for i, resp in enumerate(responses):
         if isinstance(resp, Exception):
             logger.warning("Request %d failed: %s", i + 1, resp)
-            results.append({"error": str(resp)})
+            results.append({"prompt": prompts[i], "error": str(resp)})
             continue
         content = _extract_content(resp)
         results.append(
-            {"content": content} if content else {"error": "empty"}
+            {"prompt": prompts[i], "content": content}
+            if content
+            else {"prompt": prompts[i], "error": "empty"}
         )
 
     ok = sum(1 for r in results if "content" in r)
@@ -96,15 +100,22 @@ def batch_complete(
     return results
 
 
-def save_jsonl(results: list[dict[str, Any]], path: Path) -> None:
+def save_jsonl(
+    results: list[dict[str, Any]], path: Path, offset: int = 0
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:
         for i, r in enumerate(results):
-            f.write(json.dumps({"index": i, **r}) + "\n")
-    logger.info("Wrote %d records to %s", len(results), path)
+            f.write(json.dumps({"index": offset + i, **r}) + "\n")
+    logger.info(
+        "Wrote %d records to %s (offset %d)", len(results), path, offset
+    )
 
 
 def main() -> None:
+    max_workers = 50
+    chunk_size = max_workers * 10
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
@@ -121,8 +132,21 @@ def main() -> None:
             print(json.dumps({"index": i, "messages": m}, indent=2))
         return
 
-    results = batch_complete(prompts, system_prompt=system_prompt)
-    save_jsonl(results, Path("results.jsonl"))
+    out_path = Path("results.jsonl")
+    total = len(prompts)
+    for offset in range(0, total, chunk_size):
+        chunk = prompts[offset : offset + chunk_size]
+        batch_num = offset // chunk_size + 1
+        total_batches = (total + chunk_size - 1) // chunk_size
+        logger.info(
+            "Batch %d/%d: prompts %d-%d",
+            batch_num, total_batches, offset, offset + len(chunk),
+        )
+        results = batch_complete(
+            chunk, system_prompt=system_prompt, max_workers=max_workers,
+        )
+        save_jsonl(results, out_path, offset=offset)
+    logger.info("All done: %d prompts written to %s", total, out_path)
 
 
 if __name__ == "__main__":
