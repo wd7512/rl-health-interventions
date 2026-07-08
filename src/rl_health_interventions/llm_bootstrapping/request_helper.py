@@ -110,6 +110,10 @@ def main() -> None:
         return
 
     out_path = Path("results.jsonl")
+    for arg in sys.argv:
+        if arg.startswith("--output="):
+            out_path = Path(arg.split("=", 1)[1])
+            break
     to_process, existing_records = _resolve_run_mode(sys.argv, out_path, total)
 
     if not to_process:

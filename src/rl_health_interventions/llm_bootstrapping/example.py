@@ -1,5 +1,6 @@
 """Standalone litellm example — batch completion via OpenRouter."""
 
+import json
 import os
 import time
 from pathlib import Path
@@ -17,8 +18,7 @@ OPENROUTER_BASE_URL = os.getenv("OPENROUTER_API_BASE", "https://openrouter.ai/ap
 os.environ["OPENROUTER_API_KEY"] = OPENROUTER_API_KEY
 os.environ["OPENROUTER_API_BASE"] = OPENROUTER_BASE_URL
 
-MODEL = "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free"
-MODEL = "openrouter/deepseek/deepseek-v4-flash"
+MODEL = "openrouter/z-ai/glm-5.2"
 
 single_prompt = [
     {"role": "system", "content": SYSTEM_PROMPT},

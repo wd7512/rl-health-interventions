@@ -18,7 +18,7 @@ from rl_health_interventions.llm_bootstrapping.prompts.sprint1 import (
 
 logger = logging.getLogger(__name__)
 
-MODEL = "openrouter/deepseek/deepseek-v4-flash"
+MODEL = "openrouter/z-ai/glm-5.2"
 BASE_URL = "https://openrouter.ai/api/v1"
 
 
