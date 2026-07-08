@@ -125,8 +125,15 @@ def _load_existing_results(path: Path) -> list[dict[str, Any]]:
     return results
 
 
-def _resolve_run_mode(sys_args: list[str], out_path: Path, total: int) -> set[int]:
-    """Determine which prompt indices to process based on CLI flags."""
+def _resolve_run_mode(
+    sys_args: list[str], out_path: Path, total: int
+) -> tuple[set[int], list[dict[str, Any]]]:
+    """Determine which prompt indices to process based on CLI flags.
+
+    Returns (to_process, existing_records) where existing_records are
+    the clean records from a previous run (errors stripped for retry-errors).
+    No file I/O — caller handles merge and write.
+    """
     resume = "--resume" in sys_args
     retry_errors = "--retry-errors" in sys_args
 
@@ -137,37 +144,30 @@ def _resolve_run_mode(sys_args: list[str], out_path: Path, total: int) -> set[in
                 "Starting from scratch.",
                 out_path,
             )
-        return set(range(total))
+        return set(range(total)), []
 
     existing = _load_existing_results(out_path)
     if not existing:
-        return set(range(total))
+        return set(range(total)), []
 
     succeeded = {r["index"] for r in existing if "content" in r}
     error_indices = {r["index"] for r in existing if "error" in r}
 
     if retry_errors:
-        non_error = [r for r in existing if "index" not in error_indices]
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        with out_path.open("w", encoding="utf-8") as f:
-            for r in non_error:
-                f.write(json.dumps(r) + "\n")
-        logger.info(
-            "Retry-errors: removed %d error records, re-running %d",
-            len(error_indices),
-            len(error_indices),
-        )
-        return error_indices
+        clean = [r for r in existing if r["index"] not in error_indices]
+        logger.info("Retry-errors: re-running %d prompts", len(error_indices))
+        return error_indices, clean
 
     # --resume
     to_process = set(range(total)) - succeeded
+    kept = [r for r in existing if "content" in r]
     logger.info(
-        "Resume: %d/%d already succeeded, re-running %d",
+        "Resume: %d/%d done, running %d",
         len(succeeded),
         total,
         len(to_process),
     )
-    return to_process
+    return to_process, kept
 
 
 def main() -> None:
@@ -192,7 +192,7 @@ def main() -> None:
         return
 
     out_path = Path("results.jsonl")
-    to_process = _resolve_run_mode(sys.argv, out_path, total)
+    to_process, existing_records = _resolve_run_mode(sys.argv, out_path, total)
 
     if not to_process:
         logger.info("Nothing to process.")
@@ -202,6 +202,7 @@ def main() -> None:
     total_to_process = len(sorted_indices)
     logger.info("Processing %d prompts", total_to_process)
 
+    new_results: list[dict[str, Any]] = []
     for batch_start in range(0, total_to_process, chunk_size):
         batch_indices = sorted_indices[batch_start : batch_start + chunk_size]
         batch_num = batch_start // chunk_size + 1
@@ -220,11 +221,33 @@ def main() -> None:
             system_prompt=system_prompt,
             max_workers=max_workers,
         )
-        with out_path.open("a", encoding="utf-8") as f:
-            for i, r in enumerate(results):
-                f.write(json.dumps({"index": batch_indices[i], **r}) + "\n")
+        for i, r in enumerate(results):
+            new_results.append({"index": batch_indices[i], **r})
 
-    logger.info("Done: %d prompts processed -> %s", total_to_process, out_path)
+    all_results = existing_records + new_results
+    all_results.sort(key=lambda r: r["index"])
+
+    present = {r["index"] for r in all_results}
+    if len(present) != total:
+        missing = sorted(set(range(total)) - present)
+        logger.warning(
+            "MISSING %d indices (first 10): %s",
+            len(missing),
+            missing[:10],
+        )
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w", encoding="utf-8") as f:
+        for r in all_results:
+            f.write(json.dumps(r) + "\n")
+
+    ok = sum(1 for r in all_results if "content" in r)
+    logger.info(
+        "Done: %d/%d results written to %s",
+        ok,
+        len(all_results),
+        out_path,
+    )
 
 
 if __name__ == "__main__":
