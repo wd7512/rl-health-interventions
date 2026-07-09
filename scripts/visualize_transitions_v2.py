@@ -1,7 +1,8 @@
-"""Black-and-white NetworkX transition matrix charts (v2).
+"""Black-and-white NetworkX transition matrix charts.
 
 B/W styling with visible self-loops, probability labels on all edges,
-and subplot borders. Produces 21 charts per model.
+and subplot borders.  Produces 5 charts per model (4 actions + 1 day_boundary),
+aggregated across the 5 within-day timesteps.
 
 Usage:
     uv run python scripts/visualize_transitions_v2.py \\
@@ -142,6 +143,32 @@ def aggregate_within_day(records: list[dict]) -> dict[int, dict]:
     return all_probs
 
 
+def aggregate_within_day_averaged(records: list[dict]) -> dict:
+    """Average transition probabilities across all 5 within-day timesteps."""
+    per_t = aggregate_within_day(records)
+    if not per_t:
+        return {}
+
+    all_keys = set()
+    for t_probs in per_t.values():
+        all_keys.update(t_probs.keys())
+
+    averaged: dict = {}
+    for key in all_keys:
+        all_outcomes: dict[str, list[float]] = defaultdict(list)
+        count = 0
+        for t in range(TIMESTEPS):
+            if key in per_t.get(t, {}):
+                for outcome, prob in per_t[t][key].items():
+                    all_outcomes[outcome].append(prob)
+                count += 1
+        if count > 0:
+            averaged[key] = {
+                outcome: sum(probs) / count for outcome, probs in all_outcomes.items()
+            }
+    return averaged
+
+
 def _save_tables(db_probs: dict, wd_probs: dict[int, dict], out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     table = {}
@@ -166,73 +193,56 @@ _POS = {
     "moderate": np.array([0.0, 0.52]),
     "active": np.array([0.45, -0.26]),
 }
-_SELF_LOOP_OFFSET = {
-    "inactive": (-0.15, -0.25),
-    "moderate": (0.0, 0.25),
-    "active": (0.15, -0.25),
-}
 
 # 2-node positions for day-boundary sleep graph
 _SLEEP_POS = {"good": np.array([-0.4, 0.0]), "poor": np.array([0.4, 0.0])}
-_SLEEP_SELF_LOOP_OFFSET = {"good": (0.0, 0.2), "poor": (0.0, 0.2)}
 
 
-def _draw_edges(ax, nodes, pos, probs, self_loop_offset, label_fontsize=6):
-    """Draw directed edges with probability labels on a B/W graph."""
+def _draw_edges(ax, nodes, pos, probs, label_fontsize=6):
+    """Draw directed edges with probability labels on a B/W graph.
+
+    - Fixed line width (lw=1.0) for all edges.
+    - Alpha scales with probability: 0.5 at 0%, 1.0 at 100%.
+    - Self-loops use FancyArrowPatch so they originate and terminate on the
+      same node.
+    """
     for src in nodes:
         for dst in nodes:
             p = probs.get(dst, 0.0)
             if p < 0.01:
                 continue
+            alpha = 0.5 + 0.5 * p
             src_pos = pos[src]
             dst_pos = pos[dst]
+
             if src == dst:
-                # Self-loop: small arc with label
-                ox, oy = self_loop_offset[src]
-                loop_center = src_pos + np.array([ox, oy])
-                loop_radius = 0.08
-                theta1, theta2 = 30, 330
-                arc = mpatches.Arc(
-                    loop_center,
-                    2 * loop_radius,
-                    2 * loop_radius,
-                    angle=0,
-                    theta1=theta1,
-                    theta2=theta2,
-                    lw=0.8,
-                    color="black",
+                # Self-loop: FancyArrowPatch from node back to itself
+                loop = mpatches.FancyArrowPatch(
+                    src_pos,
+                    src_pos,
+                    connectionstyle="arc3,rad=0.5",
+                    arrowstyle="-|>",
+                    mutation_scale=6,
+                    linewidth=1.0,
+                    edgecolor="black",
+                    facecolor="none",
+                    alpha=alpha,
+                    zorder=2,
                 )
-                ax.add_patch(arc)
-                # Arrowhead at end of arc
-                angle_rad = np.radians(theta2)
-                ax_end = loop_center[0] + loop_radius * np.cos(angle_rad)
-                ay_end = loop_center[1] + loop_radius * np.sin(angle_rad)
-                dx = -np.sin(angle_rad) * 0.03
-                dy = np.cos(angle_rad) * 0.03
-                ax.annotate(
-                    "",
-                    xy=(ax_end, ay_end),
-                    xytext=(ax_end - dx, ay_end - dy),
-                    arrowprops={
-                        "arrowstyle": "-|>",
-                        "color": "black",
-                        "lw": 0.8,
-                        "mutation_scale": 6,
-                    },
-                )
-                # Label inside the loop arc
-                label_pos = loop_center + np.array([0, loop_radius + 0.06])
+                ax.add_patch(loop)
+                # Label: offset to the right of the loop (rad>0 arcs right)
+                label_pos = src_pos + np.array([0.32, 0.0])
                 ax.text(
                     label_pos[0],
                     label_pos[1],
                     f"{p:.0%}",
                     fontsize=label_fontsize,
                     ha="center",
-                    va="bottom",
+                    va="center",
                     color="black",
                     fontweight="bold",
                     bbox={
-                        "boxstyle": "round,pad=0.08",
+                        "boxstyle": "round,pad=0.06",
                         "fc": "white",
                         "ec": "none",
                         "alpha": 0.9,
@@ -255,7 +265,8 @@ def _draw_edges(ax, nodes, pos, probs, self_loop_offset, label_fontsize=6):
                     arrowprops={
                         "arrowstyle": "-|>",
                         "color": "black",
-                        "lw": 0.5 + 1.5 * p,
+                        "lw": 1.0,
+                        "alpha": alpha,
                         "connectionstyle": style,
                         "mutation_scale": 6,
                     },
@@ -298,14 +309,14 @@ def _draw_nodes(ax, nodes, pos, abbr_map=None):
 
 
 def _plot_within_day_chart(
-    probs: dict[int, dict],
+    probs: dict,
     action: str,
-    timestep: int,
     fig_dir: Path,
 ) -> None:
+    """Plot within-day transitions for one action, averaged across timesteps."""
     fig, axes = plt.subplots(2, 6, figsize=(18, 7))
     fig.suptitle(
-        f"t={timestep}  action={action}",
+        f"action={action}  (avg over {TIMESTEPS} timesteps)",
         fontsize=14,
         fontweight="bold",
     )
@@ -322,7 +333,6 @@ def _plot_within_day_chart(
             c = col_idx * 2 + sleep_idx
             axes[0, c].set_title(f"{burden}/{sleep[:3]}", fontsize=8)
 
-    timestep_probs = probs.get(timestep, {})
     for row_idx, day in enumerate(DAY_TYPES):
         for col_idx, burden in enumerate(BURDENS):
             for sleep_idx, sleep in enumerate(SLEEP_TYPES):
@@ -343,15 +353,15 @@ def _plot_within_day_chart(
                 all_probs: dict[str, dict[str, float]] = {}
                 for sb in STEP_BINS:
                     key = (sb, burden, action, day, sleep)
-                    all_probs[sb] = timestep_probs.get(key, {})
+                    all_probs[sb] = probs.get(key, {})
 
                 _draw_nodes(ax, STEP_BINS, _POS, STEP_NODE_ABBR)
                 for src in STEP_BINS:
-                    _draw_edges(ax, STEP_BINS, _POS, all_probs[src], _SELF_LOOP_OFFSET)
+                    _draw_edges(ax, STEP_BINS, _POS, all_probs[src])
 
     fig.tight_layout()
     fig.savefig(
-        fig_dir / f"{action}_t{timestep}_v2.png",
+        fig_dir / f"{action}_v2.png",
         dpi=150,
         bbox_inches="tight",
     )
@@ -405,7 +415,6 @@ def _plot_day_boundary_chart(db_probs: dict, fig_dir: Path) -> None:
                 ("good", "poor"),
                 _SLEEP_POS,
                 outcomes,
-                _SLEEP_SELF_LOOP_OFFSET,
                 label_fontsize=5,
             )
 
@@ -463,25 +472,28 @@ def main() -> None:
         db_probs = aggregate_day_boundary(records)
         print(f"  {len(db_probs)} unique day-boundary cells")
 
-        print("  Aggregating within-day transitions...")
+        print("  Aggregating within-day transitions (per-timestep)...")
         wd_probs = aggregate_within_day(records)
         total_wd = sum(len(v) for v in wd_probs.values())
         print(f"  {total_wd} unique within-day cells across {TIMESTEPS} timesteps")
 
+        print("  Averaging within-day across timesteps...")
+        wd_avg = aggregate_within_day_averaged(records)
+        print(f"  {len(wd_avg)} unique averaged within-day cells")
+
         tables_dir = args.tables_dir / label
         _save_tables(db_probs, wd_probs, tables_dir)
 
-        fig_dir = args.fig_dir / label / "matrices_v2"
+        fig_dir = args.fig_dir / label / "matricies"
         fig_dir.mkdir(parents=True, exist_ok=True)
         print(f"  Generating figures in {fig_dir}/")
 
-        for t in range(TIMESTEPS):
-            for action in ACTIONS:
-                _plot_within_day_chart(wd_probs, action, t, fig_dir)
+        for action in ACTIONS:
+            _plot_within_day_chart(wd_avg, action, fig_dir)
 
         _plot_day_boundary_chart(db_probs, fig_dir)
 
-        print("  Done: 21 charts written")
+        print("  Done: 5 charts written (4 actions + 1 day_boundary)")
 
     print(f"\n{'=' * 60}")
     print("  All done.")
