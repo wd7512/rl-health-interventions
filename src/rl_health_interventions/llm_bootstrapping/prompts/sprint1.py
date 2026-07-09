@@ -1,81 +1,53 @@
-"""Sprint 1 prompt definitions for bootstrap transition tables.
+"""Sprint 1 prompt rendering and generation.
 
-Matches resolved-decisions-sprint-1.md §LLM bootstrapping prompt design.
+Renders within-day and day-boundary prompts from the constant definitions in
+prompts.py, then assembles them into the full bootstrap prompt list.
+
+Algorithm 2 entry point: generate_prompts().
 """
 
 from __future__ import annotations
 
 import itertools
 
-SYSTEM_PROMPT = """\
-# Reference
+from rl_health_interventions.llm_bootstrapping.prompts.prompts import (
+    ACTION_SENTENCES,
+    ACTIONS,
+    BIN_MIDPOINTS,
+    BURDENS,
+    DAY_TYPES,
+    SLEEP_TYPES,
+    STEP_BIN_DISPLAY,
+    STEP_BINS,
+    SYSTEM_PROMPT,
+    TIMESTEP_NAMES,
+)
 
-You are a generally healthy adult looking to improve your exercise and sleep habits.
-
-5 timesteps per day: morning, mid-morning, lunch, afternoon, evening
-
-Per-timestep step ranges (daily threshold / 5):
-  <800 steps     = inactive
-  800-1600 steps = moderate
-  >1600 steps    = active
-
-Sleep quality: good / poor (based on how well you slept)
-
-Daily step total ranges (5 timesteps x per-timestep ranges):
-  <4000 steps total     = inactive
-  4000-8000 steps total = moderate
-  >8000 steps total     = active
-
-Burden (notification fatigue):
-  low     = 0 of last 3 timesteps had an intervention
-  medium  = 1 of last 3
-  high    = 2 or 3 of last 3"""
-
-STEP_BINS = ["inactive", "moderate", "active"]
-BURDENS = ["low", "medium", "high"]
-ACTIONS = ["idle", "movement_suggestion", "goal_reminder", "journal"]
-DAY_TYPES = ["weekday", "weekend"]
-SLEEP_TYPES = ["good", "poor"]
-
-TIMESTEP_NAMES = [
-    ("morning", None),
-    ("mid-morning", "morning"),
-    ("lunch", "mid-morning"),
-    ("afternoon", "lunch"),
-    ("evening", "afternoon"),
-]
-
-# Decisions doc uses "moderately active" for previous step bin display
-STEP_BIN_DISPLAY = {
-    "inactive": "inactive",
-    "moderate": "moderately active",
-    "active": "active",
+_BURDEN_DESC = {
+    "low": "0 interventions in last 3 timesteps",
+    "medium": "1 intervention in last 3 timesteps",
+    "high": "2-3 interventions in last 3 timesteps",
 }
 
-ACTION_SENTENCES = {
-    "idle": "",
-    "movement_suggestion": "Your phone buzzes with a movement suggestion.",
-    "goal_reminder": "Your phone reminds you of your step goal.",
-    "journal": "Your phone prompts you to write in your journal.",
-}
 
-NOTIFICATION_SEQUENCES = {
-    "low": "idle, idle, idle, idle, idle",
-    "medium": "movement_suggestion, idle, idle, idle, idle",
-    "high": "movement_suggestion, goal_reminder, idle, idle, idle",
-}
-
-BIN_MIDPOINTS = {"inactive": 400, "moderate": 1200, "active": 2000}
-
-
-def _render_within_day(timestep, step_bin, burden, action, day_type, sleep):
+def _render_within_day(
+    timestep: int,
+    step_bin: str,
+    burden: str,
+    action: str,
+    day_type: str,
+    sleep: str,
+) -> str:
+    """Render a single within-day prompt for the given parameters."""
     time_name, prev_time_name = TIMESTEP_NAMES[timestep]
     act = ACTION_SENTENCES[action]
     if timestep == 0:
+        prev_display = STEP_BIN_DISPLAY[step_bin]
         return (
             "# Current state\n"
             "You just woke up. It is the morning. "
             f"It is a {day_type}.\n"
+            f"Last night you were {prev_display}.\n"
             f"Your sleep quality was {sleep}. "
             f"Your notification fatigue is {burden}.\n"
             f"{act}\n"
@@ -96,42 +68,40 @@ def _render_within_day(timestep, step_bin, burden, action, day_type, sleep):
     )
 
 
-def _render_day_boundary(step_bin_daily, burden, day_type, sleep, notifications):
+def _render_day_boundary(
+    step_bin_daily: str,
+    burden: str,
+    day_type: str,
+    sleep: str,
+) -> str:
+    """Render a single day-boundary prompt."""
     midpoint = BIN_MIDPOINTS.get(step_bin_daily, 4000)
     steps_estimate = midpoint * 5
     return (
         "# Current state\n"
         f"You are at the end of the day. It was a {day_type}.\n"
         f"Your sleep quality last night was {sleep}. "
-        f"Your notification fatigue is {burden}.\n\n"
+        f"Your notification fatigue is {burden} "
+        f"({_BURDEN_DESC[burden]}).\n\n"
         f"Today you did {steps_estimate} total steps "
-        f"({step_bin_daily}).\n"
-        f"Your notifications today: {notifications}\n\n"
+        f"({step_bin_daily}).\n\n"
         "It's bedtime. How was your sleep quality tonight?\n"
         '{"sleep_quality": "good"}\n'
         '{"sleep_quality": "poor"}'
     )
 
 
-def _day_boundary_prompts():
+def _day_boundary_prompts() -> list[str]:
+    """Generate all 36 unique day-boundary prompts."""
     combos = itertools.product(STEP_BINS, BURDENS, DAY_TYPES, SLEEP_TYPES)
     prompts = []
     for step_bin_daily, burden, day_type, sleep in combos:
-        # Notification sequence depends on burden level
-        notifications = NOTIFICATION_SEQUENCES[burden]
-        prompts.append(
-            _render_day_boundary(
-                step_bin_daily,
-                burden,
-                day_type,
-                sleep,
-                notifications,
-            )
-        )
+        prompts.append(_render_day_boundary(step_bin_daily, burden, day_type, sleep))
     return prompts
 
 
-def _within_day_prompts():
+def _within_day_prompts() -> list[str]:
+    """Generate all 720 unique within-day prompts (144 x 5 timesteps)."""
     prompts = []
     for timestep in range(5):
         combos = itertools.product(
@@ -146,11 +116,15 @@ def _within_day_prompts():
     return prompts
 
 
-def generate_prompts(samples_per_cell: int = 10):
+def generate_prompts(samples_per_cell: int = 10) -> tuple[str, list[str]]:
     """Return (system_prompt, list of prompt strings).
 
-    Each prompt is repeated samples_per_cell times per output category
-    (Algorithm 2, resolved-decisions-sprint-1.md).
+    Each prompt is repeated ``samples_per_cell`` times per output category
+    (Algorithm 2, resolved-decisions-sprint-1.md).  Day-boundary prompts have
+    2 output categories (good/poor) so they are repeated 2x; within-day prompts
+    have 3 output categories so they are repeated 3x.
+
+    Total: (36 x 20) + (720 x 30) = 22,320 prompts.
     """
     day_boundary = _day_boundary_prompts()
     within_day = _within_day_prompts()

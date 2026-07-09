@@ -29,7 +29,7 @@ from rl_health_interventions.llm_bootstrapping.parse import (
     parse_day_boundary,
     parse_within_day,
 )
-from rl_health_interventions.llm_bootstrapping.prompts.sprint1 import (
+from rl_health_interventions.llm_bootstrapping.prompts import (
     ACTIONS,
     BURDENS,
     DAY_TYPES,

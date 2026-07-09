@@ -14,9 +14,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-from rl_health_interventions.llm_bootstrapping.prompts.sprint1 import (
-    generate_prompts,
-)
+from rl_health_interventions.llm_bootstrapping.prompts import generate_prompts
 from rl_health_interventions.llm_bootstrapping.request import (
     batch_complete,
     build_messages,

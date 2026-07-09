@@ -12,9 +12,7 @@ from typing import Any
 from dotenv import load_dotenv
 from litellm import batch_completion
 
-from rl_health_interventions.llm_bootstrapping.prompts.sprint1 import (
-    generate_prompts,
-)
+from rl_health_interventions.llm_bootstrapping.prompts import generate_prompts
 
 logger = logging.getLogger(__name__)
 

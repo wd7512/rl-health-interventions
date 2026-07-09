@@ -577,6 +577,7 @@ Burden (notification fatigue):
 
 # Current state
 You just woke up. It is the morning. It is a {weekday/weekend}.
+Last night you were {inactive / moderately active / active}.
 Your sleep quality was {good / poor}. Your notification fatigue is {low/medium/high}.
 {Your phone buzzes with a movement suggestion. / Your phone reminds you of your step goal. / Your phone prompts you to write in your journal.}
 
@@ -603,23 +604,22 @@ Output as: {"steps": N, "step_bin": "inactive"/"moderate"/"active"}
 ```
 
 The bin label (`{inactive / moderately active / active}`) is the step bin from the previous timestep's output. The action sentence is only rendered for non-idle actions (idle: no notification sentence).
-
 ### Day-boundary prompt
 
 ```
+
 # Current state
 You are at the end of the day. It was a {weekday/weekend}.
-Your sleep quality last night was {good / poor}. Your notification fatigue is {low/medium/high}.
+Your sleep quality last night was {good / poor}. Your notification fatigue is {low/medium/high} (0/1/2-3 interventions in last 3 timesteps).
 
 Today you did {daily_total} total steps ({step_bin_daily}).
-Your notifications today: {morning_action}, {mid-morning_action}, {lunch_action}, {afternoon_action}, {evening_action}
 
 It's bedtime. How was your sleep quality tonight?
 {"sleep_quality": "good"}
 {"sleep_quality": "poor"}
 ```
 
-The prompt gives the LLM the daily step total and bin (computed by the environment from per-timestep midpoints) plus the notification sequence for burden context.
+The prompt gives the LLM the daily step total and bin (computed by the environment from per-timestep midpoints) plus the burden level with its definition for context.
 
 ---
 
@@ -673,3 +673,4 @@ Build targets extracted from the Sprint 1 design decisions above. Each bullet ma
 | 2026-07-01 | Config-driven reward formula (`constants` + `variables` + `formula`) with safe expression parser; per-action penalty in config; Q-learning deferred to sprint after MVP; fixed-ratio dropped; idle-only added; contextual agents use full 36-state context key; JSON table format (`tables/` from repo root); `FactoredMDPConfig` model; shared bootstrap + shared seeds evaluation design |
 | 2026-07-03 | Within-day prompts: bin labels replace midpoint numbers for self-narrative consistency (Jiang et al. 2024, Lu et al. 2025); natural per-action sentences with idle omission (Alomana et al. 2026). See `llm_prompting.md §Prompt-Scorecard` for rationale. |
 | 2026-07-08 | Within-day prompts: structured JSON output format (`{"steps": N, "step_bin": "..."}`) replaces raw number to improve parse reliability (results.jsonl showed range responses, markdown, and verbose reasoning). See `parse.py` for parsing stubs. |
+| 2026-07-10 | Morning prompt adds previous evening's step bin for table consistency (all 3 step_bin rows now produce distinct prompts). Day-boundary prompt shows burden level with definition instead of notification sequence (removes sequence sampling bias). Prompt constants extracted to `prompts/prompts.py`; `sprint1.py` contains rendering/generation only. |
