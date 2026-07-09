@@ -1,10 +1,10 @@
-{"index": 0, "content": '{"steps": 500, "step_bin": "inactive"}'}
-{"index": 1, "content": '{"steps": 800, "step_bin": "inactive"}'}
-{"index": 2, "content": '{"steps": 1000, "step_bin": "moderate"}'}
-{"index": 3, "content": '{"steps": 1200, "step_bin": "moderate"}'}
-{"index": 4, "content": '{"steps": 800, "step_bin": "moderate"}'}
-{"index": 5, "content": '{"steps": 1200, "step_bin": "moderate"}'}
-{"index": 6, "content": '{"steps": 200, "step_bin": "inactive"}'}
-{"index": 7, "content": '{"steps": 500, "step_bin": "inactive"}'}
-{"index": 8, "content": '{"steps": 500, "step_bin": "inactive"}'}
-{"index": 9, "content": '{"steps": 800, "step_bin": "inactive"}'}
+{"index": 0, "content": "{\"steps\": 1200, \"step_bin\": \"moderate\"}"}
+{"index": 1, "content": "{\"steps\": 1200, \"step_bin\": \"moderate\"}"}
+{"index": 2, "content": "{\"steps\": 1200, \"step_bin\": \"moderate\"}"}
+{"index": 3, "content": "{\"steps\": 1000, \"step_bin\": \"moderate\"}"}
+{"index": 4, "content": "```json\n{\"steps\": 1200, \"step_bin\": \"moderate\"}\n```\n\nGiven it's the evening, I had poor sleep last night, and my notification fatigue is high, I'm going to take it a bit easier this timestep. A moderate amount of steps feels right\u2014maybe a leisurely evening walk to wind down without overexerting myself. I was already active this afternoon, so there's no need to push hard. The journal prompt is a nice low-effort way to reflect on the day without adding more physical burden."}
+{"index": 5, "content": "{\"steps\": 1200, \"step_bin\": \"moderate\"}"}
+{"index": 6, "content": "```json\n{\"steps\": 1200, \"step_bin\": \"moderate\"}\n```"}
+{"index": 7, "content": "{\"steps\": 1200, \"step_bin\": \"moderate\"}"}
+{"index": 8, "content": "{\"steps\": 1200, \"step_bin\": \"moderate\"}\n\nGiven the poor sleep quality and that it's the evening, I'm winding down with a moderate walk rather than pushing hard. The high notification fatigue also makes me less inclined to respond aggressively to prompts\u2014I'll do a comfortable evening stroll and focus on my journal to set up for better sleep tonight."}
+{"index": 9, "content": "{\"steps\": 1200, \"step_bin\": \"moderate\"}"}
