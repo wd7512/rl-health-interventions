@@ -2,44 +2,47 @@
 
 from __future__ import annotations
 
-import json
+import datetime
 import logging
 import os
 import sys
 from pathlib import Path
 from typing import Any
 
-from dotenv import load_dotenv
 from litellm import batch_completion
 
+from rl_health_interventions.llm_bootstrapping._shared import (
+    BASE_URL,
+    MODEL,
+    build_messages,
+    dump_messages,
+    load_env,
+    model_short_name,
+    resolve_api_key,
+    save_jsonl,
+    setup_logging,
+)
 from rl_health_interventions.llm_bootstrapping.prompts import generate_prompts
 
 logger = logging.getLogger(__name__)
 
-MODEL = "openrouter/z-ai/glm-5.2"
-BASE_URL = "https://openrouter.ai/api/v1"
 
-
-def _resolve_api_key() -> str:
-    key = os.environ.get("OPENROUTER_API_KEY")
-    if not key:
-        msg = "OPENROUTER_API_KEY not set"
+def check_model_match(out_path: Path) -> None:
+    """Raise RuntimeError if the output filename's model doesn't match MODEL."""
+    expected = model_short_name()
+    stem = out_path.stem
+    prefix = f"results_{expected}_"
+    if not stem.startswith(prefix):
+        if stem.startswith("results_"):
+            actual = stem[len("results_") :].split("_")[0]
+        else:
+            actual = "unknown"
+        msg = (
+            f"Filename '{out_path.name}' is for model '{actual}' "
+            f"but MODEL is '{expected}'. "
+            "Use --output=... to override."
+        )
         raise RuntimeError(msg)
-    return key
-
-
-def build_messages(
-    prompts: list[str], system_prompt: str | None = None
-) -> list[list[dict[str, str]]]:
-    """Build message lists from prompts."""
-    messages_list: list[list[dict[str, str]]] = []
-    for prompt in prompts:
-        msgs: list[dict[str, str]] = []
-        if system_prompt:
-            msgs.append({"role": "system", "content": system_prompt})
-        msgs.append({"role": "user", "content": prompt})
-        messages_list.append(msgs)
-    return messages_list
 
 
 def _extract_content(resp: Any) -> str:
@@ -59,21 +62,22 @@ def batch_complete(
     prompts: list[str],
     *,
     system_prompt: str | None = None,
+    model: str = MODEL,
     temperature: float = 0.7,
     max_workers: int = 50,
     num_retries: int = 7,
 ) -> list[dict[str, Any]]:
     """Send batch completions to OpenRouter via litellm."""
-    api_key = _resolve_api_key()
+    api_key = resolve_api_key()
     os.environ["OPENROUTER_API_KEY"] = api_key
     os.environ["OPENROUTER_API_BASE"] = BASE_URL
 
     messages_list = build_messages(prompts, system_prompt)
     n = len(prompts)
-    logger.info("Batch: %d prompts, workers=%d", n, max_workers)
+    logger.info("Batch: %d prompts, model=%s, workers=%d", n, model, max_workers)
 
     responses = batch_completion(
-        model=MODEL,
+        model=model,
         messages=messages_list,
         temperature=temperature,
         max_workers=max_workers,
@@ -98,35 +102,22 @@ def batch_complete(
     return results
 
 
-def save_jsonl(results: list[dict[str, Any]], path: Path, offset: int = 0) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a", encoding="utf-8") as f:
-        for i, r in enumerate(results):
-            f.write(json.dumps({"index": offset + i, **r}) + "\n")
-    logger.info("Wrote %d records to %s (offset %d)", len(results), path, offset)
-
-
 def main() -> None:
     max_workers = 200
     chunk_size = max_workers * 10
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    )
-    env_path = Path(__file__).parent / ".env"
-    if env_path.exists():
-        load_dotenv(env_path)
+    setup_logging()
+    load_env()
 
     system_prompt, prompts = generate_prompts()
     logger.info("Generated %d prompts from sprint1", len(prompts))
 
     if "--dry-run" in sys.argv:
-        for i, m in enumerate(build_messages(prompts, system_prompt)):
-            print(json.dumps({"index": i, "messages": m}, indent=2))
+        dump_messages(prompts, system_prompt)
         return
 
-    out_path = Path("results.jsonl")
+    timestamp = datetime.datetime.now().strftime("%H:%M_%d:%m:%y")
+    out_path = Path(f"results_{model_short_name()}_{timestamp}.jsonl")
     total = len(prompts)
     for offset in range(0, total, chunk_size):
         chunk = prompts[offset : offset + chunk_size]

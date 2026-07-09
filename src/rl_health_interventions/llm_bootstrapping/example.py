@@ -5,6 +5,7 @@ bootstrap. Uses the actual prompt rendering from sprint1.py.
 """
 
 import json
+import logging
 import os
 import time
 from pathlib import Path
@@ -19,6 +20,12 @@ from rl_health_interventions.llm_bootstrapping.prompts.sprint1 import (
 )
 
 load_dotenv(Path(__file__).parent / ".env")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 api_key = os.getenv("OPENROUTER_API_KEY")
 base_url = os.getenv("OPENROUTER_API_BASE", "https://openrouter.ai/api/v1")
@@ -60,10 +67,10 @@ responses = batch_completion(
     num_retries=3,
 )
 e = time.time()
-print(f"Batch completed in {e - s:.2f} seconds")
-print(f"Time per prompt: {(e - s) / len(messages_list):.2f} seconds")
+logger.info("Batch completed in %.2f seconds", e - s)
+logger.info("Time per prompt: %.2f seconds", (e - s) / len(messages_list))
 per_prompt = (e - s) / len(messages_list)
-print(f"Estimated time for 22320 prompts: {per_prompt * 22320:.2f} seconds")
+logger.info("Estimated time for 22320 prompts: %.2f seconds", per_prompt * 22320)
 
 out_path = Path(__file__).parent / "example_results.jsonl"
 with out_path.open("w", encoding="utf-8") as f:
@@ -74,4 +81,4 @@ with out_path.open("w", encoding="utf-8") as f:
             content = r.choices[0].message.content or ""
             f.write(json.dumps({"index": i, "content": content}) + "\n")
 
-print(f"Wrote {len(responses)} responses to {out_path}")
+logger.info("Wrote %d responses to %s", len(responses), out_path)

@@ -6,19 +6,24 @@ flags. Smaller batch sizes (300 vs 2000) for more frequent saves.
 
 from __future__ import annotations
 
+import datetime
 import json
 import logging
 import sys
 from pathlib import Path
 from typing import Any
 
-from dotenv import load_dotenv
-
+from rl_health_interventions.llm_bootstrapping._shared import (
+    dump_messages,
+    load_env,
+    model_short_name,
+    save_jsonl,
+    setup_logging,
+)
 from rl_health_interventions.llm_bootstrapping.prompts import generate_prompts
 from rl_health_interventions.llm_bootstrapping.request import (
     batch_complete,
-    build_messages,
-    save_jsonl,
+    check_model_match,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,11 +72,11 @@ def _resolve_run_mode(
     if not existing:
         return set(range(total)), []
 
-    succeeded = {r["index"] for r in existing if "content" in r}
-    error_indices = {r["index"] for r in existing if "error" in r}
+    succeeded = {r["index"] for r in existing if "content" in r and "index" in r}
+    error_indices = {r["index"] for r in existing if "error" in r and "index" in r}
 
     if retry_errors:
-        clean = [r for r in existing if r["index"] not in error_indices]
+        clean = [r for r in existing if r.get("index") not in error_indices]
         logger.info("Retry-errors: re-running %d prompts", len(error_indices))
         return error_indices, clean
 
@@ -90,28 +95,27 @@ def main() -> None:
     max_workers = 200
     chunk_size = int(max_workers * CHUNK_MULTIPLIER)
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    )
-    env_path = Path(__file__).parent / ".env"
-    if env_path.exists():
-        load_dotenv(env_path)
+    setup_logging()
+    load_env()
 
     system_prompt, prompts = generate_prompts()
     total = len(prompts)
     logger.info("Generated %d prompts from sprint1", total)
 
     if "--dry-run" in sys.argv:
-        for i, m in enumerate(build_messages(prompts, system_prompt)):
-            print(json.dumps({"index": i, "messages": m}, indent=2))
+        dump_messages(prompts, system_prompt)
         return
 
-    out_path = Path("results.jsonl")
+    timestamp = datetime.datetime.now().strftime("%H:%M_%d:%m:%y")
+    out_path = Path(f"results_{model_short_name()}_{timestamp}.jsonl")
     for arg in sys.argv:
         if arg.startswith("--output="):
             out_path = Path(arg.split("=", 1)[1])
             break
+
+    if "--resume" in sys.argv or "--retry-errors" in sys.argv:
+        check_model_match(out_path)
+
     to_process, existing_records = _resolve_run_mode(sys.argv, out_path, total)
 
     if not to_process:
@@ -145,12 +149,12 @@ def main() -> None:
             system_prompt=system_prompt,
             max_workers=max_workers,
         )
-        save_jsonl(results, out_path, offset=batch_indices[0])
+        save_jsonl(results, out_path, indices=batch_indices)
 
     all_records = _load_existing_results(out_path)
-    all_records.sort(key=lambda r: r["index"])
+    all_records.sort(key=lambda r: r.get("index", -1))
 
-    present = {r["index"] for r in all_records}
+    present = {r["index"] for r in all_records if "index" in r}
     if len(present) != total:
         missing = sorted(set(range(total)) - present)
         logger.warning(

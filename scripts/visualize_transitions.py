@@ -1,6 +1,6 @@
 """Black-and-white transition matrix charts with complete directed edges.
 
-Writes matrix figures to ``docs/figures/<model>/matricies``.
+Writes matrix figures to ``docs/figures/<model>/matrices``.
 
 Usage:
     uv run python scripts/visualize_transitions.py \\
@@ -555,7 +555,7 @@ def main() -> None:
         tables_dir = args.tables_dir / label
         _save_tables(db_probs, wd_probs, tables_dir)
 
-        fig_dir = args.fig_dir / label / "matricies"
+        fig_dir = args.fig_dir / label / "matrices"
         fig_dir.mkdir(parents=True, exist_ok=True)
         logger.info("  Generating figures in %s/", fig_dir)
 

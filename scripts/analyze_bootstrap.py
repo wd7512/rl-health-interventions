@@ -800,7 +800,6 @@ def _plot_day_boundary_heatmap(
         assert im is not None
         fig.colorbar(im, ax=axes, shrink=0.8, label="P(good next sleep)")
         fig.savefig(fig_dir / "day_boundary_heatmap.png", dpi=150, bbox_inches="tight")
-        fig.savefig(fig_dir / "day_boundary_heatmap.png", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
 

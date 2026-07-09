@@ -20,7 +20,7 @@ OPENROUTER_API_KEY=sk-or-v1-***
 # Dry run — preview messages without API calls
 uv run python -m rl_health_interventions.llm_bootstrapping.request --dry-run
 
-# Real run — sends to OpenRouter, writes results.jsonl
+# Real run — sends to OpenRouter, writes results_<model>_<timestamp>.jsonl
 uv run python -m rl_health_interventions.llm_bootstrapping.request
 
 # Resume — skip already-succeeded prompts, append new results, sort on finish
@@ -28,9 +28,14 @@ uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --resu
 
 # Retry errors — strip error records, re-run them, append, sort on finish
 uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retry-errors
+
+# Custom output path
+uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --resume --output=path/to/file.jsonl
 ```
 
 `request_helper.py` uses a smaller batch size (300 vs 2000) so results hit disk more frequently.
+
+`--resume` and `--retry-errors` validate the filename's embedded model name against `MODEL` and raise an error on mismatch.
 
 ## Defaults
 
@@ -41,7 +46,7 @@ uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retr
 
 ## Files
 
-- `request.py` — batch completion via litellm (base script)
+- `request.py` — batch completion via litellm (base script); exports `model_short_name()`, `check_model_match()`, `batch_complete()`, `save_jsonl()`
 - `request_helper.py` — resume/retry-errors wrapper with smaller batches
 - `prompts/sprint1.py` — sprint 1 prompt definitions (22,320 prompts with samples_per_cell=10)
 - `example.py` — standalone litellm example
@@ -50,12 +55,16 @@ uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retr
 ## Programmatic use
 
 ```python
-from rl_health_interventions.llm_bootstrapping.request import batch_complete, save_jsonl
+from rl_health_interventions.llm_bootstrapping.request import (
+    batch_complete,
+    model_short_name,
+    save_jsonl,
+)
 from pathlib import Path
 
 results = batch_complete(
     ["What is 2+2?", "Say hello"],
     system_prompt="You are a helpful assistant.",
 )
-save_jsonl(results, Path("results.jsonl"))
+save_jsonl(results, Path(f"results_{model_short_name()}_<timestamp>.jsonl"))
 ```

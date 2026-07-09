@@ -7,7 +7,6 @@ normalised transition tables.
 
 import json
 import logging
-import re
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -30,15 +29,17 @@ def bin_step_count(steps: int) -> str:
 
 
 def extract_json(text: str) -> dict[str, Any] | None:
-    """Extract the first JSON object from text.
+    """Extract the last JSON object from text.
 
-    Handles LLM responses that wrap JSON in markdown, leading/trailing text, etc.
+    Uses rfind to locate the final {...} block, skipping any thinking/reasoning
+    text that may contain earlier braces.
     """
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if not match:
+    start = text.rfind("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1 or end <= start:
         return None
     try:
-        return json.loads(match.group())
+        return json.loads(text[start : end + 1])
     except json.JSONDecodeError:
         logger.warning("Failed to parse JSON: %s", text[:120])
         return None
