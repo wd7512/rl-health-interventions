@@ -507,7 +507,6 @@ def _plot_parse_rate(records_per_model: dict[str, list[dict]], fig_dir: Path) ->
     ax.bar(x - w / 2, db_rates, w, label="Day-boundary", color="#3498db")
     ax.bar(x + w / 2, wd_rates, w, label="Within-day", color="#2ecc71")
     ax.set_ylabel("Parsed responses / total responses")
-    ax.set_title("Parse reliability by model and prompt family")
     ax.set_xticks(x)
     ax.set_xticklabels(models)
     ax.set_ylim(0, 1.1)
@@ -532,17 +531,22 @@ def _plot_parse_rate(records_per_model: dict[str, list[dict]], fig_dir: Path) ->
             va="bottom",
             fontsize=8,
         )
+    fig.suptitle(
+        "Parse reliability by model and prompt family",
+        y=1.02,
+        fontweight="bold",
+    )
     fig.text(
         0.5,
-        0.01,
+        0.99,
         "Parse reliability by model. Higher = better.",
         ha="center",
-        va="bottom",
+        va="top",
         fontsize=6.5,
         style="italic",
     )
-    fig.tight_layout(rect=[0, 0.09, 1, 1])
-    fig.savefig(fig_dir / "parse_rate.png", dpi=150)
+    fig.tight_layout()
+    fig.savefig(fig_dir / "parse_rate.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -602,18 +606,18 @@ def _plot_output_dist(records_per_model: dict[str, list[dict]], fig_dir: Path) -
                 )
             ax2.set_ylim(0, max(vals) * 1.25)
 
+        fig.tight_layout()
         fig.text(
             0.5,
-            0.01,
+            0.99,
             "Marginal output distribution. Realistic models put mass on "
             "all three step bins and both sleep outcomes.",
             ha="center",
-            va="bottom",
+            va="top",
             fontsize=6.5,
             style="italic",
         )
-        fig.tight_layout(rect=[0, 0.09, 1, 1])
-        fig.savefig(fig_dir / "output_distribution.png", dpi=150)
+        fig.savefig(fig_dir / "output_distribution.png", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
 
@@ -670,18 +674,19 @@ def _plot_cell_consistency(
             ax.set_title(f"{label} — {cat.replace('_', ' ').title()} Cell Consistency")
             ax.legend(fontsize=8)
 
+        fig.suptitle(f"{label} — Cell Consistency", y=1.02, fontweight="bold")
         fig.text(
             0.5,
-            0.01,
+            0.99,
             "Cell-level agreement: histogram of modal-answer repeat rate. "
             "Colored lines mark cells below 80%, 90%, and 100% agreement.",
             ha="center",
-            va="bottom",
+            va="top",
             fontsize=6.5,
             style="italic",
         )
-        fig.tight_layout(rect=[0, 0.09, 1, 1])
-        fig.savefig(fig_dir / "cell_consistency.png", dpi=150)
+        fig.tight_layout()
+        fig.savefig(fig_dir / "cell_consistency.png", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
 
@@ -733,18 +738,19 @@ def _plot_step_hist(records_per_model: dict[str, list[dict]], fig_dir: Path) -> 
         )
         ax.legend(fontsize=8)
 
+    fig.suptitle("Step Count Distribution (Within-Day)", y=1.02, fontweight="bold")
     fig.text(
         0.5,
-        0.01,
+        0.99,
         "Step count distribution (within-day). Dashed = per-model means. "
         "Realistic: spread across inactive, moderate, and active ranges.",
         ha="center",
-        va="bottom",
+        va="top",
         fontsize=6.5,
         style="italic",
     )
-    fig.tight_layout(rect=[0, 0.09, 1, 1])
-    fig.savefig(fig_dir / "step_histogram.png", dpi=150)
+    fig.tight_layout()
+    fig.savefig(fig_dir / "step_histogram.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -800,18 +806,18 @@ def _plot_day_boundary_heatmap(
             y=1.02,
             fontweight="bold",
         )
-        assert im is not None
-        fig.colorbar(im, ax=axes, shrink=0.8, label="P(good next sleep)")
         fig.text(
             0.5,
-            0.01,
+            0.99,
             "P(next sleep=good) | step_bin_daily, day_type, burden, current sleep. "
             "Realistic: poor sleep or higher burden reduces P(good).",
             ha="center",
-            va="bottom",
+            va="top",
             fontsize=6.5,
             style="italic",
         )
+        assert im is not None
+        fig.colorbar(im, ax=axes, shrink=0.8, label="P(good next sleep)")
         fig.savefig(fig_dir / "day_boundary_heatmap.png", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
@@ -875,15 +881,15 @@ def _plot_within_day_action(
         )
         fig.text(
             0.5,
-            0.01,
+            0.99,
             "P(next step bin | current bin, action) per timestep. "
             "Realistic: Move boosts P(active); persistence visible.",
             ha="center",
-            va="bottom",
+            va="top",
             fontsize=6.5,
             style="italic",
         )
-        fig.tight_layout(rect=[0, 0.035, 1, 1])
+        fig.tight_layout()
         fig.savefig(fig_dir / "within_day_action.png", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
@@ -945,16 +951,16 @@ def _plot_burden_interaction(
         )
         fig.text(
             0.5,
-            0.01,
+            0.99,
             "P(active next) vs burden by current step bin and action. "
             "Gray dashed = marginal P(active). Higher burden should reduce P(active). "
             "Delta labels show change from low to high burden.",
             ha="center",
-            va="bottom",
+            va="top",
             fontsize=6.5,
             style="italic",
         )
-        fig.tight_layout(rect=[0, 0.09, 1, 1])
+        fig.tight_layout()
         fig.savefig(fig_dir / "burden_interaction.png", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
