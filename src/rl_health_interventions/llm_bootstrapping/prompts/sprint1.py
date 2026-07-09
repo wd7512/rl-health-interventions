@@ -154,8 +154,7 @@ def generate_prompts(samples_per_cell: int = 10):
     """
     day_boundary = _day_boundary_prompts()
     within_day = _within_day_prompts()
-    repeated = (
-        [p for p in day_boundary for _ in range(2 * samples_per_cell)]
-        + [p for p in within_day for _ in range(3 * samples_per_cell)]
-    )
+    repeated = [p for p in day_boundary for _ in range(2 * samples_per_cell)] + [
+        p for p in within_day for _ in range(3 * samples_per_cell)
+    ]
     return SYSTEM_PROMPT, repeated
