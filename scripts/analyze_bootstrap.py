@@ -538,7 +538,7 @@ def _plot_parse_rate(records_per_model: dict[str, list[dict]], fig_dir: Path) ->
     )
     fig.text(
         0.5,
-        0.99,
+        0.96,
         "Parse reliability by model. Higher = better.",
         ha="center",
         va="top",
@@ -567,24 +567,20 @@ def _plot_output_dist(records_per_model: dict[str, list[dict]], fig_dir: Path) -
                     sb_dist[sb] += 1
                     total_sb += 1
 
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5.5))
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6.5), layout="constrained")
 
         if sleep_dist:
             keys = ["good", "poor"]
             vals = [sleep_dist.get(k, 0) for k in keys]
             bars = ax1.bar(keys, vals, color=[SLEEP_COLORS[k] for k in keys])
-            ax1.set_title(f"{label} — Sleep quality  (n={total_sleep})")
+            ax1.set_title(f"Sleep quality  (n={total_sleep})")
             ax1.set_ylabel("Count")
-            for bar, v in zip(bars, vals):
-                pct = v / total_sleep * 100
-                ax1.text(
-                    bar.get_x() + bar.get_width() / 2,
-                    bar.get_height() + total_sleep * 0.01,
-                    f"{v:,} ({pct:.1f}%)",
-                    ha="center",
-                    va="bottom",
-                    fontsize=9,
-                )
+            ax1.bar_label(
+                bars,
+                labels=[f"{v:,} ({v / total_sleep * 100:.1f}%)" for v in vals],
+                padding=3,
+                fontsize=9,
+            )
             ax1.set_ylim(0, max(vals) * 1.25)
 
         if sb_dist:
@@ -592,30 +588,23 @@ def _plot_output_dist(records_per_model: dict[str, list[dict]], fig_dir: Path) -
             vals = [sb_dist.get(k, 0) for k in keys]
             colors = [STEP_BIN_COLORS[k] for k in keys]
             bars = ax2.bar(keys, vals, color=colors)
-            ax2.set_title(f"{label} — Step bin  (n={total_sb})")
+            ax2.set_title(f"Step bin  (n={total_sb})")
             ax2.set_ylabel("Count")
-            for bar, v in zip(bars, vals):
-                pct = v / total_sb * 100
-                ax2.text(
-                    bar.get_x() + bar.get_width() / 2,
-                    bar.get_height() + total_sb * 0.01,
-                    f"{v:,} ({pct:.1f}%)",
-                    ha="center",
-                    va="bottom",
-                    fontsize=9,
-                )
+            ax2.bar_label(
+                bars,
+                labels=[f"{v:,} ({v / total_sb * 100:.1f}%)" for v in vals],
+                padding=3,
+                fontsize=9,
+            )
             ax2.set_ylim(0, max(vals) * 1.25)
 
-        fig.tight_layout()
-        fig.text(
-            0.5,
-            0.99,
+        fig.suptitle(
+            f"{label} — Output Distribution\n"
             "Marginal output distribution. Realistic models put mass on "
             "all three step bins and both sleep outcomes.",
-            ha="center",
-            va="top",
-            fontsize=6.5,
-            style="italic",
+            y=1.05,
+            fontsize=11,
+            fontweight="bold",
         )
         fig.savefig(fig_dir / "output_distribution.png", dpi=150, bbox_inches="tight")
         plt.close(fig)
@@ -677,7 +666,7 @@ def _plot_cell_consistency(
         fig.suptitle(f"{label} — Cell Consistency", y=1.02, fontweight="bold")
         fig.text(
             0.5,
-            0.99,
+            0.96,
             "Cell-level agreement: histogram of modal-answer repeat rate. "
             "Colored lines mark cells below 80%, 90%, and 100% agreement.",
             ha="center",
@@ -741,7 +730,7 @@ def _plot_step_hist(records_per_model: dict[str, list[dict]], fig_dir: Path) -> 
     fig.suptitle("Step Count Distribution (Within-Day)", y=1.02, fontweight="bold")
     fig.text(
         0.5,
-        0.99,
+        0.96,
         "Step count distribution (within-day). Dashed = per-model means. "
         "Realistic: spread across inactive, moderate, and active ranges.",
         ha="center",
@@ -765,9 +754,9 @@ def _plot_day_boundary_heatmap(
         fig, axes = plt.subplots(
             len(SLEEP_TYPES),
             len(BURDENS),
-            figsize=(16, 8.5),
+            figsize=(16, 9.5),
             sharey=True,
-            constrained_layout=True,
+            layout="constrained",
         )
         im = None
         for row_idx, sleep_cond in enumerate(SLEEP_TYPES):
@@ -783,8 +772,6 @@ def _plot_day_boundary_heatmap(
                 ax.set_xticklabels(DAY_TYPES)
                 ax.set_yticks(range(len(STEP_BINS)))
                 ax.set_yticklabels(STEP_BINS)
-                if row_idx == 0:
-                    ax.set_title(f"burden={burden}", fontsize=10)
                 if col_idx == 0:
                     ax.set_ylabel(f"sleep={sleep_cond}", fontsize=10, fontweight="bold")
                 for i in range(len(STEP_BINS)):
@@ -802,22 +789,17 @@ def _plot_day_boundary_heatmap(
                         )
 
         fig.suptitle(
-            f"{label} — P(next sleep = good | step_bin_daily, burden, day_type, sleep)",
-            y=1.02,
-            fontweight="bold",
-        )
-        fig.text(
-            0.5,
-            0.99,
-            "P(next sleep=good) | step_bin_daily, day_type, burden, current sleep. "
+            f"{label} — P(next sleep = good | step_bin_daily, "
+            "burden, day_type, sleep)\n"
+            "Rows: current sleep. Columns: burden level (low, medium, high). "
             "Realistic: poor sleep or higher burden reduces P(good).",
-            ha="center",
-            va="top",
-            fontsize=6.5,
-            style="italic",
+            y=1.05,
+            fontsize=11,
+            fontweight="bold",
         )
         assert im is not None
         fig.colorbar(im, ax=axes, shrink=0.8, label="P(good next sleep)")
+        fig.savefig(fig_dir / "day_boundary_heatmap.png", dpi=150, bbox_inches="tight")
         fig.savefig(fig_dir / "day_boundary_heatmap.png", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
@@ -881,7 +863,7 @@ def _plot_within_day_action(
         )
         fig.text(
             0.5,
-            0.99,
+            0.96,
             "P(next step bin | current bin, action) per timestep. "
             "Realistic: Move boosts P(active); persistence visible.",
             ha="center",
@@ -951,7 +933,7 @@ def _plot_burden_interaction(
         )
         fig.text(
             0.5,
-            0.99,
+            0.96,
             "P(active next) vs burden by current step bin and action. "
             "Gray dashed = marginal P(active). Higher burden should reduce P(active). "
             "Delta labels show change from low to high burden.",
