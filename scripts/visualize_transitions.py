@@ -1,8 +1,6 @@
-"""Aggregate bootstrap JSONL and produce NetworkX transition matrix charts.
+"""Black-and-white transition matrix charts with complete directed edges.
 
-For each model: aggregates raw LLM responses into 6 JSON transition table
-files, then produces 21 NetworkX directed graph figures (5 within-day x 4
-actions + 1 day-boundary).
+Writes matrix figures to ``docs/figures/<model>/matricies``.
 
 Usage:
     uv run python scripts/visualize_transitions.py \\
@@ -21,9 +19,10 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-import networkx as nx
 import numpy as np
+from matplotlib.path import Path as PlotPath
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from rl_health_interventions.llm_bootstrapping.parse import (
@@ -46,45 +45,47 @@ WITHIN_DAY_START = 720
 WITHIN_DAY_CELLS_PER_TIMESTEP = 144
 TIMESTEPS = 5
 
-STEP_BIN_COLORS = {"inactive": "#e74c3c", "moderate": "#f39c12", "active": "#2ecc71"}
-SLEEP_COLORS = {"good": "#2ecc71", "poor": "#e74c3c"}
+NODE_RADIUS = 0.1
+STEP_NODE_ABBR = {"inactive": "i", "moderate": "m", "active": "a"}
 
-# Curved triangle node positions for the 3-node step_bin graph
-_TRIANGLE_POS = {
-    "inactive": np.array([-0.5, -0.288]),
-    "moderate": np.array([0.0, 0.577]),
-    "active": np.array([0.5, -0.288]),
+_POS = {
+    "inactive": np.array([-0.45, -0.26]),
+    "moderate": np.array([0.0, 0.52]),
+    "active": np.array([0.45, -0.26]),
 }
-
-# 2-node positions for day-boundary sleep graph
-_SLEEP_POS = {"good": np.array([-0.5, 0.0]), "poor": np.array([0.5, 0.0])}
+_SLEEP_POS = {"good": np.array([-0.4, 0.0]), "poor": np.array([0.4, 0.0])}
 
 
 def _day_boundary_params(cell_idx: int) -> dict:
     combos = list(itertools.product(STEP_BINS, BURDENS, DAY_TYPES, SLEEP_TYPES))
-    sb, b, d, s = combos[cell_idx]
-    return {"step_bin_daily": sb, "burden": b, "day_type": d, "sleep": s}
+    sb, burden, day, sleep = combos[cell_idx]
+    return {"step_bin_daily": sb, "burden": burden, "day_type": day, "sleep": sleep}
 
 
 def _within_day_params(cell_idx: int) -> dict:
     combos = list(
         itertools.product(STEP_BINS, BURDENS, ACTIONS, DAY_TYPES, SLEEP_TYPES)
     )
-    sb, b, a, d, s = combos[cell_idx]
-    return {"step_bin": sb, "burden": b, "action": a, "day_type": d, "sleep": s}
+    step_bin, burden, action, day, sleep = combos[cell_idx]
+    return {
+        "step_bin": step_bin,
+        "burden": burden,
+        "action": action,
+        "day_type": day,
+        "sleep": sleep,
+    }
 
 
 def _parse_record(rec: dict) -> tuple[str, object]:
-    idx = rec["index"]
     content = rec.get("content", "")
-    if idx < WITHIN_DAY_START:
+    if rec["index"] < WITHIN_DAY_START:
         return "day_boundary", parse_day_boundary(content)
     return "within_day", parse_within_day(content)
 
 
 def _load(path: Path) -> list[dict]:
     records = []
-    with open(path) as fh:
+    with path.open(encoding="utf-8") as fh:
         for raw_line in fh:
             stripped = raw_line.strip()
             if stripped:
@@ -93,14 +94,13 @@ def _load(path: Path) -> list[dict]:
 
 
 def aggregate_day_boundary(records: list[dict]) -> dict:
-    """Aggregate day-boundary responses into P(sleep' | state) per cell."""
     counts: dict[tuple, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     totals: dict[tuple, int] = defaultdict(int)
     for rec in records:
         if rec["index"] >= WITHIN_DAY_START:
             continue
         cat, parsed = _parse_record(rec)
-        if cat != "day_boundary" or parsed is None:
+        if cat != "day_boundary" or not isinstance(parsed, str):
             continue
         cell_idx = rec["index"] // SAMPLES_DAY_BOUNDARY
         params = _day_boundary_params(cell_idx)
@@ -112,389 +112,385 @@ def aggregate_day_boundary(records: list[dict]) -> dict:
         )
         counts[key][parsed] += 1
         totals[key] += 1
-    probs = {}
-    for key, outcomes in counts.items():
-        t = totals[key]
-        probs[key] = {o: c / t for o, c in outcomes.items()}
-    return probs
+    return {
+        key: {o: c / totals[key] for o, c in outcomes.items()}
+        for key, outcomes in counts.items()
+    }
 
 
 def aggregate_within_day(records: list[dict]) -> dict[int, dict]:
-    """Aggregate within-day responses into P(step_bin'|state) per cell."""
     all_probs: dict[int, dict] = {}
-    for t in range(TIMESTEPS):
+    for timestep_idx in range(TIMESTEPS):
         counts: dict[tuple, dict[str, int]] = defaultdict(lambda: defaultdict(int))
         totals: dict[tuple, int] = defaultdict(int)
         for rec in records:
-            if rec["index"] < WITHIN_DAY_START:
-                continue
-            offset = rec["index"] - WITHIN_DAY_START
-            timestep = offset // (WITHIN_DAY_CELLS_PER_TIMESTEP * SAMPLES_WITHIN_DAY)
-            if timestep != t:
-                continue
-            within_off = offset % (WITHIN_DAY_CELLS_PER_TIMESTEP * SAMPLES_WITHIN_DAY)
-            cell_idx = within_off // SAMPLES_WITHIN_DAY
-            params = _within_day_params(cell_idx)
-            key = (
-                params["step_bin"],
-                params["burden"],
-                params["action"],
-                params["day_type"],
-                params["sleep"],
-            )
-            cat, parsed = _parse_record(rec)
-            if cat != "within_day" or parsed is None:
-                continue
-            _, sb = parsed
-            counts[key][sb] += 1
-            totals[key] += 1
-        probs = {}
-        for key, outcomes in counts.items():
-            tt = totals[key]
-            probs[key] = {o: c / tt for o, c in outcomes.items()}
-        all_probs[t] = probs
+            _count_within_day_record(rec, timestep_idx, counts, totals)
+        all_probs[timestep_idx] = {
+            key: {o: c / totals[key] for o, c in outcomes.items()}
+            for key, outcomes in counts.items()
+        }
     return all_probs
 
 
-def _save_tables(db_probs: dict, wd_probs: dict[int, dict], out_dir: Path) -> None:
-    """Write 6 JSON table files matching the decisions doc format."""
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    # Day-boundary table
-    table = {}
-    for key, outcomes in db_probs.items():
-        state_key = "|".join(str(v) for v in key)
-        table[state_key] = {"_": outcomes}
-    with open(out_dir / "day_boundary.json", "w") as f:
-        json.dump(table, f, indent=2)
-
-    # Within-day tables
-    for t in range(TIMESTEPS):
-        table = {}
-        for key, outcomes in wd_probs.get(t, {}).items():
-            state_key = "|".join(str(v) for v in key)
-            table[state_key] = {"_": outcomes}
-        with open(out_dir / f"within_day_{t}.json", "w") as f:
-            json.dump(table, f, indent=2)
-
-    print(f"  Wrote 6 tables to {out_dir}/")
-
-
-def _draw_step_bin_graph(ax: nx.DiGraph, probs: dict[str, float]) -> None:
-    """Draw a 3-node directed graph on the given axes."""
-    ax.set_aspect("equal")
-    ax.axis("off")
-    g = nx.DiGraph()
-    for node in STEP_BINS:
-        g.add_node(node)
-    for src in STEP_BINS:
-        for dst in STEP_BINS:
-            p = probs.get(dst, 0.0)
-            if p > 0.01:
-                g.add_edge(src, dst, weight=p)
-
-    node_colors = [STEP_BIN_COLORS[n] for n in g.nodes]
-    node_sizes = [800 for _ in g.nodes]
-    nx.draw_networkx_nodes(
-        g,
-        _TRIANGLE_POS,
-        ax=ax,
-        node_color=node_colors,
-        node_size=node_sizes,
-        edgecolors="black",
-        linewidths=0.8,
-    )
-    nx.draw_networkx_labels(
-        g,
-        _TRIANGLE_POS,
-        ax=ax,
-        font_size=5,
-        font_color="white",
-        font_weight="bold",
-    )
-
-    edge_data = g.edges(data=True)
-    if edge_data:
-        weights = [d["weight"] for _, _, d in edge_data]
-        max_w = max(weights) if weights else 1.0
-        for u, v, d in edge_data:
-            w = d["weight"]
-            rad = 0.2 if u != v else 0.4
-            style = f"arc3,rad={rad:.2f}"
-            color = STEP_BIN_COLORS.get(u, "#666666")
-            width = 0.5 + 3.5 * (w / max_w)
-            ax.annotate(
-                "",
-                xy=_TRIANGLE_POS[v],
-                xytext=_TRIANGLE_POS[u],
-                arrowprops={
-                    "arrowstyle": "-|>",
-                    "color": color,
-                    "lw": width,
-                    "connectionstyle": style,
-                    "mutation_scale": 8,
-                    "alpha": 0.7,
-                },
-            )
-
-
-def _draw_sleep_graph(ax: nx.DiGraph, probs: dict[str, float]) -> None:
-    """Draw a 2-node directed graph for sleep transitions."""
-    ax.set_aspect("equal")
-    ax.axis("off")
-    g = nx.DiGraph()
-    g.add_node("good")
-    g.add_node("poor")
-    for src in ("good", "poor"):
-        for dst in ("good", "poor"):
-            p = probs.get(dst, 0.0)
-            if p > 0.01:
-                g.add_edge(src, dst, weight=p)
-
-    node_colors = [SLEEP_COLORS[n] for n in g.nodes]
-    nx.draw_networkx_nodes(
-        g,
-        _SLEEP_POS,
-        ax=ax,
-        node_color=node_colors,
-        node_size=700,
-        edgecolors="black",
-        linewidths=0.8,
-    )
-    nx.draw_networkx_labels(
-        g,
-        _SLEEP_POS,
-        ax=ax,
-        font_size=6,
-        font_color="white",
-        font_weight="bold",
-    )
-
-    edge_data = g.edges(data=True)
-    if edge_data:
-        weights = [d["weight"] for _, _, d in edge_data]
-        max_w = max(weights) if weights else 1.0
-        for u, v, d in edge_data:
-            w = d["weight"]
-            rad = 0.3 if u != v else 0.0
-            style = f"arc3,rad={rad:.2f}"
-            color = SLEEP_COLORS.get(u, "#666666")
-            width = 0.5 + 3.5 * (w / max_w)
-            ax.annotate(
-                "",
-                xy=_SLEEP_POS[v],
-                xytext=_SLEEP_POS[u],
-                arrowprops={
-                    "arrowstyle": "-|>",
-                    "color": color,
-                    "lw": width,
-                    "connectionstyle": style,
-                    "mutation_scale": 8,
-                    "alpha": 0.7,
-                },
-            )
-
-
-def _plot_within_day_chart(
-    probs: dict[int, dict],
-    action: str,
-    timestep: int,
-    fig_dir: Path,
+def _count_within_day_record(
+    rec: dict,
+    timestep_idx: int,
+    counts: dict[tuple, dict[str, int]],
+    totals: dict[tuple, int],
 ) -> None:
-    """One chart: 2 rows (day_of_week) x 6 cols (burden x sleep)."""
-    fig, axes = plt.subplots(2, 6, figsize=(15, 6))
+    if rec["index"] < WITHIN_DAY_START:
+        return
+    offset = rec["index"] - WITHIN_DAY_START
+    samples_per_timestep = WITHIN_DAY_CELLS_PER_TIMESTEP * SAMPLES_WITHIN_DAY
+    if offset // samples_per_timestep != timestep_idx:
+        return
+
+    within_off = offset % samples_per_timestep
+    cell_idx = within_off // SAMPLES_WITHIN_DAY
+    params = _within_day_params(cell_idx)
+    cat, parsed = _parse_record(rec)
+    if cat != "within_day" or not isinstance(parsed, tuple):
+        return
+
+    _, next_step_bin = parsed
+    if not isinstance(next_step_bin, str):
+        return
+    key = (
+        params["step_bin"],
+        params["burden"],
+        params["action"],
+        params["day_type"],
+        params["sleep"],
+    )
+    counts[key][next_step_bin] += 1
+    totals[key] += 1
+
+
+def aggregate_within_day_averaged(records: list[dict]) -> dict:
+    per_t = aggregate_within_day(records)
+    all_keys = set().union(*(t_probs.keys() for t_probs in per_t.values()))
+
+    averaged: dict = {}
+    for key in all_keys:
+        per_outcome: dict[str, list[float]] = defaultdict(list)
+        available_timesteps = 0
+        for timestep_idx in range(TIMESTEPS):
+            if key not in per_t.get(timestep_idx, {}):
+                continue
+            available_timesteps += 1
+            for outcome, prob in per_t[timestep_idx][key].items():
+                per_outcome[outcome].append(prob)
+        if available_timesteps:
+            averaged[key] = {
+                outcome: sum(probs) / available_timesteps
+                for outcome, probs in per_outcome.items()
+            }
+    return averaged
+
+
+def _save_tables(db_probs: dict, wd_probs: dict[int, dict], out_dir: Path) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    table = {
+        "|".join(str(value) for value in key): {"_": outcomes}
+        for key, outcomes in db_probs.items()
+    }
+    with (out_dir / "day_boundary.json").open("w", encoding="utf-8") as fh:
+        json.dump(table, fh, indent=2)
+
+    for timestep_idx in range(TIMESTEPS):
+        table = {
+            "|".join(str(value) for value in key): {"_": outcomes}
+            for key, outcomes in wd_probs.get(timestep_idx, {}).items()
+        }
+        with (out_dir / f"within_day_{timestep_idx}.json").open(
+            "w", encoding="utf-8"
+        ) as fh:
+            json.dump(table, fh, indent=2)
+    logger.info("  Wrote 6 tables to %s/", out_dir)
+
+
+def _unit(vec: np.ndarray) -> np.ndarray:
+    norm = np.linalg.norm(vec)
+    if norm == 0:
+        return np.array([0.0, 1.0])
+    return vec / norm
+
+
+def _rotate(vec: np.ndarray, radians: float) -> np.ndarray:
+    cos_v = np.cos(radians)
+    sin_v = np.sin(radians)
+    return np.array([vec[0] * cos_v - vec[1] * sin_v, vec[0] * sin_v + vec[1] * cos_v])
+
+
+def _alpha(prob: float) -> float:
+    return 0.5 + 0.5 * prob
+
+
+def _draw_probability_label(
+    ax,
+    xy: np.ndarray,
+    prob: float,
+    fontsize: int,
+    weight: str = "normal",
+) -> None:
+    ax.text(
+        xy[0],
+        xy[1],
+        f"{prob:.0%}",
+        fontsize=fontsize,
+        ha="center",
+        va="center",
+        color="black",
+        fontweight=weight,
+        zorder=5,
+        bbox={
+            "boxstyle": "round,pad=0.06",
+            "fc": "white",
+            "ec": "none",
+            "alpha": 0.9,
+        },
+    )
+
+
+def _draw_cross_edge(
+    ax,
+    src_pos: np.ndarray,
+    dst_pos: np.ndarray,
+    prob: float,
+    label_fontsize: int,
+    curvature: float,
+) -> None:
+    direction = _unit(dst_pos - src_pos)
+    start = src_pos + direction * NODE_RADIUS
+    end = dst_pos - direction * NODE_RADIUS
+    patch = mpatches.FancyArrowPatch(
+        start,
+        end,
+        arrowstyle="-|>",
+        connectionstyle=f"arc3,rad={curvature:.2f}",
+        mutation_scale=6,
+        linewidth=1.0,
+        edgecolor="black",
+        facecolor="none",
+        alpha=_alpha(prob),
+        zorder=2,
+    )
+    ax.add_patch(patch)
+
+    normal = np.array([-direction[1], direction[0]])
+    label_pos = (start + end) / 2 + normal * curvature * np.linalg.norm(end - start)
+    _draw_probability_label(ax, label_pos, prob, label_fontsize)
+
+
+def _draw_self_loop(
+    ax,
+    node_pos: np.ndarray,
+    graph_center: np.ndarray,
+    prob: float,
+    label_fontsize: int,
+) -> None:
+    outward = _unit(node_pos - graph_center)
+    tangent = np.array([-outward[1], outward[0]])
+    start = node_pos + _rotate(outward, -0.95) * NODE_RADIUS
+    end = node_pos + _rotate(outward, 0.95) * NODE_RADIUS
+    ctrl1 = node_pos + outward * 0.34 - tangent * 0.16
+    ctrl2 = node_pos + outward * 0.34 + tangent * 0.16
+    path = PlotPath(
+        [start, ctrl1, ctrl2, end],
+        [PlotPath.MOVETO, PlotPath.CURVE4, PlotPath.CURVE4, PlotPath.CURVE4],
+    )
+    patch = mpatches.FancyArrowPatch(
+        path=path,
+        arrowstyle="-|>",
+        mutation_scale=6,
+        linewidth=1.0,
+        edgecolor="black",
+        facecolor="none",
+        alpha=_alpha(prob),
+        zorder=2,
+    )
+    ax.add_patch(patch)
+    _draw_probability_label(
+        ax,
+        node_pos + outward * 0.33,
+        prob,
+        label_fontsize,
+        weight="bold",
+    )
+
+
+def _draw_transition_edges(
+    ax,
+    nodes: tuple[str, ...],
+    pos: dict[str, np.ndarray],
+    transition_probs: dict[str, dict[str, float]],
+    sources: tuple[str, ...] | None = None,
+    label_fontsize: int = 6,
+) -> None:
+    """Draw every valid source->destination edge, including 0% edges."""
+    graph_center = np.mean([pos[node] for node in nodes], axis=0)
+    edge_sources = sources if sources is not None else nodes
+    curvature = 0.26 if len(nodes) == 2 else 0.18
+
+    for src in edge_sources:
+        for dst in nodes:
+            prob = transition_probs.get(src, {}).get(dst, 0.0)
+            if src == dst:
+                _draw_self_loop(ax, pos[src], graph_center, prob, label_fontsize)
+            else:
+                _draw_cross_edge(
+                    ax,
+                    pos[src],
+                    pos[dst],
+                    prob,
+                    label_fontsize,
+                    curvature,
+                )
+
+
+def _draw_nodes(
+    ax,
+    nodes: tuple[str, ...],
+    pos: dict[str, np.ndarray],
+    abbr_map: dict[str, str] | None = None,
+) -> None:
+    for node in nodes:
+        x, y = pos[node]
+        circle = plt.Circle(
+            (x, y), NODE_RADIUS, fc="white", ec="black", lw=1.0, zorder=3
+        )
+        ax.add_patch(circle)
+        label = abbr_map.get(node, node) if abbr_map else node
+        ax.text(
+            x,
+            y,
+            label,
+            fontsize=7,
+            ha="center",
+            va="center",
+            fontweight="bold",
+            color="black",
+            zorder=4,
+        )
+
+
+def _style_panel(ax, xlim: tuple[float, float], ylim: tuple[float, float]) -> None:
+    ax.set_frame_on(True)
+    for spine in ax.spines.values():
+        spine.set_color("#aaaaaa")
+        spine.set_linewidth(0.5)
+    ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax.set_aspect("equal")
+
+
+def _plot_within_day_chart(probs: dict, action: str, fig_dir: Path) -> None:
+    fig, axes = plt.subplots(2, 6, figsize=(19, 7.5))
     fig.suptitle(
-        f"t={timestep}  action={action}",
-        fontsize=14,
+        (
+            f"Within-day step-bin transitions after action: {action} "
+            f"(averaged across {TIMESTEPS} timesteps)"
+        ),
+        fontsize=13,
         fontweight="bold",
     )
 
-    # Row headers
     for row_idx, day in enumerate(DAY_TYPES):
-        axes[row_idx, 0].set_ylabel(day, fontsize=10, fontweight="bold")
+        axes[row_idx, 0].set_ylabel(
+            f"Day type: {day}",
+            fontsize=10,
+            fontweight="bold",
+            rotation=90,
+            labelpad=12,
+        )
 
-    # Column headers
     for col_idx, burden in enumerate(BURDENS):
         for sleep_idx, sleep in enumerate(SLEEP_TYPES):
-            c = col_idx * 2 + sleep_idx
-            axes[0, c].set_title(
-                f"{burden}/{sleep[:3]}",
-                fontsize=8,
+            axes[0, col_idx * 2 + sleep_idx].set_title(
+                f"Burden: {burden}\nSleep: {sleep}", fontsize=8
             )
 
-    timestep_probs = probs.get(timestep, {})
     for row_idx, day in enumerate(DAY_TYPES):
         for col_idx, burden in enumerate(BURDENS):
             for sleep_idx, sleep in enumerate(SLEEP_TYPES):
-                c = col_idx * 2 + sleep_idx
-                ax = axes[row_idx, c]
-                # Build probs dict for current step_bin
-                edge_probs: dict[str, dict[str, float]] = {}
-                for sb in STEP_BINS:
-                    full_key = (sb, burden, action, day, sleep)
-                    outcomes = timestep_probs.get(full_key, {})
-                    edge_probs[sb] = outcomes
-                # For the graph, we need P(next | current) for each current.
-                # The graph shows all 3 nodes with edges from each current
-                # to next. We need to create a merged view.
-                # Use the first non-empty current step_bin to drive the graph,
-                # or average over all currents.
-                # Actually: show transitions FROM each node. The graph needs
-                # edges from each src to each dst weighted by P(dst | src).
-                g = nx.DiGraph()
-                for src in STEP_BINS:
-                    full_key = (src, burden, action, day, sleep)
-                    outcomes = timestep_probs.get(full_key, {})
-                    for dst in STEP_BINS:
-                        p = outcomes.get(dst, 0.0)
-                        if p > 0.01:
-                            g.add_edge(src, dst, weight=p)
-                node_colors = [STEP_BIN_COLORS[n] for n in g.nodes]
-                nx.draw_networkx_nodes(
-                    g,
-                    _TRIANGLE_POS,
-                    ax=ax,
-                    node_color=node_colors,
-                    node_size=350,
-                    edgecolors="black",
-                    linewidths=0.5,
+                ax = axes[row_idx, col_idx * 2 + sleep_idx]
+                _style_panel(ax, (-0.9, 0.9), (-0.8, 0.95))
+                transition_probs = {
+                    step_bin: probs.get((step_bin, burden, action, day, sleep), {})
+                    for step_bin in STEP_BINS
+                }
+                _draw_transition_edges(
+                    ax,
+                    tuple(STEP_BINS),
+                    _POS,
+                    transition_probs,
+                    label_fontsize=6,
                 )
-                nx.draw_networkx_labels(
-                    g,
-                    _TRIANGLE_POS,
-                    ax=ax,
-                    font_size=4,
-                    font_color="white",
-                    font_weight="bold",
-                )
-                edge_data = g.edges(data=True)
-                if edge_data:
-                    weights = [d["weight"] for _, _, d in edge_data]
-                    max_w = max(weights) if weights else 1.0
-                    for u, v, d in edge_data:
-                        w = d["weight"]
-                        rad = 0.2 if u != v else 0.4
-                        style = f"arc3,rad={rad:.2f}"
-                        color = STEP_BIN_COLORS.get(u, "#666666")
-                        width = 0.3 + 2.0 * (w / max_w)
-                        ax.annotate(
-                            "",
-                            xy=_TRIANGLE_POS[v],
-                            xytext=_TRIANGLE_POS[u],
-                            arrowprops={
-                                "arrowstyle": "-|>",
-                                "color": color,
-                                "lw": width,
-                                "connectionstyle": style,
-                                "mutation_scale": 6,
-                                "alpha": 0.7,
-                            },
-                        )
-                ax.set_aspect("equal")
-                ax.axis("off")
+                _draw_nodes(ax, tuple(STEP_BINS), _POS, STEP_NODE_ABBR)
 
     fig.tight_layout()
-    fig.savefig(
-        fig_dir / f"{action}_t{timestep}.png",
-        dpi=150,
-        bbox_inches="tight",
-    )
+    fig.savefig(fig_dir / f"{action}.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 
 def _plot_day_boundary_chart(db_probs: dict, fig_dir: Path) -> None:
-    """One chart: 3 rows (step_bin_daily) x 12 cols (burden x day x sleep),
-    tiled as 4x9 = 36 subplots."""
     combos = list(itertools.product(BURDENS, DAY_TYPES, SLEEP_TYPES))
-    nrows = 4
-    ncols = 9
-    fig, axes = plt.subplots(nrows, ncols, figsize=(20, 9))
+    nrows = 6
+    ncols = 6
+    fig, axes = plt.subplots(nrows, ncols, figsize=(24, 18))
     fig.suptitle(
-        "day_boundary  P(sleep' | step_bin_daily, burden, day, sleep)",
-        fontsize=14,
+        (
+            "Day-boundary sleep transitions. Each panel fixes daily step bin, "
+            "burden, day type, and current sleep; arrows show P(next sleep)."
+        ),
+        fontsize=13,
         fontweight="bold",
     )
 
-    # Flatten the 3 x 12 grid into 36 subplot positions
-    for row_idx, sb in enumerate(STEP_BINS):
+    for row_idx, step_bin in enumerate(STEP_BINS):
         for col_idx, (burden, day, sleep) in enumerate(combos):
-            flat_idx = row_idx * 12 + col_idx
-            r = flat_idx // ncols
-            c = flat_idx % ncols
-            ax = axes[r, c]
-            key = (sb, burden, day, sleep)
-            outcomes = db_probs.get(key, {})
-
-            # Row label on first column of each step_bin row
+            flat_idx = row_idx * len(combos) + col_idx
+            ax = axes[flat_idx // ncols, flat_idx % ncols]
             if col_idx == 0:
-                ax.set_ylabel(sb, fontsize=8, fontweight="bold")
-
-            # Column label on top row
-            if row_idx == 0:
-                ax.set_title(f"{burden[:2]}/{day[:1]}/{sleep[:1]}", fontsize=6)
-
-            g = nx.DiGraph()
-            g.add_node("good")
-            g.add_node("poor")
-            for src in ("good", "poor"):
-                for dst in ("good", "poor"):
-                    p = outcomes.get(dst, 0.0)
-                    if p > 0.01:
-                        g.add_edge(src, dst, weight=p)
-
-            node_colors = [SLEEP_COLORS[n] for n in g.nodes]
-            nx.draw_networkx_nodes(
-                g,
-                _SLEEP_POS,
-                ax=ax,
-                node_color=node_colors,
-                node_size=300,
-                edgecolors="black",
-                linewidths=0.5,
-            )
-            nx.draw_networkx_labels(
-                g,
-                _SLEEP_POS,
-                ax=ax,
-                font_size=4,
-                font_color="white",
-                font_weight="bold",
+                ax.set_ylabel(
+                    f"Daily steps: {step_bin}",
+                    fontsize=9,
+                    fontweight="bold",
+                    rotation=90,
+                    labelpad=8,
+                )
+            ax.set_title(
+                (
+                    f"Steps: {step_bin}\n"
+                    f"Burden: {burden} | Day: {day}\n"
+                    f"Current sleep: {sleep}"
+                ),
+                fontsize=7,
             )
 
-            edge_data = g.edges(data=True)
-            if edge_data:
-                weights = [d["weight"] for _, _, d in edge_data]
-                max_w = max(weights) if weights else 1.0
-                for u, v, d in edge_data:
-                    w = d["weight"]
-                    rad = 0.3 if u != v else 0.0
-                    style = f"arc3,rad={rad:.2f}"
-                    color = SLEEP_COLORS.get(u, "#666666")
-                    width = 0.3 + 2.0 * (w / max_w)
-                    ax.annotate(
-                        "",
-                        xy=_SLEEP_POS[v],
-                        xytext=_SLEEP_POS[u],
-                        arrowprops={
-                            "arrowstyle": "-|>",
-                            "color": color,
-                            "lw": width,
-                            "connectionstyle": style,
-                            "mutation_scale": 6,
-                            "alpha": 0.7,
-                        },
-                    )
-            ax.set_aspect("equal")
-            ax.axis("off")
+            _style_panel(ax, (-0.9, 0.9), (-0.65, 0.55))
+            transition_probs = {sleep: db_probs.get((step_bin, burden, day, sleep), {})}
+            _draw_transition_edges(
+                ax,
+                tuple(SLEEP_TYPES),
+                _SLEEP_POS,
+                transition_probs,
+                sources=(sleep,),
+                label_fontsize=5,
+            )
+            _draw_nodes(
+                ax,
+                tuple(SLEEP_TYPES),
+                _SLEEP_POS,
+                {"good": "g", "poor": "p"},
+            )
 
-    # Hide unused subplot slots
     total_cells = len(STEP_BINS) * len(combos)
     for idx in range(total_cells, nrows * ncols):
-        r = idx // ncols
-        c = idx % ncols
-        axes[r, c].axis("off")
+        axes[idx // ncols, idx % ncols].axis("off")
 
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0, 1, 0.96), h_pad=2.4, w_pad=0.8)
     fig.savefig(fig_dir / "day_boundary.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
@@ -528,48 +524,51 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     for fpath in args.files:
         path = Path(fpath)
         label = _model_label(path)
-        print(f"\nProcessing {label}...")
+        logger.info("")
+        logger.info("Processing %s...", label)
 
         records = _load(path)
-        print(f"  Loaded {len(records)} records")
+        logger.info("  Loaded %s records", len(records))
 
-        # Aggregate
-        print("  Aggregating day-boundary transitions...")
+        logger.info("  Aggregating day-boundary transitions...")
         db_probs = aggregate_day_boundary(records)
-        print(f"  {len(db_probs)} unique day-boundary cells")
+        logger.info("  %s unique day-boundary cells", len(db_probs))
 
-        print("  Aggregating within-day transitions...")
+        logger.info("  Aggregating within-day transitions (per-timestep)...")
         wd_probs = aggregate_within_day(records)
-        total_wd = sum(len(v) for v in wd_probs.values())
-        print(f"  {total_wd} unique within-day cells across {TIMESTEPS} timesteps")
+        total_wd = sum(len(value) for value in wd_probs.values())
+        logger.info(
+            "  %s unique within-day cells across %s timesteps",
+            total_wd,
+            TIMESTEPS,
+        )
 
-        # Save tables
+        logger.info("  Averaging within-day across timesteps...")
+        wd_avg = aggregate_within_day_averaged(records)
+        logger.info("  %s unique averaged within-day cells", len(wd_avg))
+
         tables_dir = args.tables_dir / label
         _save_tables(db_probs, wd_probs, tables_dir)
 
-        # Generate figures
-        fig_dir = args.fig_dir / label / "matrices"
+        fig_dir = args.fig_dir / label / "matricies"
         fig_dir.mkdir(parents=True, exist_ok=True)
-        print(f"  Generating figures in {fig_dir}/")
+        logger.info("  Generating figures in %s/", fig_dir)
 
-        # Within-day charts (5 timesteps x 4 actions = 20)
-        for t in range(TIMESTEPS):
-            for action in ACTIONS:
-                _plot_within_day_chart(wd_probs, action, t, fig_dir)
-
-        # Day-boundary chart (1)
+        for action in ACTIONS:
+            _plot_within_day_chart(wd_avg, action, fig_dir)
         _plot_day_boundary_chart(db_probs, fig_dir)
 
-        print("  Done: 21 charts written")
+        logger.info("  Done: 5 charts written (4 actions + 1 day_boundary)")
 
-    print(f"\n{'=' * 60}")
-    print("  All done.")
-    print(f"{'=' * 60}")
+    logger.info("")
+    logger.info("%s", "=" * 60)
+    logger.info("  All done.")
+    logger.info("%s", "=" * 60)
 
 
 if __name__ == "__main__":
