@@ -6,7 +6,6 @@ flags. Smaller batch sizes (300 vs 2000) for more frequent saves.
 
 from __future__ import annotations
 
-import datetime
 import json
 import logging
 import sys
@@ -15,8 +14,9 @@ from typing import Any
 
 from rl_health_interventions.llm_bootstrapping._shared import (
     dump_messages,
+    generate_output_path,
     load_env,
-    model_short_name,
+    parse_persona,
     save_jsonl,
     setup_logging,
 )
@@ -98,20 +98,16 @@ def main() -> None:
     setup_logging()
     load_env()
 
-    system_prompt, prompts = generate_prompts()
+    persona = parse_persona(sys.argv)
+    system_prompt, prompts = generate_prompts(persona=persona)
     total = len(prompts)
-    logger.info("Generated %d prompts from sprint1", total)
+    logger.info("Generated %d prompts for persona=%s", total, persona)
 
     if "--dry-run" in sys.argv:
         dump_messages(prompts, system_prompt)
         return
 
-    timestamp = datetime.datetime.now().strftime("%H:%M_%d:%m:%y")
-    out_path = Path(f"results_{model_short_name()}_{timestamp}.jsonl")
-    for arg in sys.argv:
-        if arg.startswith("--output="):
-            out_path = Path(arg.split("=", 1)[1])
-            break
+    out_path = generate_output_path(persona)
 
     if "--resume" in sys.argv or "--retry-errors" in sys.argv:
         check_model_match(out_path)

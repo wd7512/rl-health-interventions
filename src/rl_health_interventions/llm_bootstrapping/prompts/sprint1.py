@@ -16,10 +16,10 @@ from rl_health_interventions.llm_bootstrapping.prompts.prompts import (
     BIN_MIDPOINTS,
     BURDENS,
     DAY_TYPES,
+    PERSONA_PROMPTS,
     SLEEP_TYPES,
     STEP_BIN_DISPLAY,
     STEP_BINS,
-    SYSTEM_PROMPT,
     TIMESTEP_NAMES,
 )
 
@@ -116,7 +116,9 @@ def _within_day_prompts() -> list[str]:
     return prompts
 
 
-def generate_prompts(samples_per_cell: int = 10) -> tuple[str, list[str]]:
+def generate_prompts(
+    persona: str = "base", samples_per_cell: int = 10
+) -> tuple[str, list[str]]:
     """Return (system_prompt, list of prompt strings).
 
     Each prompt is repeated ``samples_per_cell`` times per output category
@@ -126,9 +128,14 @@ def generate_prompts(samples_per_cell: int = 10) -> tuple[str, list[str]]:
 
     Total: (36 x 20) + (720 x 30) = 22,320 prompts.
     """
+    if persona not in PERSONA_PROMPTS:
+        valid = list(PERSONA_PROMPTS.keys())
+        msg = f"Unknown persona: {persona}. Must be one of {valid}"
+        raise ValueError(msg)
+    system_prompt = PERSONA_PROMPTS[persona]
     day_boundary = _day_boundary_prompts()
     within_day = _within_day_prompts()
     repeated = [p for p in day_boundary for _ in range(2 * samples_per_cell)] + [
         p for p in within_day for _ in range(3 * samples_per_cell)
     ]
-    return SYSTEM_PROMPT, repeated
+    return system_prompt, repeated

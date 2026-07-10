@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import datetime
 import logging
 import os
 import sys
@@ -16,8 +15,10 @@ from rl_health_interventions.llm_bootstrapping._shared import (
     MODEL,
     build_messages,
     dump_messages,
+    generate_output_path,
     load_env,
     model_short_name,
+    parse_persona,
     resolve_api_key,
     save_jsonl,
     setup_logging,
@@ -109,15 +110,15 @@ def main() -> None:
     setup_logging()
     load_env()
 
-    system_prompt, prompts = generate_prompts()
-    logger.info("Generated %d prompts from sprint1", len(prompts))
+    persona = parse_persona(sys.argv)
+    system_prompt, prompts = generate_prompts(persona=persona)
+    logger.info("Generated %d prompts for persona=%s", len(prompts), persona)
 
     if "--dry-run" in sys.argv:
         dump_messages(prompts, system_prompt)
         return
 
-    timestamp = datetime.datetime.now().strftime("%H:%M_%d:%m:%y")
-    out_path = Path(f"results_{model_short_name()}_{timestamp}.jsonl")
+    out_path = generate_output_path(persona)
     total = len(prompts)
     for offset in range(0, total, chunk_size):
         chunk = prompts[offset : offset + chunk_size]

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime
 import json
 import logging
 import os
@@ -10,7 +11,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-MODEL = "deepseek/deepseek-v4-flash"
+MODEL = "openrouter/deepseek/deepseek-v4-flash"
 BASE_URL = "https://openrouter.ai/api/v1"
 
 
@@ -79,3 +80,19 @@ def dump_messages(prompts: list[str], system_prompt: str | None = None) -> None:
     logger = logging.getLogger(__name__)
     for i, m in enumerate(build_messages(prompts, system_prompt)):
         logger.info(json.dumps({"index": i, "messages": m}, indent=2))
+
+
+def parse_persona(sys_args: list[str]) -> str:
+    """Extract --persona= value from CLI args, default to 'base'."""
+    for arg in sys_args:
+        if arg.startswith("--persona="):
+            return arg.split("=", 1)[1]
+    return "base"
+
+
+def generate_output_path(persona: str) -> Path:
+    """Generate output path from persona, model, and timestamp."""
+    timestamp = datetime.datetime.now().strftime("%H:%M_%d:%m:%y")
+    return Path(
+        f"data/bootstrap/results_{persona}_{model_short_name()}_{timestamp}.jsonl"
+    )
