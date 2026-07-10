@@ -25,10 +25,7 @@ from rl_health_interventions.llm_bootstrapping._shared import (
     setup_logging,
 )
 from rl_health_interventions.llm_bootstrapping.prompts import generate_prompts
-from rl_health_interventions.llm_bootstrapping.request import (
-    batch_complete,
-    check_model_match,
-)
+from rl_health_interventions.llm_bootstrapping.request import batch_complete
 
 logger = logging.getLogger(__name__)
 
@@ -123,10 +120,7 @@ def main() -> None:
         out_path = generate_output_path(persona, subdir=subdir, provider=provider)
 
     if "--resume" in sys.argv or "--retry-errors" in sys.argv:
-        if "--resume" in sys.argv:
-            check_model_match(out_path, provider=provider)
-        else:
-            logger.info("Skipping model match check for --retry-errors")
+        logger.info("Skipping model match check")
 
     to_process, existing_records = _resolve_run_mode(sys.argv, out_path, total)
 
