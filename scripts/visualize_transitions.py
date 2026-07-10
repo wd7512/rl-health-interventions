@@ -555,7 +555,7 @@ def main() -> None:
         tables_dir = args.tables_dir / label
         _save_tables(db_probs, wd_probs, tables_dir)
 
-        fig_dir = args.fig_dir / label / "matrices"
+        fig_dir = args.fig_dir / label / "matricies"
         fig_dir.mkdir(parents=True, exist_ok=True)
         logger.info("  Generating figures in %s/", fig_dir)
 
