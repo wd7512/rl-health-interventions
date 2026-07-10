@@ -264,14 +264,14 @@ def _draw_cross_edge(
     start = src_pos + direction * NODE_RADIUS
     end = dst_pos - direction * NODE_RADIUS
     patch = mpatches.FancyArrowPatch(
-        start,
         end,
+        start,
         arrowstyle="-|>",
         connectionstyle=f"arc3,rad={curvature:.2f}",
-        mutation_scale=20,
-        linewidth=1.5,
+        mutation_scale=6,
+        linewidth=1.0,
         edgecolor="black",
-        facecolor="black",
+        facecolor="none",
         alpha=_alpha(prob),
         zorder=2,
     )
@@ -302,10 +302,10 @@ def _draw_self_loop(
     patch = mpatches.FancyArrowPatch(
         path=path,
         arrowstyle="-|>",
-        mutation_scale=20,
-        linewidth=1.5,
+        mutation_scale=6,
+        linewidth=1.0,
         edgecolor="black",
-        facecolor="black",
+        facecolor="none",
         alpha=_alpha(prob),
         zorder=2,
     )
