@@ -98,21 +98,30 @@ def parse_concurrency(sys_args: list[str]) -> int:
     return 200
 
 
-def generate_output_path(persona: str) -> Path:
+def parse_subdir(sys_args: list[str]) -> str:
+    """Extract --subdir= value from CLI args, default to '' (flat)."""
+    for arg in sys_args:
+        if arg.startswith("--subdir="):
+            return arg.split("=", 1)[1]
+    return ""
+
+
+def generate_output_path(persona: str, subdir: str = "") -> Path:
     """Generate output path from persona, model, and timestamp."""
     timestamp = datetime.datetime.now().strftime("%H:%M_%d:%m:%y")
-    return Path(
-        f"data/bootstrap/results_{persona}_{model_short_name()}_{timestamp}.jsonl"
-    )
+    base = Path("data/bootstrap")
+    if subdir:
+        base = base / subdir
+    return base / f"results_{persona}_{model_short_name()}_{timestamp}.jsonl"
 
 
-def find_latest_results_path(persona: str) -> Path | None:
+def find_latest_results_path(persona: str, subdir: str = "") -> Path | None:
     """Find the most recent results file for a persona."""
     bootstrap_dir = Path("data/bootstrap")
+    if subdir:
+        bootstrap_dir = bootstrap_dir / subdir
     if not bootstrap_dir.exists():
         return None
     pattern = f"results_{persona}_{model_short_name()}_*.jsonl"
     files = list(bootstrap_dir.glob(pattern))
-    if not files:
-        return None
-    return max(files, key=lambda p: p.stat().st_mtime)
+    return max(files, key=lambda p: p.stat().st_mtime) if files else None

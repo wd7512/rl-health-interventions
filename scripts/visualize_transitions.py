@@ -265,7 +265,7 @@ def _draw_cross_edge(
     end = dst_pos - direction * NODE_RADIUS
 
     # visual fix
-    start, end = end, start 
+    start, end = end, start
 
     patch = mpatches.FancyArrowPatch(
         start,

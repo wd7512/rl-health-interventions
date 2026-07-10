@@ -20,6 +20,7 @@ from rl_health_interventions.llm_bootstrapping._shared import (
     model_short_name,
     parse_concurrency,
     parse_persona,
+    parse_subdir,
     resolve_api_key,
     save_jsonl,
     setup_logging,
@@ -98,6 +99,7 @@ def batch_complete(
 def main() -> None:
     max_workers = parse_concurrency(sys.argv)
     chunk_size = max_workers * 10
+    subdir = parse_subdir(sys.argv)
 
     setup_logging()
     load_env()
@@ -110,7 +112,7 @@ def main() -> None:
         dump_messages(prompts, system_prompt)
         return
 
-    out_path = generate_output_path(persona)
+    out_path = generate_output_path(persona, subdir=subdir)
     total = len(prompts)
     for offset in range(0, total, chunk_size):
         chunk = prompts[offset : offset + chunk_size]
