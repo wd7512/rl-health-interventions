@@ -33,18 +33,8 @@ def check_model_match(out_path: Path) -> None:
     """Raise RuntimeError if the output filename's model doesn't match MODEL."""
     expected = model_short_name()
     stem = out_path.stem
-    if not stem.startswith("results_"):
-        return
-    parts = stem[len("results_") :].split("_")
-    min_parts_for_model = 2
-    if len(parts) < min_parts_for_model:
-        return
-    actual = parts[1]
-    if actual != expected:
-        msg = (
-            f"Filename '{out_path.name}' is for model '{actual}' "
-            f"but MODEL is '{expected}'."
-        )
+    if expected not in stem:
+        msg = f"Filename '{out_path.name}' does not contain model '{expected}'."
         raise RuntimeError(msg)
 
 
