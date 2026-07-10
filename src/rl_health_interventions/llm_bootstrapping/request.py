@@ -18,6 +18,7 @@ from rl_health_interventions.llm_bootstrapping._shared import (
     generate_output_path,
     load_env,
     model_short_name,
+    parse_concurrency,
     parse_persona,
     resolve_api_key,
     save_jsonl,
@@ -105,7 +106,7 @@ def batch_complete(
 
 
 def main() -> None:
-    max_workers = 200
+    max_workers = parse_concurrency(sys.argv)
     chunk_size = max_workers * 10
 
     setup_logging()

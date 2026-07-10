@@ -17,6 +17,7 @@ from rl_health_interventions.llm_bootstrapping._shared import (
     find_latest_results_path,
     generate_output_path,
     load_env,
+    parse_concurrency,
     parse_persona,
     save_jsonl,
     setup_logging,
@@ -93,7 +94,7 @@ def _resolve_run_mode(
 
 
 def main() -> None:
-    max_workers = 200
+    max_workers = parse_concurrency(sys.argv)
     chunk_size = int(max_workers * CHUNK_MULTIPLIER)
 
     setup_logging()

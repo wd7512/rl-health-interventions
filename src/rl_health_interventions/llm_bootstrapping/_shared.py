@@ -90,6 +90,14 @@ def parse_persona(sys_args: list[str]) -> str:
     return "base"
 
 
+def parse_concurrency(sys_args: list[str]) -> int:
+    """Extract --concurrency= value from CLI args, default to 200."""
+    for arg in sys_args:
+        if arg.startswith("--concurrency="):
+            return int(arg.split("=", 1)[1])
+    return 200
+
+
 def generate_output_path(persona: str) -> Path:
     """Generate output path from persona, model, and timestamp."""
     timestamp = datetime.datetime.now().strftime("%H:%M_%d:%m:%y")
