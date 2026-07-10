@@ -1,0 +1,94 @@
+# FM-guided dynamic action space MDP config.
+# Same dynamics as fm_poc.yaml but with all 15 interventions.
+#
+# Actions grouped into archetypes:
+#   movement: movement_suggestion, step_goal, walk_reminder, exercise_nudge, active_break
+#   cognitive: journal, reflection_prompt, gratitude_nudge, mood_check, goal_reminder
+#   wellness: sleep_hygiene, hydration_reminder, breathing_exercise, stress_check, wind_down
+
+initial_state:
+  step_bin: inactive
+  sleep: good
+  day_of_week: weekday
+  burden: low
+
+state:
+  variables:
+    step_bin:
+      names: [inactive, moderate, active]
+    sleep:
+      names: [good, poor]
+    day_of_week:
+      names: [weekday, weekend]
+      advanced:
+        type: cyclic
+        granularity: daily
+        pattern: [weekday, weekday, weekday, weekday, weekday, weekend, weekend]
+    burden:
+      names: [low, medium, high]
+      advanced:
+        type: rolling_window_count
+        window_size: 3
+        conditions:
+          - factor: action
+            type: in
+            values: [
+              movement_suggestion, step_goal, walk_reminder, exercise_nudge, active_break,
+              journal, reflection_prompt, gratitude_nudge, mood_check, goal_reminder,
+              sleep_hygiene, hydration_reminder, breathing_exercise, stress_check, wind_down,
+            ]
+        mapping: {0: low, 1: medium, 2: high, 3: high}
+
+actions:
+  movement_suggestion: {}
+  step_goal: {}
+  walk_reminder: {}
+  exercise_nudge: {}
+  active_break: {}
+  journal: {}
+  reflection_prompt: {}
+  gratitude_nudge: {}
+  mood_check: {}
+  goal_reminder: {}
+  sleep_hygiene: {}
+  hydration_reminder: {}
+  breathing_exercise: {}
+  stress_check: {}
+  wind_down: {}
+
+reward:
+  constants:
+    alpha: 0.9
+  variables:
+    step_bin_value:
+      source: state.step_bin
+      mapping: {inactive: 0.0, moderate: 0.5, active: 1.0}
+    sleep_value:
+      source: state.sleep
+      mapping: {good: 1.0, poor: -1.0}
+    action_penalty:
+      source: action
+      mapping:
+        movement_suggestion: 0.03
+        step_goal: 0.04
+        walk_reminder: 0.02
+        exercise_nudge: 0.05
+        active_break: 0.02
+        journal: 0.04
+        reflection_prompt: 0.03
+        gratitude_nudge: 0.02
+        mood_check: 0.02
+        goal_reminder: 0.03
+        sleep_hygiene: 0.03
+        hydration_reminder: 0.02
+        breathing_exercise: 0.03
+        stress_check: 0.02
+        wind_down: 0.03
+  formula: "alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty"
+
+transition_model:
+  type: random
+
+episode_days: 90
+steps_per_day: 5
+seed: 42
