@@ -1,0 +1,906 @@
+{
+  "inactive|low|idle|weekday|good": {
+    "_": {
+      "active": 0.6333333333333333,
+      "moderate": 0.36666666666666664
+    }
+  },
+  "inactive|low|idle|weekday|poor": {
+    "_": {
+      "moderate": 0.9333333333333333,
+      "active": 0.06666666666666667
+    }
+  },
+  "inactive|low|idle|weekend|good": {
+    "_": {
+      "active": 0.5,
+      "moderate": 0.5
+    }
+  },
+  "inactive|low|idle|weekend|poor": {
+    "_": {
+      "moderate": 0.8333333333333334,
+      "inactive": 0.13333333333333333,
+      "active": 0.03333333333333333
+    }
+  },
+  "inactive|low|movement_suggestion|weekday|good": {
+    "_": {
+      "active": 0.6666666666666666,
+      "moderate": 0.3333333333333333
+    }
+  },
+  "inactive|low|movement_suggestion|weekday|poor": {
+    "_": {
+      "active": 0.16666666666666666,
+      "moderate": 0.8333333333333334
+    }
+  },
+  "inactive|low|movement_suggestion|weekend|good": {
+    "_": {
+      "active": 0.5666666666666667,
+      "moderate": 0.43333333333333335
+    }
+  },
+  "inactive|low|movement_suggestion|weekend|poor": {
+    "_": {
+      "moderate": 0.9666666666666667,
+      "active": 0.03333333333333333
+    }
+  },
+  "inactive|low|goal_reminder|weekday|good": {
+    "_": {
+      "moderate": 0.43333333333333335,
+      "active": 0.5666666666666667
+    }
+  },
+  "inactive|low|goal_reminder|weekday|poor": {
+    "_": {
+      "moderate": 0.9,
+      "active": 0.1
+    }
+  },
+  "inactive|low|goal_reminder|weekend|good": {
+    "_": {
+      "active": 0.8333333333333334,
+      "moderate": 0.16666666666666666
+    }
+  },
+  "inactive|low|goal_reminder|weekend|poor": {
+    "_": {
+      "moderate": 0.7666666666666667,
+      "active": 0.23333333333333334
+    }
+  },
+  "inactive|low|journal|weekday|good": {
+    "_": {
+      "moderate": 0.6666666666666666,
+      "active": 0.3333333333333333
+    }
+  },
+  "inactive|low|journal|weekday|poor": {
+    "_": {
+      "moderate": 0.896551724137931,
+      "inactive": 0.034482758620689655,
+      "active": 0.06896551724137931
+    }
+  },
+  "inactive|low|journal|weekend|good": {
+    "_": {
+      "moderate": 0.6,
+      "active": 0.4
+    }
+  },
+  "inactive|low|journal|weekend|poor": {
+    "_": {
+      "moderate": 0.8333333333333334,
+      "inactive": 0.13333333333333333,
+      "active": 0.03333333333333333
+    }
+  },
+  "inactive|medium|idle|weekday|good": {
+    "_": {
+      "moderate": 0.6551724137931034,
+      "active": 0.3448275862068966
+    }
+  },
+  "inactive|medium|idle|weekday|poor": {
+    "_": {
+      "moderate": 0.7666666666666667,
+      "inactive": 0.2,
+      "active": 0.03333333333333333
+    }
+  },
+  "inactive|medium|idle|weekend|good": {
+    "_": {
+      "moderate": 0.7333333333333333,
+      "active": 0.26666666666666666
+    }
+  },
+  "inactive|medium|idle|weekend|poor": {
+    "_": {
+      "moderate": 0.8333333333333334,
+      "inactive": 0.13333333333333333,
+      "active": 0.03333333333333333
+    }
+  },
+  "inactive|medium|movement_suggestion|weekday|good": {
+    "_": {
+      "active": 0.3,
+      "moderate": 0.7
+    }
+  },
+  "inactive|medium|movement_suggestion|weekday|poor": {
+    "_": {
+      "moderate": 0.896551724137931,
+      "inactive": 0.034482758620689655,
+      "active": 0.06896551724137931
+    }
+  },
+  "inactive|medium|movement_suggestion|weekend|good": {
+    "_": {
+      "moderate": 0.8333333333333334,
+      "active": 0.16666666666666666
+    }
+  },
+  "inactive|medium|movement_suggestion|weekend|poor": {
+    "_": {
+      "moderate": 0.9,
+      "active": 0.03333333333333333,
+      "inactive": 0.06666666666666667
+    }
+  },
+  "inactive|medium|goal_reminder|weekday|good": {
+    "_": {
+      "active": 0.3333333333333333,
+      "moderate": 0.6666666666666666
+    }
+  },
+  "inactive|medium|goal_reminder|weekday|poor": {
+    "_": {
+      "moderate": 0.8,
+      "active": 0.13333333333333333,
+      "inactive": 0.06666666666666667
+    }
+  },
+  "inactive|medium|goal_reminder|weekend|good": {
+    "_": {
+      "active": 0.4666666666666667,
+      "moderate": 0.5333333333333333
+    }
+  },
+  "inactive|medium|goal_reminder|weekend|poor": {
+    "_": {
+      "moderate": 0.7586206896551724,
+      "active": 0.1724137931034483,
+      "inactive": 0.06896551724137931
+    }
+  },
+  "inactive|medium|journal|weekday|good": {
+    "_": {
+      "active": 0.26666666666666666,
+      "moderate": 0.7333333333333333
+    }
+  },
+  "inactive|medium|journal|weekday|poor": {
+    "_": {
+      "moderate": 0.8666666666666667,
+      "inactive": 0.1,
+      "active": 0.03333333333333333
+    }
+  },
+  "inactive|medium|journal|weekend|good": {
+    "_": {
+      "moderate": 0.9,
+      "active": 0.1
+    }
+  },
+  "inactive|medium|journal|weekend|poor": {
+    "_": {
+      "moderate": 0.9666666666666667,
+      "inactive": 0.03333333333333333
+    }
+  },
+  "inactive|high|idle|weekday|good": {
+    "_": {
+      "moderate": 0.8666666666666667,
+      "inactive": 0.06666666666666667,
+      "active": 0.06666666666666667
+    }
+  },
+  "inactive|high|idle|weekday|poor": {
+    "_": {
+      "moderate": 0.7333333333333333,
+      "inactive": 0.26666666666666666
+    }
+  },
+  "inactive|high|idle|weekend|good": {
+    "_": {
+      "moderate": 0.8333333333333334,
+      "active": 0.13333333333333333,
+      "inactive": 0.03333333333333333
+    }
+  },
+  "inactive|high|idle|weekend|poor": {
+    "_": {
+      "moderate": 0.7241379310344828,
+      "inactive": 0.2413793103448276,
+      "active": 0.034482758620689655
+    }
+  },
+  "inactive|high|movement_suggestion|weekday|good": {
+    "_": {
+      "inactive": 0.06666666666666667,
+      "moderate": 0.9333333333333333
+    }
+  },
+  "inactive|high|movement_suggestion|weekday|poor": {
+    "_": {
+      "moderate": 0.9,
+      "inactive": 0.1
+    }
+  },
+  "inactive|high|movement_suggestion|weekend|good": {
+    "_": {
+      "moderate": 0.8666666666666667,
+      "inactive": 0.1,
+      "active": 0.03333333333333333
+    }
+  },
+  "inactive|high|movement_suggestion|weekend|poor": {
+    "_": {
+      "moderate": 0.8666666666666667,
+      "inactive": 0.13333333333333333
+    }
+  },
+  "inactive|high|goal_reminder|weekday|good": {
+    "_": {
+      "moderate": 0.8333333333333334,
+      "active": 0.13333333333333333,
+      "inactive": 0.03333333333333333
+    }
+  },
+  "inactive|high|goal_reminder|weekday|poor": {
+    "_": {
+      "moderate": 0.9,
+      "inactive": 0.1
+    }
+  },
+  "inactive|high|goal_reminder|weekend|good": {
+    "_": {
+      "moderate": 0.7666666666666667,
+      "active": 0.23333333333333334
+    }
+  },
+  "inactive|high|goal_reminder|weekend|poor": {
+    "_": {
+      "moderate": 0.9333333333333333,
+      "inactive": 0.06666666666666667
+    }
+  },
+  "inactive|high|journal|weekday|good": {
+    "_": {
+      "moderate": 0.8666666666666667,
+      "inactive": 0.1,
+      "active": 0.03333333333333333
+    }
+  },
+  "inactive|high|journal|weekday|poor": {
+    "_": {
+      "moderate": 0.7333333333333333,
+      "inactive": 0.26666666666666666
+    }
+  },
+  "inactive|high|journal|weekend|good": {
+    "_": {
+      "moderate": 1.0
+    }
+  },
+  "inactive|high|journal|weekend|poor": {
+    "_": {
+      "moderate": 0.7,
+      "inactive": 0.3
+    }
+  },
+  "moderate|low|idle|weekday|good": {
+    "_": {
+      "moderate": 0.26666666666666666,
+      "active": 0.7333333333333333
+    }
+  },
+  "moderate|low|idle|weekday|poor": {
+    "_": {
+      "inactive": 0.03333333333333333,
+      "moderate": 0.8333333333333334,
+      "active": 0.13333333333333333
+    }
+  },
+  "moderate|low|idle|weekend|good": {
+    "_": {
+      "active": 0.6,
+      "moderate": 0.4
+    }
+  },
+  "moderate|low|idle|weekend|poor": {
+    "_": {
+      "moderate": 0.8,
+      "inactive": 0.16666666666666666,
+      "active": 0.03333333333333333
+    }
+  },
+  "moderate|low|movement_suggestion|weekday|good": {
+    "_": {
+      "active": 0.8666666666666667,
+      "moderate": 0.13333333333333333
+    }
+  },
+  "moderate|low|movement_suggestion|weekday|poor": {
+    "_": {
+      "moderate": 0.5333333333333333,
+      "active": 0.4666666666666667
+    }
+  },
+  "moderate|low|movement_suggestion|weekend|good": {
+    "_": {
+      "moderate": 0.3,
+      "active": 0.7
+    }
+  },
+  "moderate|low|movement_suggestion|weekend|poor": {
+    "_": {
+      "active": 0.23333333333333334,
+      "moderate": 0.7,
+      "inactive": 0.06666666666666667
+    }
+  },
+  "moderate|low|goal_reminder|weekday|good": {
+    "_": {
+      "active": 0.8666666666666667,
+      "moderate": 0.13333333333333333
+    }
+  },
+  "moderate|low|goal_reminder|weekday|poor": {
+    "_": {
+      "moderate": 0.5,
+      "active": 0.5
+    }
+  },
+  "moderate|low|goal_reminder|weekend|good": {
+    "_": {
+      "active": 0.9655172413793104,
+      "moderate": 0.034482758620689655
+    }
+  },
+  "moderate|low|goal_reminder|weekend|poor": {
+    "_": {
+      "moderate": 0.6071428571428571,
+      "active": 0.35714285714285715,
+      "inactive": 0.03571428571428571
+    }
+  },
+  "moderate|low|journal|weekday|good": {
+    "_": {
+      "active": 0.5,
+      "moderate": 0.5
+    }
+  },
+  "moderate|low|journal|weekday|poor": {
+    "_": {
+      "moderate": 0.7241379310344828,
+      "active": 0.2413793103448276,
+      "inactive": 0.034482758620689655
+    }
+  },
+  "moderate|low|journal|weekend|good": {
+    "_": {
+      "active": 0.8333333333333334,
+      "moderate": 0.16666666666666666
+    }
+  },
+  "moderate|low|journal|weekend|poor": {
+    "_": {
+      "moderate": 0.9,
+      "active": 0.1
+    }
+  },
+  "moderate|medium|idle|weekday|good": {
+    "_": {
+      "active": 0.5172413793103449,
+      "moderate": 0.4827586206896552
+    }
+  },
+  "moderate|medium|idle|weekday|poor": {
+    "_": {
+      "moderate": 0.8,
+      "inactive": 0.16666666666666666,
+      "active": 0.03333333333333333
+    }
+  },
+  "moderate|medium|idle|weekend|good": {
+    "_": {
+      "active": 0.8333333333333334,
+      "moderate": 0.16666666666666666
+    }
+  },
+  "moderate|medium|idle|weekend|poor": {
+    "_": {
+      "moderate": 0.896551724137931,
+      "inactive": 0.06896551724137931,
+      "active": 0.034482758620689655
+    }
+  },
+  "moderate|medium|movement_suggestion|weekday|good": {
+    "_": {
+      "active": 0.6333333333333333,
+      "moderate": 0.36666666666666664
+    }
+  },
+  "moderate|medium|movement_suggestion|weekday|poor": {
+    "_": {
+      "moderate": 0.8,
+      "active": 0.16666666666666666,
+      "inactive": 0.03333333333333333
+    }
+  },
+  "moderate|medium|movement_suggestion|weekend|good": {
+    "_": {
+      "active": 0.6333333333333333,
+      "moderate": 0.36666666666666664
+    }
+  },
+  "moderate|medium|movement_suggestion|weekend|poor": {
+    "_": {
+      "moderate": 0.8333333333333334,
+      "active": 0.1,
+      "inactive": 0.06666666666666667
+    }
+  },
+  "moderate|medium|goal_reminder|weekday|good": {
+    "_": {
+      "active": 0.6666666666666666,
+      "moderate": 0.3333333333333333
+    }
+  },
+  "moderate|medium|goal_reminder|weekday|poor": {
+    "_": {
+      "moderate": 0.7333333333333333,
+      "active": 0.26666666666666666
+    }
+  },
+  "moderate|medium|goal_reminder|weekend|good": {
+    "_": {
+      "active": 0.7,
+      "moderate": 0.3
+    }
+  },
+  "moderate|medium|goal_reminder|weekend|poor": {
+    "_": {
+      "moderate": 0.7333333333333333,
+      "active": 0.16666666666666666,
+      "inactive": 0.1
+    }
+  },
+  "moderate|medium|journal|weekday|good": {
+    "_": {
+      "active": 0.5,
+      "moderate": 0.5
+    }
+  },
+  "moderate|medium|journal|weekday|poor": {
+    "_": {
+      "moderate": 0.7666666666666667,
+      "inactive": 0.1,
+      "active": 0.13333333333333333
+    }
+  },
+  "moderate|medium|journal|weekend|good": {
+    "_": {
+      "active": 0.6896551724137931,
+      "moderate": 0.3103448275862069
+    }
+  },
+  "moderate|medium|journal|weekend|poor": {
+    "_": {
+      "active": 0.16666666666666666,
+      "moderate": 0.8,
+      "inactive": 0.03333333333333333
+    }
+  },
+  "moderate|high|idle|weekday|good": {
+    "_": {
+      "moderate": 0.7931034482758621,
+      "active": 0.20689655172413793
+    }
+  },
+  "moderate|high|idle|weekday|poor": {
+    "_": {
+      "moderate": 0.9,
+      "inactive": 0.1
+    }
+  },
+  "moderate|high|idle|weekend|good": {
+    "_": {
+      "active": 0.3333333333333333,
+      "moderate": 0.6666666666666666
+    }
+  },
+  "moderate|high|idle|weekend|poor": {
+    "_": {
+      "moderate": 0.9333333333333333,
+      "inactive": 0.06666666666666667
+    }
+  },
+  "moderate|high|movement_suggestion|weekday|good": {
+    "_": {
+      "moderate": 0.8333333333333334,
+      "inactive": 0.06666666666666667,
+      "active": 0.1
+    }
+  },
+  "moderate|high|movement_suggestion|weekday|poor": {
+    "_": {
+      "moderate": 0.9,
+      "inactive": 0.1
+    }
+  },
+  "moderate|high|movement_suggestion|weekend|good": {
+    "_": {
+      "moderate": 0.9333333333333333,
+      "active": 0.06666666666666667
+    }
+  },
+  "moderate|high|movement_suggestion|weekend|poor": {
+    "_": {
+      "moderate": 0.9333333333333333,
+      "inactive": 0.06666666666666667
+    }
+  },
+  "moderate|high|goal_reminder|weekday|good": {
+    "_": {
+      "moderate": 0.8,
+      "active": 0.16666666666666666,
+      "inactive": 0.03333333333333333
+    }
+  },
+  "moderate|high|goal_reminder|weekday|poor": {
+    "_": {
+      "moderate": 0.9333333333333333,
+      "active": 0.06666666666666667
+    }
+  },
+  "moderate|high|goal_reminder|weekend|good": {
+    "_": {
+      "moderate": 0.6551724137931034,
+      "active": 0.27586206896551724,
+      "inactive": 0.06896551724137931
+    }
+  },
+  "moderate|high|goal_reminder|weekend|poor": {
+    "_": {
+      "moderate": 0.9,
+      "inactive": 0.1
+    }
+  },
+  "moderate|high|journal|weekday|good": {
+    "_": {
+      "moderate": 0.6333333333333333,
+      "active": 0.36666666666666664
+    }
+  },
+  "moderate|high|journal|weekday|poor": {
+    "_": {
+      "moderate": 0.8666666666666667,
+      "inactive": 0.13333333333333333
+    }
+  },
+  "moderate|high|journal|weekend|good": {
+    "_": {
+      "active": 0.20689655172413793,
+      "moderate": 0.6896551724137931,
+      "inactive": 0.10344827586206896
+    }
+  },
+  "moderate|high|journal|weekend|poor": {
+    "_": {
+      "moderate": 0.8,
+      "inactive": 0.2
+    }
+  },
+  "active|low|idle|weekday|good": {
+    "_": {
+      "active": 0.8,
+      "moderate": 0.2
+    }
+  },
+  "active|low|idle|weekday|poor": {
+    "_": {
+      "moderate": 0.8333333333333334,
+      "inactive": 0.06666666666666667,
+      "active": 0.1
+    }
+  },
+  "active|low|idle|weekend|good": {
+    "_": {
+      "active": 1.0
+    }
+  },
+  "active|low|idle|weekend|poor": {
+    "_": {
+      "moderate": 0.7,
+      "inactive": 0.06666666666666667,
+      "active": 0.23333333333333334
+    }
+  },
+  "active|low|movement_suggestion|weekday|good": {
+    "_": {
+      "active": 0.9666666666666667,
+      "moderate": 0.03333333333333333
+    }
+  },
+  "active|low|movement_suggestion|weekday|poor": {
+    "_": {
+      "moderate": 0.13333333333333333,
+      "active": 0.8666666666666667
+    }
+  },
+  "active|low|movement_suggestion|weekend|good": {
+    "_": {
+      "active": 0.9,
+      "moderate": 0.1
+    }
+  },
+  "active|low|movement_suggestion|weekend|poor": {
+    "_": {
+      "active": 0.6666666666666666,
+      "moderate": 0.3333333333333333
+    }
+  },
+  "active|low|goal_reminder|weekday|good": {
+    "_": {
+      "active": 0.9666666666666667,
+      "moderate": 0.03333333333333333
+    }
+  },
+  "active|low|goal_reminder|weekday|poor": {
+    "_": {
+      "active": 0.6666666666666666,
+      "moderate": 0.3333333333333333
+    }
+  },
+  "active|low|goal_reminder|weekend|good": {
+    "_": {
+      "active": 0.9333333333333333,
+      "moderate": 0.06666666666666667
+    }
+  },
+  "active|low|goal_reminder|weekend|poor": {
+    "_": {
+      "active": 0.9666666666666667,
+      "moderate": 0.03333333333333333
+    }
+  },
+  "active|low|journal|weekday|good": {
+    "_": {
+      "active": 0.8333333333333334,
+      "moderate": 0.16666666666666666
+    }
+  },
+  "active|low|journal|weekday|poor": {
+    "_": {
+      "moderate": 0.8333333333333334,
+      "active": 0.13333333333333333,
+      "inactive": 0.03333333333333333
+    }
+  },
+  "active|low|journal|weekend|good": {
+    "_": {
+      "active": 0.8666666666666667,
+      "moderate": 0.1,
+      "inactive": 0.03333333333333333
+    }
+  },
+  "active|low|journal|weekend|poor": {
+    "_": {
+      "moderate": 0.9,
+      "active": 0.1
+    }
+  },
+  "active|medium|idle|weekday|good": {
+    "_": {
+      "active": 0.9333333333333333,
+      "moderate": 0.06666666666666667
+    }
+  },
+  "active|medium|idle|weekday|poor": {
+    "_": {
+      "active": 0.2,
+      "moderate": 0.8
+    }
+  },
+  "active|medium|idle|weekend|good": {
+    "_": {
+      "active": 0.9,
+      "moderate": 0.1
+    }
+  },
+  "active|medium|idle|weekend|poor": {
+    "_": {
+      "moderate": 0.8666666666666667,
+      "active": 0.13333333333333333
+    }
+  },
+  "active|medium|movement_suggestion|weekday|good": {
+    "_": {
+      "active": 0.8,
+      "moderate": 0.2
+    }
+  },
+  "active|medium|movement_suggestion|weekday|poor": {
+    "_": {
+      "moderate": 0.7666666666666667,
+      "active": 0.2,
+      "inactive": 0.03333333333333333
+    }
+  },
+  "active|medium|movement_suggestion|weekend|good": {
+    "_": {
+      "active": 0.8333333333333334,
+      "moderate": 0.16666666666666666
+    }
+  },
+  "active|medium|movement_suggestion|weekend|poor": {
+    "_": {
+      "moderate": 0.8,
+      "active": 0.2
+    }
+  },
+  "active|medium|goal_reminder|weekday|good": {
+    "_": {
+      "active": 0.6666666666666666,
+      "moderate": 0.3333333333333333
+    }
+  },
+  "active|medium|goal_reminder|weekday|poor": {
+    "_": {
+      "moderate": 0.5,
+      "active": 0.5
+    }
+  },
+  "active|medium|goal_reminder|weekend|good": {
+    "_": {
+      "active": 0.8,
+      "moderate": 0.2
+    }
+  },
+  "active|medium|goal_reminder|weekend|poor": {
+    "_": {
+      "moderate": 0.5714285714285714,
+      "active": 0.42857142857142855
+    }
+  },
+  "active|medium|journal|weekday|good": {
+    "_": {
+      "moderate": 0.36666666666666664,
+      "active": 0.6333333333333333
+    }
+  },
+  "active|medium|journal|weekday|poor": {
+    "_": {
+      "inactive": 0.1,
+      "moderate": 0.7666666666666667,
+      "active": 0.13333333333333333
+    }
+  },
+  "active|medium|journal|weekend|good": {
+    "_": {
+      "active": 0.8666666666666667,
+      "moderate": 0.1,
+      "inactive": 0.03333333333333333
+    }
+  },
+  "active|medium|journal|weekend|poor": {
+    "_": {
+      "moderate": 0.9333333333333333,
+      "active": 0.06666666666666667
+    }
+  },
+  "active|high|idle|weekday|good": {
+    "_": {
+      "moderate": 0.5,
+      "active": 0.5
+    }
+  },
+  "active|high|idle|weekday|poor": {
+    "_": {
+      "moderate": 0.9,
+      "inactive": 0.03333333333333333,
+      "active": 0.06666666666666667
+    }
+  },
+  "active|high|idle|weekend|good": {
+    "_": {
+      "moderate": 0.6896551724137931,
+      "active": 0.3103448275862069
+    }
+  },
+  "active|high|idle|weekend|poor": {
+    "_": {
+      "moderate": 1.0
+    }
+  },
+  "active|high|movement_suggestion|weekday|good": {
+    "_": {
+      "moderate": 0.8666666666666667,
+      "active": 0.13333333333333333
+    }
+  },
+  "active|high|movement_suggestion|weekday|poor": {
+    "_": {
+      "moderate": 0.9,
+      "inactive": 0.1
+    }
+  },
+  "active|high|movement_suggestion|weekend|good": {
+    "_": {
+      "moderate": 0.8275862068965517,
+      "active": 0.1724137931034483
+    }
+  },
+  "active|high|movement_suggestion|weekend|poor": {
+    "_": {
+      "moderate": 0.8,
+      "inactive": 0.2
+    }
+  },
+  "active|high|goal_reminder|weekday|good": {
+    "_": {
+      "moderate": 0.8,
+      "active": 0.16666666666666666,
+      "inactive": 0.03333333333333333
+    }
+  },
+  "active|high|goal_reminder|weekday|poor": {
+    "_": {
+      "moderate": 0.9333333333333333,
+      "active": 0.06666666666666667
+    }
+  },
+  "active|high|goal_reminder|weekend|good": {
+    "_": {
+      "active": 0.4666666666666667,
+      "moderate": 0.5333333333333333
+    }
+  },
+  "active|high|goal_reminder|weekend|poor": {
+    "_": {
+      "moderate": 0.9333333333333333,
+      "active": 0.06666666666666667
+    }
+  },
+  "active|high|journal|weekday|good": {
+    "_": {
+      "moderate": 0.6666666666666666,
+      "active": 0.3333333333333333
+    }
+  },
+  "active|high|journal|weekday|poor": {
+    "_": {
+      "moderate": 0.8333333333333334,
+      "inactive": 0.13333333333333333,
+      "active": 0.03333333333333333
+    }
+  },
+  "active|high|journal|weekend|good": {
+    "_": {
+      "moderate": 0.8,
+      "active": 0.16666666666666666,
+      "inactive": 0.03333333333333333
+    }
+  },
+  "active|high|journal|weekend|poor": {
+    "_": {
+      "moderate": 0.9655172413793104,
+      "active": 0.034482758620689655
+    }
+  }
+}
