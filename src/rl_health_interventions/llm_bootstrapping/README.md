@@ -12,7 +12,10 @@ Or create a `.env` file in this directory:
 
 ```
 OPENROUTER_API_KEY=sk-or-v1-***
+OPENCODE_ZEN_API_KEY=your_opencode_zen_api_key_here
 ```
+
+`OPENCODE_ZEN_API_KEY` is only required when using `--provider=zen`.
 
 ## Usage
 
@@ -28,6 +31,10 @@ uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --resu
 
 # Retry errors — strip error records, re-run them, append, sort on finish
 uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retry-errors
+
+# Use OpenCode Zen provider (requires OPENCODE_ZEN_API_KEY in .env)
+uv run python -m rl_health_interventions.llm_bootstrapping.request --provider=zen
+uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retry-errors --persona=stable_maintainer --provider=zen
 
 # Custom output path
 uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --resume --output=path/to/file.jsonl
@@ -95,7 +102,14 @@ prompts (96.6% complete). All 721 failed with `Key limit exceeded (total limit)`
 DeepSeek V4 Flash via OpenRouter. This is a **model-specific rate limit** — other models
 like `glm-5.2` work fine (verified via `example.py`).
 
-**To complete:**
+**To complete (option 1 — OpenCode Zen):**
+1. Add `OPENCODE_ZEN_API_KEY` to `.env` (see Setup above)
+2. Retry with Zen provider:
+   ```bash
+   uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retry-errors --persona=stable_maintainer --provider=zen
+   ```
+
+**To complete (option 2 — wait for OpenRouter reset):**
 1. Check OpenRouter rate limits for `deepseek-v4-flash` at https://openrouter.ai/workspaces
 2. Once limit resets, run:
    ```bash

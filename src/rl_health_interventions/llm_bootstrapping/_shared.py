@@ -14,12 +14,24 @@ from dotenv import load_dotenv
 MODEL = "openrouter/deepseek/deepseek-v4-flash"
 BASE_URL = "https://openrouter.ai/api/v1"
 
+ZEN_MODEL = "openai/deepseek-v4-flash-free"
+ZEN_BASE_URL = "https://opencode.ai/zen/v1"
+
 
 def resolve_api_key() -> str:
     """Return OPENROUTER_API_KEY or raise RuntimeError."""
     key = os.environ.get("OPENROUTER_API_KEY")
     if not key:
         msg = "OPENROUTER_API_KEY not set"
+        raise RuntimeError(msg)
+    return key
+
+
+def resolve_zen_api_key() -> str:
+    """Return OPENCODE_ZEN_API_KEY or raise RuntimeError."""
+    key = os.environ.get("OPENCODE_ZEN_API_KEY")
+    if not key:
+        msg = "OPENCODE_ZEN_API_KEY not set"
         raise RuntimeError(msg)
     return key
 
@@ -53,9 +65,22 @@ def build_messages(
     return messages_list
 
 
-def model_short_name() -> str:
+def model_short_name(provider: str = "openrouter") -> str:
     """Derive the short model name from MODEL (e.g. 'deepseek-v4-flash')."""
-    return MODEL.rstrip("/").split("/")[-1]
+    base = ZEN_MODEL if provider == "zen" else MODEL
+    return base.rstrip("/").split("/")[-1]
+
+
+def parse_provider(sys_args: list[str]) -> str:
+    """Extract --provider= value from CLI args, default to 'openrouter'."""
+    for arg in sys_args:
+        if arg.startswith("--provider="):
+            val = arg.split("=", 1)[1].lower()
+            if val not in ("openrouter", "zen"):
+                msg = f"Unknown provider: {val!r} (expected 'openrouter' or 'zen')"
+                raise ValueError(msg)
+            return val
+    return "openrouter"
 
 
 def save_jsonl(
@@ -106,22 +131,26 @@ def parse_subdir(sys_args: list[str]) -> str:
     return ""
 
 
-def generate_output_path(persona: str, subdir: str = "") -> Path:
+def generate_output_path(
+    persona: str, subdir: str = "", provider: str = "openrouter"
+) -> Path:
     """Generate output path from persona, model, and timestamp."""
     timestamp = datetime.datetime.now().strftime("%H:%M_%d:%m:%y")
     base = Path("data/bootstrap")
     if subdir:
         base = base / subdir
-    return base / f"results_{persona}_{model_short_name()}_{timestamp}.jsonl"
+    return base / f"results_{persona}_{model_short_name(provider)}_{timestamp}.jsonl"
 
 
-def find_latest_results_path(persona: str, subdir: str = "") -> Path | None:
+def find_latest_results_path(
+    persona: str, subdir: str = "", provider: str = "openrouter"
+) -> Path | None:
     """Find the most recent results file for a persona."""
     bootstrap_dir = Path("data/bootstrap")
     if subdir:
         bootstrap_dir = bootstrap_dir / subdir
     if not bootstrap_dir.exists():
         return None
-    pattern = f"results_{persona}_{model_short_name()}_*.jsonl"
+    pattern = f"results_{persona}_{model_short_name(provider)}_*.jsonl"
     files = list(bootstrap_dir.glob(pattern))
     return max(files, key=lambda p: p.stat().st_mtime) if files else None

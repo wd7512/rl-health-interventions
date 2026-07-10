@@ -13,6 +13,8 @@ from litellm import batch_completion
 from rl_health_interventions.llm_bootstrapping._shared import (
     BASE_URL,
     MODEL,
+    ZEN_BASE_URL,
+    ZEN_MODEL,
     build_messages,
     dump_messages,
     generate_output_path,
@@ -20,8 +22,10 @@ from rl_health_interventions.llm_bootstrapping._shared import (
     model_short_name,
     parse_concurrency,
     parse_persona,
+    parse_provider,
     parse_subdir,
     resolve_api_key,
+    resolve_zen_api_key,
     save_jsonl,
     setup_logging,
 )
@@ -30,9 +34,9 @@ from rl_health_interventions.llm_bootstrapping.prompts import generate_prompts
 logger = logging.getLogger(__name__)
 
 
-def check_model_match(out_path: Path) -> None:
+def check_model_match(out_path: Path, provider: str = "openrouter") -> None:
     """Raise RuntimeError if the output filename's model doesn't match MODEL."""
-    expected = model_short_name()
+    expected = model_short_name(provider)
     stem = out_path.stem
     if expected not in stem:
         msg = f"Filename '{out_path.name}' does not contain model '{expected}'."
@@ -60,11 +64,21 @@ def batch_complete(
     temperature: float = 0.7,
     max_workers: int = 50,
     num_retries: int = 7,
+    provider: str = "openrouter",
 ) -> list[dict[str, Any]]:
-    """Send batch completions to OpenRouter via litellm."""
-    api_key = resolve_api_key()
-    os.environ["OPENROUTER_API_KEY"] = api_key
-    os.environ["OPENROUTER_API_BASE"] = BASE_URL
+    """Send batch completions via litellm."""
+    extra_kwargs: dict[str, Any] = {}
+    if provider == "zen":
+        zen_key = resolve_zen_api_key()
+        os.environ["OPENAI_API_KEY"] = zen_key
+        model = ZEN_MODEL
+        extra_kwargs["api_base"] = ZEN_BASE_URL
+        extra_kwargs["extra_headers"] = {"X-API-Key": zen_key}
+        logger.info("Using OpenCode Zen provider (model=%s)", model)
+    else:
+        api_key = resolve_api_key()
+        os.environ["OPENROUTER_API_KEY"] = api_key
+        os.environ["OPENROUTER_API_BASE"] = BASE_URL
 
     messages_list = build_messages(prompts, system_prompt)
     n = len(prompts)
@@ -76,6 +90,7 @@ def batch_complete(
         temperature=temperature,
         max_workers=max_workers,
         num_retries=num_retries,
+        **extra_kwargs,
     )
 
     results: list[dict[str, Any]] = []
@@ -100,6 +115,7 @@ def main() -> None:
     max_workers = parse_concurrency(sys.argv)
     chunk_size = max_workers * 10
     subdir = parse_subdir(sys.argv)
+    provider = parse_provider(sys.argv)
 
     setup_logging()
     load_env()
@@ -112,7 +128,7 @@ def main() -> None:
         dump_messages(prompts, system_prompt)
         return
 
-    out_path = generate_output_path(persona, subdir=subdir)
+    out_path = generate_output_path(persona, subdir=subdir, provider=provider)
     total = len(prompts)
     for offset in range(0, total, chunk_size):
         chunk = prompts[offset : offset + chunk_size]
@@ -129,6 +145,7 @@ def main() -> None:
             chunk,
             system_prompt=system_prompt,
             max_workers=max_workers,
+            provider=provider,
         )
         save_jsonl(results, out_path, offset=offset)
     logger.info("All done: %d prompts written to %s", total, out_path)

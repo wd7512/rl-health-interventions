@@ -19,6 +19,7 @@ from rl_health_interventions.llm_bootstrapping._shared import (
     load_env,
     parse_concurrency,
     parse_persona,
+    parse_provider,
     parse_subdir,
     save_jsonl,
     setup_logging,
@@ -98,6 +99,7 @@ def main() -> None:
     max_workers = parse_concurrency(sys.argv)
     chunk_size = int(max_workers * CHUNK_MULTIPLIER)
     subdir = parse_subdir(sys.argv)
+    provider = parse_provider(sys.argv)
 
     setup_logging()
     load_env()
@@ -112,16 +114,16 @@ def main() -> None:
         return
 
     if "--resume" in sys.argv or "--retry-errors" in sys.argv:
-        latest = find_latest_results_path(persona, subdir=subdir)
+        latest = find_latest_results_path(persona, subdir=subdir, provider=provider)
         if latest is None:
             logger.error("No existing results found for persona=%s", persona)
             return
         out_path = latest
     else:
-        out_path = generate_output_path(persona, subdir=subdir)
+        out_path = generate_output_path(persona, subdir=subdir, provider=provider)
 
     if "--resume" in sys.argv or "--retry-errors" in sys.argv:
-        check_model_match(out_path)
+        check_model_match(out_path, provider=provider)
 
     to_process, existing_records = _resolve_run_mode(sys.argv, out_path, total)
 
@@ -155,6 +157,7 @@ def main() -> None:
             batch_prompts,
             system_prompt=system_prompt,
             max_workers=max_workers,
+            provider=provider,
         )
         save_jsonl(results, out_path, indices=batch_indices)
 
