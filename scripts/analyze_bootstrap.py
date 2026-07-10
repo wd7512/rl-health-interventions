@@ -301,24 +301,6 @@ def _compute_within_day_transitions(records: list[dict]) -> dict:
     return all_probs
 
 
-def _weighted_distribution(
-    probs: dict,
-    keys: list[tuple],
-    outcomes: tuple[str, ...],
-) -> dict[str, float]:
-    dist = defaultdict(float)
-    total = 0.0
-    for key in keys:
-        outcome_probs = probs.get(key, {})
-        weight = sum(outcome_probs.values())
-        for outcome in outcomes:
-            dist[outcome] += outcome_probs.get(outcome, 0.0) * weight
-        total += weight
-    if not total:
-        return dict.fromkeys(outcomes, 0.0)
-    return {outcome: dist[outcome] / total for outcome in outcomes}
-
-
 def _parse_counts(records: list[dict]) -> tuple[tuple[int, int], tuple[int, int]]:
     day_recs = [r for r in records if r["index"] < WITHIN_DAY_START]
     within_recs = [r for r in records if r["index"] >= WITHIN_DAY_START]
