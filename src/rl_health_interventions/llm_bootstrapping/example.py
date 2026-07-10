@@ -1,4 +1,4 @@
-"""Standalone litellm example — batch completion via OpenRouter.
+"""Standalone litellm example — batch completion via OpenRouter or OpenCode Zen.
 
 Scratchpad / smoke test — ensures things look right before running the real
 bootstrap. Uses the actual prompt rendering from sprint1.py.
@@ -7,19 +7,29 @@ bootstrap. Uses the actual prompt rendering from sprint1.py.
 import json
 import logging
 import os
+import sys
 import time
 from pathlib import Path
 
-from dotenv import load_dotenv
 from litellm import batch_completion
 
+from rl_health_interventions.llm_bootstrapping._shared import (
+    BASE_URL,
+    MODEL,
+    ZEN_BASE_URL,
+    ZEN_MODEL,
+    load_env,
+    parse_provider,
+    resolve_api_key,
+    resolve_zen_api_key,
+)
 from rl_health_interventions.llm_bootstrapping.prompts import SYSTEM_PROMPT
 from rl_health_interventions.llm_bootstrapping.prompts.sprint1 import (
     _render_day_boundary,
     _render_within_day,
 )
 
-load_dotenv(Path(__file__).parent / ".env")
+load_env()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -27,15 +37,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-api_key = os.getenv("OPENROUTER_API_KEY")
-base_url = os.getenv("OPENROUTER_API_BASE", "https://openrouter.ai/api/v1")
+provider = parse_provider(sys.argv)
 
-if api_key:
+if provider == "zen":
+    zen_key = resolve_zen_api_key()
+    os.environ["OPENAI_API_KEY"] = zen_key
+    model = ZEN_MODEL
+    base_url = ZEN_BASE_URL
+    extra_kwargs = {"api_base": base_url, "extra_headers": {"X-API-Key": zen_key}}
+    logger.info("Provider: zen (model=%s, base=%s)", model, base_url)
+else:
+    api_key = resolve_api_key()
     os.environ["OPENROUTER_API_KEY"] = api_key
-if base_url:
-    os.environ["OPENROUTER_API_BASE"] = base_url
-
-MODEL = "openrouter/z-ai/glm-5.2"
+    os.environ["OPENROUTER_API_BASE"] = BASE_URL
+    model = MODEL
+    extra_kwargs = {}
+    logger.info("Provider: openrouter (model=%s)", model)
 
 prompts = [
     _render_day_boundary("active", "low", "weekday", "good"),
@@ -60,11 +77,11 @@ messages_list = [
 
 s = time.time()
 responses = batch_completion(
-    model=MODEL,
+    model=model,
     messages=messages_list,
-    base_url=base_url,
     max_workers=5,
     num_retries=3,
+    **extra_kwargs,
 )
 e = time.time()
 logger.info("Batch completed in %.2f seconds", e - s)
