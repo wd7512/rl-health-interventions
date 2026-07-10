@@ -96,3 +96,15 @@ def generate_output_path(persona: str) -> Path:
     return Path(
         f"data/bootstrap/results_{persona}_{model_short_name()}_{timestamp}.jsonl"
     )
+
+
+def find_latest_results_path(persona: str) -> Path | None:
+    """Find the most recent results file for a persona."""
+    bootstrap_dir = Path("data/bootstrap")
+    if not bootstrap_dir.exists():
+        return None
+    pattern = f"results_{persona}_{model_short_name()}_*.jsonl"
+    files = list(bootstrap_dir.glob(pattern))
+    if not files:
+        return None
+    return max(files, key=lambda p: p.stat().st_mtime)

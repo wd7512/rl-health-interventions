@@ -32,16 +32,17 @@ def check_model_match(out_path: Path) -> None:
     """Raise RuntimeError if the output filename's model doesn't match MODEL."""
     expected = model_short_name()
     stem = out_path.stem
-    prefix = f"results_{expected}_"
-    if not stem.startswith(prefix):
-        if stem.startswith("results_"):
-            actual = stem[len("results_") :].split("_")[0]
-        else:
-            actual = "unknown"
+    if not stem.startswith("results_"):
+        return
+    parts = stem[len("results_") :].split("_")
+    min_parts_for_model = 2
+    if len(parts) < min_parts_for_model:
+        return
+    actual = parts[1]
+    if actual != expected:
         msg = (
             f"Filename '{out_path.name}' is for model '{actual}' "
-            f"but MODEL is '{expected}'. "
-            "Use --output=... to override."
+            f"but MODEL is '{expected}'."
         )
         raise RuntimeError(msg)
 

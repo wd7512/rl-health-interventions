@@ -14,6 +14,7 @@ from typing import Any
 
 from rl_health_interventions.llm_bootstrapping._shared import (
     dump_messages,
+    find_latest_results_path,
     generate_output_path,
     load_env,
     parse_persona,
@@ -107,7 +108,14 @@ def main() -> None:
         dump_messages(prompts, system_prompt)
         return
 
-    out_path = generate_output_path(persona)
+    if "--resume" in sys.argv or "--retry-errors" in sys.argv:
+        latest = find_latest_results_path(persona)
+        if latest is None:
+            logger.error("No existing results found for persona=%s", persona)
+            return
+        out_path = latest
+    else:
+        out_path = generate_output_path(persona)
 
     if "--resume" in sys.argv or "--retry-errors" in sys.argv:
         check_model_match(out_path)
