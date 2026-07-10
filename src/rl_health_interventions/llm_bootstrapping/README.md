@@ -95,27 +95,28 @@ uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --resu
 uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retry-errors --persona=goal_driven
 ```
 
-## TODO: stable_maintainer incomplete
+## stable_maintainer: 99.5% complete
 
-**CRITICAL:** The `stable_maintainer` persona run has 721 rate-limited errors out of 22,320
-prompts (96.6% complete). All 721 failed with `Key limit exceeded (total limit)` from
-DeepSeek V4 Flash via OpenRouter. This is a **model-specific rate limit** — other models
-like `glm-5.2` work fine (verified via `example.py`).
+The `stable_maintainer` persona run has 122 rate-limited errors out of 22,320
+prompts (99.5% complete). The original 721 OpenRouter errors were reduced to 122
+using OpenCode Zen — both providers are now rate-limited.
 
-**To complete (option 1 — OpenCode Zen):**
-1. Add `OPENCODE_ZEN_API_KEY` to `.env` (see Setup above)
-2. Retry with Zen provider:
+**To clear the remaining 122 errors:**
+1. Wait for rate limits to reset (OpenRouter: check https://openrouter.ai/workspaces;
+   Zen: free tier resets periodically)
+2. Retry with either provider:
    ```bash
-   uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retry-errors --persona=stable_maintainer --provider=zen
+   uv run python -m rl_health_interventions.llm_bootstrapping.request_helper \
+     --retry-errors --persona=stable_maintainer --subdir=persona --concurrency=5
    ```
+   Add `--provider=zen` to use Zen instead of OpenRouter.
 
-**To complete (option 2 — wait for OpenRouter reset):**
-1. Check OpenRouter rate limits for `deepseek-v4-flash` at https://openrouter.ai/workspaces
-2. Once limit resets, run:
-   ```bash
-   uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retry-errors --persona=stable_maintainer
-   ```
 3. Verify 0 errors:
    ```bash
-   jq -s '[.[] | select(.error)] | length' data/bootstrap/results_stable_maintainer*.jsonl
+   python3 -c "
+   import json
+   data = [json.loads(l) for l in open('data/bootstrap/persona/results_stable_maintainer_deepseek-v4-flash.jsonl')]
+   errors = [r for r in data if 'error' in r]
+   print(f'Errors: {len(errors)}/{len(data)}')
+   "
    ```
