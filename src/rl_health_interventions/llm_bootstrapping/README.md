@@ -68,3 +68,40 @@ results = batch_complete(
 )
 save_jsonl(results, Path(f"results_{model_short_name()}_<timestamp>.jsonl"))
 ```
+
+## Persona support
+
+Run bootstrap with a specific persona system prompt:
+
+```bash
+uv run python -m rl_health_interventions.llm_bootstrapping.request --persona=goal_driven
+uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --persona=social_responder --concurrency=1000
+```
+
+Available personas: `base`, `goal_driven`, `social_responder`, `resistant`, `stable_maintainer`.
+
+Output files: `data/bootstrap/results_{persona}_{model}_{timestamp}.jsonl`
+
+Resume/retry with persona:
+```bash
+uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --resume --persona=goal_driven
+uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retry-errors --persona=goal_driven
+```
+
+## TODO: stable_maintainer incomplete
+
+**CRITICAL:** The `stable_maintainer` persona run has 721 rate-limited errors out of 22,320
+prompts (96.6% complete). All 721 failed with `Key limit exceeded (total limit)` from
+DeepSeek V4 Flash via OpenRouter. This is a **model-specific rate limit** — other models
+like `glm-5.2` work fine (verified via `example.py`).
+
+**To complete:**
+1. Check OpenRouter rate limits for `deepseek-v4-flash` at https://openrouter.ai/workspaces
+2. Once limit resets, run:
+   ```bash
+   uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retry-errors --persona=stable_maintainer
+   ```
+3. Verify 0 errors:
+   ```bash
+   jq -s '[.[] | select(.error)] | length' data/bootstrap/results_stable_maintainer*.jsonl
+   ```
