@@ -74,6 +74,7 @@ class NormWearBanditAgent(ContextualBanditAgent):
     @override
     def select_action(self, state: StateView) -> str:
         ctx_key = self._get_fm_context(state)
+        self._cached_ctx_key = ctx_key
         self._ensure_context(ctx_key)
 
         # Thompson Sampling
@@ -93,7 +94,7 @@ class NormWearBanditAgent(ContextualBanditAgent):
     def update(
         self, state: StateView, action: str, reward: float, next_state: StateView
     ) -> None:
-        ctx_key = self._get_fm_context(state)
+        ctx_key = self._cached_ctx_key
         self._ensure_context(ctx_key)
         self._counts[ctx_key][action] += 1
         self._rewards[ctx_key][action] += max(reward, 0.0)
