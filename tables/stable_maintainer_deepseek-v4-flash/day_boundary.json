@@ -1,0 +1,207 @@
+{
+  "inactive|low|weekday|good": {
+    "_": {
+      "poor": 0.6,
+      "good": 0.4
+    }
+  },
+  "inactive|low|weekday|poor": {
+    "_": {
+      "poor": 0.95,
+      "good": 0.05
+    }
+  },
+  "inactive|low|weekend|good": {
+    "_": {
+      "poor": 0.3,
+      "good": 0.7
+    }
+  },
+  "inactive|low|weekend|poor": {
+    "_": {
+      "poor": 0.95,
+      "good": 0.05
+    }
+  },
+  "inactive|medium|weekday|good": {
+    "_": {
+      "poor": 0.65,
+      "good": 0.35
+    }
+  },
+  "inactive|medium|weekday|poor": {
+    "_": {
+      "poor": 0.9,
+      "good": 0.1
+    }
+  },
+  "inactive|medium|weekend|good": {
+    "_": {
+      "good": 0.55,
+      "poor": 0.45
+    }
+  },
+  "inactive|medium|weekend|poor": {
+    "_": {
+      "poor": 0.85,
+      "good": 0.15
+    }
+  },
+  "inactive|high|weekday|good": {
+    "_": {
+      "poor": 0.6,
+      "good": 0.4
+    }
+  },
+  "inactive|high|weekday|poor": {
+    "_": {
+      "poor": 1.0
+    }
+  },
+  "inactive|high|weekend|good": {
+    "_": {
+      "poor": 0.65,
+      "good": 0.35
+    }
+  },
+  "inactive|high|weekend|poor": {
+    "_": {
+      "poor": 0.9,
+      "good": 0.1
+    }
+  },
+  "moderate|low|weekday|good": {
+    "_": {
+      "good": 1.0
+    }
+  },
+  "moderate|low|weekday|poor": {
+    "_": {
+      "good": 0.6842105263157895,
+      "poor": 0.3157894736842105
+    }
+  },
+  "moderate|low|weekend|good": {
+    "_": {
+      "good": 1.0
+    }
+  },
+  "moderate|low|weekend|poor": {
+    "_": {
+      "good": 0.65,
+      "poor": 0.35
+    }
+  },
+  "moderate|medium|weekday|good": {
+    "_": {
+      "good": 1.0
+    }
+  },
+  "moderate|medium|weekday|poor": {
+    "_": {
+      "good": 0.75,
+      "poor": 0.25
+    }
+  },
+  "moderate|medium|weekend|good": {
+    "_": {
+      "good": 1.0
+    }
+  },
+  "moderate|medium|weekend|poor": {
+    "_": {
+      "good": 0.65,
+      "poor": 0.35
+    }
+  },
+  "moderate|high|weekday|good": {
+    "_": {
+      "good": 0.75,
+      "poor": 0.25
+    }
+  },
+  "moderate|high|weekday|poor": {
+    "_": {
+      "good": 0.45,
+      "poor": 0.55
+    }
+  },
+  "moderate|high|weekend|good": {
+    "_": {
+      "good": 0.75,
+      "poor": 0.25
+    }
+  },
+  "moderate|high|weekend|poor": {
+    "_": {
+      "poor": 0.65,
+      "good": 0.35
+    }
+  },
+  "active|low|weekday|good": {
+    "_": {
+      "good": 1.0
+    }
+  },
+  "active|low|weekday|poor": {
+    "_": {
+      "good": 0.85,
+      "poor": 0.15
+    }
+  },
+  "active|low|weekend|good": {
+    "_": {
+      "good": 1.0
+    }
+  },
+  "active|low|weekend|poor": {
+    "_": {
+      "good": 0.95,
+      "poor": 0.05
+    }
+  },
+  "active|medium|weekday|good": {
+    "_": {
+      "good": 1.0
+    }
+  },
+  "active|medium|weekday|poor": {
+    "_": {
+      "good": 0.75,
+      "poor": 0.25
+    }
+  },
+  "active|medium|weekend|good": {
+    "_": {
+      "good": 1.0
+    }
+  },
+  "active|medium|weekend|poor": {
+    "_": {
+      "good": 0.7,
+      "poor": 0.3
+    }
+  },
+  "active|high|weekday|good": {
+    "_": {
+      "good": 1.0
+    }
+  },
+  "active|high|weekday|poor": {
+    "_": {
+      "poor": 0.3,
+      "good": 0.7
+    }
+  },
+  "active|high|weekend|good": {
+    "_": {
+      "good": 1.0
+    }
+  },
+  "active|high|weekend|poor": {
+    "_": {
+      "poor": 0.3,
+      "good": 0.7
+    }
+  }
+}
