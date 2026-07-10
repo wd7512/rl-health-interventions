@@ -119,7 +119,11 @@ def parse_concurrency(sys_args: list[str]) -> int:
     """Extract --concurrency= value from CLI args, default to 200."""
     for arg in sys_args:
         if arg.startswith("--concurrency="):
-            return int(arg.split("=", 1)[1])
+            val = int(arg.split("=", 1)[1])
+            if val <= 0:
+                msg = f"--concurrency must be a positive integer, got {val}"
+                raise ValueError(msg)
+            return val
     return 200
 
 
