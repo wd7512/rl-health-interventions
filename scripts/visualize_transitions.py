@@ -434,7 +434,7 @@ def _plot_within_day_chart(probs: dict, action: str, fig_dir: Path) -> None:
                 _draw_nodes(ax, tuple(STEP_BINS), _POS, STEP_NODE_ABBR)
 
     fig.tight_layout()
-    fig.savefig(fig_dir / f"{action}.png", dpi=150, bbox_inches="tight")
+    fig.savefig(fig_dir / f"{action}.pdf", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -495,7 +495,7 @@ def _plot_day_boundary_chart(db_probs: dict, fig_dir: Path) -> None:
         axes[idx // ncols, idx % ncols].axis("off")
 
     fig.tight_layout(rect=(0, 0, 1, 0.96), h_pad=2.4, w_pad=0.8)
-    fig.savefig(fig_dir / "day_boundary.png", dpi=150, bbox_inches="tight")
+    fig.savefig(fig_dir / "day_boundary.pdf", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 

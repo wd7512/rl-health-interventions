@@ -528,7 +528,7 @@ def _plot_parse_rate(records_per_model: dict[str, list[dict]], fig_dir: Path) ->
         style="italic",
     )
     fig.tight_layout()
-    fig.savefig(fig_dir / "parse_rate.png", dpi=150, bbox_inches="tight")
+    fig.savefig(fig_dir / "parse_rate.pdf", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -588,7 +588,7 @@ def _plot_output_dist(records_per_model: dict[str, list[dict]], fig_dir: Path) -
             fontsize=11,
             fontweight="bold",
         )
-        fig.savefig(fig_dir / "output_distribution.png", dpi=150, bbox_inches="tight")
+        fig.savefig(fig_dir / "output_distribution.pdf", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
 
@@ -657,7 +657,7 @@ def _plot_cell_consistency(
             style="italic",
         )
         fig.tight_layout()
-        fig.savefig(fig_dir / "cell_consistency.png", dpi=150, bbox_inches="tight")
+        fig.savefig(fig_dir / "cell_consistency.pdf", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
 
@@ -721,7 +721,7 @@ def _plot_step_hist(records_per_model: dict[str, list[dict]], fig_dir: Path) -> 
         style="italic",
     )
     fig.tight_layout()
-    fig.savefig(fig_dir / "step_histogram.png", dpi=150, bbox_inches="tight")
+    fig.savefig(fig_dir / "step_histogram.pdf", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -781,7 +781,7 @@ def _plot_day_boundary_heatmap(
         )
         assert im is not None
         fig.colorbar(im, ax=axes, shrink=0.8, label="P(good next sleep)")
-        fig.savefig(fig_dir / "day_boundary_heatmap.png", dpi=150, bbox_inches="tight")
+        fig.savefig(fig_dir / "day_boundary_heatmap.pdf", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
 
@@ -853,7 +853,7 @@ def _plot_within_day_action(
             style="italic",
         )
         fig.tight_layout()
-        fig.savefig(fig_dir / "within_day_action.png", dpi=150, bbox_inches="tight")
+        fig.savefig(fig_dir / "within_day_action.pdf", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
 
@@ -924,7 +924,7 @@ def _plot_burden_interaction(
             style="italic",
         )
         fig.tight_layout()
-        fig.savefig(fig_dir / "burden_interaction.png", dpi=150, bbox_inches="tight")
+        fig.savefig(fig_dir / "burden_interaction.pdf", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
 
