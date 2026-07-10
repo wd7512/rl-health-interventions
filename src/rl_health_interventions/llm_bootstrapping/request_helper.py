@@ -123,7 +123,10 @@ def main() -> None:
         out_path = generate_output_path(persona, subdir=subdir, provider=provider)
 
     if "--resume" in sys.argv or "--retry-errors" in sys.argv:
-        check_model_match(out_path, provider=provider)
+        if "--resume" in sys.argv:
+            check_model_match(out_path, provider=provider)
+        else:
+            logger.info("Skipping model match check for --retry-errors")
 
     to_process, existing_records = _resolve_run_mode(sys.argv, out_path, total)
 

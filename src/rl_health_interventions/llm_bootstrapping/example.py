@@ -11,6 +11,8 @@ import sys
 import time
 from pathlib import Path
 
+from typing import Any
+
 from litellm import batch_completion
 
 from rl_health_interventions.llm_bootstrapping._shared import (
@@ -44,7 +46,10 @@ if provider == "zen":
     os.environ["OPENAI_API_KEY"] = zen_key
     model = ZEN_MODEL
     base_url = ZEN_BASE_URL
-    extra_kwargs = {"api_base": base_url, "extra_headers": {"X-API-Key": zen_key}}
+    extra_kwargs: dict[str, Any] = {
+        "api_base": base_url,
+        "extra_headers": {"X-API-Key": zen_key},
+    }
     logger.info("Provider: zen (model=%s, base=%s)", model, base_url)
 else:
     api_key = resolve_api_key()

@@ -153,4 +153,7 @@ def find_latest_results_path(
         return None
     pattern = f"results_{persona}_{model_short_name(provider)}_*.jsonl"
     files = list(bootstrap_dir.glob(pattern))
+    if not files:
+        pattern = f"results_{persona}_*.jsonl"
+        files = list(bootstrap_dir.glob(pattern))
     return max(files, key=lambda p: p.stat().st_mtime) if files else None
