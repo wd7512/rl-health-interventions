@@ -139,7 +139,7 @@ def generate_output_path(
     persona: str, subdir: str = "", provider: str = "openrouter"
 ) -> Path:
     """Generate output path from persona, model, and timestamp."""
-    timestamp = datetime.datetime.now().strftime("%H:%M_%d:%m:%y")
+    timestamp = datetime.datetime.now().strftime("%H-%M_%d-%m-%y")
     base = Path("data/bootstrap")
     if subdir:
         base = base / subdir
