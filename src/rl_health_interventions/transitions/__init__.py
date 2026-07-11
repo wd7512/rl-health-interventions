@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from rl_health_interventions._registry import Registry
+from rl_health_interventions.transitions import bootstrap, rule_based
 from rl_health_interventions.transitions import random as random_module
-from rl_health_interventions.transitions import rule_based
 from rl_health_interventions.transitions._base import TransitionModel
 
 REGISTRY: Registry = Registry("transition")
@@ -24,6 +24,6 @@ def make(name_or_config=None, **kwargs) -> TransitionModel:
 # NOTE: Import new transition model module above and append it here
 # so register() runs on import. Each module must have a register()
 # function that adds to REGISTRY.
-_TRANSITION_MODULES = [rule_based, random_module]
+_TRANSITION_MODULES = [bootstrap, rule_based, random_module]
 
 REGISTRY.load_modules(_TRANSITION_MODULES, logger_name=__name__)

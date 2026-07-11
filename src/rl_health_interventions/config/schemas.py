@@ -4,7 +4,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, RootModel, model_validator
 
-_KNOWN_TRANSITION_TYPES = frozenset({"rule_based", "random"})
+_KNOWN_TRANSITION_TYPES = frozenset({"rule_based", "random", "bootstrap"})
 
 
 class TransitionProbabilities(RootModel):
@@ -95,6 +95,7 @@ _KNOWN_AGENT_TYPES = frozenset(
         "ucb",
         "decaying_epsilon_greedy",
         "fixed",
+        "heartsteps",
     }
 )
 
@@ -119,6 +120,17 @@ class AgentConfig(BaseModel):
     contextual: bool = False
     context_features: str | list[str] | None = None
     action: str | None = None
+    gamma: float | None = None
+    lambda_dosage: float | None = None
+    w: float | None = None
+    epsilon_0: float | None = None
+    epsilon_1: float | None = None
+    sigma_sq: float | None = None
+    reference_action: str | None = None
+    prior_mean: float | None = None
+    prior_cov: float | None = None
+    f_features: str | list[str] | None = None
+    g_features: str | list[str] | None = None
 
     @model_validator(mode="after")
     def _validate_agent(self) -> AgentConfig:
@@ -243,6 +255,19 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "decaying_epsilon_greedy agent does not accept alpha_prior, beta_prior, epsilon, or c"
                 )
+        if self.type == "heartsteps":
+            if self.gamma is not None and not (0 < self.gamma <= 1):
+                raise ValueError("gamma must be in (0, 1] for heartsteps")
+            if self.lambda_dosage is not None and not (0 < self.lambda_dosage < 1):
+                raise ValueError("lambda_dosage must be in (0, 1) for heartsteps")
+            if self.w is not None and not (0 <= self.w <= 1):
+                raise ValueError("w must be in [0, 1] for heartsteps")
+            if self.epsilon_0 is not None and not (0 <= self.epsilon_0 < 0.5):  # noqa: PLR2004
+                raise ValueError("epsilon_0 must be in [0, 0.5) for heartsteps")
+            if self.epsilon_1 is not None and not (0 < self.epsilon_1 <= 0.5):  # noqa: PLR2004
+                raise ValueError("epsilon_1 must be in (0, 0.5] for heartsteps")
+            if self.sigma_sq is not None and self.sigma_sq <= 0:
+                raise ValueError("sigma_sq must be > 0 for heartsteps")
         return self
 
 
@@ -359,6 +384,13 @@ class MDPConfig(BaseModel):
             raise ValueError(
                 "random transition does not accept transition_probabilities"
             )
+        if tm.type == "bootstrap":
+            if tm.table_dir is None:
+                raise ValueError("bootstrap transition requires table_dir")
+            if tm.transition_probabilities is not None:
+                raise ValueError(
+                    "bootstrap transition does not accept transition_probabilities"
+                )
         tprobs = tm.transition_probabilities
         if tprobs is not None:
             if not self.state.variables:

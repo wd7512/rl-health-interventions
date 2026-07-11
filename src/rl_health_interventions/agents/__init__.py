@@ -30,12 +30,14 @@ def make(name: str, **kwargs) -> Agent:
 from rl_health_interventions.agents import (  # noqa: E402
     contextual_bandits,
     fixed,
+    heartsteps,
     random,
 )
 
 _AGENT_MODULES = [
     contextual_bandits,
     fixed,
+    heartsteps,
     random,
 ]
 
