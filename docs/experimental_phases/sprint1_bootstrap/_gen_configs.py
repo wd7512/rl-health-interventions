@@ -1,7 +1,10 @@
 """Generate cross-persona config files for all 7 table sets."""
 
 from __future__ import annotations
+
+import logging
 import os
+import re
 from pathlib import Path
 
 BASE = Path("docs/experimental_phases/sprint1_bootstrap")
@@ -43,17 +46,14 @@ def main() -> None:
             src = CONFIGS / template_name
             dst = target_dir / f"sprint1_bootstrap_{out_name}.yaml"
             content = src.read_text()
-            old_line = f"table_dir: ../../../../tables/persona/base_deepseek-v4-flash"
             new_line = f"table_dir: {table_dir_rel}"
-            content = content.replace(old_line, new_line)
-            # Also catch any other old table_dir variants (e.g. for base also used in initial)
-            old_line2 = f"table_dir: ../../../../tables/initial/deepseek"
-            content = content.replace(old_line2, new_line)
+            content = re.sub(r"^table_dir: .*$", new_line, content, flags=re.MULTILINE)
             dst.write_text(content)
-            print(f"  Wrote {dst} (table_dir: {table_dir_rel})")
+            logging.info("  Wrote %s (table_dir: %s)", dst, table_dir_rel)
 
-    print(f"\nGenerated configs in {CROSS}")
+    logging.info("\nGenerated configs in %s", CROSS)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     main()

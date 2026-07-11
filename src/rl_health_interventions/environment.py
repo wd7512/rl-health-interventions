@@ -55,6 +55,10 @@ class Environment:
         self._action_history: deque[str] = deque(maxlen=max_window)
         self._prime_action_history()
 
+    @property
+    def action_history(self) -> tuple[str, ...]:
+        return tuple(self._action_history)
+
     def _prime_action_history(self) -> None:
         self._action_history.clear()
         for _ in range(self._action_history.maxlen or 0):
