@@ -10,6 +10,16 @@
     "python-engineer": {
       "description": "Implements small, well-tested Python changes using uv, ruff, ty, and pytest.",
       "mode": "subagent"
+    },
+    "scout": {
+      "description": "Read-only agent for external docs, dependency research, and codebase reconnaissance",
+      "mode": "subagent",
+      "model": "opencode-go/deepseek-v4-flash"
+    },
+    "multimodal": {
+      "description": "Analyzes images, videos, and audio files — use when the current model lacks multimodal capabilities",
+      "mode": "subagent",
+      "model": "mimo/mimo-v2.5"
     }
   },
   "command": {
@@ -72,17 +82,7 @@
       "gh issue edit *": "ask",
       "rm *": "ask",
       "rmdir *": "ask",
-      "curl *": "ask",
-      "wget *": "ask",
-      "ssh *": "ask",
-      "scp *": "ask",
-      "rsync *": "ask",
-      "git reset *": "ask",
-      "git rebase *": "ask",
-      "git clean *": "ask",
-      "git stash *": "ask",
-      "git branch -d *": "ask",
-      "git branch -D *": "ask",
+      "git worktree *": "allow",
 
       "gh repo *": "deny",
       "chmod *": "deny",
@@ -97,8 +97,6 @@
       "git rebase *": "deny",
       "git clean *": "deny",
       "git stash *": "deny",
-      "git checkout *": "allow",
-      "git worktree *": "allow",
       "git branch -d *": "deny",
       "git branch -D *": "deny"
     },
