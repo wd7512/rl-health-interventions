@@ -111,28 +111,8 @@ uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --resu
 uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retry-errors --persona=goal_driven
 ```
 
-## stable_maintainer: 99.5% complete
+## stable_maintainer: complete
 
-The `stable_maintainer` persona run has 122 rate-limited errors out of 22,320
-prompts (99.5% complete). The original 721 OpenRouter errors were reduced to 122
-using OpenCode Zen — both providers are now rate-limited.
-
-**To clear the remaining 122 errors:**
-1. Wait for rate limits to reset (OpenRouter: check https://openrouter.ai/workspaces;
-   Zen: free tier resets periodically)
-2. Retry with either provider:
-   ```bash
-   uv run python -m rl_health_interventions.llm_bootstrapping.request_helper \
-     --retry-errors --persona=stable_maintainer --subdir=persona --concurrency=5
-   ```
-   Add `--provider=zen` to use Zen instead of OpenRouter.
-
-3. Verify 0 errors:
-   ```bash
-   python3 -c "
-   import json
-   data = [json.loads(l) for l in open('data/bootstrap/persona/results_stable_maintainer_deepseek-v4-flash.jsonl')]
-   errors = [r for r in data if 'error' in r]
-   print(f'Errors: {len(errors)}/{len(data)}')
-   "
-   ```
+The `stable_maintainer` persona run is complete: 22,320/22,320 prompts with 0
+errors. The original 721 OpenRouter rate-limit errors were cleared using
+OpenCode Zen with `request_helper --resume --persona=stable_maintainer --subdir=persona --provider=zen --concurrency=5`.
