@@ -43,29 +43,27 @@ class MultiClassBayesianRegression:
     def non_reference_actions(self) -> list[str]:
         return list(self._non_ref)
 
-    def _design_vector(
-        self, phi: np.ndarray, action: str, reward: float
-    ) -> tuple[str, np.ndarray, float]:
-        """Build the centered design vector for one-vs-rest."""
-        if action == self._reference_action:
-            return self._non_ref[0], -phi, -reward
-        return action, phi, reward
-
     def update_batch(self, transitions: list[tuple]) -> None:
         """Batch update over daily transitions.
 
         Each transition: (phi, action, reward) where phi is the feature vector.
+        For one-vs-rest: when reference action is taken, update ALL posteriors
+        with negated features/reward. When non-reference action a is taken,
+        update only posterior for a.
+
+        Uses diagonal of outer product to avoid cross-correlations between
+        independent one-hot feature groups (step_bin, sleep, etc.).
         """
         for phi, action, reward in transitions:
             phi_arr = np.asarray(phi, dtype=np.float64)
-            targeted_action, centered_phi, centered_reward = self._design_vector(
-                phi_arr, action, reward
-            )
-            outer = np.outer(centered_phi, centered_phi)
-            self._precision[targeted_action] += outer / self._sigma_sq
-            self._precision_mean[targeted_action] += (
-                centered_phi * centered_reward / self._sigma_sq
-            )
+            diag = np.diag(phi_arr * phi_arr)
+            if action == self._reference_action:
+                for targeted in self._non_ref:
+                    self._precision[targeted] += diag / self._sigma_sq
+                    self._precision_mean[targeted] += -phi_arr * reward / self._sigma_sq
+            else:
+                self._precision[action] += diag / self._sigma_sq
+                self._precision_mean[action] += phi_arr * reward / self._sigma_sq
 
     def sample_betas(self, rng: np.random.Generator) -> dict[str, np.ndarray]:
         """Draw samples from each posterior."""
@@ -86,10 +84,14 @@ class MultiClassBayesianRegression:
         means[self._reference_action] = np.zeros(self._n_features)
         return means
 
-    def get_reward_means(self) -> dict[str, float]:
-        """Expected reward for each action, averaged over feature distribution."""
+    def get_reward_means(
+        self, avg_features: np.ndarray | None = None
+    ) -> dict[str, float]:
+        """Expected reward for each action, marginalized over context.
+
+        Uses avg_features (running mean of observed f(s)) if provided,
+        otherwise returns 0 for all actions.
+        """
         means = self.get_beta_means()
-        return {
-            a: float(np.dot(means[a], np.zeros(self._n_features)))
-            for a in self._actions
-        }
+        f = avg_features if avg_features is not None else np.zeros(self._n_features)
+        return {a: float(np.dot(means[a], f)) for a in self._actions}

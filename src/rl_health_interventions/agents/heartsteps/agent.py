@@ -25,14 +25,10 @@ class HeartStepsAgent(Agent):
         gamma: float = 0.99,
         lambda_dosage: float = 0.95,
         w: float = 0.5,
-        epsilon_0: float = 0.2,
-        epsilon_1: float = 0.1,
         sigma_sq: float = 1.0,
         reference_action: str | None = None,
         _prior_mean: float = 0.0,
         _prior_cov: float = 1.0,
-        _f_features: str | list[str] | None = None,
-        _g_features: str | list[str] | None = None,
         **_kwargs: object,
     ) -> None:
         self._actions = actions or ["idle", "nudge"]
@@ -55,8 +51,8 @@ class HeartStepsAgent(Agent):
         )
         self._buffer: list[tuple] = []
         self._gamma = gamma
-        self._epsilon_0 = epsilon_0
-        self._epsilon_1 = epsilon_1
+        self._feature_sum = np.zeros(0, dtype=np.float64)
+        self._feature_count = 0
 
     def init_one_hot_map(self, state_variables: dict[str, list[str]]) -> None:
         """Build one-hot encoding map from state variable definitions."""
@@ -79,6 +75,8 @@ class HeartStepsAgent(Agent):
             reference_action=self._reference_action,
             sigma_sq=self._sigma_sq,
         )
+        self._feature_sum = np.zeros(self._n_features, dtype=np.float64)
+        self._feature_count = 0
 
     def _one_hot(self, state) -> np.ndarray:
         """Encode state as a one-hot feature vector."""
@@ -94,21 +92,10 @@ class HeartStepsAgent(Agent):
         assert self._regression is not None, "Call init_one_hot_map first"
         f = self._one_hot(state)
         dosage = self._dosage_tracker.get_dosage()
-        samples = self._regression.sample_betas(self._rng)
-
-        q_values = {}
-        for action in self._actions:
-            eta = self._proxy.get_eta(action, dosage)
-            q_values[action] = float(f @ samples[action]) + self._gamma * eta
-
-        actions_list = list(q_values.keys())
-        q_arr = np.array([q_values[a] for a in actions_list])
-        softmax = np.exp(q_arr - np.max(q_arr))
-        softmax = softmax / softmax.sum()
-        clipped = np.clip(softmax, self._epsilon_1, 1.0 - self._epsilon_0)
-        clipped = clipped / clipped.sum()
-        chosen_idx = int(self._rng.choice(len(actions_list), p=clipped))
-        return actions_list[chosen_idx]
+        q_means = self._regression.get_reward_means(avg_features=f)
+        for a in self._actions:
+            q_means[a] += self._gamma * self._proxy.get_eta(a, dosage)
+        return max(q_means, key=lambda a: q_means[a])
 
     @override
     def update(self, state, action: str, reward: float, next_state) -> None:
@@ -117,6 +104,8 @@ class HeartStepsAgent(Agent):
         suggestion = action != self._reference_action
         self._dosage_tracker.update(suggestion)
         self._buffer.append((f, action, reward))
+        self._feature_sum += f
+        self._feature_count += 1
 
     @override
     def on_day_end(self) -> None:
@@ -124,6 +113,9 @@ class HeartStepsAgent(Agent):
             return
         assert self._regression is not None
         self._regression.update_batch(self._buffer)
-        reward_means = self._regression.get_reward_means()
+        avg_features = (
+            self._feature_sum / self._feature_count if self._feature_count > 0 else None
+        )
+        reward_means = self._regression.get_reward_means(avg_features)
         self._proxy.update(reward_means)
         self._buffer.clear()
