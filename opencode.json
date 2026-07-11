@@ -11,6 +11,11 @@
       "description": "Implements small, well-tested Python changes using uv, ruff, ty, and pytest.",
       "mode": "subagent"
     },
+    "explore": {
+      "description": "Explores codebase structure, finds relevant files, and provides context for implementation tasks",
+      "mode": "subagent",
+      "model": "opencode-go/deepseek-v4-flash"
+    },
     "scout": {
       "description": "Read-only agent for external docs, dependency research, and codebase reconnaissance",
       "mode": "subagent",
