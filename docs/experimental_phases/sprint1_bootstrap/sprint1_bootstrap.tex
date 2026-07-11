@@ -442,6 +442,46 @@ Only the base and initial (no persona) models converge to the all-idle policy (9
   \item \textbf{The two LLM models (deepseek-v4-flash and GLM 5.2) agree} on the neutral user's dynamics to within 1\%. GLM 5.2 predicts slightly higher natural activity (higher random baseline).
 \end{enumerate}
 
+\section{Alpha Grid: Reward Weight Sensitivity}
+
+The default reward function uses $\alpha = 0.9$ (90\% step\_bin, 10\% sleep). To test whether this weighting drives the always-idle result, we sweep $\alpha \in [0, 0.1, \dots, 1.0]$ across all 7 table sets and measure the optimal policy's non-idle fraction (\emph{activity}).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/alpha_grid_activity.png}
+  \caption{Optimal-policy activity (\%) vs step-bin reward weight $\alpha$ for each persona. Social responder (red) is the only set where activity rises monotonically with $\alpha$.}
+  \label{fig:alpha_grid}
+\end{figure}
+
+The results reveal three distinct regimes:
+
+\textbf{Social responder} is the only persona where activity rises monotonically with $\alpha$: from 0\% at $\alpha \leq 0.1$ to 17.8\% at $\alpha \geq 0.9$. The morning intervention is time-dependent and improves step\_bin, so a higher step-bin weight justifies the action penalty.
+
+\textbf{Resistant and Initial DeepSeek} show the opposite pattern: \emph{decreasing} activity as $\alpha$ rises. Under pure sleep reward ($\alpha = 0$), these personas intervene 14.4\% of the time. As step-bin weight increases, the poor transitions from non-idle actions make the penalty unrecoupable, driving activity to 3.8--0\% at $\alpha = 1.0$.
+
+\textbf{Base, Goal-driven, Stable Maintainer, and Initial GLM 5.2} are essentially flat near 0--2\% across all $\alpha$ values. Their transition tables make non-idle actions unproductive regardless of the reward-weighting — the action penalty and boomerang effects dominate at any $\alpha$.
+
+\begin{table}[H]
+  \centering
+  \caption{Optimal-policy activity (\%) by $\alpha$ for selected personas. Bold = highest activity per persona.}
+  \label{tab:alpha_grid}
+  \begin{tabular}{l|ccccccccccc}
+    \toprule
+    Persona & $\alpha$0 & 0.1 & 0.2 & 0.3 & 0.4 & 0.5 & 0.6 & 0.7 & 0.8 & \textbf{0.9} & 1.0 \\
+    \midrule
+    Social Responder  & 0.0 & 0.0 & 0.2 & 12.7 & 16.7 & 16.7 & 16.7 & 16.7 & 16.9 & \textbf{17.8} & 17.8 \\
+    Resistant         & 14.4 & 14.4 & \textbf{14.7} & 14.7 & 14.7 & 14.7 & 14.7 & 14.7 & 14.2 & 13.3 & 3.8 \\
+    Initial DeepSeek  & \textbf{14.4} & 14.4 & 14.4 & 13.8 & 2.9 & 2.7 & 0.4 & 0.0 & 0.0 & 0.0 & 0.0 \\
+    Goal-driven       & 0.0 & 0.0 & 0.0 & 0.0 & 1.1 & 1.1 & 1.6 & 1.6 & 1.6 & 1.6 & 1.6 \\
+    Stable Maintainer & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 0.0 & 0.7 & 0.7 & 0.7 & 0.7 & \textbf{2.9} \\
+    Base              & 0.2 & 0.2 & 0.2 & 0.2 & 0.2 & 0.2 & 0.2 & 0.2 & 0.2 & 0.0 & 0.0 \\
+    Initial GLM 5.2   & 0.2 & 0.2 & 0.2 & 0.4 & 0.4 & 0.4 & 0.4 & 0.4 & 0.7 & 0.2 & 0.2 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+A non-trivial subset of personas (resistant, initial DeepSeek) reaches 14\%+ activity under sleep-focused reward. Their optimal policy responds to poor-sleep mornings by intervening at step 0 — but the same intervention hurts step\_bin, so increasing $\alpha$ penalises it. There is no $\alpha$ that simultaneously maximises activity across all personas; the choice depends on the target user's transition dynamics.
+
 \section{Key Findings}
 
 \begin{enumerate}
