@@ -23,8 +23,6 @@ logger = logging.getLogger(__name__)
 
 N_SEEDS = 10
 
-ACTIONS = ["idle", "movement_suggestion", "goal_reminder", "journal"]
-
 ALPHA = 0.9
 STEP_BIN_VALUES = {"inactive": 0.0, "moderate": 0.5, "active": 1.0}
 SLEEP_VALUES = {"good": 1.0, "poor": -1.0}
@@ -56,13 +54,14 @@ class _GreedyOracleAgent:
     for each action and computes E[reward | state, action].
     """
 
-    def __init__(self, within_day_tables: list[dict]):
+    def __init__(self, within_day_tables: list[dict], actions: list[str]):
         self._within_day = within_day_tables
+        self._actions = actions
 
     def select_action(self, state) -> str:
-        best_action = ACTIONS[0]
+        best_action = self._actions[0]
         best_value = -float("inf")
-        for a in ACTIONS:
+        for a in self._actions:
             value = self._expected_immediate_reward(state, a)
             if value > best_value:
                 best_value = value
@@ -133,7 +132,7 @@ def main() -> None:  # noqa: PLR0915
     table_dir = Path(raw_table_dir)
     within_day = []
     for i in range(config.steps_per_day):
-        with (table_dir / f"within_day_{i}.json").open() as f:
+        with (table_dir / f"within_day_{i}.json").open(encoding="utf-8") as f:
             within_day.append(json.load(f))
 
     logger.info("Config: %s", config_path)
@@ -143,7 +142,7 @@ def main() -> None:  # noqa: PLR0915
     results = []
 
     # Fixed-action policies
-    for a in ACTIONS:
+    for a in config.action_names:
         agent = _FixedActionAgent(a)
         res = _evaluate_policy(config, agent, f"fixed_{a}")
         results.append(res)
@@ -182,7 +181,7 @@ def main() -> None:  # noqa: PLR0915
     )
 
     # Greedy oracle
-    oracle_agent = _GreedyOracleAgent(within_day)
+    oracle_agent = _GreedyOracleAgent(within_day, config.action_names)
     oracle_res = _evaluate_policy(config, oracle_agent, "greedy_oracle")
     results.append(oracle_res)
     logger.info(

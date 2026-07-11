@@ -28,6 +28,7 @@ def _run_fixed(config, daily_pattern: list[str], n_seeds: int) -> dict:
         env = Environment(config, seed=s)
         state = env.reset()
         ep = 0.0
+        done = False
         for _ in range(config.episode_days):
             for step in range(config.steps_per_day):
                 a = daily_pattern[step]

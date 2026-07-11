@@ -231,10 +231,10 @@ class TestValidTransitionValues:
             step_of_day=0,
         )
         updates = t.transition(state, "idle")
-        if "sleep" in updates:
-            assert updates["sleep"] in ("good", "poor")
-        if "step_bin" in updates:
-            assert updates["step_bin"] in ("inactive", "moderate", "active")
+        assert "sleep" in updates
+        assert updates["sleep"] in ("good", "poor")
+        assert "step_bin" in updates
+        assert updates["step_bin"] in ("inactive", "moderate", "active")
 
 
 class TestMinimalConfigRejected:
