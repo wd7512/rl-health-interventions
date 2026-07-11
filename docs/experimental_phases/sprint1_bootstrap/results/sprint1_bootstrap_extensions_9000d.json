@@ -1,0 +1,61 @@
+{
+  "config": "sprint1_bootstrap/configs/sprint1_bootstrap_extensions_9000d.yaml",
+  "seed": 42,
+  "seeds": 50,
+  "agents": {
+    "Random": {
+      "total_reward": 10177.395,
+      "total_std": 118.37320526622561,
+      "per_step": 0.22616433333333336,
+      "last50": 0.25594
+    },
+    "Std TS": {
+      "total_reward": 37060.107,
+      "total_std": 3511.0466056008145,
+      "per_step": 0.8235579333333333,
+      "last50": 0.8378200000000001
+    },
+    "Ctx TS": {
+      "total_reward": 25537.178,
+      "total_std": 8989.043297593798,
+      "per_step": 0.5674928444444444,
+      "last50": 0.5667399999999999
+    },
+    "Std EG": {
+      "total_reward": 37182.85999999999,
+      "total_std": 264.03508800915046,
+      "per_step": 0.8262857777777778,
+      "last50": 0.8209
+    },
+    "Ctx EG": {
+      "total_reward": 36824.1,
+      "total_std": 952.6263867855016,
+      "per_step": 0.8183133333333332,
+      "last50": 0.8208799999999999
+    },
+    "Std D-EG": {
+      "total_reward": 37097.914,
+      "total_std": 2987.5280216935203,
+      "per_step": 0.8243980888888888,
+      "last50": 0.8353399999999997
+    },
+    "Ctx D-EG": {
+      "total_reward": 37057.053,
+      "total_std": 1590.5439064801067,
+      "per_step": 0.8234900666666666,
+      "last50": 0.8340799999999999
+    },
+    "Std UCB": {
+      "total_reward": 38241.534,
+      "total_std": 51.08703694676375,
+      "per_step": 0.8498118666666666,
+      "last50": 0.8378200000000001
+    },
+    "Ctx UCB": {
+      "total_reward": 37971.877,
+      "total_std": 63.9416204126857,
+      "per_step": 0.8438194888888888,
+      "last50": 0.83744
+    }
+  }
+}

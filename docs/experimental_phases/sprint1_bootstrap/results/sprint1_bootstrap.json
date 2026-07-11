@@ -1,0 +1,31 @@
+{
+  "config": "sprint1_bootstrap/configs/sprint1_bootstrap.yaml",
+  "seed": 42,
+  "seeds": 50,
+  "agents": {
+    "Std TS": {
+      "total_reward": 252.572,
+      "total_std": 105.6422264816489,
+      "per_step": 0.561271111111111,
+      "last50": 0.66184
+    },
+    "Std EG": {
+      "total_reward": 280.75600000000003,
+      "total_std": 89.26846847571653,
+      "per_step": 0.6239022222222221,
+      "last50": 0.7429999999999999
+    },
+    "Std UCB": {
+      "total_reward": 240.386,
+      "total_std": 33.945023258203854,
+      "per_step": 0.5341911111111111,
+      "last50": 0.8024600000000001
+    },
+    "Random": {
+      "total_reward": 99.74600000000002,
+      "total_std": 10.871241143494146,
+      "per_step": 0.22165777777777781,
+      "last50": 0.21492000000000008
+    }
+  }
+}
