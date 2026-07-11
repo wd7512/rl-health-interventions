@@ -11,10 +11,13 @@ dependencies = [
     "datasets>=5.0.0",
     "huggingface-hub>=1.18.0",
     "kagglehub>=1.0.2",
+    "litellm>=1.91.0",
     "numpy>=1.24.0",
     "polars>=1.0.0",
     "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
     "pyyaml>=6.0",
+    "tenacity>=9.1.4",
     "typing-extensions>=4.6.0",
     "ucimlrepo>=0.0.7",
     "wfdb>=4.3.1",
@@ -123,6 +126,16 @@ polars = "pl"
     "PLC0415",  # Imports inside register() and conditional imports
     "ARG001",   # Unused args in interface stubs
 ]
+"src/rl_health_interventions/llm_bootstrapping/request.py" = [
+    "C901",     # CLI script with flag dispatch — complexity is inherent
+    "PLR0912",  # Many branches accepted
+    "PLR0915",  # Many statements accepted
+]
+"src/rl_health_interventions/llm_bootstrapping/request_helper.py" = [
+    "C901",     # CLI script with flag dispatch — complexity is inherent
+    "PLR0912",  # Many branches accepted
+    "PLR0915",  # Many statements accepted
+]
 "src/rl_health_interventions/environment.py" = [
     "EM101",    # Exception string literals
 ]
@@ -146,7 +159,19 @@ polars = "pl"
     "EM101",    # Exception string literals
     "PLC0415",  # Imports inside register()
 ]
-"scripts/**" = [
+"src/rl_health_interventions/llm_bootstrapping/analyze.py" = [
+    "C901",     # Complex analysis functions accepted
+    "PLR0912",  # Many branches accepted
+    "PLR0915",  # Many statements accepted
+    "PLR2004",  # Magic values in array comparisons
+]
+"src/rl_health_interventions/llm_bootstrapping/visualize.py" = [
+    "C901",     # Complex plotting functions accepted
+    "PLR0912",  # Many branches accepted
+    "PLR0915",  # Many statements accepted
+    "PLR2004",  # Magic values in array operations
+]
+"scripts/eda_all_datasets.py" = [
     "BLE001",   # Blind except is pragmatic for data exploration scripts
     "B905",     # zip strict= is overkill for one-off data processing
     "C901",     # Complex describe functions accepted for EDA
