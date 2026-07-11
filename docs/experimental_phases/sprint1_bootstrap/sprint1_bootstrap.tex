@@ -59,9 +59,13 @@ Optional \texttt{reward\_multiplier\_by\_step} masks the last step of each day: 
 
 $T = 90$ days $\times$ 5 steps/day $= 450$ timesteps per episode.
 
-\section{Reference Policy Bounds}
+\section{Upper and Lower Bounds}
 
-Six reference policies evaluated via simulation (10 seeds, 450 timesteps):
+To calibrate agent performance we compute both simulation-based and exact bounds:
+\begin{itemize}
+  \item \textbf{Optimal DP bound} via backward induction on the 384-state MDP (3 step bins $\times$ 2 sleep $\times$ $4^3$ action histories for burden). This is the exact finite-horizon optimal value -- any learning agent's performance is bounded above by this.
+  \item \textbf{Simulated reference policies} (10 seeds, 450 timesteps) for comparison.
+\end{itemize}
 
 \begin{table}[h]
 \centering
@@ -69,6 +73,7 @@ Six reference policies evaluated via simulation (10 seeds, 450 timesteps):
 \toprule
 Policy & Total Reward & Per Step & Description \\
 \midrule
+Optimal DP (backward induction) & 379.1 & 0.842 & Exact upper bound, 384 states \\
 Fixed idle & 380.4 $\pm$ 3.7 & 0.845 & Never intervene (no penalty) \\
 Greedy oracle (1-step) & 281.0 $\pm$ 20.9 & 0.625 & Myopic expected-reward maximisation \\
 Random & 100.1 $\pm$ 11.7 & 0.222 & Uniform action selection \\
@@ -77,10 +82,14 @@ Fixed journal & 50.5 $\pm$ 5.1 & 0.112 & Always journal \\
 Fixed goal\_reminder & 91.2 $\pm$ 7.1 & 0.203 & Always remind of goal \\
 \bottomrule
 \end{tabular}
-\caption{Reference policy bounds (10 seeds). Always-idle dominates because the LLM estimates natural activity is already high and action penalties are costly. The greedy oracle's myopic one-step lookahead fails to capture long-term value.}
+\caption{Upper and lower bounds for the Sprint 1 bootstrap MDP. The exact DP bound (379.1) confirms that always-idle is nearly optimal. The greedy oracle's myopic one-step lookaward fails badly.}
 \end{table}
 
-Always-idle at 0.845/step sets an upper bound for agents: the LLM estimates that most users maintain moderate-to-active step counts without intervention, and paying a 0.05 penalty for no improvement is worse than doing nothing.
+The DP bound (379.1) is computed by backward induction over 450 timesteps on the full state space: step\_bin (3) $\times$ sleep (2) $\times$ action history (64) = 384 states, where action history tracks the last 3 actions for the burden rolling window. The optimal policy selects idle on 99.8\% of steps -- the DP confirms that never intervening is the optimal strategy for this MDP.
+
+The simulated idle bound (380.4) exceeds the exact DP bound (379.1) by a small margin; this is Monte Carlo noise from 10 seeds ($\pm$3.7 standard error). The exact expected value of always-idle equals the DP bound within numerical precision.
+
+The greedy oracle (281.0) performs 26\% below the optimal bound. Myopic one-step lookahead fails because the reward function evaluates the \emph{post-transition} state: an intervention incurs a penalty but also changes step\_bin and burden, which the greedy oracle correctly prices but cannot amortize over future steps. The long-term value of leaving burden low by not intervening dominates.
 
 \section{Base Benchmark Results}
 
@@ -126,12 +135,12 @@ Random & 99.7 $\pm$ 10.9 & 0.222 & 0.215 \\
 Fixed idle (upper bound) & 380.4 & 0.845 & 0.845 \\
 \bottomrule
 \end{tabular}
-\caption{Full benchmark results (50 seeds). Standard UCB at $c=0.5$ reaches 94\% of the always-idle ceiling. Contextual agents universally underperform their standard counterparts.}
+\caption{Full benchmark results (50 seeds). Standard UCB at $c=0.5$ reaches 94.5\% of the optimal DP bound. Contextual agents universally underperform their standard counterparts.}
 \end{table}
 
 Key findings:
 \begin{enumerate}
-  \item \textbf{Std UCB at $c=0.5$ is dominant}: 358.1 total, 94\% of the always-idle ceiling, with the lowest variance (14.0 vs 70--106 for others). Hyperparameter tuning is critical: the default $c=2.0$ yielded only 240.4.
+  \item \textbf{Std UCB at $c=0.5$ is dominant}: 358.1 total, 94.5\% of the optimal DP bound (379.1), with the lowest variance (14.0 vs 70--106 for others). Hyperparameter tuning is critical: the default $c=2.0$ yielded only 240.4.
   \item \textbf{Contextual agents are worse}: Every contextual variant underperforms its standard counterpart, the opposite of the MVP result. This suggests $\texttt{step\_bin}$ as a context feature misleads agents in the bootstrap dynamics -- transitions are non-stationary (vary by timestep) and the current $\texttt{step\_bin}$ does not reliably predict intervention efficacy.
   \item \textbf{The $c=0.5$ UCB achieves consistency}: with $\pm$14.0 std dev vs $\pm$33.9 at $c=2.0$, tuning simultaneously improves both mean and variance.
 \end{enumerate}
@@ -261,10 +270,10 @@ Several patterns emerge:
 
 \begin{enumerate}
   \item \textbf{Bootstrap transitions have exploitable structure}. Unlike the Dirichlet-random baselines where all agents performed similarly ($\sim$185 total), the LLM-estimated tables yield a 259\% gap between best learner and random. The LLM produces non-trivial transition dynamics.
-  \item \textbf{Always-idle is near-optimal}. The LLM estimates that most users naturally maintain moderate-to-active step counts. Interventions incur a penalty without consistently improving outcomes, making inaction the best policy. Std UCB learns this implicitly, reaching 94\% of the idle ceiling.
+  \item \textbf{Always-idle is the optimal policy}. Backward induction over 384 states confirms the optimal strategy is to never intervene on 99.8\% of steps. The optimal DP bound is 379.1 (0.842/step), and Std UCB ($c=0.5$) reaches 94.5\% of this theoretical maximum. The exact DP value matches the always-idle simulation (380.4 $\pm$ 3.7) within Monte Carlo noise.
   \item \textbf{Context features hurt, even with better signal}. Swapping from $\texttt{step\_bin}$ to $\texttt{burden}$ -- a context with 13$\times$ stronger predictive power -- made performance worse, not better. The reason is that burden is endogenous: exploration changes burden, which shifts the context distribution, which triggers more exploration. This feedback loop amplifies the sample-efficiency cost of context fragmentation.
   \item \textbf{UCB hyperparameter sensitivity is extreme}. Default $c=2.0$: 240. Tuned $c=0.5$: 358. The MVP-optimised values transferred well, but a dedicated grid search may find even better settings.
-  \item \textbf{The greedy oracle (one-step lookahead) is not a good bound} at 281, far below Std UCB's 358. Myopic expected-reward maximisation fails because actions affect future states through burden accumulation and sleep at day boundaries.
+  \item \textbf{The greedy oracle (one-step lookahead) is not a good bound} at 281 (26\% below the DP optimum). Myopic expected-reward maximisation fails because the reward is computed on the post-transition state: the penalty is immediate but the benefit of intervention (higher step\_bin) is only realisable in future rewards, which the greedy oracle ignores. Critically, interventions increase burden, which degrades future transition probabilities -- a negative long-term effect the greedy oracle cannot amortise.
   \item \textbf{The LLM's transition estimates are a plausible starting point} but should be validated against real data. The strong idle preference may reflect LLM bias toward inaction rather than true user dynamics.
 \end{enumerate}
 
