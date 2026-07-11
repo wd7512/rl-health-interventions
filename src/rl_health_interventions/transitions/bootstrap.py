@@ -22,9 +22,19 @@ class BootstrapTransition(TransitionModel):
         self._within_day: list[dict[str, tuple[list[str], np.ndarray]]] = []
         self._load_tables()
 
+    @property
+    def day_boundary(self) -> dict[str, tuple[list[str], np.ndarray]]:
+        return self._day_boundary
+
+    @property
+    def within_day(self) -> list[dict[str, tuple[list[str], np.ndarray]]]:
+        return self._within_day
+
     def _load_tables(self) -> None:
         table_dir_str = self._config.transition_model.table_dir
-        assert table_dir_str is not None, "table_dir is required for bootstrap"
+        if table_dir_str is None:
+            msg = "table_dir is required for bootstrap transition"
+            raise ValueError(msg)
         table_dir = Path(table_dir_str)
         db_path = table_dir / "day_boundary.json"
         with db_path.open(encoding="utf-8") as f:
@@ -85,7 +95,7 @@ class BootstrapTransition(TransitionModel):
                 updates["sleep"] = self._sample(self._day_boundary, db_key)
                 state = state.with_factors(sleep=updates["sleep"])
             else:
-                logger.debug("Missing day_boundary key: %s", db_key)
+                logger.warning("Missing day_boundary key: %s", db_key)
         if state.step_of_day >= len(self._within_day):
             msg = (
                 f"step_of_day {state.step_of_day} exceeds within_day table count "
@@ -97,7 +107,7 @@ class BootstrapTransition(TransitionModel):
         if wd_key in wd_table:
             updates["step_bin"] = self._sample(wd_table, wd_key)
         else:
-            logger.debug("Missing within_day_%d key: %s", state.step_of_day, wd_key)
+            logger.warning("Missing within_day_%d key: %s", state.step_of_day, wd_key)
         return updates
 
 

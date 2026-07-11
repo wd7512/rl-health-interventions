@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import itertools
+import logging
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -109,19 +111,19 @@ def _sprint1_bootstrap_config(
 class TestTableLoading:
     def test_loads_all_tables(self) -> None:
         t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
-        assert len(t._day_boundary) > 0
-        assert len(t._within_day) == 5
-        for i, wd in enumerate(t._within_day):
+        assert len(t.day_boundary) > 0
+        assert len(t.within_day) == 5
+        for i, wd in enumerate(t.within_day):
             assert len(wd) > 0, f"within_day_{i} is empty"
-        assert "active|high|weekend|poor" in t._day_boundary
+        assert "active|high|weekend|poor" in t.day_boundary
 
     def test_table_structure(self) -> None:
         t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
-        for key, (targets, probs) in t._day_boundary.items():
+        for key, (targets, probs) in t.day_boundary.items():
             assert len(targets) == len(probs)
             assert abs(float(probs.sum()) - 1.0) < 1e-6
             assert np.all(probs > 0), f"{key}: has non-positive probability"
-        for i, wd in enumerate(t._within_day):
+        for i, wd in enumerate(t.within_day):
             for key, (targets, probs) in wd.items():
                 assert len(targets) == len(probs)
                 assert abs(float(probs.sum()) - 1.0) < 1e-6
@@ -311,7 +313,7 @@ def _check_all_within_day_keys(t: BootstrapTransition) -> None:
     dows = ("weekday", "weekend")
     sleeps = ("good", "poor")
     for step_idx in range(5):
-        wd = t._within_day[step_idx]
+        wd = t.within_day[step_idx]
         for step_bin, burden, action, dow, sleep in itertools.product(
             step_bins, burdens, actions, dows, sleeps
         ):
@@ -338,10 +340,94 @@ class TestWithRealTables:
                 for dow in ("weekday", "weekend"):
                     for sleep in ("good", "poor"):
                         key = f"{step_bin}|{burden}|{dow}|{sleep}"
-                        assert key in t._day_boundary, (
-                            f"Missing day_boundary key: {key}"
-                        )
+                        assert key in t.day_boundary, f"Missing day_boundary key: {key}"
 
     def test_within_day_has_all_state_action_combos(self) -> None:
         t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
         _check_all_within_day_keys(t)
+
+
+class TestMissingKeyWarning:
+    def test_missing_day_boundary_key_logs_warning(self) -> None:
+        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        state = StateView(
+            factors={
+                "step_bin": "nonexistent",
+                "sleep": "good",
+                "day_of_week": "weekday",
+                "burden": "low",
+            },
+            day=0,
+            step_of_day=0,
+        )
+        with patch.object(logging.Logger, "warning") as mock_warn:
+            t.transition(state, "idle")
+            mock_warn.assert_any_call(
+                "Missing day_boundary key: %s", "nonexistent|low|weekday|good"
+            )
+
+    def test_missing_within_day_key_logs_warning(self) -> None:
+        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        state = StateView(
+            factors={
+                "step_bin": "nonexistent",
+                "sleep": "good",
+                "day_of_week": "weekday",
+                "burden": "low",
+            },
+            day=0,
+            step_of_day=1,
+        )
+        with patch.object(logging.Logger, "warning") as mock_warn:
+            t.transition(state, "idle")
+            mock_warn.assert_any_call(
+                "Missing within_day_%d key: %s", 1, "nonexistent|low|idle|weekday|good"
+            )
+
+
+class TestStepThroughDayRange:
+    def test_step_of_day_exceeds_range_raises(self) -> None:
+        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        state = StateView(
+            factors={
+                "step_bin": "inactive",
+                "sleep": "good",
+                "day_of_week": "weekday",
+                "burden": "low",
+            },
+            day=0,
+            step_of_day=99,
+        )
+        with pytest.raises(
+            IndexError, match="step_of_day 99 exceeds within_day table count"
+        ):
+            t.transition(state, "idle")
+
+
+@pytest.mark.parametrize(
+    ("seed", "action"),
+    [
+        (0, "idle"),
+        (0, "movement_suggestion"),
+        (10, "idle"),
+        (10, "goal_reminder"),
+        (42, "journal"),
+    ],
+)
+def test_valid_transition_parametrized(seed: int, action: str) -> None:
+    t = BootstrapTransition(_sprint1_bootstrap_config(), seed=seed)
+    state = StateView(
+        factors={
+            "step_bin": "inactive",
+            "sleep": "good",
+            "day_of_week": "weekday",
+            "burden": "low",
+        },
+        day=0,
+        step_of_day=0,
+    )
+    updates = t.transition(state, action)
+    assert "sleep" in updates
+    assert updates["sleep"] in ("good", "poor")
+    assert "step_bin" in updates
+    assert updates["step_bin"] in ("inactive", "moderate", "active")

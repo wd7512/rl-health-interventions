@@ -58,7 +58,8 @@ def run_alpha_grid() -> dict:
         set_results: list[dict] = []
         for alpha in ALPHAS:
             bound = OptimalBound(BASE_CONFIG, alpha=alpha, table_dir=table_dir)
-            logger.info("  alpha=%.1f: solving %d states x %d timesteps...", alpha, bound._ns, bound._T)
+            r = bound.report()
+            logger.info("  alpha=%.1f: solving %d states x %d timesteps...", alpha, r["n_states"], r["n_timesteps"])
             bound.run()
             r = bound.report()
             activity = bound.policy_activity(seed=42)

@@ -45,6 +45,8 @@ class OptimalBound:
         self._na = len(self._action_names)
         self._ns = self._nsb * self._nsl * self._nh
 
+        # TODO: full Q/pi tables over all timesteps won't scale to 9000d horizons.
+        # Consider rolling V with periodic policy for memory-bounded backward induction.
         self._states: list[tuple[str, str, tuple[str, ...]]] = []
         self._state_idx: dict[tuple[str, str, tuple[str, ...]], int] = {}
         idx = 0
@@ -73,8 +75,8 @@ class OptimalBound:
         sb_names = self._sb_names
         sl_names = self._sleep_names
         a_names = self._action_names
-        db = self._tm._day_boundary
-        wd = self._tm._within_day
+        db = self._tm.day_boundary
+        wd = self._tm.within_day
         nh = self._nh
         nsl = self._nsl
 
@@ -152,8 +154,8 @@ class OptimalBound:
 
     def greedy_oracle(self, seeds: int = 10) -> dict:
         from rl_health_interventions.environment import Environment
-        db = self._tm._day_boundary
-        wd = self._tm._within_day
+        db = self._tm.day_boundary
+        wd = self._tm.within_day
         totals = []
         for s in range(seeds):
             env = Environment(self._config, seed=s)
@@ -164,7 +166,7 @@ class OptimalBound:
                 sb = str(st.step_bin)
                 sl = str(st.sleep)
                 dow = _WEEKDAY_PATTERN[(t // self._sod) % 7]
-                hist = tuple(env._action_history)
+                hist = tuple(env.action_history)
                 b = self._burden(hist)
                 best_a = self._action_names[0]
                 best_er = -1e9
@@ -211,7 +213,7 @@ class OptimalBound:
         for t in range(self._T):
             sb = str(st.step_bin)
             sl = str(st.sleep)
-            hist = tuple(env._action_history)
+            hist = tuple(env.action_history)
             dk = (sb, sl, hist)
             if dk not in self._state_idx:
                 break
@@ -241,7 +243,7 @@ class OptimalBound:
             for t in range(self._T):
                 sb = str(st.step_bin)
                 sl = str(st.sleep)
-                hist = tuple(env._action_history)
+                hist = tuple(env.action_history)
                 dk = (sb, sl, hist)
                 if dk not in self._state_idx:
                     break

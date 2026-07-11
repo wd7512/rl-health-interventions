@@ -23,15 +23,6 @@ logger = logging.getLogger(__name__)
 
 N_SEEDS = 10
 
-ALPHA = 0.9
-STEP_BIN_VALUES = {"inactive": 0.0, "moderate": 0.5, "active": 1.0}
-SLEEP_VALUES = {"good": 1.0, "poor": -1.0}
-ACTION_PENALTIES = {
-    "idle": 0.0,
-    "movement_suggestion": 0.05,
-    "goal_reminder": 0.05,
-    "journal": 0.05,
-}
 
 
 class _FixedActionAgent:
@@ -54,9 +45,13 @@ class _GreedyOracleAgent:
     for each action and computes E[reward | state, action].
     """
 
-    def __init__(self, within_day_tables: list[dict], actions: list[str]):
+    def __init__(self, within_day_tables: list[dict], actions: list[str], config) -> None:
         self._within_day = within_day_tables
         self._actions = actions
+        self._alpha = config.reward.constants.get("alpha", 0.9)
+        self._step_bin_values = config.reward.variables["step_bin_value"].mapping
+        self._sleep_values = config.reward.variables["sleep_value"].mapping
+        self._action_penalties = config.reward.variables["action_penalty"].mapping
 
     def select_action(self, state) -> str:
         best_action = self._actions[0]
@@ -87,9 +82,9 @@ class _GreedyOracleAgent:
         expected = 0.0
         for next_step_bin, prob in probs.items():
             reward = (
-                ALPHA * STEP_BIN_VALUES.get(next_step_bin, 0.0)
-                + (1 - ALPHA) * SLEEP_VALUES.get(state.sleep, 0.0)
-                - ACTION_PENALTIES.get(action, 0.0)
+                self._alpha * self._step_bin_values.get(next_step_bin, 0.0)
+                + (1 - self._alpha) * self._sleep_values.get(state.sleep, 0.0)
+                - self._action_penalties.get(action, 0.0)
             )
             expected += prob * reward
         return expected
@@ -181,7 +176,7 @@ def main() -> None:  # noqa: PLR0915
     )
 
     # Greedy oracle
-    oracle_agent = _GreedyOracleAgent(within_day, config.action_names)
+    oracle_agent = _GreedyOracleAgent(within_day, config.action_names, config)
     oracle_res = _evaluate_policy(config, oracle_agent, "greedy_oracle")
     results.append(oracle_res)
     logger.info(
