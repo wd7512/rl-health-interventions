@@ -26,8 +26,11 @@ def _action_penalty(action: str) -> float:
 
 
 class OptimalBound:
-    def __init__(self, config_path: str) -> None:
+    def __init__(self, config_path: str, alpha: float | None = None, table_dir: str | None = None) -> None:
         self._config = load_config(config_path)
+        if table_dir is not None:
+            self._config.transition_model.table_dir = table_dir
+        self._alpha = alpha if alpha is not None else self._config.reward.constants.get("alpha", 0.9)
         self._tm = BootstrapTransition(self._config, seed=42)
         self._sb_names = self._config.state.variables["step_bin"].names
         self._sleep_names = self._config.state.variables["sleep"].names
@@ -112,7 +115,7 @@ class OptimalBound:
                                 sb_t = str(sb_t)
                                 zsbi = sb_names.index(sb_t)
                                 r_sb = self._sb_val(sb_t)
-                                r = 0.9 * r_sb + 0.1 * r_sl - _action_penalty(a)
+                                r = self._alpha * r_sb + (1.0 - self._alpha) * r_sl - _action_penalty(a)
                                 zs = zsbi * nsl * nh + zsli * nh + nhi
                                 q += sl_p * sb_p * (r + self._V[t + 1, zs])
                         self._Q[t, si, ai] = q
@@ -130,7 +133,7 @@ class OptimalBound:
                             zsbi = sb_names.index(sb_t)
                             r_sb = self._sb_val(sb_t)
                             r_sl = self._sl_val(sl)
-                            r = 0.9 * r_sb + 0.1 * r_sl - _action_penalty(a)
+                            r = self._alpha * r_sb + (1.0 - self._alpha) * r_sl - _action_penalty(a)
                             zs = zsbi * nsl * nh + zsli * nh + nhi
                             q += sb_p * (r + self._V[t + 1, zs])
                         self._Q[t, si, ai] = q
@@ -179,7 +182,7 @@ class OptimalBound:
                                     stg, spr = wd[step][wk]
                                     for j, sbt in enumerate(stg):
                                         esb += sl_pr[i_sl] * spr[j] * self._sb_val(str(sbt))
-                            er = 0.9 * esb + 0.1 * esl - _action_penalty(a)
+                            er = self._alpha * esb + (1.0 - self._alpha) * esl - _action_penalty(a)
                         else:
                             er = -1e9
                     else:
@@ -187,7 +190,7 @@ class OptimalBound:
                         if wk in wd[step]:
                             stg, spr = wd[step][wk]
                             esb = sum(spr[j] * self._sb_val(str(sbt)) for j, sbt in enumerate(stg))
-                            er = 0.9 * esb + 0.1 * self._sl_val(sl) - _action_penalty(a)
+                            er = self._alpha * esb + (1.0 - self._alpha) * self._sl_val(sl) - _action_penalty(a)
                         else:
                             er = -1e9
                     if er > best_er:
@@ -199,6 +202,34 @@ class OptimalBound:
             totals.append(ep)
         a = np.array(totals)
         return {"mean": float(a.mean()), "std": float(a.std()), "n_seeds": seeds}
+
+    def policy_activity(self, seed: int = 42) -> dict:
+        from rl_health_interventions.environment import Environment
+        env = Environment(self._config, seed=seed)
+        st = env.reset()
+        actions: list[str] = []
+        for t in range(self._T):
+            sb = str(st.step_bin)
+            sl = str(st.sleep)
+            hist = tuple(env._action_history)
+            dk = (sb, sl, hist)
+            if dk not in self._state_idx:
+                break
+            a = self._action_names[self._pi[t, self._state_idx[dk]]]
+            actions.append(a)
+            ns, rw, done = env.step(a)
+            st = ns
+        total = len(actions)
+        counts: dict[str, int] = {}
+        for a in actions:
+            counts[a] = counts.get(a, 0) + 1
+        idle_pct = 100.0 * counts.get("idle", 0) / total if total > 0 else 0.0
+        return {
+            "activity_pct": 100.0 - idle_pct,
+            "idle_pct": idle_pct,
+            "action_distribution": {a: 100.0 * c / total for a, c in sorted(counts.items())},
+            "n_steps": total,
+        }
 
     def simulate_trajectories(self, seeds: int = 10) -> dict:
         from rl_health_interventions.environment import Environment
