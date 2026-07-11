@@ -5,7 +5,7 @@ model: opencode-go/deepseek-v4-flash
 permission:
   read: allow
   edit: deny
-  bash: ask
+  bash: deny
 ---
 
 # Scout
