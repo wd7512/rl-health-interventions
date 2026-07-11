@@ -23,6 +23,7 @@ _SPRINT1_BOOTSTRAP_CONFIGS = [
     _CONFIGS_DIR / "sprint1_bootstrap_masked.yaml",
     _CONFIGS_DIR / "sprint1_bootstrap_extensions.yaml",
     _CONFIGS_DIR / "sprint1_bootstrap_extensions_masked.yaml",
+    _CONFIGS_DIR / "sprint1_bootstrap_context_burden.yaml",
 ]
 
 
@@ -149,7 +150,7 @@ def main() -> None:
         "--config",
         type=str,
         default=None,
-        help="Config filename in configs/ (default: sprint1_bootstrap_extensions.yaml)",
+        help="Config filename in configs/ (default: sprint1_bootstrap.yaml)",
     )
     parser.add_argument(
         "--all",

@@ -171,13 +171,15 @@ class OptimalBound:
                         if dk in db:
                             sl_tgts, sl_pr = db[dk]
                             esb = 0.0
+                            esl = 0.0
                             for i_sl, sl_t in enumerate(sl_tgts):
+                                esl += sl_pr[i_sl] * self._sl_val(str(sl_t))
                                 wk = "|".join([sb, b, a, dow, str(sl_t)])
                                 if wk in wd[step]:
                                     stg, spr = wd[step][wk]
                                     for j, sbt in enumerate(stg):
                                         esb += sl_pr[i_sl] * spr[j] * self._sb_val(str(sbt))
-                            er = 0.9 * esb + 0.1 * self._sl_val(sl) - _action_penalty(a)
+                            er = 0.9 * esb + 0.1 * esl - _action_penalty(a)
                         else:
                             er = -1e9
                     else:
@@ -256,7 +258,7 @@ def main() -> None:
     logger.info("-" * 60)
     for tt in range(min(10, bound._T)):
         a = bound._action_names[bound._pi[tt, init_idx]]
-        logger.info("%-6d %-6d %-6d  %-24s %-10.4f", tt, tt % 5, tt // 5, a, bound._Q[tt, init_idx, bound._pi[tt, init_idx]])
+        logger.info("%-6d %-6d %-6d  %-24s %-10.4f", tt, tt % bound._sod, tt // bound._sod, a, bound._Q[tt, init_idx, bound._pi[tt, init_idx]])
 
     # Count how often each action is chosen across the optimal policy
     action_counts = {a: 0 for a in bound._action_names}

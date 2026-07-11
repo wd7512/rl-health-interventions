@@ -108,7 +108,7 @@ def run_one_config(
     all_rewards = []
     for seed in range(1, n_seeds + 1):
         kwargs = dict(params)
-        kwargs["actions"] = config.actions
+        kwargs["actions"] = list(config.actions.keys())
         kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
         agent = make_agent(agent_type, **kwargs)
         records = run_episode(config, agent, seed=seed)
