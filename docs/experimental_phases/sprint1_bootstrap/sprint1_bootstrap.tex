@@ -178,12 +178,44 @@ Variance (best agent) & $\pm$82 & $\pm$14 \\
 \caption{Bootstrap transitions vs random transitions. The LLM-estimated tables produce structured dynamics with large agent differentials, while random transitions wash out all policy differences. Std UCB's low variance under bootstrap suggests reliable convergence.}
 \end{table}
 
+\section{Context Feature Comparison}
+
+The extensions benchmark used $\texttt{step\_bin}$ as the context feature (3 bins, same fragmentation as step\_bin). To test whether a better-chosen context could close the gap, we swapped to $\texttt{burden}$ (3 levels, same fragmentation) and re-ran the 9-agent benchmark. Results are 50 seeds.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Agent & No Context & Ctx $\texttt{step\_bin}$ & Ctx $\texttt{burden}$ \\
+\midrule
+Standard UCB ($c=0.5$) & 358.1 $\pm$ 14.0 & --- & --- \\
+Contextual UCB & --- & 268.3 $\pm$ 29.6 & 250.6 $\pm$ 39.7 \\
+Contextual D-EG & --- & 240.4 $\pm$ 93.0 & 216.0 $\pm$ 77.6 \\
+Contextual EG & --- & 216.9 $\pm$ 95.7 & 200.4 $\pm$ 82.9 \\
+Contextual TS & --- & 155.5 $\pm$ 70.8 & 158.3 $\pm$ 56.1 \\
+\midrule
+Random & 99.7 $\pm$ 10.9 & --- & --- \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of context features (50 seeds). Burden context underperforms step\_bin context across all agents except TS (where the difference is negligible).}
+\end{table}
+
+Despite having 13$\times$ higher ANOVA F-statistic as a predictor of next-step activity, burden makes a worse context feature. The reason is that $\texttt{burden}$ is \emph{endogenous} -- it is a rolling window count of the agent's past non-idle actions. When a fragmented contextual agent explores, it takes non-idle actions, which increase burden, which shifts the context distribution, which triggers further exploration. This creates a feedback loop:
+
+\[
+\text{exploration} \rightarrow \text{higher burden} \rightarrow \text{unfamiliar context} \rightarrow \text{more exploration} \rightarrow \cdots
+\]
+
+In contrast, $\texttt{step\_bin}$ is at least partly exogenous -- it depends on the LLM-estimated transition dynamics and is not directly controlled by recent actions. The step\_bin distribution is relatively stable regardless of the agent's policy, making it a safer (if less predictive) context feature.
+
+Both context features are dominated by the standard (non-contextual) UCB, confirming that $\texttt{step\_bin}$ context does not help this MDP.
+
 \section{Key Findings}
 
 \begin{enumerate}
   \item \textbf{Bootstrap transitions have exploitable structure}. Unlike the Dirichlet-random baselines where all agents performed similarly ($\sim$185 total), the LLM-estimated tables yield a 259\% gap between best learner and random. The LLM produces non-trivial transition dynamics.
   \item \textbf{Always-idle is near-optimal}. The LLM estimates that most users naturally maintain moderate-to-active step counts. Interventions incur a penalty without consistently improving outcomes, making inaction the best policy. Std UCB learns this implicitly, reaching 94\% of the idle ceiling.
-  \item \textbf{Context features hurt}. Every contextual variant underperforms its standard counterpart, the opposite of the MVP result. This is likely because $\texttt{step\_bin}$ the next state depends weakly on current $\texttt{step\_bin}$ given the timestep-specific tables -- context adds noise, not signal.
+  \item \textbf{Context features hurt, even with better signal}. Swapping from $\texttt{step\_bin}$ to $\texttt{burden}$ -- a context with 13$\times$ stronger predictive power -- made performance worse, not better. The reason is that burden is endogenous: exploration changes burden, which shifts the context distribution, which triggers more exploration. This feedback loop amplifies the sample-efficiency cost of context fragmentation.
   \item \textbf{UCB hyperparameter sensitivity is extreme}. Default $c=2.0$: 240. Tuned $c=0.5$: 358. The MVP-optimised values transferred well, but a dedicated grid search may find even better settings.
   \item \textbf{The greedy oracle (one-step lookahead) is not a good bound} at 281, far below Std UCB's 358. Myopic expected-reward maximisation fails because actions affect future states through burden accumulation and sleep at day boundaries.
   \item \textbf{The LLM's transition estimates are a plausible starting point} but should be validated against real data. The strong idle preference may reflect LLM bias toward inaction rather than true user dynamics.
