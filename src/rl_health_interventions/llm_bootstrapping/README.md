@@ -44,6 +44,20 @@ uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --resu
 
 `--resume` and `--retry-errors` validate the filename's embedded model name against `MODEL` and raise an error on mismatch.
 
+## Analysis and visualization
+
+```bash
+# Analyze LLM bootstrap results
+uv run python -m rl_health_interventions.llm_bootstrapping.analyze \
+    --files data/bootstrap/results_deepseek.jsonl \
+           data/bootstrap/results_glm5.2.jsonl
+
+# Generate transition matrix figures
+uv run python -m rl_health_interventions.llm_bootstrapping.visualize \
+    --files data/bootstrap/results_deepseek.jsonl \
+           data/bootstrap/results_glm5.2.jsonl
+```
+
 ## Defaults
 
 - Model: `deepseek/deepseek-v4-flash`
@@ -57,6 +71,8 @@ uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --resu
 - `request_helper.py` — resume/retry-errors wrapper with smaller batches
 - `prompts/sprint1.py` — sprint 1 prompt definitions (22,320 prompts with samples_per_cell=10)
 - `example.py` — standalone litellm example
+- `analyze.py` — analysis of bootstrap results (parse rates, distributions, transition realism)
+- `visualize.py` — transition matrix charts with directed edges
 - `.example.env` — env template
 
 ## Programmatic use

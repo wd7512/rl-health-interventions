@@ -3,7 +3,7 @@
 Writes matrix figures to ``docs/figures/<model>/matrices``.
 
 Usage:
-    uv run python scripts/visualize_transitions.py \\
+    uv run python -m rl_health_interventions.llm_bootstrapping.visualize \\
         --files data/bootstrap/results_deepseek.jsonl \\
                data/bootstrap/results_glm5.2.jsonl \\
         --fig-dir docs/figures
@@ -15,7 +15,6 @@ import argparse
 import itertools
 import json
 import logging
-import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -24,10 +23,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.path import Path as PlotPath
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from rl_health_interventions.llm_bootstrapping.parse import (
-    parse_day_boundary,
-    parse_within_day,
+from rl_health_interventions.llm_bootstrapping._analysis import (
+    SAMPLES_DAY_BOUNDARY,
+    SAMPLES_WITHIN_DAY,
+    TIMESTEPS,
+    WITHIN_DAY_CELLS_PER_TIMESTEP,
+    WITHIN_DAY_START,
+    day_boundary_params,
+    load,
+    model_label,
+    parse_record,
+    within_day_params,
 )
 from rl_health_interventions.llm_bootstrapping.prompts import (
     ACTIONS,
@@ -38,12 +44,6 @@ from rl_health_interventions.llm_bootstrapping.prompts import (
 )
 
 logger = logging.getLogger(__name__)
-
-SAMPLES_DAY_BOUNDARY = 20
-SAMPLES_WITHIN_DAY = 30
-WITHIN_DAY_START = 720
-WITHIN_DAY_CELLS_PER_TIMESTEP = 144
-TIMESTEPS = 5
 
 NODE_RADIUS = 0.1
 STEP_NODE_ABBR = {"inactive": "i", "moderate": "m", "active": "a"}
@@ -56,54 +56,17 @@ _POS = {
 _SLEEP_POS = {"good": np.array([-0.4, 0.0]), "poor": np.array([0.4, 0.0])}
 
 
-def _day_boundary_params(cell_idx: int) -> dict:
-    combos = list(itertools.product(STEP_BINS, BURDENS, DAY_TYPES, SLEEP_TYPES))
-    sb, burden, day, sleep = combos[cell_idx]
-    return {"step_bin_daily": sb, "burden": burden, "day_type": day, "sleep": sleep}
-
-
-def _within_day_params(cell_idx: int) -> dict:
-    combos = list(
-        itertools.product(STEP_BINS, BURDENS, ACTIONS, DAY_TYPES, SLEEP_TYPES)
-    )
-    step_bin, burden, action, day, sleep = combos[cell_idx]
-    return {
-        "step_bin": step_bin,
-        "burden": burden,
-        "action": action,
-        "day_type": day,
-        "sleep": sleep,
-    }
-
-
-def _parse_record(rec: dict) -> tuple[str, object]:
-    content = rec.get("content", "")
-    if rec["index"] < WITHIN_DAY_START:
-        return "day_boundary", parse_day_boundary(content)
-    return "within_day", parse_within_day(content)
-
-
-def _load(path: Path) -> list[dict]:
-    records = []
-    with path.open(encoding="utf-8") as fh:
-        for raw_line in fh:
-            stripped = raw_line.strip()
-            if stripped:
-                records.append(json.loads(stripped))
-    return records
-
-
 def aggregate_day_boundary(records: list[dict]) -> dict:
     counts: dict[tuple, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     totals: dict[tuple, int] = defaultdict(int)
     for rec in records:
         if rec["index"] >= WITHIN_DAY_START:
             continue
-        cat, parsed = _parse_record(rec)
+        cat, parsed = parse_record(rec)
         if cat != "day_boundary" or not isinstance(parsed, str):
             continue
         cell_idx = rec["index"] // SAMPLES_DAY_BOUNDARY
-        params = _day_boundary_params(cell_idx)
+        params = day_boundary_params(cell_idx)
         key = (
             params["step_bin_daily"],
             params["burden"],
@@ -147,8 +110,8 @@ def _count_within_day_record(
 
     within_off = offset % samples_per_timestep
     cell_idx = within_off // SAMPLES_WITHIN_DAY
-    params = _within_day_params(cell_idx)
-    cat, parsed = _parse_record(rec)
+    params = within_day_params(cell_idx)
+    cat, parsed = parse_record(rec)
     if cat != "within_day" or not isinstance(parsed, tuple):
         return
 
@@ -264,7 +227,6 @@ def _draw_cross_edge(
     start = src_pos + direction * NODE_RADIUS
     end = dst_pos - direction * NODE_RADIUS
 
-    # visual fix
     start, end = end, start
 
     patch = mpatches.FancyArrowPatch(
@@ -331,7 +293,6 @@ def _draw_transition_edges(
     sources: tuple[str, ...] | None = None,
     label_fontsize: int = 6,
 ) -> None:
-    """Draw every valid source->destination edge, including 0% edges."""
     graph_center = np.mean([pos[node] for node in nodes], axis=0)
     edge_sources = sources if sources is not None else nodes
     curvature = 0.26 if len(nodes) == 2 else 0.18
@@ -499,13 +460,6 @@ def _plot_day_boundary_chart(db_probs: dict, fig_dir: Path) -> None:
     plt.close(fig)
 
 
-def _model_label(path: Path) -> str:
-    name = path.stem
-    if name.startswith("results_"):
-        return name[len("results_") :]
-    return name
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -532,11 +486,11 @@ def main() -> None:
 
     for fpath in args.files:
         path = Path(fpath)
-        label = _model_label(path)
+        label = model_label(path)
         logger.info("")
         logger.info("Processing %s...", label)
 
-        records = _load(path)
+        records = load(path)
         logger.info("  Loaded %s records", len(records))
 
         logger.info("  Aggregating day-boundary transitions...")

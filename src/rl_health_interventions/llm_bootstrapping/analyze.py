@@ -1,34 +1,24 @@
-"""Analyze LLM bootstrap transition table results.
-
-Loads one or more results JSONL files, parses responses, reconstructs
-cell parameters from flat indices, and produces:
-  - Text analysis (parse rates, distributions, consistency, transition realism)
-  - Figures per model in subdirectories
-
-Usage:
-    uv run python scripts/analyze_bootstrap.py \\
-        --files data/bootstrap/results_deepseek.jsonl \\
-               data/bootstrap/results_glm5.2.jsonl \\
-        --fig-dir docs/figures
-"""
-
-from __future__ import annotations
+"""Analyze LLM bootstrap transition table results."""
 
 import argparse
-import itertools
-import json
 import logging
-import sys
 from collections import defaultdict
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from rl_health_interventions.llm_bootstrapping.parse import (
-    parse_day_boundary,
-    parse_within_day,
+from rl_health_interventions.llm_bootstrapping._analysis import (
+    SAMPLES_DAY_BOUNDARY,
+    SAMPLES_WITHIN_DAY,
+    TIMESTEPS,
+    WITHIN_DAY_CELLS_PER_TIMESTEP,
+    WITHIN_DAY_START,
+    day_boundary_params,
+    load,
+    model_label,
+    parse_record,
+    within_day_params,
 )
 from rl_health_interventions.llm_bootstrapping.prompts import (
     ACTIONS,
@@ -41,11 +31,6 @@ from rl_health_interventions.llm_bootstrapping.prompts import (
 logger = logging.getLogger(__name__)
 
 DAY_BOUNDARY_COUNT = 36
-SAMPLES_DAY_BOUNDARY = 20
-WITHIN_DAY_START = 720
-WITHIN_DAY_CELLS_PER_TIMESTEP = 144
-SAMPLES_WITHIN_DAY = 30
-TIMESTEPS = 5
 
 STEP_BIN_COLORS = {"inactive": "#e74c3c", "moderate": "#f39c12", "active": "#2ecc71"}
 SLEEP_COLORS = {"good": "#2ecc71", "poor": "#e74c3c"}
@@ -57,55 +42,16 @@ ACTIONS_SHORT = {
 }
 
 
-def _day_boundary_params(cell_idx: int) -> dict:
-    combos = list(itertools.product(STEP_BINS, BURDENS, DAY_TYPES, SLEEP_TYPES))
-    sb, b, d, s = combos[cell_idx]
-    return {"step_bin_daily": sb, "burden": b, "day_type": d, "sleep": s}
-
-
-def _within_day_params(cell_idx: int) -> dict:
-    combos = list(
-        itertools.product(STEP_BINS, BURDENS, ACTIONS, DAY_TYPES, SLEEP_TYPES)
-    )
-    sb, b, a, d, s = combos[cell_idx]
-    return {"step_bin": sb, "burden": b, "action": a, "day_type": d, "sleep": s}
-
-
-def _parse_record(rec: dict) -> tuple[str, object]:
-    idx = rec["index"]
-    content = rec.get("content", "")
-    if idx < WITHIN_DAY_START:
-        return "day_boundary", parse_day_boundary(content)
-    return "within_day", parse_within_day(content)
-
-
 def _cell_info(idx: int) -> tuple[str, int, int, dict]:
     if idx < WITHIN_DAY_START:
         cell_idx = idx // SAMPLES_DAY_BOUNDARY
         sample = idx % SAMPLES_DAY_BOUNDARY
-        return "day_boundary", cell_idx, sample, _day_boundary_params(cell_idx)
+        return "day_boundary", cell_idx, sample, day_boundary_params(cell_idx)
     offset = idx - WITHIN_DAY_START
     within_off = offset % (WITHIN_DAY_CELLS_PER_TIMESTEP * SAMPLES_WITHIN_DAY)
     cell_idx = within_off // SAMPLES_WITHIN_DAY
     sample = within_off % SAMPLES_WITHIN_DAY
-    return "within_day", cell_idx, sample, _within_day_params(cell_idx)
-
-
-def _load(path: Path) -> list[dict]:
-    records = []
-    with path.open(encoding="utf-8") as fh:
-        for raw_line in fh:
-            stripped = raw_line.strip()
-            if stripped:
-                records.append(json.loads(stripped))
-    return records
-
-
-def _model_label(path: Path) -> str:
-    name = path.stem
-    if name.startswith("results_"):
-        return name[len("results_") :]
-    return name
+    return "within_day", cell_idx, sample, within_day_params(cell_idx)
 
 
 def _print_basic_stats(label: str, records: list[dict]) -> None:
@@ -118,8 +64,8 @@ def _print_basic_stats(label: str, records: list[dict]) -> None:
     day_recs = [r for r in records if r["index"] < WITHIN_DAY_START]
     within_recs = [r for r in records if r["index"] >= WITHIN_DAY_START]
 
-    db_parsed = [r for r in day_recs if _parse_record(r)[1] is not None]
-    wd_parsed = [r for r in within_recs if _parse_record(r)[1] is not None]
+    db_parsed = [r for r in day_recs if parse_record(r)[1] is not None]
+    wd_parsed = [r for r in within_recs if parse_record(r)[1] is not None]
 
     logger.info("  Total records:     %s", total)
     logger.info(
@@ -142,7 +88,7 @@ def _print_basic_stats(label: str, records: list[dict]) -> None:
     step_bin_dist: dict[str, int] = defaultdict(int)
     step_counts: list[int] = []
     for r in records:
-        cat, parsed = _parse_record(r)
+        cat, parsed = parse_record(r)
         if cat == "day_boundary" and isinstance(parsed, str):
             sleep_dist[parsed] += 1
         elif cat == "within_day" and isinstance(parsed, tuple):
@@ -185,7 +131,7 @@ def _print_basic_stats(label: str, records: list[dict]) -> None:
             np.percentile(arr, 95),
         )
 
-    failures = [r for r in records if _parse_record(r)[1] is None]
+    failures = [r for r in records if parse_record(r)[1] is None]
     if failures:
         logger.info("")
         logger.info("  Parse failures (%s):", len(failures))
@@ -199,7 +145,7 @@ def _compute_cell_consistency(records: list[dict]) -> dict:
         lambda: defaultdict(lambda: defaultdict(int))
     )
     for r in records:
-        cat, parsed = _parse_record(r)
+        cat, parsed = parse_record(r)
         if cat == "day_boundary":
             cell_idx = r["index"] // SAMPLES_DAY_BOUNDARY
             if isinstance(parsed, str):
@@ -246,10 +192,10 @@ def _compute_day_boundary_transitions(records: list[dict]) -> dict:
     counts: dict[tuple, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     totals: dict[tuple, int] = defaultdict(int)
     for r in records:
-        cat, parsed = _parse_record(r)
+        cat, parsed = parse_record(r)
         if cat != "day_boundary" or not isinstance(parsed, str):
             continue
-        params = _day_boundary_params(r["index"] // SAMPLES_DAY_BOUNDARY)
+        params = day_boundary_params(r["index"] // SAMPLES_DAY_BOUNDARY)
         key = (
             params["step_bin_daily"],
             params["burden"],
@@ -271,7 +217,7 @@ def _compute_within_day_transitions(records: list[dict]) -> dict:
         counts: dict[tuple, dict[str, int]] = defaultdict(lambda: defaultdict(int))
         totals: dict[tuple, int] = defaultdict(int)
         for r in records:
-            cat, parsed = _parse_record(r)
+            cat, parsed = parse_record(r)
             if cat != "within_day" or not isinstance(parsed, tuple):
                 continue
             offset = r["index"] - WITHIN_DAY_START
@@ -280,7 +226,7 @@ def _compute_within_day_transitions(records: list[dict]) -> dict:
                 continue
             within_off = offset % (WITHIN_DAY_CELLS_PER_TIMESTEP * SAMPLES_WITHIN_DAY)
             cell_idx = within_off // SAMPLES_WITHIN_DAY
-            params = _within_day_params(cell_idx)
+            params = within_day_params(cell_idx)
             key = (
                 params["step_bin"],
                 params["burden"],
@@ -304,8 +250,8 @@ def _compute_within_day_transitions(records: list[dict]) -> dict:
 def _parse_counts(records: list[dict]) -> tuple[tuple[int, int], tuple[int, int]]:
     day_recs = [r for r in records if r["index"] < WITHIN_DAY_START]
     within_recs = [r for r in records if r["index"] >= WITHIN_DAY_START]
-    day_parsed = sum(1 for r in day_recs if _parse_record(r)[1] is not None)
-    within_parsed = sum(1 for r in within_recs if _parse_record(r)[1] is not None)
+    day_parsed = sum(1 for r in day_recs if parse_record(r)[1] is not None)
+    within_parsed = sum(1 for r in within_recs if parse_record(r)[1] is not None)
     return (day_parsed, len(day_recs)), (within_parsed, len(within_recs))
 
 
@@ -494,7 +440,7 @@ def _plot_parse_rate(records_per_model: dict[str, list[dict]], fig_dir: Path) ->
     ax.set_ylim(0, 1.1)
     ax.legend()
     ax.grid(axis="y", alpha=0.25)
-    for i, (day_rate, within_rate) in enumerate(zip(db_rates, wd_rates)):
+    for i, (day_rate, within_rate) in enumerate(zip(db_rates, wd_rates, strict=True)):
         day_p, day_n = db_counts[i]
         within_p, within_n = wd_counts[i]
         ax.text(
@@ -539,7 +485,7 @@ def _plot_output_dist(records_per_model: dict[str, list[dict]], fig_dir: Path) -
         total_sleep = 0
         total_sb = 0
         for r in records:
-            cat, parsed = _parse_record(r)
+            cat, parsed = parse_record(r)
             if cat == "day_boundary" and isinstance(parsed, str):
                 sleep_dist[parsed] += 1
                 total_sleep += 1
@@ -667,7 +613,7 @@ def _plot_step_hist(records_per_model: dict[str, list[dict]], fig_dir: Path) -> 
     for label, records in records_per_model.items():
         steps = []
         for r in records:
-            cat, parsed = _parse_record(r)
+            cat, parsed = parse_record(r)
             if cat == "within_day" and isinstance(parsed, tuple):
                 s, sb = parsed
                 if isinstance(s, int) and isinstance(sb, str):
@@ -862,11 +808,10 @@ def _plot_burden_interaction(
 ) -> None:
     for label, records in records_per_model.items():
         all_probs = _compute_within_day_transitions(records)
-
         marginal_active = _marginal_active_prob(all_probs)
 
         fig, axes = plt.subplots(1, 4, figsize=(18, 5.5), sharey=True)
-        for ax, action in zip(axes, ACTIONS):
+        for ax, action in zip(axes, ACTIONS, strict=True):
             for sb in STEP_BINS:
                 vals = []
                 for burden in BURDENS:
@@ -960,9 +905,9 @@ def main() -> None:
     model_data: dict[str, list[dict]] = {}
     for fpath in args.files:
         path = Path(fpath)
-        label = _model_label(path)
+        label = model_label(path)
         logger.info("Loading %s (%s)...", path, label)
-        model_data[label] = _load(path)
+        model_data[label] = load(path)
 
     for label, records in model_data.items():
         out_dir = args.fig_dir / label
