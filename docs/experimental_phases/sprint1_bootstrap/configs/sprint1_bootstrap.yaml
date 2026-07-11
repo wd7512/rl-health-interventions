@@ -55,7 +55,7 @@ reward:
 
 transition_model:
   type: bootstrap
-  table_dir: ../../../tables/persona/base_deepseek-v4-flash
+  table_dir: ../../../../tables/persona/base_deepseek-v4-flash
 
 episode_days: 90
 steps_per_day: 5
