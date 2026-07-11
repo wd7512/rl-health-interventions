@@ -295,15 +295,164 @@ Several patterns emerge:
   \item \textbf{$\texttt{step\_bin}$ beats $\texttt{burden}$ at all three horizons}. The gap between step\_bin and burden UCB narrows from 17.7 (90d) to 216.7 (900d) to 1567.8 (9000d), but in relative terms burden per-step stays at 95--96\% of step\_bin per-step at all three horizons. The relative penalty is constant.
 \end{enumerate}
 
+\section{Cross-Persona and Cross-Model Comparison}
+
+The base persona results use a single transition table set (deepseek-v4-flash, base persona). To test whether the findings generalise across user types and LLM models, we replicated all core experiments on 6 additional table sets: 4 alternative personas (goal-driven, resistant, social responder, stable maintainer), an initial (no persona) deepseek-v4-flash set, and an initial GLM 5.2 set. Each table set was generated through the same bootstrapping procedure (Algorithm 2, $N=16$ samples per query) with only the LLM system prompt or model variant changed.
+
+The 5 personas describe distinct behavioural archetypes:
+\begin{itemize}
+  \item \textbf{Base}: A generally healthy adult with no particular behavioural disposition.
+  \item \textbf{Goal-driven}: A goal-oriented person who tracks progress, responds to reminders, and is motivated by measurable improvement.
+  \item \textbf{Resistant}: A person who resists external suggestions, prefers their own routine, and is sceptical of interventions.
+  \item \textbf{Social responder}: A socially motivated person who responds positively to encouragement and values connection.
+  \item \textbf{Stable maintainer}: An already very active person with consistent routines who needs little external motiviation.
+\end{itemize}
+
+The two initial (no persona) models allow comparison of the two LLM architectures: deepseek-v4-flash and GLM 5.2.
+
+\subsection{Optimal DP Bounds Across Personas}
+
+We computed exact optimal values via backward induction (384 states $\times$ 450 timesteps) for all 7 table sets, and compared with always-idle simulations (50 seeds):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+Persona / Model & DP Opt & Per Step & Idle Sim & Std UCB & \% DP & Best Agent \\
+\midrule
+Base & 379.1 & 0.842 & 379.4 & 358.1 $\pm$ 14.0 & 94.5 & Std UCB \\
+Goal-driven & 414.3 & 0.921 & 413.5 & 358.2 $\pm$ 65.9 & 86.5 & Std UCB \\
+Resistant & 224.1 & 0.498 & 223.5 & 157.8 $\pm$ 48.5 & 70.4 & Std D-EG (173.7) \\
+Social responder & 314.9 & 0.700 & 304.7 & 148.5 $\pm$ 107.5 & 47.2 & Ctx UCB (161.8) \\
+Stable maintainer & 441.0 & 0.980 & 441.3 & 422.5 $\pm$ 8.9 & 95.8 & Std UCB \\
+Initial DeepSeek & 377.6 & 0.839 & 377.1 & 348.0 $\pm$ 20.8 & 92.2 & Std UCB \\
+Initial GLM 5.2 & 375.3 & 0.834 & 375.2 & 344.9 $\pm$ 37.5 & 91.9 & Std UCB \\
+\bottomrule
+\end{tabular}
+\caption{Cross-persona and cross-model comparison. DP bounds, idle simulation, and Std UCB performance for all 7 table sets (50 seeds). The optimal policy and learning agent performance vary dramatically by persona.}
+\label{tab:cross_persona}
+\end{table}
+
+Key observations:
+
+\textbf{Stable maintainer has the highest natural reward ceiling} (441.0, 0.980/step). The LLM expects already-active people to remain active regardless of actions, achieving near-maximal reward. Std UCB reaches 95.8\% of this ceiling (422.5 $\pm$ 8.9), the best absolute and relative performance of any persona. The greedy oracle (440.4) essentially matches the DP bound -- when natural activity is high, even myopic reasoning works.
+
+\textbf{Goal-driven has the highest upside from intervention} (414.3 DP vs 413.5 idle). The DP value exceeds the idle baseline by 0.8 (0.0018/step). The optimal policy uses goal\_reminder on 20.4\% of steps (primarily at step~4, the last timestep of each day). The LLM believes that goal reminders at the end of the day help goal-driven users consolidate their progress and maintain motivation. However, Std UCB (358.2) reaches only 86.5\% of the DP bound, and does not discover the goal\_reminder strategy -- it converges to an idle-like policy instead. This 56.1 gap is the largest learning deficit across all personas.
+
+\textbf{Social responder is the only persona where context helps}. Std UCB reaches only 148.5 (47.2\% of the 314.9 DP bound), but Ctx UCB (step\_bin context) reaches 161.8 (51.4\% of DP). The optimal policy uses goal\_reminder at step~0 (morning) on 11.6\% of steps and movement\_suggestion on 3.1\%. The context feature (step\_bin) helps agents learn the time-dependent optimal action. This is the only table set where contextual agents outperform their standard counterparts, reversing the base-persona result.
+
+\textbf{Resistant is the hardest persona}. The DP bound is only 224.1 (0.498/step), and the idle simulation matches at 223.5. Std UCB reaches only 157.8 (70.4\% of DP), and Std D-EG (173.7) is the best performing agent. The LLM predicts that resistant users have poor step and sleep outcomes regardless of actions. Even the greedy oracle's simulation-based value (229.5) is close to the DP optimum, indicating that no action can significantly improve outcomes.
+
+\textbf{The two initial models (deepseek vs GLM 5.2) produce similar transition estimates}. The DP bounds are 377.6 vs 375.3, idle simulations 377.1 vs 375.2, and Std UCB 348.0 vs 344.9. Both LLMs agree on the neutral user's dynamics to within 1\%. The GLM 5.2 tables have higher random baselines (194.2 vs 86.7), suggesting GLM 5.2 predicts higher natural activity. The greedy oracle differs more substantially (324.2 vs 237.7), indicating different short-vs-long-term tradeoffs in the two models' transition probabilities.
+
+\subsection{Context Feature Comparison Across Personas}
+
+We replicated the step\_bin vs burden context comparison for all 7 table sets to test whether the base-persona finding (burden is worse) holds universally:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+Persona & Ctx UCB (step\_bin) & Ctx UCB (burden) & Std UCB vs step\_bin & Std UCB vs burden \\
+\midrule
+Base & 268.3 $\pm$ 29.6 & 250.6 $\pm$ 39.7 & +89.8 & +107.5 \\
+Goal-driven & 303.2 $\pm$ 54.7 & 264.6 $\pm$ 48.2 & +55.0 & +93.6 \\
+Resistant & 32.6 $\pm$ 50.1 & 65.3 $\pm$ 59.9 & +125.2 & +92.5 \\
+Social responder & 161.8 $\pm$ 49.8 & 96.0 $\pm$ 56.3 & -13.3 & +52.5 \\
+Stable maintainer & 394.6 $\pm$ 12.0 & 389.2 $\pm$ 17.8 & +27.9 & +33.3 \\
+Initial DeepSeek & 255.6 $\pm$ 30.7 & 250.3 $\pm$ 29.0 & +92.4 & +97.7 \\
+Initial GLM 5.2 & 302.5 $\pm$ 25.4 & 266.3 $\pm$ 19.0 & +42.4 & +78.6 \\
+\bottomrule
+\end{tabular}
+\caption{Context feature comparison across all 7 table sets (50 seeds). Burden context is worse than step\_bin context for 6 of 7 sets. Social responder is the exception: step\_bin context beats even Std UCB.}
+\label{tab:cross_context}
+\end{table}
+
+The base-persona result -- burden context underperforms step\_bin context -- holds for 6 of 7 table sets. The magnitude of the burden penalty varies: 17.7 (base), 38.6 (goal-driven), -32.7 (resistant, inverted!), 65.8 (social responder), 5.4 (stable maintainer), 5.3 (deepseek), 36.2 (GLM 5.2).
+
+The resistant persona is the sole exception: burden context (65.3) beats step\_bin context (32.6). This is likely because the resistant persona's transition tables have very weak dependency on burden (the resistant user ignores notifications whether burden is high or low), so the endogenous feedback loop that makes burden context harmful for other personas is absent here.
+
+\subsection{Masked Reward Comparison}
+
+Masking step~4's reward to zero preserves the relative ordering across all personas:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Persona & Std UCB (unmasked) & Std UCB (masked) & Retention \\
+\midrule
+Base & 358.1 $\pm$ 14.0 & 265.9 $\pm$ 37.3 & 74.3\% \\
+Goal-driven & 358.2 $\pm$ 65.9 & 281.0 $\pm$ 51.6 & 78.4\% \\
+Resistant & 157.8 $\pm$ 48.5 & 116.6 $\pm$ 35.8 & 73.9\% \\
+Social responder & 148.5 $\pm$ 107.5 & 117.7 $\pm$ 75.9 & 79.3\% \\
+Stable maintainer & 422.5 $\pm$ 8.9 & 323.7 $\pm$ 21.5 & 76.6\% \\
+Initial DeepSeek & 348.0 $\pm$ 20.8 & 260.4 $\pm$ 26.8 & 74.8\% \\
+Initial GLM 5.2 & 344.9 $\pm$ 37.5 & 275.4 $\pm$ 44.6 & 79.8\% \\
+\bottomrule
+\end{tabular}
+\caption{Masked benchmark across all table sets (50 seeds). Masking step~4's reward to zero reduces Std UCB by 20--26\%, with the retention rate consistent across personas.}
+\label{tab:cross_masked}
+\end{table}
+
+The consistent 74--80\% retention rate across all 7 table sets suggests the temporal reward structure is similar across personas and models: approximately one-quarter of the reward is earned on the final step of each day.
+
+\subsection{Optimal Policy Structure by Persona}
+
+The backward induction reveals distinct optimal policies for each persona:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Persona & Idle \% & Goal reminder \% & Movement suggestion \% & Journal \% \\
+\midrule
+Base & 99.8 & 0.2 & 0.0 & 0.0 \\
+Goal-driven & 79.6 & 20.4 & 0.0 & 0.0 \\
+Resistant & 97.1 & 0.0 & 0.0 & 2.9 \\
+Social responder & 85.3 & 11.6 & 3.1 & 0.0 \\
+Stable maintainer & 85.6 & 14.4 & 0.0 & 0.0 \\
+Initial DeepSeek & 99.8 & 0.2 & 0.0 & 0.0 \\
+Initial GLM 5.2 & 99.8 & 0.2 & 0.0 & 0.0 \\
+\bottomrule
+\end{tabular}
+\caption{Optimal action distribution across all 450 timesteps for each persona, from backward induction. Three of five deepseek-v4-flash personas benefit from non-idle actions.}
+\label{tab:optimal_policies}
+\end{table}
+
+Three personas have non-trivial optimal policies:
+
+\textbf{Goal-driven} -- goal\_reminder at step 4 (last step of day, 20.4\%). The LLM believes that a brief end-of-day reflection helps goal-driven users consolidate their activity and maintain motivation for the next day. The gain over always-idle is small (0.0018/step) but real.
+
+\textbf{Social responder} -- goal\_reminder (11.6\%) and movement\_suggestion (3.1\%) at step 0 (morning). The LLM expects that a morning check-in and encouragement helps social responders start the day actively. The gain is 10.18 over idle (3.3\%).
+
+\textbf{Stable maintainer} -- goal\_reminder at step 2 (14.4\%). The DP essentially ties idle (440.98 vs 441.30 idle), and the non-idle actions are within the Monte Carlo noise. The LLM expects that a midday check-in does not meaningfully change outcomes for already-active users.
+
+\textbf{Resistant} -- journal (2.9\%). The DP barely beats idle (224.11 vs 223.51). The journal action is chosen in a few states where the resistant user's burden is low and the journal may help, but the effect is negligible.
+
+Only the base and initial (no persona) models converge to the all-idle policy (99.8\%). This confirms that the all-idle result is specific to the neutral persona, not a general property of LLM-estimated transitions.
+
+\subsection{Summary of Cross-Persona Findings}
+
+\begin{enumerate}
+  \item \textbf{Persona matters more than LLM model}. The 5 deepseek persona DPs span 224--441 (2$\times$ range), while the two initial models (deepseek vs GLM 5.2) differ by only 2.3 (0.6\%). The persona prompt has a much larger effect on transition estimates than the underlying LLM architecture.
+  \item \textbf{Three personas benefit from intervention}. Goal-driven (goal\_reminder at step 4), social responder (goal\_reminder at step 0), and stable maintainer (goal\_reminder at step 2) all have non-idle optimal actions. The base no-persona result -- always-idle is optimal -- does not generalise to all user types.
+  \item \textbf{Social responder is the hardest for learning agents}. Std UCB reaches only 47.2\% of the DP bound, the worst relative performance. Contextual UCB (step\_bin context) actually beats Std UCB here, the only persona where this happens.
+  \item \textbf{Burden context is universally worse}, with one exception: resistant persona where burden context beats step\_bin context. The endogenous burden feedback loop is absent when the user is resistant to all interventions.
+  \item \textbf{The two LLM models (deepseek-v4-flash and GLM 5.2) agree} on the neutral user's dynamics to within 1\%. GLM 5.2 predicts slightly higher natural activity (higher random baseline).
+\end{enumerate}
+
 \section{Key Findings}
 
 \begin{enumerate}
   \item \textbf{Bootstrap transitions have exploitable structure}. Unlike the Dirichlet-random baselines where all agents performed similarly ($\sim$185 total), the LLM-estimated tables yield a 259\% gap between best learner and random. The LLM produces non-trivial transition dynamics.
-  \item \textbf{Always-idle is the optimal policy}. Backward induction over 384 states confirms the optimal strategy is to never intervene on 99.8\% of steps. The optimal DP bound is 379.1 (0.842/step), and Std UCB ($c=0.5$) reaches 94.5\% of this theoretical maximum. The exact DP value matches the always-idle simulation (380.4 $\pm$ 3.7) within Monte Carlo noise.
-  \item \textbf{Context features hurt, even with better signal}. Swapping from $\texttt{step\_bin}$ to $\texttt{burden}$ -- a context with 13$\times$ stronger predictive power -- made performance worse, not better. The reason is that burden is endogenous: exploration changes burden, which shifts the context distribution, which triggers more exploration. This feedback loop amplifies the sample-efficiency cost of context fragmentation.
+  \item \textbf{The optimal policy depends on persona}. Base, initial deepseek, and initial GLM 5.2 all have always-idle optimal policies (99.8\% idle). But goal-driven uses goal\_reminder at step 4 (20.4\%), social responder uses goal\_reminder at step 0 (11.6\%) + movement\_suggestion (3.1\%), and stable maintainer uses goal\_reminder at step 2 (14.4\%). Persona-specific LLM prompts produce meaningfully different transition estimates.
+  \item \textbf{Std UCB reaches 94--96\% of the DP bound for easy personas} (base, stable maintainer, initial models) but only 70\% for resistant and 47\% for social responder. The learning deficit is persona-dependent.
+  \item \textbf{Social responder is the only persona where context helps}. Ctx UCB (step\_bin) beats Std UCB (161.8 vs 148.5), reversing the base-persona result. The context feature helps agents learn the time-dependent optimal action (morning intervention).
+  \item \textbf{Context features hurt, even with better signal}. Swapping from $\texttt{step\_bin}$ to $\texttt{burden}$ -- a context with 13$\times$ stronger predictive power -- made performance worse for 6 of 7 table sets. The resistant persona is the sole exception because the endogenous feedback loop is absent.
   \item \textbf{UCB hyperparameter sensitivity is extreme}. Default $c=2.0$: 240. Tuned $c=0.5$: 358. The MVP-optimised values transferred well, but a dedicated grid search may find even better settings.
-  \item \textbf{The greedy oracle (one-step lookahead) is not a good bound} at 281 (26\% below the DP optimum). Myopic expected-reward maximisation fails because the reward is computed on the post-transition state: the penalty is immediate but the benefit of intervention (higher step\_bin) is only realisable in future rewards, which the greedy oracle ignores. Critically, interventions increase burden, which degrades future transition probabilities -- a negative long-term effect the greedy oracle cannot amortise.
-  \item \textbf{The LLM's transition estimates are a plausible starting point} but should be validated against real data. The strong idle preference may reflect LLM bias toward inaction rather than true user dynamics.
+  \item \textbf{The greedy oracle (one-step lookahead) fails for complex personas}. For social responder, the greedy oracle (87.0) is 72\% below the DP optimum (314.9). Myopic reasoning cannot amortise the long-term burden cost of intervention.
+  \item \textbf{The LLM's transition estimates are a plausible starting point} but should be validated against real data. The strong idle preference for the base persona may reflect LLM bias toward inaction rather than true user dynamics, but the persona-specific policies (goal-driven responds to reminders, resistant ignores interventions) align with psychological expectations.
 \end{enumerate}
 
 \end{document}
