@@ -1,0 +1,959 @@
+{
+  "Base": [
+    {
+      "alpha": 0.0,
+      "optimal_value": 437.36862764845097,
+      "per_step": 0.9719302836632244,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.2222222222222222,
+        "idle": 99.77777777777777
+      }
+    },
+    {
+      "alpha": 0.1,
+      "optimal_value": 430.8653471654571,
+      "per_step": 0.9574785492565713,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.2222222222222222,
+        "idle": 99.77777777777777
+      }
+    },
+    {
+      "alpha": 0.2,
+      "optimal_value": 424.3620666824626,
+      "per_step": 0.9430268148499169,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.2222222222222222,
+        "idle": 99.77777777777777
+      }
+    },
+    {
+      "alpha": 0.3,
+      "optimal_value": 417.8722609201553,
+      "per_step": 0.9286050242670119,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.2222222222222222,
+        "idle": 99.77777777777777
+      }
+    },
+    {
+      "alpha": 0.4,
+      "optimal_value": 411.40170495253733,
+      "per_step": 0.9142260110056385,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.2222222222222222,
+        "idle": 99.77777777777777
+      }
+    },
+    {
+      "alpha": 0.5,
+      "optimal_value": 404.93114901307644,
+      "per_step": 0.8998469978068365,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.2222222222222222,
+        "idle": 99.77777777777777
+      }
+    },
+    {
+      "alpha": 0.6,
+      "optimal_value": 398.46059307384735,
+      "per_step": 0.8854679846085497,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.2222222222222222,
+        "idle": 99.77777777777777
+      }
+    },
+    {
+      "alpha": 0.7,
+      "optimal_value": 391.9900458688413,
+      "per_step": 0.8710889908196474,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.2222222222222222,
+        "idle": 99.77777777777777
+      }
+    },
+    {
+      "alpha": 0.8,
+      "optimal_value": 385.5222044642861,
+      "per_step": 0.8567160099206358,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.2222222222222222,
+        "idle": 99.77777777777777
+      }
+    },
+    {
+      "alpha": 0.9,
+      "optimal_value": 379.06759177324136,
+      "per_step": 0.8423724261627585,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 1.0,
+      "optimal_value": 372.6155871290567,
+      "per_step": 0.8280346380645704,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    }
+  ],
+  "Goal-driven": [
+    {
+      "alpha": 0.0,
+      "optimal_value": 443.59765506690917,
+      "per_step": 0.9857725668153537,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.1,
+      "optimal_value": 440.29693925065175,
+      "per_step": 0.9784376427792261,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.2,
+      "optimal_value": 436.9985624141405,
+      "per_step": 0.9711079164758678,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.3,
+      "optimal_value": 433.7001855968441,
+      "per_step": 0.9637781902152092,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.4,
+      "optimal_value": 430.4245614921203,
+      "per_step": 0.9564990255380451,
+      "activity_pct": 1.1111111111111143,
+      "idle_pct": 98.88888888888889,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 1.1111111111111112,
+        "idle": 98.88888888888889
+      }
+    },
+    {
+      "alpha": 0.5,
+      "optimal_value": 427.19085713935874,
+      "per_step": 0.9493130158652416,
+      "activity_pct": 1.1111111111111143,
+      "idle_pct": 98.88888888888889,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 1.1111111111111112,
+        "idle": 98.88888888888889
+      }
+    },
+    {
+      "alpha": 0.6,
+      "optimal_value": 423.9632147856665,
+      "per_step": 0.9421404773014811,
+      "activity_pct": 1.5555555555555571,
+      "idle_pct": 98.44444444444444,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 1.5555555555555556,
+        "idle": 98.44444444444444
+      }
+    },
+    {
+      "alpha": 0.7,
+      "optimal_value": 420.7394002132482,
+      "per_step": 0.9349764449183293,
+      "activity_pct": 1.5555555555555571,
+      "idle_pct": 98.44444444444444,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 1.5555555555555556,
+        "idle": 98.44444444444444
+      }
+    },
+    {
+      "alpha": 0.8,
+      "optimal_value": 417.5156036942463,
+      "per_step": 0.9278124526538807,
+      "activity_pct": 1.5555555555555571,
+      "idle_pct": 98.44444444444444,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 1.5555555555555556,
+        "idle": 98.44444444444444
+      }
+    },
+    {
+      "alpha": 0.9,
+      "optimal_value": 414.3034868230547,
+      "per_step": 0.9206744151623437,
+      "activity_pct": 1.5555555555555571,
+      "idle_pct": 98.44444444444444,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 1.5555555555555556,
+        "idle": 98.44444444444444
+      }
+    },
+    {
+      "alpha": 1.0,
+      "optimal_value": 411.0919672190693,
+      "per_step": 0.9135377049312652,
+      "activity_pct": 1.5555555555555571,
+      "idle_pct": 98.44444444444444,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 1.5555555555555556,
+        "idle": 98.44444444444444
+      }
+    }
+  ],
+  "Resistant": [
+    {
+      "alpha": 0.0,
+      "optimal_value": 366.9973273028391,
+      "per_step": 0.8155496162285313,
+      "activity_pct": 14.444444444444443,
+      "idle_pct": 85.55555555555556,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 85.55555555555556,
+        "journal": 3.7777777777777777,
+        "movement_suggestion": 10.666666666666666
+      }
+    },
+    {
+      "alpha": 0.1,
+      "optimal_value": 351.06380624284054,
+      "per_step": 0.7801417916507568,
+      "activity_pct": 14.444444444444443,
+      "idle_pct": 85.55555555555556,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 2.6666666666666665,
+        "idle": 85.55555555555556,
+        "journal": 1.1111111111111112,
+        "movement_suggestion": 10.666666666666666
+      }
+    },
+    {
+      "alpha": 0.2,
+      "optimal_value": 335.169794628716,
+      "per_step": 0.7448217658415911,
+      "activity_pct": 14.666666666666671,
+      "idle_pct": 85.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 2.6666666666666665,
+        "idle": 85.33333333333333,
+        "journal": 1.3333333333333333,
+        "movement_suggestion": 10.666666666666666
+      }
+    },
+    {
+      "alpha": 0.3,
+      "optimal_value": 319.27640096688265,
+      "per_step": 0.7095031132597392,
+      "activity_pct": 14.666666666666671,
+      "idle_pct": 85.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 2.6666666666666665,
+        "idle": 85.33333333333333,
+        "journal": 1.3333333333333333,
+        "movement_suggestion": 10.666666666666666
+      }
+    },
+    {
+      "alpha": 0.4,
+      "optimal_value": 303.38485594079344,
+      "per_step": 0.6741885687573188,
+      "activity_pct": 14.666666666666671,
+      "idle_pct": 85.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 2.6666666666666665,
+        "idle": 85.33333333333333,
+        "journal": 1.3333333333333333,
+        "movement_suggestion": 10.666666666666666
+      }
+    },
+    {
+      "alpha": 0.5,
+      "optimal_value": 287.49666551685345,
+      "per_step": 0.6388814789263411,
+      "activity_pct": 14.666666666666671,
+      "idle_pct": 85.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 2.6666666666666665,
+        "idle": 85.33333333333333,
+        "journal": 1.3333333333333333,
+        "movement_suggestion": 10.666666666666666
+      }
+    },
+    {
+      "alpha": 0.6,
+      "optimal_value": 271.60874177039364,
+      "per_step": 0.6035749817119859,
+      "activity_pct": 14.666666666666671,
+      "idle_pct": 85.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 2.6666666666666665,
+        "idle": 85.33333333333333,
+        "journal": 1.3333333333333333,
+        "movement_suggestion": 10.666666666666666
+      }
+    },
+    {
+      "alpha": 0.7,
+      "optimal_value": 255.72530931989184,
+      "per_step": 0.5682784651553152,
+      "activity_pct": 14.666666666666671,
+      "idle_pct": 85.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 2.6666666666666665,
+        "idle": 85.33333333333333,
+        "journal": 1.3333333333333333,
+        "movement_suggestion": 10.666666666666666
+      }
+    },
+    {
+      "alpha": 0.8,
+      "optimal_value": 239.8767235323323,
+      "per_step": 0.5330593856274052,
+      "activity_pct": 14.222222222222229,
+      "idle_pct": 85.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 3.7777777777777777,
+        "idle": 85.77777777777777,
+        "journal": 0.4444444444444444,
+        "movement_suggestion": 10.0
+      }
+    },
+    {
+      "alpha": 0.9,
+      "optimal_value": 224.10691607745673,
+      "per_step": 0.49801536906101496,
+      "activity_pct": 13.333333333333329,
+      "idle_pct": 86.66666666666667,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 2.888888888888889,
+        "idle": 86.66666666666667,
+        "journal": 0.4444444444444444,
+        "movement_suggestion": 10.0
+      }
+    },
+    {
+      "alpha": 1.0,
+      "optimal_value": 208.9704450465789,
+      "per_step": 0.4643787667701753,
+      "activity_pct": 3.7777777777777715,
+      "idle_pct": 96.22222222222223,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 2.6666666666666665,
+        "idle": 96.22222222222223,
+        "journal": 1.1111111111111112
+      }
+    }
+  ],
+  "Social Responder": [
+    {
+      "alpha": 0.0,
+      "optimal_value": 446.0618899612338,
+      "per_step": 0.9912486443582974,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.1,
+      "optimal_value": 430.4676976345705,
+      "per_step": 0.956594883632379,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.2,
+      "optimal_value": 414.88310299000545,
+      "per_step": 0.921962451088901,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 99.77777777777777,
+        "movement_suggestion": 0.2222222222222222
+      }
+    },
+    {
+      "alpha": 0.3,
+      "optimal_value": 399.7631189130119,
+      "per_step": 0.8883624864733598,
+      "activity_pct": 12.666666666666671,
+      "idle_pct": 87.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 11.555555555555555,
+        "idle": 87.33333333333333,
+        "movement_suggestion": 1.1111111111111112
+      }
+    },
+    {
+      "alpha": 0.4,
+      "optimal_value": 385.55475378981083,
+      "per_step": 0.8567883417551352,
+      "activity_pct": 16.66666666666667,
+      "idle_pct": 83.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 16.444444444444443,
+        "idle": 83.33333333333333,
+        "movement_suggestion": 0.2222222222222222
+      }
+    },
+    {
+      "alpha": 0.5,
+      "optimal_value": 371.39739470823264,
+      "per_step": 0.8253275437960725,
+      "activity_pct": 16.66666666666667,
+      "idle_pct": 83.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 16.666666666666668,
+        "idle": 83.33333333333333
+      }
+    },
+    {
+      "alpha": 0.6,
+      "optimal_value": 357.2527495842638,
+      "per_step": 0.7938949990761418,
+      "activity_pct": 16.66666666666667,
+      "idle_pct": 83.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 16.666666666666668,
+        "idle": 83.33333333333333
+      }
+    },
+    {
+      "alpha": 0.7,
+      "optimal_value": 343.1241246724377,
+      "per_step": 0.7624980548276393,
+      "activity_pct": 16.66666666666667,
+      "idle_pct": 83.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 16.666666666666668,
+        "idle": 83.33333333333333
+      }
+    },
+    {
+      "alpha": 0.8,
+      "optimal_value": 328.9969844773944,
+      "per_step": 0.7311044099497653,
+      "activity_pct": 16.888888888888886,
+      "idle_pct": 83.11111111111111,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 16.666666666666668,
+        "idle": 83.11111111111111,
+        "movement_suggestion": 0.2222222222222222
+      }
+    },
+    {
+      "alpha": 0.9,
+      "optimal_value": 314.88712484139535,
+      "per_step": 0.6997491663142119,
+      "activity_pct": 17.77777777777777,
+      "idle_pct": 82.22222222222223,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 16.22222222222222,
+        "idle": 82.22222222222223,
+        "movement_suggestion": 1.5555555555555556
+      }
+    },
+    {
+      "alpha": 1.0,
+      "optimal_value": 300.7807704672172,
+      "per_step": 0.6684017121493716,
+      "activity_pct": 17.77777777777777,
+      "idle_pct": 82.22222222222223,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 16.22222222222222,
+        "idle": 82.22222222222223,
+        "movement_suggestion": 1.5555555555555556
+      }
+    }
+  ],
+  "Stable Maintainer": [
+    {
+      "alpha": 0.0,
+      "optimal_value": 442.48514591350505,
+      "per_step": 0.9833003242522335,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.1,
+      "optimal_value": 442.29579157583277,
+      "per_step": 0.9828795368351839,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.2,
+      "optimal_value": 442.10645327221357,
+      "per_step": 0.9824587850493635,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.3,
+      "optimal_value": 441.91711496859483,
+      "per_step": 0.9820380332635441,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.4,
+      "optimal_value": 441.7277766649754,
+      "per_step": 0.9816172814777231,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.5,
+      "optimal_value": 441.5395101101546,
+      "per_step": 0.9811989113558991,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.6,
+      "optimal_value": 441.3869683230714,
+      "per_step": 0.9808599296068253,
+      "activity_pct": 0.6666666666666714,
+      "idle_pct": 99.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.4444444444444444,
+        "idle": 99.33333333333333,
+        "movement_suggestion": 0.2222222222222222
+      }
+    },
+    {
+      "alpha": 0.7,
+      "optimal_value": 441.24608887189413,
+      "per_step": 0.9805468641597648,
+      "activity_pct": 0.6666666666666714,
+      "idle_pct": 99.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.4444444444444444,
+        "idle": 99.33333333333333,
+        "movement_suggestion": 0.2222222222222222
+      }
+    },
+    {
+      "alpha": 0.8,
+      "optimal_value": 441.113670204464,
+      "per_step": 0.9802526004543644,
+      "activity_pct": 0.6666666666666714,
+      "idle_pct": 99.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.4444444444444444,
+        "idle": 99.33333333333333,
+        "movement_suggestion": 0.2222222222222222
+      }
+    },
+    {
+      "alpha": 0.9,
+      "optimal_value": 440.981251537034,
+      "per_step": 0.9799583367489644,
+      "activity_pct": 0.6666666666666714,
+      "idle_pct": 99.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.4444444444444444,
+        "idle": 99.33333333333333,
+        "movement_suggestion": 0.2222222222222222
+      }
+    },
+    {
+      "alpha": 1.0,
+      "optimal_value": 440.9058483489377,
+      "per_step": 0.9797907741087505,
+      "activity_pct": 2.8888888888888857,
+      "idle_pct": 97.11111111111111,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 2.6666666666666665,
+        "idle": 97.11111111111111,
+        "movement_suggestion": 0.2222222222222222
+      }
+    }
+  ],
+  "Initial DeepSeek": [
+    {
+      "alpha": 0.0,
+      "optimal_value": 436.976607535659,
+      "per_step": 0.97105912785702,
+      "activity_pct": 14.444444444444443,
+      "idle_pct": 85.55555555555556,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 4.666666666666667,
+        "idle": 85.55555555555556,
+        "journal": 3.111111111111111,
+        "movement_suggestion": 6.666666666666667
+      }
+    },
+    {
+      "alpha": 0.1,
+      "optimal_value": 427.9024498627282,
+      "per_step": 0.9508943330282849,
+      "activity_pct": 14.444444444444443,
+      "idle_pct": 85.55555555555556,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 11.555555555555555,
+        "idle": 85.55555555555556,
+        "movement_suggestion": 2.888888888888889
+      }
+    },
+    {
+      "alpha": 0.2,
+      "optimal_value": 418.8542499894651,
+      "per_step": 0.9307872221988113,
+      "activity_pct": 14.444444444444443,
+      "idle_pct": 85.55555555555556,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 11.777777777777779,
+        "idle": 85.55555555555556,
+        "movement_suggestion": 2.6666666666666665
+      }
+    },
+    {
+      "alpha": 0.3,
+      "optimal_value": 409.85207694931955,
+      "per_step": 0.9107823932207101,
+      "activity_pct": 13.777777777777771,
+      "idle_pct": 86.22222222222223,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 11.777777777777779,
+        "idle": 86.22222222222223,
+        "movement_suggestion": 2.0
+      }
+    },
+    {
+      "alpha": 0.4,
+      "optimal_value": 402.8408049073723,
+      "per_step": 0.8952017886830494,
+      "activity_pct": 2.8888888888888857,
+      "idle_pct": 97.11111111111111,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.8888888888888888,
+        "idle": 97.11111111111111,
+        "movement_suggestion": 2.0
+      }
+    },
+    {
+      "alpha": 0.5,
+      "optimal_value": 397.458233583053,
+      "per_step": 0.8832405190734511,
+      "activity_pct": 2.6666666666666714,
+      "idle_pct": 97.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.8888888888888888,
+        "idle": 97.33333333333333,
+        "movement_suggestion": 1.7777777777777777
+      }
+    },
+    {
+      "alpha": 0.6,
+      "optimal_value": 392.29890006804567,
+      "per_step": 0.871775333484546,
+      "activity_pct": 0.44444444444444287,
+      "idle_pct": 99.55555555555556,
+      "n_steps": 450,
+      "action_distribution": {
+        "goal_reminder": 0.4444444444444444,
+        "idle": 99.55555555555556
+      }
+    },
+    {
+      "alpha": 0.7,
+      "optimal_value": 387.3743918044996,
+      "per_step": 0.860831981787777,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.8,
+      "optimal_value": 382.4624543583158,
+      "per_step": 0.8499165652407018,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 0.9,
+      "optimal_value": 377.5529926901748,
+      "per_step": 0.8390066504226107,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    },
+    {
+      "alpha": 1.0,
+      "optimal_value": 372.8453011992153,
+      "per_step": 0.828545113776034,
+      "activity_pct": 0.0,
+      "idle_pct": 100.0,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 100.0
+      }
+    }
+  ],
+  "Initial GLM 5.2": [
+    {
+      "alpha": 0.0,
+      "optimal_value": 438.4978053238923,
+      "per_step": 0.9744395673864273,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 99.77777777777777,
+        "movement_suggestion": 0.2222222222222222
+      }
+    },
+    {
+      "alpha": 0.1,
+      "optimal_value": 431.44345354170895,
+      "per_step": 0.9587632300926866,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 99.77777777777777,
+        "movement_suggestion": 0.2222222222222222
+      }
+    },
+    {
+      "alpha": 0.2,
+      "optimal_value": 424.3891017595276,
+      "per_step": 0.9430868927989502,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 99.77777777777777,
+        "movement_suggestion": 0.2222222222222222
+      }
+    },
+    {
+      "alpha": 0.3,
+      "optimal_value": 417.3447499773474,
+      "per_step": 0.9274327777274387,
+      "activity_pct": 0.44444444444444287,
+      "idle_pct": 99.55555555555556,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 99.55555555555556,
+        "movement_suggestion": 0.4444444444444444
+      }
+    },
+    {
+      "alpha": 0.4,
+      "optimal_value": 410.3103981951664,
+      "per_step": 0.9118008848781475,
+      "activity_pct": 0.44444444444444287,
+      "idle_pct": 99.55555555555556,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 99.55555555555556,
+        "movement_suggestion": 0.4444444444444444
+      }
+    },
+    {
+      "alpha": 0.5,
+      "optimal_value": 403.2760464129831,
+      "per_step": 0.8961689920288513,
+      "activity_pct": 0.44444444444444287,
+      "idle_pct": 99.55555555555556,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 99.55555555555556,
+        "movement_suggestion": 0.4444444444444444
+      }
+    },
+    {
+      "alpha": 0.6,
+      "optimal_value": 396.2416946308001,
+      "per_step": 0.8805370991795558,
+      "activity_pct": 0.44444444444444287,
+      "idle_pct": 99.55555555555556,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 99.55555555555556,
+        "movement_suggestion": 0.4444444444444444
+      }
+    },
+    {
+      "alpha": 0.7,
+      "optimal_value": 389.21330043174254,
+      "per_step": 0.8649184454038723,
+      "activity_pct": 0.44444444444444287,
+      "idle_pct": 99.55555555555556,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 99.55555555555556,
+        "movement_suggestion": 0.4444444444444444
+      }
+    },
+    {
+      "alpha": 0.8,
+      "optimal_value": 382.22656073711744,
+      "per_step": 0.8493923571935943,
+      "activity_pct": 0.6666666666666714,
+      "idle_pct": 99.33333333333333,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 99.33333333333333,
+        "movement_suggestion": 0.6666666666666666
+      }
+    },
+    {
+      "alpha": 0.9,
+      "optimal_value": 375.3042686468576,
+      "per_step": 0.8340094858819058,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 99.77777777777777,
+        "movement_suggestion": 0.2222222222222222
+      }
+    },
+    {
+      "alpha": 1.0,
+      "optimal_value": 368.3865083080314,
+      "per_step": 0.8186366851289587,
+      "activity_pct": 0.22222222222222854,
+      "idle_pct": 99.77777777777777,
+      "n_steps": 450,
+      "action_distribution": {
+        "idle": 99.77777777777777,
+        "movement_suggestion": 0.2222222222222222
+      }
+    }
+  ]
+}
