@@ -115,4 +115,4 @@ uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retr
 
 The `stable_maintainer` persona run is complete: 22,320/22,320 prompts with 0
 errors. The original 721 OpenRouter rate-limit errors were cleared using
-OpenCode Zen with `--resume --provider=zen --concurrency=5`.
+OpenCode Zen with `request_helper --resume --persona=stable_maintainer --subdir=persona --provider=zen --concurrency=5`.
