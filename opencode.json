@@ -10,6 +10,11 @@
     "python-engineer": {
       "description": "Implements small, well-tested Python changes using uv, ruff, ty, and pytest.",
       "mode": "subagent"
+    },
+    "scout": {
+      "description": "Read-only agent for external docs, dependency research, and codebase reconnaissance",
+      "mode": "subagent",
+      "model": "opencode-go/deepseek-v4-flash"
     }
   },
   "command": {
