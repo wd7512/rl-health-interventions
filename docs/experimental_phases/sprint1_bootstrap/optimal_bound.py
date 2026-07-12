@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 N_SEEDS = 10
 
 
+
 class _FixedActionAgent:
     """Always returns the same action."""
 
@@ -194,7 +195,7 @@ def compute_bounds(config):  # noqa: ARG001
 
     The sprint1_bootstrap optimal bound computation is too expensive for
     a static analysis function. Use the CLI directly:
-        uv run python _optimal_dp.py --config sprint1_bootstrap.yaml
+        uv run python optimal_bound.py configs/sprint1_bootstrap.yaml
     """
     return None
 

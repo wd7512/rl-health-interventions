@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 class AgentLike(Protocol):
     def select_action(self, state) -> str: ...
     def update(self, state, action, reward, next_state) -> None: ...
+    def on_day_end(self) -> None: ...
 
 
 def run_episode(
@@ -46,6 +47,8 @@ def run_episode(
             }
         )
         agent.update(state, action, reward, next_state)
+        if next_state.step_of_day == 0 and next_state.day > 0:
+            agent.on_day_end()
         state = next_state
 
     if output_csv and records:

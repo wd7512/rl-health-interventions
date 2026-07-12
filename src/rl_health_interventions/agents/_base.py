@@ -12,3 +12,6 @@ class Agent(ABC):
         """NOTE: Intentionally a no-op for non-learning agents.
         Only learners (e.g. bandit agents) override this to incorporate feedback.
         """
+
+    def on_day_end(self) -> None:
+        """Called once per day boundary. Override for batch daily updates."""

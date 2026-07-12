@@ -1,0 +1,598 @@
+{
+  "base": {
+    "config": "sprint1_bootstrap.yaml",
+    "seeds": 50,
+    "dp": {
+      "optimal_value": 379.06759177324136,
+      "per_step": 0.8423724261627585,
+      "n_states": 384,
+      "n_timesteps": 450,
+      "greedy_oracle_mean": 289.4460000000004,
+      "greedy_oracle_std": 15.000412794320113
+    },
+    "bandits": {
+      "Std TS": {
+        "total_mean": 252.572,
+        "total_std": 105.6422264816489,
+        "per_step": 0.561271111111111,
+        "last50": 0.66184
+      },
+      "Std EG": {
+        "total_mean": 280.75600000000003,
+        "total_std": 89.26846847571653,
+        "per_step": 0.6239022222222221,
+        "last50": 0.7429999999999999
+      },
+      "Std UCB": {
+        "total_mean": 240.386,
+        "total_std": 33.945023258203854,
+        "per_step": 0.5341911111111111,
+        "last50": 0.8024600000000001
+      },
+      "Random": {
+        "total_mean": 99.74600000000002,
+        "total_std": 10.871241143494146,
+        "per_step": 0.22165777777777781,
+        "last50": 0.21492000000000008
+      }
+    },
+    "heartsteps": {
+      "total_mean": 379.651,
+      "total_std": 4.8120940348251695,
+      "per_step": 0.843668888888889,
+      "last50": 0.8412400000000001,
+      "gamma": 0.5,
+      "time_s": 1.329756124992855
+    },
+    "idle": {
+      "total_mean": 379.651,
+      "total_std": 4.8120940348251695,
+      "per_step": 0.843668888888889,
+      "last50": 0.8412400000000001
+    }
+  },
+  "base_masked": {
+    "config": "sprint1_bootstrap_masked.yaml",
+    "seeds": 50,
+    "dp": {
+      "optimal_value": 379.06759177324136,
+      "per_step": 0.8423724261627585,
+      "n_states": 384,
+      "n_timesteps": 450,
+      "greedy_oracle_mean": 237.82200000000012,
+      "greedy_oracle_std": 12.150687881762146
+    },
+    "bandits": {
+      "Std TS": {
+        "total_mean": 174.63600000000002,
+        "total_std": 70.63193968736806,
+        "per_step": 0.38808,
+        "last50": 0.45586000000000004
+      },
+      "Std EG": {
+        "total_mean": 230.334,
+        "total_std": 67.45235832793394,
+        "per_step": 0.5118533333333334,
+        "last50": 0.6095799999999999
+      },
+      "Std UCB": {
+        "total_mean": 156.574,
+        "total_std": 41.51424483234639,
+        "per_step": 0.34794222222222226,
+        "last50": 0.5730799999999999
+      },
+      "Random": {
+        "total_mean": 83.56400000000002,
+        "total_std": 8.356847731052657,
+        "per_step": 0.18569777777777782,
+        "last50": 0.17846000000000004
+      }
+    },
+    "heartsteps": {
+      "total_mean": 309.57,
+      "total_std": 3.8905398083042413,
+      "per_step": 0.6879333333333333,
+      "last50": 0.68516,
+      "gamma": 0.5,
+      "time_s": 1.3477208749973215
+    },
+    "idle": {
+      "total_mean": 309.623,
+      "total_std": 3.910629233256459,
+      "per_step": 0.6880511111111111,
+      "last50": 0.68516
+    }
+  },
+  "goal_driven": {
+    "config": "cross/persona_goal_driven/sprint1_bootstrap_extensions.yaml",
+    "seeds": 50,
+    "dp": {
+      "optimal_value": 414.3034868230547,
+      "per_step": 0.9206744151623437,
+      "n_states": 384,
+      "n_timesteps": 450,
+      "greedy_oracle_mean": 300.68499999999995,
+      "greedy_oracle_std": 13.465716653784101
+    },
+    "bandits": {
+      "Random": {
+        "total_mean": 202.76999999999995,
+        "total_std": 17.330600105016558,
+        "per_step": 0.4506,
+        "last50": 0.4273200000000001
+      },
+      "Std TS": {
+        "total_mean": 231.60899999999995,
+        "total_std": 64.35885695846378,
+        "per_step": 0.5146866666666666,
+        "last50": 0.52322
+      },
+      "Ctx TS": {
+        "total_mean": 220.40900000000002,
+        "total_std": 45.65587113395165,
+        "per_step": 0.48979777777777783,
+        "last50": 0.4949
+      },
+      "Std EG": {
+        "total_mean": 321.75100000000003,
+        "total_std": 92.80018614744263,
+        "per_step": 0.7150022222222222,
+        "last50": 0.77836
+      },
+      "Ctx EG": {
+        "total_mean": 291.334,
+        "total_std": 69.91140496371104,
+        "per_step": 0.6474088888888889,
+        "last50": 0.72672
+      },
+      "Std D-EG": {
+        "total_mean": 314.81,
+        "total_std": 97.89807352547854,
+        "per_step": 0.6995777777777777,
+        "last50": 0.73028
+      },
+      "Ctx D-EG": {
+        "total_mean": 292.845,
+        "total_std": 86.25598428514975,
+        "per_step": 0.6507666666666667,
+        "last50": 0.6794
+      },
+      "Std UCB": {
+        "total_mean": 358.20200000000006,
+        "total_std": 65.92152149336361,
+        "per_step": 0.7960044444444444,
+        "last50": 0.878
+      },
+      "Ctx UCB": {
+        "total_mean": 303.16700000000003,
+        "total_std": 54.709832397842355,
+        "per_step": 0.6737044444444444,
+        "last50": 0.78284
+      }
+    },
+    "heartsteps": {
+      "total_mean": 413.522,
+      "total_std": 3.828147855033818,
+      "per_step": 0.9189377777777777,
+      "last50": 0.9181,
+      "gamma": 0.5,
+      "time_s": 1.368813915993087
+    },
+    "idle": {
+      "total_mean": 413.522,
+      "total_std": 3.828147855033818,
+      "per_step": 0.9189377777777777,
+      "last50": 0.9181
+    }
+  },
+  "resistant": {
+    "config": "cross/persona_resistant/sprint1_bootstrap_extensions.yaml",
+    "seeds": 50,
+    "dp": {
+      "optimal_value": 224.10691607745673,
+      "per_step": 0.49801536906101496,
+      "n_states": 384,
+      "n_timesteps": 450,
+      "greedy_oracle_mean": 225.24500000000143,
+      "greedy_oracle_std": 21.26058383488132
+    },
+    "bandits": {
+      "Random": {
+        "total_mean": -41.298999999999985,
+        "total_std": 8.177869465820544,
+        "per_step": -0.09177555555555551,
+        "last50": -0.08833999999999996
+      },
+      "Std TS": {
+        "total_mean": 73.192,
+        "total_std": 89.96578258426922,
+        "per_step": 0.1626488888888889,
+        "last50": 0.30288000000000004
+      },
+      "Ctx TS": {
+        "total_mean": 1.542000000000013,
+        "total_std": 49.077565506043584,
+        "per_step": 0.0034266666666666968,
+        "last50": 0.09408000000000002
+      },
+      "Std EG": {
+        "total_mean": 170.47299999999996,
+        "total_std": 41.908436155504525,
+        "per_step": 0.37882888888888877,
+        "last50": 0.43435999999999997
+      },
+      "Ctx EG": {
+        "total_mean": 93.68099999999998,
+        "total_std": 79.63012174422438,
+        "per_step": 0.20817999999999998,
+        "last50": 0.2584
+      },
+      "Std D-EG": {
+        "total_mean": 173.74199999999993,
+        "total_std": 37.33637282865061,
+        "per_step": 0.3860933333333333,
+        "last50": 0.49404
+      },
+      "Ctx D-EG": {
+        "total_mean": 103.50399999999999,
+        "total_std": 81.64807397605897,
+        "per_step": 0.23000888888888887,
+        "last50": 0.31067999999999996
+      },
+      "Std UCB": {
+        "total_mean": 157.80799999999996,
+        "total_std": 48.50863362330462,
+        "per_step": 0.3506844444444444,
+        "last50": 0.49204
+      },
+      "Ctx UCB": {
+        "total_mean": 32.558,
+        "total_std": 50.08061736839912,
+        "per_step": 0.07235111111111113,
+        "last50": 0.236
+      }
+    },
+    "heartsteps": {
+      "total_mean": 190.504,
+      "total_std": 81.08789973849365,
+      "per_step": 0.4233422222222222,
+      "last50": 0.45183999999999996,
+      "gamma": 0.5,
+      "time_s": 1.4300967089948244
+    },
+    "idle": {
+      "total_mean": 222.77200000000002,
+      "total_std": 25.048862568987033,
+      "per_step": 0.4950488888888888,
+      "last50": 0.49263999999999997
+    }
+  },
+  "social_resp": {
+    "config": "cross/persona_social_responder/sprint1_bootstrap_extensions.yaml",
+    "seeds": 50,
+    "dp": {
+      "optimal_value": 314.88712484139535,
+      "per_step": 0.6997491663142119,
+      "n_states": 384,
+      "n_timesteps": 450,
+      "greedy_oracle_mean": 90.92499999999956,
+      "greedy_oracle_std": 20.327391003274226
+    },
+    "bandits": {
+      "Random": {
+        "total_mean": 52.13700000000003,
+        "total_std": 12.97795365225196,
+        "per_step": 0.11586000000000002,
+        "last50": 0.10154000000000003
+      },
+      "Std TS": {
+        "total_mean": 61.22700000000002,
+        "total_std": 62.31993678591145,
+        "per_step": 0.13606000000000004,
+        "last50": 0.14490000000000006
+      },
+      "Ctx TS": {
+        "total_mean": 73.64300000000001,
+        "total_std": 53.23805688602843,
+        "per_step": 0.16365111111111114,
+        "last50": 0.15730000000000005
+      },
+      "Std EG": {
+        "total_mean": 135.306,
+        "total_std": 111.27231175813684,
+        "per_step": 0.30068,
+        "last50": 0.35234
+      },
+      "Ctx EG": {
+        "total_mean": 150.30800000000002,
+        "total_std": 84.24766130878648,
+        "per_step": 0.33401777777777775,
+        "last50": 0.4202200000000001
+      },
+      "Std D-EG": {
+        "total_mean": 130.806,
+        "total_std": 115.03939005401583,
+        "per_step": 0.29068,
+        "last50": 0.31536
+      },
+      "Ctx D-EG": {
+        "total_mean": 137.849,
+        "total_std": 90.56707486167365,
+        "per_step": 0.30633111111111117,
+        "last50": 0.36604000000000003
+      },
+      "Std UCB": {
+        "total_mean": 148.531,
+        "total_std": 107.49646919317861,
+        "per_step": 0.3300688888888889,
+        "last50": 0.44782
+      },
+      "Ctx UCB": {
+        "total_mean": 161.82800000000003,
+        "total_std": 49.81122178786623,
+        "per_step": 0.35961777777777776,
+        "last50": 0.51996
+      }
+    },
+    "heartsteps": {
+      "total_mean": 294.14799999999997,
+      "total_std": 50.279130819854075,
+      "per_step": 0.6536622222222221,
+      "last50": 0.6487999999999999,
+      "gamma": 0.5,
+      "time_s": 1.3549002920044586
+    },
+    "idle": {
+      "total_mean": 304.737,
+      "total_std": 7.751946916742924,
+      "per_step": 0.6771933333333333,
+      "last50": 0.67726
+    }
+  },
+  "stable_maint": {
+    "config": "cross/persona_stable_maintainer/sprint1_bootstrap_extensions.yaml",
+    "seeds": 50,
+    "dp": {
+      "optimal_value": 440.981251537034,
+      "per_step": 0.9799583367489644,
+      "n_states": 384,
+      "n_timesteps": 450,
+      "greedy_oracle_mean": 440.27399999999994,
+      "greedy_oracle_std": 3.009206539937042
+    },
+    "bandits": {
+      "Random": {
+        "total_mean": 291.949,
+        "total_std": 15.228701487651529,
+        "per_step": 0.6487755555555555,
+        "last50": 0.65464
+      },
+      "Std TS": {
+        "total_mean": 361.8219999999999,
+        "total_std": 51.18187585464214,
+        "per_step": 0.8040488888888888,
+        "last50": 0.8610800000000001
+      },
+      "Ctx TS": {
+        "total_mean": 318.00899999999996,
+        "total_std": 28.12207796376363,
+        "per_step": 0.7066866666666667,
+        "last50": 0.75784
+      },
+      "Std EG": {
+        "total_mean": 379.744,
+        "total_std": 61.389919889180504,
+        "per_step": 0.8438755555555554,
+        "last50": 0.9357600000000003
+      },
+      "Ctx EG": {
+        "total_mean": 384.9759999999999,
+        "total_std": 48.155176502635726,
+        "per_step": 0.8555022222222224,
+        "last50": 0.93604
+      },
+      "Std D-EG": {
+        "total_mean": 395.6360000000001,
+        "total_std": 67.17199419400916,
+        "per_step": 0.879191111111111,
+        "last50": 0.9251
+      },
+      "Ctx D-EG": {
+        "total_mean": 391.8339999999999,
+        "total_std": 54.439238091655916,
+        "per_step": 0.8707422222222221,
+        "last50": 0.9220799999999999
+      },
+      "Std UCB": {
+        "total_mean": 422.504,
+        "total_std": 8.89385653133667,
+        "per_step": 0.9388977777777776,
+        "last50": 0.9706400000000002
+      },
+      "Ctx UCB": {
+        "total_mean": 394.57800000000003,
+        "total_std": 12.03375735171688,
+        "per_step": 0.8768400000000001,
+        "last50": 0.9315399999999999
+      }
+    },
+    "heartsteps": {
+      "total_mean": 441.41,
+      "total_std": 2.4887346182347345,
+      "per_step": 0.9809111111111111,
+      "last50": 0.98434,
+      "gamma": 0.5,
+      "time_s": 1.3816211670055054
+    },
+    "idle": {
+      "total_mean": 441.41,
+      "total_std": 2.4887346182347345,
+      "per_step": 0.9809111111111111,
+      "last50": 0.98434
+    }
+  },
+  "init_deepseek": {
+    "config": "cross/initial_deepseek/sprint1_bootstrap_extensions.yaml",
+    "seeds": 50,
+    "dp": {
+      "optimal_value": 377.5529926901748,
+      "per_step": 0.8390066504226107,
+      "n_states": 384,
+      "n_timesteps": 450,
+      "greedy_oracle_mean": 242.88100000000009,
+      "greedy_oracle_std": 16.515047350825323
+    },
+    "bandits": {
+      "Random": {
+        "total_mean": 86.72500000000002,
+        "total_std": 10.405663121589125,
+        "per_step": 0.19272222222222227,
+        "last50": 0.19266000000000003
+      },
+      "Std TS": {
+        "total_mean": 272.651,
+        "total_std": 93.97179656152159,
+        "per_step": 0.605891111111111,
+        "last50": 0.72616
+      },
+      "Ctx TS": {
+        "total_mean": 173.89199999999997,
+        "total_std": 70.80710653599678,
+        "per_step": 0.3864266666666667,
+        "last50": 0.43034000000000006
+      },
+      "Std EG": {
+        "total_mean": 277.26099999999997,
+        "total_std": 105.17264249318832,
+        "per_step": 0.6161355555555555,
+        "last50": 0.73676
+      },
+      "Ctx EG": {
+        "total_mean": 231.199,
+        "total_std": 87.63003394384828,
+        "per_step": 0.5137755555555555,
+        "last50": 0.6377799999999999
+      },
+      "Std D-EG": {
+        "total_mean": 299.463,
+        "total_std": 101.26592062979529,
+        "per_step": 0.6654733333333334,
+        "last50": 0.74188
+      },
+      "Ctx D-EG": {
+        "total_mean": 232.963,
+        "total_std": 89.22032100928577,
+        "per_step": 0.5176955555555556,
+        "last50": 0.58402
+      },
+      "Std UCB": {
+        "total_mean": 348.047,
+        "total_std": 20.837431247637024,
+        "per_step": 0.7734377777777777,
+        "last50": 0.8458
+      },
+      "Ctx UCB": {
+        "total_mean": 255.58900000000003,
+        "total_std": 30.70377222752931,
+        "per_step": 0.5679755555555555,
+        "last50": 0.69836
+      }
+    },
+    "heartsteps": {
+      "total_mean": 377.501,
+      "total_std": 9.925948267042303,
+      "per_step": 0.838891111111111,
+      "last50": 0.8468400000000001,
+      "gamma": 0.5,
+      "time_s": 1.2337513330276124
+    },
+    "idle": {
+      "total_mean": 377.501,
+      "total_std": 9.925948267042303,
+      "per_step": 0.838891111111111,
+      "last50": 0.8468400000000001
+    }
+  },
+  "init_glm5.2": {
+    "config": "cross/initial_glm5.2/sprint1_bootstrap_extensions.yaml",
+    "seeds": 50,
+    "dp": {
+      "optimal_value": 375.3042686468576,
+      "per_step": 0.8340094858819058,
+      "n_states": 384,
+      "n_timesteps": 450,
+      "greedy_oracle_mean": 322.0690000000004,
+      "greedy_oracle_std": 3.8392172379274867
+    },
+    "bandits": {
+      "Random": {
+        "total_mean": 194.238,
+        "total_std": 18.187937101276766,
+        "per_step": 0.43163999999999997,
+        "last50": 0.4472799999999999
+      },
+      "Std TS": {
+        "total_mean": 263.36400000000003,
+        "total_std": 71.16773850558974,
+        "per_step": 0.5852533333333334,
+        "last50": 0.6452199999999999
+      },
+      "Ctx TS": {
+        "total_mean": 227.19799999999995,
+        "total_std": 46.74123015069244,
+        "per_step": 0.5048844444444445,
+        "last50": 0.55002
+      },
+      "Std EG": {
+        "total_mean": 291.586,
+        "total_std": 83.13266809143083,
+        "per_step": 0.6479688888888888,
+        "last50": 0.74132
+      },
+      "Ctx EG": {
+        "total_mean": 283.143,
+        "total_std": 59.160486821864474,
+        "per_step": 0.6292066666666667,
+        "last50": 0.72988
+      },
+      "Std D-EG": {
+        "total_mean": 304.948,
+        "total_std": 80.66633434091324,
+        "per_step": 0.6776622222222223,
+        "last50": 0.7289199999999999
+      },
+      "Ctx D-EG": {
+        "total_mean": 279.30400000000003,
+        "total_std": 64.68830484716693,
+        "per_step": 0.6206755555555555,
+        "last50": 0.67192
+      },
+      "Std UCB": {
+        "total_mean": 344.86199999999997,
+        "total_std": 37.52194365967733,
+        "per_step": 0.7663599999999999,
+        "last50": 0.8161999999999998
+      },
+      "Ctx UCB": {
+        "total_mean": 302.508,
+        "total_std": 25.377675937721325,
+        "per_step": 0.6722400000000001,
+        "last50": 0.7441599999999999
+      }
+    },
+    "heartsteps": {
+      "total_mean": 375.236,
+      "total_std": 3.771008353212703,
+      "per_step": 0.8338577777777777,
+      "last50": 0.8392599999999999,
+      "gamma": 0.5,
+      "time_s": 1.2250669170171022
+    },
+    "idle": {
+      "total_mean": 375.236,
+      "total_std": 3.771008353212703,
+      "per_step": 0.8338577777777777,
+      "last50": 0.8392599999999999
+    }
+  }
+}

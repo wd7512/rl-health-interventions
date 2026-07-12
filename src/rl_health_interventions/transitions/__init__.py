@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from rl_health_interventions._registry import Registry
-from rl_health_interventions.transitions import bootstrap as bootstrap_module
+from rl_health_interventions.transitions import (
+    bootstrap as bootstrap_module,
+)
 from rl_health_interventions.transitions import random as random_module
-from rl_health_interventions.transitions import rule_based
+from rl_health_interventions.transitions import (
+    rule_based,
+)
 from rl_health_interventions.transitions._base import TransitionModel
 
 REGISTRY: Registry = Registry("transition")

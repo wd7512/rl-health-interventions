@@ -1,0 +1,123 @@
+{
+  "feature_names": [
+    "step_bin_inactive",
+    "step_bin_moderate",
+    "step_bin_active",
+    "sleep_good",
+    "sleep_poor",
+    "day_of_week_weekday",
+    "day_of_week_weekend",
+    "burden_low",
+    "burden_medium",
+    "burden_high"
+  ],
+  "n_features": 10,
+  "feature_importance": {
+    "step_bin_active": 0.819166666666666,
+    "day_of_week_weekend": 0.716528925619834,
+    "sleep_good": 0.6668161434977624,
+    "burden_low": 0.6668161434977624,
+    "day_of_week_weekday": 0.6463190184049109,
+    "step_bin_moderate": 0.6095975232198168,
+    "step_bin_inactive": 0.4400000000000001,
+    "sleep_poor": 0.0,
+    "burden_medium": 0.0,
+    "burden_high": 0.0
+  },
+  "beta_day0": {
+    "movement_suggestion": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "goal_reminder": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "journal": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "beta_daylast": {
+    "movement_suggestion": [
+      -0.44000000000000006,
+      -0.6095975232198168,
+      -0.819166666666666,
+      -0.6668161434977624,
+      0.0,
+      -0.6463190184049109,
+      -0.716528925619834,
+      -0.6668161434977624,
+      0.0,
+      0.0
+    ],
+    "goal_reminder": [
+      -0.44000000000000006,
+      -0.6095975232198168,
+      -0.819166666666666,
+      -0.6668161434977624,
+      0.0,
+      -0.6463190184049109,
+      -0.716528925619834,
+      -0.6668161434977624,
+      0.0,
+      0.0
+    ],
+    "journal": [
+      -0.44000000000000006,
+      -0.6095975232198168,
+      -0.819166666666666,
+      -0.6668161434977624,
+      0.0,
+      -0.6463190184049109,
+      -0.716528925619834,
+      -0.6668161434977624,
+      0.0,
+      0.0
+    ]
+  },
+  "final_dosage_mean": 0.7999999998971099,
+  "final_dosage_std": 3.919183587949028,
+  "final_h_mean": {
+    "idle": 0.02020088979239411,
+    "movement_suggestion": -2.5479047179533993,
+    "goal_reminder": -2.5645692371938575,
+    "journal": -2.5653452299427117
+  },
+  "q_values_day0": {
+    "idle": 0.0,
+    "movement_suggestion": 0.0,
+    "goal_reminder": 0.0,
+    "journal": 0.0
+  },
+  "q_values_daylast": {
+    "idle": 0.0,
+    "movement_suggestion": -1.5958633699098237,
+    "goal_reminder": -1.6296690247220686,
+    "journal": -1.6288568447166734
+  }
+}

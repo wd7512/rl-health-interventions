@@ -95,6 +95,7 @@ _KNOWN_AGENT_TYPES = frozenset(
         "ucb",
         "decaying_epsilon_greedy",
         "fixed",
+        "heartsteps",
     }
 )
 
@@ -119,6 +120,17 @@ class AgentConfig(BaseModel):
     contextual: bool = False
     context_features: str | list[str] | None = None
     action: str | None = None
+    gamma: float | None = None
+    lambda_dosage: float | None = None
+    w: float | None = None
+    epsilon_0: float | None = None
+    epsilon_1: float | None = None
+    sigma_sq: float | None = None
+    reference_action: str | None = None
+    prior_mean: float | None = None
+    prior_cov: float | None = None
+    f_features: str | list[str] | None = None
+    g_features: str | list[str] | None = None
 
     @model_validator(mode="after")
     def _validate_agent(self) -> AgentConfig:
@@ -242,6 +254,34 @@ class AgentConfig(BaseModel):
             ):
                 raise ValueError(
                     "decaying_epsilon_greedy agent does not accept alpha_prior, beta_prior, epsilon, or c"
+                )
+        if self.type == "heartsteps":
+            if self.gamma is not None and not (0 < self.gamma <= 1):
+                raise ValueError("gamma must be in (0, 1] for heartsteps")
+            if self.lambda_dosage is not None and not (0 < self.lambda_dosage < 1):
+                raise ValueError("lambda_dosage must be in (0, 1) for heartsteps")
+            if self.w is not None and not (0 <= self.w <= 1):
+                raise ValueError("w must be in [0, 1] for heartsteps")
+            if self.sigma_sq is not None and self.sigma_sq <= 0:
+                raise ValueError("sigma_sq must be > 0 for heartsteps")
+            if self.prior_mean is not None and not isinstance(
+                self.prior_mean, (int, float)
+            ):
+                raise ValueError("prior_mean must be a number for heartsteps")
+            if self.prior_cov is not None and self.prior_cov <= 0:
+                raise ValueError("prior_cov must be > 0 for heartsteps")
+            if (
+                self.alpha_prior is not None
+                or self.beta_prior is not None
+                or self.epsilon is not None
+                or self.epsilon_start is not None
+                or self.c is not None
+                or self.decay_steps is not None
+                or self.epsilon_0 is not None
+                or self.epsilon_1 is not None
+            ):
+                raise ValueError(
+                    "heartsteps agent does not accept alpha_prior, beta_prior, epsilon, epsilon_start, c, decay_steps, epsilon_0, or epsilon_1"
                 )
         return self
 
