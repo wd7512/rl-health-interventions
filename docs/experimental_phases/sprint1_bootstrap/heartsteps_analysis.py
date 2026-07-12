@@ -12,6 +12,7 @@ import numpy as np
 
 from rl_health_interventions.agents import derive_agent_seed
 from rl_health_interventions.agents import make as make_agent
+from rl_health_interventions.agents.heartsteps.agent import HeartStepsAgent
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.environment import Environment
 from rl_health_interventions.episode import run_episode
@@ -54,6 +55,7 @@ def _track_episode(config, agent, seed: int, init_vec: np.ndarray) -> dict:
         seed=derive_agent_seed(seed, agent_index=0),
         gamma=agent._gamma,
     )
+    assert isinstance(agent2, HeartStepsAgent)
     agent2.init_one_hot_map(state_vars, extra_features=extra)
 
     betas, dosages, h_means, q_inits = [], [], [], []
@@ -110,8 +112,7 @@ def _run_with_tracking(config, n_seeds: int, gamma: float = 0.5) -> dict:
     state_vars = {k: v.names for k, v in config.state.variables.items()}
     extra = {"step_of_day": list(range(config.steps_per_day))}
     n_features = sum(len(v) for v in state_vars.values()) + config.steps_per_day
-    feature_names = [f"{var}_{val}" for var, vals in state_vars.items()
-                     for val in vals]
+    feature_names = [f"{var}_{val}" for var, vals in state_vars.items() for val in vals]
     feature_names.extend(f"step_of_day_{i}" for i in range(config.steps_per_day))
     init_vec = _build_init_vec(config, n_features)
 
@@ -123,6 +124,7 @@ def _run_with_tracking(config, n_seeds: int, gamma: float = 0.5) -> dict:
             seed=derive_agent_seed(si, agent_index=0),
             gamma=gamma,
         )
+        assert isinstance(agent, HeartStepsAgent)
         agent.init_one_hot_map(state_vars, extra_features=extra)
         all_seeds.append(_track_episode(config, agent, si, init_vec))
         if si % 10 == 0:

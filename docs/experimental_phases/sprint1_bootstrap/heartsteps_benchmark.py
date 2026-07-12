@@ -15,6 +15,7 @@ from _shared import agent_label, resolve_config, run_agent
 from rl_health_interventions.agents import derive_agent_seed
 from rl_health_interventions.agents import make as make_agent
 from rl_health_interventions.agents.fixed import FixedAgent
+from rl_health_interventions.agents.heartsteps.agent import HeartStepsAgent
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.episode import run_episode
 
@@ -56,6 +57,7 @@ def _run_heartsteps(config, n_seeds: int, gamma: float = 0.5) -> np.ndarray:
             seed=derive_agent_seed(seed, agent_index=0),
             gamma=gamma,
         )
+        assert isinstance(agent, HeartStepsAgent)
         agent.init_one_hot_map(state_vars, extra_features=extra)
         records = run_episode(config, agent, seed=seed)
         rewards.append([r["reward"] for r in records])
