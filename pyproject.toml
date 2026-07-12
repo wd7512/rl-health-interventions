@@ -25,6 +25,8 @@ dev = [
     "ruff>=0.14.10,<0.15",
     "ty>=0.0.42,<0.1",
 ]
+
+[project.optional-dependencies]
 llm = [
     "litellm>=1.91.0",
     "python-dotenv>=1.0.0",
