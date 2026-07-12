@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 N_SEEDS = 10
 
 
-
 class _FixedActionAgent:
     """Always returns the same action."""
 
@@ -45,7 +44,9 @@ class _GreedyOracleAgent:
     for each action and computes E[reward | state, action].
     """
 
-    def __init__(self, within_day_tables: list[dict], actions: list[str], config) -> None:
+    def __init__(
+        self, within_day_tables: list[dict], actions: list[str], config
+    ) -> None:
         self._within_day = within_day_tables
         self._actions = actions
         self._alpha = config.reward.constants.get("alpha", 0.9)
@@ -197,7 +198,7 @@ def compute_bounds(config):  # noqa: ARG001
     a static analysis function. Use the CLI directly:
         uv run python optimal_bound.py configs/sprint1_bootstrap.yaml
     """
-    return None
+    return
 
 
 if __name__ == "__main__":

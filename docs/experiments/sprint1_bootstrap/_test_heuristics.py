@@ -59,12 +59,20 @@ def _run_conditional(config, policy_fn, n_seeds: int, label: str) -> dict:
                     break
         totals.append(ep)
     a = np.array(totals)
-    logger.info("%-30s %.2f +- %.2f (%.4f/step)", label, a.mean(), a.std(), a.mean() / (config.episode_days * config.steps_per_day))
+    logger.info(
+        "%-30s %.2f +- %.2f (%.4f/step)",
+        label,
+        a.mean(),
+        a.std(),
+        a.mean() / (config.episode_days * config.steps_per_day),
+    )
     return {"mean": float(a.mean()), "std": float(a.std()), "n_seeds": n_seeds}
 
 
 def main() -> None:
-    config = load_config("docs/experiments/sprint1_bootstrap/configs/sprint1_bootstrap_extensions.yaml")
+    config = load_config(
+        "docs/experiments/sprint1_bootstrap/configs/sprint1_bootstrap_extensions.yaml"
+    )
     n_seeds = 50
     T = config.episode_days * config.steps_per_day
 
@@ -83,7 +91,9 @@ def main() -> None:
 
     for label, pat in strategies:
         r = _run_fixed(config, pat, n_seeds)
-        logger.info("%-30s %.2f +- %.2f (%.4f/step)", label, r["mean"], r["std"], r["mean"] / T)
+        logger.info(
+            "%-30s %.2f +- %.2f (%.4f/step)", label, r["mean"], r["std"], r["mean"] / T
+        )
 
     logger.info("")
     logger.info("Conditional strategies:")
@@ -92,13 +102,46 @@ def main() -> None:
     def conditional(label, fn):
         return _run_conditional(config, fn, n_seeds, label)
 
-    conditional("Morning if sleep poor", lambda s, sod: "movement_suggestion" if sod == 0 and str(s.sleep) == "poor" else "idle")
-    conditional("Morning if burden low", lambda s, sod: "movement_suggestion" if sod == 0 and str(s.burden) == "low" else "idle")
-    conditional("Morning if inactive", lambda s, sod: "movement_suggestion" if sod == 0 and str(s.step_bin) == "inactive" else "idle")
-    conditional("Morning if active (anti)", lambda s, sod: "movement_suggestion" if sod == 0 and str(s.step_bin) == "active" else "idle")
-    conditional("All steps if sleep poor", lambda s, sod: "movement_suggestion" if str(s.sleep) == "poor" else "idle")
-    conditional("Morning rotation (move/goal/journal)", lambda s, sod: ["movement_suggestion", "goal_reminder", "journal"][s.day % 3] if sod == 0 else "idle")
-    conditional("Morning move + afternoon if inactive", lambda s, sod: "movement_suggestion" if (sod == 0 or (sod in (2, 3) and str(s.step_bin) == "inactive")) else "idle")
+    conditional(
+        "Morning if sleep poor",
+        lambda s, sod: "movement_suggestion"
+        if sod == 0 and str(s.sleep) == "poor"
+        else "idle",
+    )
+    conditional(
+        "Morning if burden low",
+        lambda s, sod: "movement_suggestion"
+        if sod == 0 and str(s.burden) == "low"
+        else "idle",
+    )
+    conditional(
+        "Morning if inactive",
+        lambda s, sod: "movement_suggestion"
+        if sod == 0 and str(s.step_bin) == "inactive"
+        else "idle",
+    )
+    conditional(
+        "Morning if active (anti)",
+        lambda s, sod: "movement_suggestion"
+        if sod == 0 and str(s.step_bin) == "active"
+        else "idle",
+    )
+    conditional(
+        "All steps if sleep poor",
+        lambda s, sod: "movement_suggestion" if str(s.sleep) == "poor" else "idle",
+    )
+    conditional(
+        "Morning rotation (move/goal/journal)",
+        lambda s, sod: ["movement_suggestion", "goal_reminder", "journal"][s.day % 3]
+        if sod == 0
+        else "idle",
+    )
+    conditional(
+        "Morning move + afternoon if inactive",
+        lambda s, sod: "movement_suggestion"
+        if (sod == 0 or (sod in (2, 3) and str(s.step_bin) == "inactive"))
+        else "idle",
+    )
 
 
 if __name__ == "__main__":

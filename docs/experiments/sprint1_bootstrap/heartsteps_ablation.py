@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import time
 from pathlib import Path
 
 import numpy as np
@@ -16,52 +15,58 @@ from rl_health_interventions.agents import make as make_agent
 from rl_health_interventions.agents.heartsteps.agent import HeartStepsAgent
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.episode import run_episode
+from rl_health_interventions.evaluation.metrics import compute_metrics
 
 logger = logging.getLogger(__name__)
 _RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
 
-def _summarize(rewards: np.ndarray) -> dict:
-    return {
-        "total_mean": float(rewards.sum(axis=1).mean()),
-        "total_std": float(rewards.sum(axis=1).std()),
-        "per_step": float(rewards.mean()),
-    }
-
-
 def _run_variant(
-    config, n_seeds: int, *, gamma: float = 0.5, greedy: bool = False, use_proxy: bool = True
+    config,
+    n_seeds: int,
+    *,
+    gamma: float = 0.5,
+    greedy: bool = False,
+    use_proxy: bool = True,
 ) -> dict:
     state_vars = {k: v.names for k, v in config.state.variables.items()}
     extra = {"step_of_day": list(range(config.steps_per_day))}
     all_rewards, all_daily = [], []
     for seed in range(1, n_seeds + 1):
         agent = make_agent(
-            "heartsteps", actions=config.action_names,
+            "heartsteps",
+            actions=config.action_names,
             seed=derive_agent_seed(seed, agent_index=0),
-            gamma=gamma, greedy=greedy, use_proxy=use_proxy,
+            gamma=gamma,
+            greedy=greedy,
+            use_proxy=use_proxy,
         )
         assert isinstance(agent, HeartStepsAgent)
         agent.init_one_hot_map(state_vars, extra_features=extra)
         records = run_episode(config, agent, seed=seed)
         rewards = [r["reward"] for r in records]
         all_rewards.append(rewards)
-        daily = [np.mean(rewards[d*config.steps_per_day:(d+1)*config.steps_per_day])
-                 for d in range(config.episode_days)]
+        daily = [
+            np.mean(rewards[d * config.steps_per_day : (d + 1) * config.steps_per_day])
+            for d in range(config.episode_days)
+        ]
         all_daily.append(daily)
     rewards_arr = np.array(all_rewards)
     daily_arr = np.array(all_daily)
-    s = _summarize(rewards_arr)
+    s = compute_metrics(rewards_arr)
     s["daily_mean"] = daily_arr.mean(axis=0).tolist()
     s["daily_std"] = daily_arr.std(axis=0).tolist()
     n_days = config.episode_days
-    s["early_10pct_mean"] = float(daily_arr[:, :int(n_days*0.1)].mean())
-    s["late_10pct_mean"] = float(daily_arr[:, int(n_days*0.9):].mean())
+    early_n = max(1, int(n_days * 0.1))
+    late_n = max(1, n_days - int(n_days * 0.9))
+    s["early_10pct_mean"] = float(daily_arr[:, :early_n].mean())
+    s["late_10pct_mean"] = float(daily_arr[:, -late_n:].mean())
     return s
 
 
 def _run_dp_bound(config_path: str) -> float:
     import sys
+
     _script_dir = str(Path(__file__).resolve().parent)
     sys.path.insert(0, _script_dir)
     try:
@@ -86,9 +91,9 @@ def _sweep_param(config, n_seeds: int, param: str, values: list, base_kw: dict) 
             agent.init_one_hot_map(state_vars, extra_features=extra)
             records = run_episode(config, agent, seed=seed)
             rewards.append([r["reward"] for r in records])
-        s = _summarize(np.array(rewards))
-        out[str(v)] = s["total_mean"]
-        logger.info("  %s=%s: %.2f", param, v, s["total_mean"])
+        s = compute_metrics(np.array(rewards))
+        out[str(v)] = s["total_reward"]
+        logger.info("  %s=%s: %.2f", param, v, s["total_reward"])
     return out
 
 
@@ -110,16 +115,30 @@ def main() -> None:
     logger.info("\n=== Proxy ablation ===")
     with_p = _run_variant(config, n_seeds, gamma=0.5, use_proxy=True)
     without_p = _run_variant(config, n_seeds, gamma=0.5, use_proxy=False)
-    logger.info("  With proxy: %.2f (%.1f%% DP)", with_p["total_mean"], 100*with_p["total_mean"]/dp_val)
-    logger.info("  Without proxy: %.2f (%.1f%% DP)", without_p["total_mean"], 100*without_p["total_mean"]/dp_val)
+    logger.info(
+        "  With proxy: %.2f (%.1f%% DP)",
+        with_p["total_reward"],
+        100 * with_p["total_reward"] / dp_val,
+    )
+    logger.info(
+        "  Without proxy: %.2f (%.1f%% DP)",
+        without_p["total_reward"],
+        100 * without_p["total_reward"] / dp_val,
+    )
     results["proxy"] = {"with": with_p, "without": without_p}
 
     # 2: Thompson Sampling vs greedy
     logger.info("\n=== Exploration ablation ===")
     ts = _run_variant(config, n_seeds, gamma=0.5, greedy=False)
     gr = _run_variant(config, n_seeds, gamma=0.5, greedy=True)
-    logger.info("  TS: %.2f (%.1f%% DP)", ts["total_mean"], 100*ts["total_mean"]/dp_val)
-    logger.info("  Greedy: %.2f (%.1f%% DP)", gr["total_mean"], 100*gr["total_mean"]/dp_val)
+    logger.info(
+        "  TS: %.2f (%.1f%% DP)", ts["total_reward"], 100 * ts["total_reward"] / dp_val
+    )
+    logger.info(
+        "  Greedy: %.2f (%.1f%% DP)",
+        gr["total_reward"],
+        100 * gr["total_reward"] / dp_val,
+    )
     results["exploration"] = {"thompson": ts, "greedy": gr}
 
     # 3: Sensitivity
@@ -127,7 +146,9 @@ def main() -> None:
     base_kw = {"gamma": 0.5}
     results["sensitivity"] = {
         "gamma": _sweep_param(config, n_seeds, "gamma", [0.3, 0.5, 0.7, 0.9], base_kw),
-        "lambda_dosage": _sweep_param(config, n_seeds, "lambda_dosage", [0.85, 0.90, 0.95, 0.99], base_kw),
+        "lambda_dosage": _sweep_param(
+            config, n_seeds, "lambda_dosage", [0.85, 0.90, 0.95, 0.99], base_kw
+        ),
         "w": _sweep_param(config, n_seeds, "w", [0.1, 0.3, 0.5, 0.7, 1.0], base_kw),
     }
 

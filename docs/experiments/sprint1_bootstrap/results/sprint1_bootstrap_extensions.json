@@ -1,61 +1,61 @@
 {
-  "config": "sprint1_bootstrap/configs/cross/persona_stable_maintainer/sprint1_bootstrap_extensions.yaml",
+  "config": "sprint1_bootstrap/configs/sprint1_bootstrap_extensions.yaml",
   "seed": 42,
   "seeds": 50,
   "agents": {
     "Random": {
-      "total_reward": 291.949,
-      "total_std": 15.228701487651529,
-      "per_step": 0.6487755555555555,
-      "last50": 0.65464
+      "total_reward": 99.74600000000002,
+      "total_std": 10.871241143494146,
+      "per_step": 0.22165777777777781,
+      "last50": 0.21492000000000008
     },
     "Std TS": {
-      "total_reward": 361.8219999999999,
-      "total_std": 51.18187585464214,
-      "per_step": 0.8040488888888888,
-      "last50": 0.8610800000000001
+      "total_reward": 252.572,
+      "total_std": 105.6422264816489,
+      "per_step": 0.561271111111111,
+      "last50": 0.66184
     },
     "Ctx TS": {
-      "total_reward": 318.00899999999996,
-      "total_std": 28.12207796376363,
-      "per_step": 0.7066866666666667,
-      "last50": 0.75784
+      "total_reward": 155.533,
+      "total_std": 70.84214960741944,
+      "per_step": 0.34562888888888893,
+      "last50": 0.39846000000000004
     },
     "Std EG": {
-      "total_reward": 379.744,
-      "total_std": 61.389919889180504,
-      "per_step": 0.8438755555555554,
-      "last50": 0.9357600000000003
+      "total_reward": 282.341,
+      "total_std": 95.01930313888856,
+      "per_step": 0.6274244444444445,
+      "last50": 0.7483
     },
     "Ctx EG": {
-      "total_reward": 384.9759999999999,
-      "total_std": 48.155176502635726,
-      "per_step": 0.8555022222222224,
-      "last50": 0.93604
+      "total_reward": 216.885,
+      "total_std": 95.73415861122926,
+      "per_step": 0.48196666666666665,
+      "last50": 0.58302
     },
     "Std D-EG": {
-      "total_reward": 395.6360000000001,
-      "total_std": 67.17199419400916,
-      "per_step": 0.879191111111111,
-      "last50": 0.9251
+      "total_reward": 287.81100000000004,
+      "total_std": 106.86361695638043,
+      "per_step": 0.6395799999999999,
+      "last50": 0.71778
     },
     "Ctx D-EG": {
-      "total_reward": 391.8339999999999,
-      "total_std": 54.439238091655916,
-      "per_step": 0.8707422222222221,
-      "last50": 0.9220799999999999
+      "total_reward": 240.384,
+      "total_std": 92.99764536804145,
+      "per_step": 0.5341866666666666,
+      "last50": 0.61444
     },
     "Std UCB": {
-      "total_reward": 422.504,
-      "total_std": 8.89385653133667,
-      "per_step": 0.9388977777777776,
-      "last50": 0.9706400000000002
+      "total_reward": 358.09600000000006,
+      "total_std": 14.003552549264063,
+      "per_step": 0.7957688888888889,
+      "last50": 0.8370799999999999
     },
     "Ctx UCB": {
-      "total_reward": 394.57800000000003,
-      "total_std": 12.03375735171688,
-      "per_step": 0.8768400000000001,
-      "last50": 0.9315399999999999
+      "total_reward": 268.314,
+      "total_std": 29.58003387421996,
+      "per_step": 0.5962533333333333,
+      "last50": 0.7331799999999999
     }
   }
 }

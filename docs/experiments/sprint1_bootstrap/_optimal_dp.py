@@ -11,8 +11,13 @@ from rl_health_interventions.transitions.bootstrap import BootstrapTransition
 logger = logging.getLogger(__name__)
 
 _WEEKDAY_PATTERN = [
-    "weekday", "weekday", "weekday", "weekday", "weekday",
-    "weekend", "weekend",
+    "weekday",
+    "weekday",
+    "weekday",
+    "weekday",
+    "weekday",
+    "weekend",
+    "weekend",
 ]
 _BURDEN_MAP = {0: "low", 1: "medium", 2: "high", 3: "high"}
 
@@ -26,11 +31,17 @@ def _action_penalty(action: str) -> float:
 
 
 class OptimalBound:
-    def __init__(self, config_path: str, alpha: float | None = None, table_dir: str | None = None) -> None:
+    def __init__(
+        self, config_path: str, alpha: float | None = None, table_dir: str | None = None
+    ) -> None:
         self._config = load_config(config_path)
         if table_dir is not None:
             self._config.transition_model.table_dir = table_dir
-        self._alpha = alpha if alpha is not None else self._config.reward.constants.get("alpha", 0.9)
+        self._alpha = (
+            alpha
+            if alpha is not None
+            else self._config.reward.constants.get("alpha", 0.9)
+        )
         self._tm = BootstrapTransition(self._config, seed=42)
         self._sb_names = self._config.state.variables["step_bin"].names
         self._sleep_names = self._config.state.variables["sleep"].names
@@ -118,7 +129,11 @@ class OptimalBound:
                                 sb_t = str(sb_t)
                                 zsbi = sb_names.index(sb_t)
                                 r_sb = self._sb_val(sb_t)
-                                r = self._alpha * r_sb + (1.0 - self._alpha) * r_sl - _action_penalty(a)
+                                r = (
+                                    self._alpha * r_sb
+                                    + (1.0 - self._alpha) * r_sl
+                                    - _action_penalty(a)
+                                )
                                 zs = zsbi * nsl * nh + zsli * nh + nhi
                                 q += sl_p * sb_p * (r + self._V[t + 1, zs])
                         self._Q[t, si, ai] = q
@@ -136,7 +151,11 @@ class OptimalBound:
                             zsbi = sb_names.index(sb_t)
                             r_sb = self._sb_val(sb_t)
                             r_sl = self._sl_val(sl)
-                            r = self._alpha * r_sb + (1.0 - self._alpha) * r_sl - _action_penalty(a)
+                            r = (
+                                self._alpha * r_sb
+                                + (1.0 - self._alpha) * r_sl
+                                - _action_penalty(a)
+                            )
                             zs = zsbi * nsl * nh + zsli * nh + nhi
                             q += sb_p * (r + self._V[t + 1, zs])
                         self._Q[t, si, ai] = q
@@ -147,14 +166,27 @@ class OptimalBound:
 
     def optimal_value(self) -> float:
         init = self._config.initial_state
-        return float(self._V[0, self._state_idx[(init["step_bin"], init["sleep"], ("idle", "idle", "idle"))]])
+        return float(
+            self._V[
+                0,
+                self._state_idx[
+                    (init["step_bin"], init["sleep"], ("idle", "idle", "idle"))
+                ],
+            ]
+        )
 
     def report(self) -> dict:
         v0 = self.optimal_value()
-        return {"optimal_value": v0, "per_step": v0 / self._T, "n_states": self._ns, "n_timesteps": self._T}
+        return {
+            "optimal_value": v0,
+            "per_step": v0 / self._T,
+            "n_states": self._ns,
+            "n_timesteps": self._T,
+        }
 
     def greedy_oracle(self, seeds: int = 10) -> dict:
         from rl_health_interventions.environment import Environment
+
         db = self._tm.day_boundary
         wd = self._tm.within_day
         totals = []
@@ -184,16 +216,31 @@ class OptimalBound:
                                 if wk in wd[step]:
                                     stg, spr = wd[step][wk]
                                     for j, sbt in enumerate(stg):
-                                        esb += sl_pr[i_sl] * spr[j] * self._sb_val(str(sbt))
-                            er = self._alpha * esb + (1.0 - self._alpha) * esl - _action_penalty(a)
+                                        esb += (
+                                            sl_pr[i_sl]
+                                            * spr[j]
+                                            * self._sb_val(str(sbt))
+                                        )
+                            er = (
+                                self._alpha * esb
+                                + (1.0 - self._alpha) * esl
+                                - _action_penalty(a)
+                            )
                         else:
                             er = -1e9
                     else:
                         wk = "|".join([sb, b, a, dow, sl])
                         if wk in wd[step]:
                             stg, spr = wd[step][wk]
-                            esb = sum(spr[j] * self._sb_val(str(sbt)) for j, sbt in enumerate(stg))
-                            er = self._alpha * esb + (1.0 - self._alpha) * self._sl_val(sl) - _action_penalty(a)
+                            esb = sum(
+                                spr[j] * self._sb_val(str(sbt))
+                                for j, sbt in enumerate(stg)
+                            )
+                            er = (
+                                self._alpha * esb
+                                + (1.0 - self._alpha) * self._sl_val(sl)
+                                - _action_penalty(a)
+                            )
                         else:
                             er = -1e9
                     if er > best_er:
@@ -208,6 +255,7 @@ class OptimalBound:
 
     def policy_activity(self, seed: int = 42) -> dict:
         from rl_health_interventions.environment import Environment
+
         env = Environment(self._config, seed=seed)
         st = env.reset()
         actions: list[str] = []
@@ -230,12 +278,15 @@ class OptimalBound:
         return {
             "activity_pct": 100.0 - idle_pct,
             "idle_pct": idle_pct,
-            "action_distribution": {a: 100.0 * c / total for a, c in sorted(counts.items())},
+            "action_distribution": {
+                a: 100.0 * c / total for a, c in sorted(counts.items())
+            },
             "n_steps": total,
         }
 
     def simulate_trajectories(self, seeds: int = 10) -> dict:
         from rl_health_interventions.environment import Environment
+
         totals = []
         for s in range(seeds):
             env = Environment(self._config, seed=s)
@@ -259,13 +310,18 @@ class OptimalBound:
 
 def main() -> None:
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="sprint1_bootstrap_extensions.yaml")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
-    bound = OptimalBound(f"docs/experiments/sprint1_bootstrap/configs/{args.config}")
-    logger.info("Computing optimal DP bound: %d states x %d timesteps...", bound._ns, bound._T)
+    bound = OptimalBound(
+        f"docs/experiments/sprint1_bootstrap/configs/{args.config}"
+    )
+    logger.info(
+        "Computing optimal DP bound: %d states x %d timesteps...", bound._ns, bound._T
+    )
     bound.run()
 
     r = bound.report()
@@ -278,24 +334,43 @@ def main() -> None:
     logger.info("States:          %d", r["n_states"])
     logger.info("Timesteps:       %d", r["n_timesteps"])
     logger.info("Optimal value:   %.2f (%.4f/step)", r["optimal_value"], r["per_step"])
-    logger.info("Greedy oracle:   %.2f +- %.2f (%.4f/step)", g["mean"], g["std"], g["mean"] / bound._T)
-    logger.info("DP trajectories: %.2f +- %.2f (%.4f/step)", t["mean"], t["std"], t["mean"] / bound._T)
+    logger.info(
+        "Greedy oracle:   %.2f +- %.2f (%.4f/step)",
+        g["mean"],
+        g["std"],
+        g["mean"] / bound._T,
+    )
+    logger.info(
+        "DP trajectories: %.2f +- %.2f (%.4f/step)",
+        t["mean"],
+        t["std"],
+        t["mean"] / bound._T,
+    )
     logger.info("Idle bound:      380.40 (0.8453/step)")
     logger.info("Std UCB (90d):   358.10 (0.7958/step)")
 
     # Optimal policy summary
     init = bound._config.initial_state
-    init_idx = bound._state_idx[(init["step_bin"], init["sleep"], ("idle", "idle", "idle"))]
+    init_idx = bound._state_idx[
+        (init["step_bin"], init["sleep"], ("idle", "idle", "idle"))
+    ]
     logger.info("\n" + "-" * 60)
     logger.info("Optimal actions at initial state (first 10 steps)")
     logger.info("%-6s %-6s %-6s  %-24s %-10s", "t", "sod", "day", "action", "Q-val")
     logger.info("-" * 60)
     for tt in range(min(10, bound._T)):
         a = bound._action_names[bound._pi[tt, init_idx]]
-        logger.info("%-6d %-6d %-6d  %-24s %-10.4f", tt, tt % bound._sod, tt // bound._sod, a, bound._Q[tt, init_idx, bound._pi[tt, init_idx]])
+        logger.info(
+            "%-6d %-6d %-6d  %-24s %-10.4f",
+            tt,
+            tt % bound._sod,
+            tt // bound._sod,
+            a,
+            bound._Q[tt, init_idx, bound._pi[tt, init_idx]],
+        )
 
     # Count how often each action is chosen across the optimal policy
-    action_counts = {a: 0 for a in bound._action_names}
+    action_counts = dict.fromkeys(bound._action_names, 0)
     for tt in range(bound._T):
         action_counts[bound._action_names[bound._pi[tt, init_idx]]] += 1
     logger.info("\n" + "-" * 60)
@@ -304,9 +379,15 @@ def main() -> None:
     for a, c in sorted(action_counts.items(), key=lambda x: -x[1]):
         logger.info("  %-24s %5d (%.1f%%)", a, c, 100 * c / total)
 
-    logger.info("\nKEY: %.2f | %.2f +- %.2f | %.2f | %.2f", r["optimal_value"], t["mean"], t["std"], g["mean"], 380.40)
+    logger.info(
+        "\nKEY: %.2f | %.2f +- %.2f | %.2f | %.2f",
+        r["optimal_value"],
+        t["mean"],
+        t["std"],
+        g["mean"],
+        380.40,
+    )
 
 
 if __name__ == "__main__":
     main()
-
