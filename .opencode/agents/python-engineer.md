@@ -6,11 +6,7 @@ permission:
   read: allow
   edit: allow
   bash:
-    uv run ruff *: allow
-    uv run ty *: allow
-    uv run pytest *: allow
-    uv sync *: allow
-    uv build *: allow
+    uv *: allow
     ls *: allow
     ls: allow
     pwd: allow
