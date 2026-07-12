@@ -37,7 +37,7 @@ class HeartStepsAgent(Agent):
         self._feature_names: tuple[str, ...] = ()
         self._n_features = 0
         self._feature_index: dict[str, int] = {}
-        self._one_hot_map: dict[str, dict[str, int]] = {}
+        self._one_hot_map: dict[str, dict[str | int, int]] = {}
         self._total_one_hot_dim = 0
         self._dosage_tracker = DosageTracker(lambda_decay=lambda_dosage)
         self._sigma_sq = sigma_sq
