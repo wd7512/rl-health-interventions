@@ -24,33 +24,36 @@ See `config/` for example configs, and `docs/` for the MDP formalisation.
 
 ```
 src/rl_health_interventions/
-  config/        # MDPConfig, AgentConfig, YAML loader + validators
-  agents/        # Thompson Sampling, epsilon-greedy, UCB, random + contextual variants
-  transitions/   # RuleBasedTransition (config-driven matrix)
+  config/        # Pydantic schemas + YAML loaders
+  agents/        # Thompson Sampling, epsilon-greedy, UCB, random + HeartSteps
+  transitions/   # RuleBasedTransition, BootstrapTransition (LLM-estimated)
   rewards/       # CompoundReward (precomputed per-step reward)
-  data/          # Synthetic data generation, dataset loaders
+  data/          # Synthetic data generation, Polars readers
   simulation/    # Rule-based user response model
-  state.py       # StateView dataclass
+  evaluation/    # Metrics, shared runner, result aggregation
+  llm_bootstrapping/  # LLM transition table generation
   environment.py # step/reset simulation loop
   experiment.py  # run_episode + run_experiment
-  logging.py     # Stdlib logging setup
 config/          # YAML config files
-docs/experiments/mvp/          # MVP MDP formulation + initial results
-docs/experiments/              # Extensions: state space, action space, reward function
-docs/decisions/                # Long-term design vision
-docs/sources/                  # Dataset documentation (14 sources)
-docs/overview/                 # Roadmap, sub-phase plans
+docs/
+  overview/      # ROADMAP, milestones, success metrics
+  decisions/     # Source of truth for MDP design decisions
+  research/      # Evidence reviews, paper recreations
+  experiments/   # MVP, sprint1_bootstrap, sprint1_random + results + figures
+  sources/       # Dataset documentation (14 sources)
+  guides/        # Planning documents
+  archive/       # Stale/superseded docs
 tests/           # Unit, integration, regression tests
 ```
 
 ## Development
 
 ```bash
-uv run ruff format --check
-uv run ruff check
-uv run ty check
-uv run pytest
-uv build
+uv run ruff format --check   # Format check
+uv run ruff check            # Lint
+uv run ty check --exclude tests/  # Type check
+uv run pytest                # Tests
+uv build                     # Build
 ```
 
 ## References
@@ -58,3 +61,4 @@ uv build
 - HeartSteps V2 (Klasnja et al., 2022)
 - `docs/decisions/initial_design.tex` (MDP formalisation)
 - `docs/overview/ROADMAP.md` (backlog, rough guidance)
+- `docs/decisions/resolved-decisions-sprint-1.md` (Sprint 1 MDP spec)
