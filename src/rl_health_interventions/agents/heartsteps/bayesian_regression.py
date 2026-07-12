@@ -7,7 +7,7 @@ class MultiClassBayesianRegression:
     """Bayesian linear regression with action-centering for K actions.
 
     Maintains K-1 posteriors for beta_k where r(s, a_k) - r(s, a_0) = f(s)^T beta_k.
-    Uses precision matrix representation for efficient incremental updates.
+    Uses precision vector representation for efficient incremental updates.
     """
 
     def __init__(
@@ -34,7 +34,7 @@ class MultiClassBayesianRegression:
         self._precision: dict[str, np.ndarray] = {}
         self._precision_mean: dict[str, np.ndarray] = {}
 
-        prior_precision = np.eye(n_features) / prior_cov
+        prior_precision = np.ones(n_features) / prior_cov
         for action in self._non_ref:
             self._precision[action] = prior_precision.copy()
             self._precision_mean[action] = np.ones(n_features) * prior_mean / prior_cov
@@ -51,27 +51,26 @@ class MultiClassBayesianRegression:
         with negated features/reward. When non-reference action a is taken,
         update only posterior for a.
 
-        Uses diagonal of outer product to avoid cross-correlations between
-        independent one-hot feature groups (step_bin, sleep, etc.).
+        Uses element-wise operations for O(D) complexity.
         """
         for phi, action, reward in transitions:
             phi_arr = np.asarray(phi, dtype=np.float64)
-            diag = np.diag(phi_arr * phi_arr)
+            phi_sq = phi_arr * phi_arr
             if action == self._reference_action:
                 for targeted in self._non_ref:
-                    self._precision[targeted] += diag / self._sigma_sq
+                    self._precision[targeted] += phi_sq / self._sigma_sq
                     self._precision_mean[targeted] += -phi_arr * reward / self._sigma_sq
             else:
-                self._precision[action] += diag / self._sigma_sq
+                self._precision[action] += phi_sq / self._sigma_sq
                 self._precision_mean[action] += phi_arr * reward / self._sigma_sq
 
     def sample_betas(self, rng: np.random.Generator) -> dict[str, np.ndarray]:
         """Draw samples from each posterior."""
         samples: dict[str, np.ndarray] = {}
         for action in self._non_ref:
-            cov = np.linalg.inv(self._precision[action])
-            mean = cov @ self._precision_mean[action]
-            samples[action] = rng.multivariate_normal(mean, cov)
+            cov_diag = 1.0 / self._precision[action]
+            mean = cov_diag * self._precision_mean[action]
+            samples[action] = rng.normal(mean, np.sqrt(cov_diag))
         samples[self._reference_action] = np.zeros(self._n_features)
         return samples
 
@@ -79,8 +78,8 @@ class MultiClassBayesianRegression:
         """Posterior means for each action."""
         means: dict[str, np.ndarray] = {}
         for action in self._non_ref:
-            cov = np.linalg.inv(self._precision[action])
-            means[action] = cov @ self._precision_mean[action]
+            cov_diag = 1.0 / self._precision[action]
+            means[action] = cov_diag * self._precision_mean[action]
         means[self._reference_action] = np.zeros(self._n_features)
         return means
 
