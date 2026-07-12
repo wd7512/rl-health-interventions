@@ -76,7 +76,7 @@ How do we test whether the simulator is valid?
 
 1. New **§6 Simulator Design** section in `docs/design/initial_design.tex` with all subsections above
 2. Updated `docs/design/initial_design.pdf` (rebuild with `pdflatex`)
-3. Updated `docs/sources/data_sources.md` and `docs/sources/additional_data_sources.md` with a note linking to the new section
+3. Updated `docs/sources/data-sources.md` and `docs/sources/additional-data-sources.md` with a note linking to the new section
 
 ## Out of scope
 - Implementation of any learned transition model (Phase 2, after data access)
@@ -84,7 +84,7 @@ How do we test whether the simulator is valid?
 
 ## Related
 - `docs/design/initial_design.tex` (existing doc to extend)
-- `docs/sources/data_sources.md` (existing dataset analysis)
-- `docs/sources/additional_data_sources.md` (additional dataset analysis)
+- `docs/sources/data-sources.md` (existing dataset analysis)
+- `docs/sources/additional-data-sources.md` (additional dataset analysis)
 - Issue #48 (external data access blockers)
 - Issue #5 (LLM bootstrapping — one architectural option for the simulator)

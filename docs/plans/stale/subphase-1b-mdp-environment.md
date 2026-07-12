@@ -66,7 +66,7 @@ class TransitionModel(ABC):
 
 Note: `initial_design.tex` groups both `TransitionModel` and `RewardHandler`
 under the MDP module. The `RewardHandler` ABC lives in `rewards/_base.py`
-(see `code_design.md`); the environment's `step()` wires both together.
+(see `code-design.md`); the environment's `step()` wires both together.
 
 ---
 
@@ -79,7 +79,7 @@ under the MDP module. The `RewardHandler` ABC lives in `rewards/_base.py`
 
 ## Logging & Error Handling
 
-See canonical setup in [`code_design.md`](code_design.md#logging--error-handling-canonical).
+See canonical setup in [`code-design.md`](code-design.md#logging--error-handling-canonical).
 
 Subphase-specific concerns for 1B (MDP environment):
 

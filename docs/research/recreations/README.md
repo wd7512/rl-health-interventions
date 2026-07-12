@@ -29,9 +29,9 @@ Each recreation report follows the same structure:
 
 ## Related
 
-- Statistical Analysis Plan: `docs/research/statistical-analysis-plan.md`
+- Statistical Analysis Plan: `docs/research/archive/statistical-analysis-plan.md`
 - PR #85 reproduction (HeartSteps V2): branch `pr-85`, `paper_reproduction/`
-- Framework design: `docs/initial_design.tex`
+- Framework design: `docs/design/initial_design.tex`
 
 ---
 

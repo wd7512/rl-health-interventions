@@ -6,7 +6,7 @@ author: "William Dennis (with research-assistant prep)"
 target_journal: "Nature Methods"
 pre_registration_intent: "yes — locked before Sprint 3 evaluation work begins"
 supersedes: "Open decision in initial_design.tex §5 ('evaluation methodology')"
-related: "docs/initial_design.tex · docs/ROADMAP.md M-08 · docs/research/decision-trees/*"
+related: "docs/design/initial_design.tex · docs/plans/ROADMAP.md M-08 · docs/research/decision-trees/*"
 ---
 
 > **Archived 2026-06-23.** This document was part of the June-14 research batch
@@ -255,7 +255,7 @@ inform M-08 (Evaluation Framework) once the design doc is signed off.
   ExperimentRunner spec.
 - The framework's standard metric schema (`metric, value, CI_low,
   CI_high, n, p_value, effect_size`) is not yet formalised in
-  `docs/code/`. This plan proposes it; the spec doc should adopt
+  `docs/plans/stale/`. This plan proposes it; the spec doc should adopt
   it explicitly.
 
 ---

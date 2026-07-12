@@ -1,7 +1,7 @@
 # Technical Dependencies, Risk Register, TRL, and Stub Tracker
 
 Generated: 2026-06-11 (updated 2026-06-17 post-PR #103)
-Sources: `docs/initial_design.tex`, `docs/ROADMAP.md`, `reports/phase1_design_analysis.md`, `src/` sources, `config/` sources, `pyproject.toml`
+Sources: `docs/design/initial_design.tex`, `docs/plans/ROADMAP.md`, `reports/phase1_design_analysis.md`, `src/` sources, `config/` sources, `pyproject.toml`
 
 ---
 

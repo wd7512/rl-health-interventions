@@ -28,7 +28,7 @@ However, several signals point in a different direction:
 |--------|--------|--------------|
 | Audit finding | AUDIT_MASTER.md | "Offline RL for Phase 2 not motivated despite limited MRT data" |
 | PR #85 | `rl-health-interventions-repro/paper_reproduction/heartsteps/agent.py` | Literal offline-RL reproduction of Liao et al. 2019 (arXiv:1909.03539) — the HeartSteps V2 TS is being **replayed on logged data** |
-| Agent library stretch goals | subphase_1d_agent_library.md | CQL, IQL listed as future agents — both are offline-RL algorithms |
+| Agent library stretch goals | subphase-1d-agent-library.md | CQL, IQL listed as future agents — both are offline-RL algorithms |
 | Phase 2 description | initial_design.tex §6 | "Offline RL (CQL, IQL)" listed as stretch goals |
 | Data strategy | initial_design.tex §5 | Phase 1: synthetic data only. Phase 2: logged HeartSteps data |
 | No MRT fielding plan | Entire design doc | No IRB protocol, no real deployment timeline, no online learning safety protocol |
@@ -357,7 +357,7 @@ records the decision. Future readers can trace why the framing was chosen.
 ### 5.2 Add a Three-Sentence Framing Note to the Design Doc
 
 The task forbids edits to `initial_design.tex`. Instead, add a one-page
-supplement `docs/paper-framing-supplement.tex` that clarifies:
+supplement `docs/design/paper-framing-supplement.tex` that clarifies:
 
 ```
 \section{Paper Framing Clarification (Supplement to §1)}
@@ -370,7 +370,7 @@ motivated for Phase 2 as the natural evaluation mode for logged MRT data.
 
 ### 5.3 Agent Library: Rename "Stretch Goals" Section
 
-In `docs/code/subphase_1d_agent_library.md`, the stretch goals list currently
+In `docs/plans/stale/subphase-1d-agent-library.md`, the stretch goals list currently
 reads as optional add-ons. Under Framing E, CQL and IQL are not stretch goals —
 they are Phase 2 deliverables. The distinction between Phase 1 (on-policy
 simulation: TS, DQN, PPO) and Phase 2 (off-policy from logs: CQL, IQL, FQE)
@@ -379,7 +379,7 @@ decision log.
 
 ### 5.4 Statistical Analysis Plan: Add Off-Policy Evaluation Section
 
-A `docs/research/statistical-analysis-plan.md` (currently absent or empty)
+A `docs/research/archive/statistical-analysis-plan.md` (currently archived)
 should be created with:
 
 - **Phase 1 analysis.** On-policy simulation. Compare mean cumulative reward

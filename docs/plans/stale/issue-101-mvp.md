@@ -1595,4 +1595,4 @@ These belong in future issues once Issue #101 ships and we have supervisor feedb
 - Issue #101: https://github.com/wd7512/rl-health-interventions/issues/101
 - Audit findings: PR #78 (Phase 1 6-phase audit, merged 7e2dfc8)
 - Roadmap reframe: PR #102 (merged fb853af)
-- Initial design: docs/initial_design.tex (awaiting supervisor sign-off)
+- Initial design: docs/design/initial_design.tex (awaiting supervisor sign-off)

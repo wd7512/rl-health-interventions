@@ -87,7 +87,7 @@ Expected output:
 
 ## Logging & Error Handling
 
-See canonical setup in [`code_design.md`](code_design.md#logging--error-handling-canonical).
+See canonical setup in [`code-design.md`](code-design.md#logging--error-handling-canonical).
 
 Subphase-specific concerns for 1E (experiment runner):
 

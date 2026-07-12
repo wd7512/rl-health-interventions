@@ -62,14 +62,14 @@ Captured from a grilling session on 2026-06-17. Each decision is paired with the
 
 - Actual name: **TILES-2018** ("Tracking IndividuaL performancE with Sensors, year 2018").
 - Authors: Mundnich, Booth, L'Hommedieu, Feng, Girault, Lerman, Narayanan et al. (USC / USC ISI; Tiago H. Falk at INRS).
-- Lead institution: **USC Keck Hospital** (not Northwestern). "Laura Stroud (Northwestern)" attribution in `docs/sources/additional_data_sources.md:263` is incorrect.
+- Lead institution: **USC Keck Hospital** (not Northwestern). "Laura Stroud (Northwestern)" attribution in `docs/sources/additional-data-sources.md:263` is incorrect.
 - Hosting: `https://tiles-data.isi.edu/` (not OSF). The OSF link `osf.io/jm6du/` cited in the docs does not resolve to a TILES dataset — the OSF API returns 404 on `/v2/nodes/jm6du/` and `/v2/registrations/jm6du/`, and the page returns unrelated search results.
 - Participants: n = 212 (not ~200).
 - Duration: 10 weeks (not 12 months).
 - Sensors: Fitbit Charge 2 (steps, sleep, HR), OMsignal biometrics garment, Jelly phone audio-features recorder, Owl-in-One Bluetooth hubs, Minew environmental sensors (door motion, humidity, temperature, light).
 - **Intervention delivery:** **none.** The paper describes it as observational ("in their natural day-to-day job settings"; "in situ experimental study in a real world workplace"). No mention of interventions, treatments, randomized arms, or delivery logs. EMAs (Ecological Momentary Assessments) are surveys, not agent actions.
 
-**Conclusion:** TILES-2018 has no `a_t` intervention variable and therefore cannot be used to learn `P(s_{t+1} | s_t, a_t)`. The "intervention delivery logs" claim appears in 5 places in `additional_data_sources.md`, 12 places in `simulator-validation.md`, and 2 places in `SUPERVISOR_SUMMARY.md`. The most-directly-wrong section (`additional_data_sources.md:260-284`) is corrected in this PR; downstream references are tagged for follow-up.
+**Conclusion:** TILES-2018 has no `a_t` intervention variable and therefore cannot be used to learn `P(s_{t+1} | s_t, a_t)`. The "intervention delivery logs" claim appears in 5 places in `additional-data-sources.md`, 12 places in `simulator-validation.md`, and 2 places in `supervisor-summary.md`. The most-directly-wrong section (`additional-data-sources.md:260-284`) is corrected in this PR; downstream references are tagged for follow-up.
 
 ---
 
@@ -211,8 +211,8 @@ All fit-time scripts use `logging` (stdlib), never `print()` (per `AGENTS.md`).
 These TILES-related doc corrections are *not* done in this PR — they're larger-scope rewrites of validation strategies, not single-section fixes. Tracked here so they don't get lost.
 
 1. **`docs/research/decision-trees/simulator-validation.md`** — 12 references to TILES as an intervention dataset, embedded in validation strategies B (Real-Data Replay), D (Predictive Checks), and the cross-dataset transportability plan. Needs a wholesale rewrite to either (a) drop TILES entirely and rely on HeartSteps V1/V2 alone, or (b) replace TILES with 4TU #1 (the new primary dataset for this plan).
-2. **`docs/research/SUPERVISOR_SUMMARY.md:75, 108`** — two sentence-level references that treat TILES as the documented fallback for HeartSteps V2 access delays. Needs rewriting to either drop the fallback or substitute 4TU #1.
-3. **`docs/sources/data_availability_schema.md`** — pull TILES into the master table as an observational Fitbit dataset (it's not currently listed at all). Mark `Intervention actions: ❌`.
+2. **`docs/research/supervisor-summary.md:75, 108`** — two sentence-level references that treat TILES as the documented fallback for HeartSteps V2 access delays. Needs rewriting to either drop the fallback or substitute 4TU #1.
+3. **`docs/sources/data-availability-schema.md`** — pull TILES into the master table as an observational Fitbit dataset (it's not currently listed at all). Mark `Intervention actions: ❌`.
 4. **`docs/design/initial_design.tex:90-99`** — design-doc state definition skews physiological (steps, HR, sleep, sedentary min). The chosen 4TU #1 dataset has one physiological feature (prior-day steps) and five psychological. When Stage 1 lands, decide whether to (a) update the design doc state to admit psychological features, or (b) hold out for TILES-equivalent physiological data (which doesn't exist openly).
 5. **`docs/plans/ROADMAP.md`** — already explicitly defers `UserProfile`-based transitions, multi-timescale reward, `from_dataset()` to Phase 2 (line 73). This plan crosses that boundary. ROADMAP needs a Phase 2 entry that links to this plan.
 

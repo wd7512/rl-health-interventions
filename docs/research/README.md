@@ -32,7 +32,7 @@ written in Markdown, versioned with the repo, and reviewed via PR.
 - Documents are *not* implementation plans. They specify *what* the
   research claims and *how* it will be evaluated, not *how to code
   it*.
-- Documents reference `docs/initial_design.tex` and `docs/ROADMAP.md`
+- Documents reference `docs/design/initial_design.tex` and `docs/plans/ROADMAP.md`
   where relevant, but never modify them.
 - Documents are *versioned*. Changes are logged in the document's
   amendment log, not by rewriting history.
@@ -60,10 +60,10 @@ written in Markdown, versioned with the repo, and reviewed via PR.
 
 `docs/` already contains:
 
-- `code/` — implementation design
+- `design/` — academic design documents
 - `sources/` — dataset feasibility and references
-- `ROADMAP.md` — implementation milestones
-- `initial_design.tex` — the academic design document (gated)
+- `plans/ROADMAP.md` — implementation milestones
+- `design/initial_design.tex` — the academic design document (gated)
 
 `docs/research/` is for *research-process* artefacts that don't fit
 any of those. The split keeps the gate on `initial_design.tex`

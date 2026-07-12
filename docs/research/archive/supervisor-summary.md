@@ -154,8 +154,8 @@ This is a 1-week action list. None of it is implementation.
 
 - Not a paper draft. The research artefacts are *inputs* to a
   paper, not the paper itself.
-- Not an implementation plan. See `docs/ROADMAP.md` and the
-  subphase docs in `docs/code/` for that.
+- Not an implementation plan. See `docs/plans/ROADMAP.md` and the
+  subphase docs in `docs/plans/stale/` for that.
 - Not a replacement for the design doc. The design doc is the
   source of truth on the MDP, the user simulator, and the
   agent library. These research artefacts depend on those

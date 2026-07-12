@@ -151,7 +151,7 @@ Five concrete actions:
 
 3. **For the project's stretch agent library, add
    kernel-TS as a research direction.** Documented in
-   subphase_1d_agent_library.md as a stretch goal.
+   subphase-1d-agent-library.md as a stretch goal.
 
 4. **For the project's Phase 2 real-data work, consider
    testing whether a kernel-TS extension beats linear TS
