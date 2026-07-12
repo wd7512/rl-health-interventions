@@ -2329,19 +2329,26 @@ name = "rl-health-interventions"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "datasets" },
-    { name = "huggingface-hub" },
-    { name = "kagglehub" },
-    { name = "litellm" },
     { name = "numpy" },
     { name = "polars" },
     { name = "pydantic" },
-    { name = "python-dotenv" },
     { name = "pyyaml" },
-    { name = "tenacity" },
     { name = "typing-extensions" },
+]
+
+[package.optional-dependencies]
+data = [
+    { name = "datasets" },
+    { name = "huggingface-hub" },
+    { name = "kagglehub" },
+    { name = "requests" },
     { name = "ucimlrepo" },
     { name = "wfdb" },
+]
+llm = [
+    { name = "litellm" },
+    { name = "python-dotenv" },
+    { name = "tenacity" },
 ]
 
 [package.dev-dependencies]
@@ -2357,20 +2364,22 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "datasets", specifier = ">=5.0.0" },
-    { name = "huggingface-hub", specifier = ">=1.18.0" },
-    { name = "kagglehub", specifier = ">=1.0.2" },
-    { name = "litellm", specifier = ">=1.91.0" },
+    { name = "datasets", marker = "extra == 'data'", specifier = ">=5.0.0" },
+    { name = "huggingface-hub", marker = "extra == 'data'", specifier = ">=1.18.0" },
+    { name = "kagglehub", marker = "extra == 'data'", specifier = ">=1.0.2" },
+    { name = "litellm", marker = "extra == 'llm'", specifier = ">=1.91.0" },
     { name = "numpy", specifier = ">=1.24.0" },
     { name = "polars", specifier = ">=1.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
-    { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "python-dotenv", marker = "extra == 'llm'", specifier = ">=1.0.0" },
     { name = "pyyaml", specifier = ">=6.0" },
-    { name = "tenacity", specifier = ">=9.1.4" },
+    { name = "requests", marker = "extra == 'data'", specifier = ">=2.31.0" },
+    { name = "tenacity", marker = "extra == 'llm'", specifier = ">=9.1.4" },
     { name = "typing-extensions", specifier = ">=4.6.0" },
-    { name = "ucimlrepo", specifier = ">=0.0.7" },
-    { name = "wfdb", specifier = ">=4.3.1" },
+    { name = "ucimlrepo", marker = "extra == 'data'", specifier = ">=0.0.7" },
+    { name = "wfdb", marker = "extra == 'data'", specifier = ">=4.3.1" },
 ]
+provides-extras = ["llm", "data"]
 
 [package.metadata.requires-dev]
 dev = [

@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --dev --extra llm --extra data
       - name: Check formatting
         run: uv run ruff format --check
       - name: Lint
@@ -72,7 +72,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --dev --extra data
       - name: Integration tests
         run: uv run pytest tests/integration/ -m integration --timeout 30
 
