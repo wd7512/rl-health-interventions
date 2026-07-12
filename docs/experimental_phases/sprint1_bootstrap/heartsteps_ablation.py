@@ -57,8 +57,10 @@ def _run_variant(
     s["daily_mean"] = daily_arr.mean(axis=0).tolist()
     s["daily_std"] = daily_arr.std(axis=0).tolist()
     n_days = config.episode_days
-    s["early_10pct_mean"] = float(daily_arr[:, : int(n_days * 0.1)].mean())
-    s["late_10pct_mean"] = float(daily_arr[:, int(n_days * 0.9) :].mean())
+    early_n = max(1, int(n_days * 0.1))
+    late_n = max(1, n_days - int(n_days * 0.9))
+    s["early_10pct_mean"] = float(daily_arr[:, :early_n].mean())
+    s["late_10pct_mean"] = float(daily_arr[:, -late_n:].mean())
     return s
 
 

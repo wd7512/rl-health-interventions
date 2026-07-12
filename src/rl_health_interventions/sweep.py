@@ -70,10 +70,13 @@ def run_experiment_multi_seed(
 
 def run_experiment_csv(
     config_path: str | Path,
-    n_seeds: int,  # noqa: ARG001
     output_csv: Path,
+    n_seeds: int = 1,  # noqa: ARG001
 ) -> None:
     """Run all agents and write per-step CSV with factored state dimensions.
+
+    Currently runs a single seed per agent (``n_seeds`` is reserved for
+    future multi-seed CSV support and is not used).
 
     Columns: step, day, step_of_day, state_factors..., action, reward, agent_type.
     """

@@ -75,7 +75,7 @@ def sprint1_bootstrap_results() -> dict[str, dict]:
         return results
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(30, func_only=True)
 @pytest.mark.parametrize("config_name", _CONFIGS)
 def test_sprint1_bootstrap_regression(
     config_name: str, sprint1_bootstrap_results: dict[str, dict]
