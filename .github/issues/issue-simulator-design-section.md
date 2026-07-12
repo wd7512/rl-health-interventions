@@ -16,7 +16,7 @@ The existing docs (`initial_design.tex`, `ROADMAP.md`) cover the MDP environment
 
 ## Specification
 
-Add a new section to `docs/design/initial_design.tex` (e.g., **§6: Simulator Design for Learned Transitions**) covering:
+Add a new section to `docs/decisions/initial_design.tex` (e.g., **§6: Simulator Design for Learned Transitions**) covering:
 
 ### 6.1 Simulator role and interface
 
@@ -74,8 +74,8 @@ How do we test whether the simulator is valid?
 
 ### Deliverables
 
-1. New **§6 Simulator Design** section in `docs/design/initial_design.tex` with all subsections above
-2. Updated `docs/design/initial_design.pdf` (rebuild with `pdflatex`)
+1. New **§6 Simulator Design** section in `docs/decisions/initial_design.tex` with all subsections above
+2. Updated `docs/decisions/initial_design.pdf` (rebuild with `pdflatex`)
 3. Updated `docs/sources/data_sources.md` and `docs/sources/additional_data_sources.md` with a note linking to the new section
 
 ## Out of scope
@@ -83,7 +83,7 @@ How do we test whether the simulator is valid?
 - Real data downloads or access requests (tracked in Issue #48)
 
 ## Related
-- `docs/design/initial_design.tex` (existing doc to extend)
+- `docs/decisions/initial_design.tex` (existing doc to extend)
 - `docs/sources/data_sources.md` (existing dataset analysis)
 - `docs/sources/additional_data_sources.md` (additional dataset analysis)
 - Issue #48 (external data access blockers)

@@ -35,11 +35,11 @@ src/rl_health_interventions/
   experiment.py  # run_episode + run_experiment
   logging.py     # Stdlib logging setup
 config/          # YAML config files
-docs/mvp/        # MVP MDP formulation + initial results
-docs/initial_experiments/  # Extensions: state space, action space, reward function
-docs/design/     # Long-term design vision
-docs/sources/    # Dataset documentation (14 sources)
-docs/plans/      # Roadmap, sub-phase plans
+docs/experiments/mvp/          # MVP MDP formulation + initial results
+docs/experiments/              # Extensions: state space, action space, reward function
+docs/decisions/                # Long-term design vision
+docs/sources/                  # Dataset documentation (14 sources)
+docs/overview/                 # Roadmap, sub-phase plans
 tests/           # Unit, integration, regression tests
 ```
 
@@ -56,5 +56,5 @@ uv build
 ## References
 
 - HeartSteps V2 (Klasnja et al., 2022)
-- `docs/design/initial_design.tex` (MDP formalisation)
-- `docs/plans/ROADMAP.md` (backlog, rough guidance)
+- `docs/decisions/initial_design.tex` (MDP formalisation)
+- `docs/overview/ROADMAP.md` (backlog, rough guidance)

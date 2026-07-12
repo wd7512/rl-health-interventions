@@ -1,3 +1,9 @@
+---
+title: "StepCountJITAI Dataset"
+status: "active"
+last_reviewed: "2026-07-12"
+---
+
 # StepCountJITAI Dataset
 
 **Date:** 2026-06-10

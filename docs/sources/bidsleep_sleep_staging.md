@@ -1,3 +1,9 @@
+---
+title: "BIDSleep Dataset — Multi-Night HR and Accelerometry with Sleep Labels"
+status: "draft"
+last_reviewed: "2026-07-12"
+---
+
 # BIDSleep Dataset — Multi-Night HR and Accelerometry with Sleep Labels
 
 **Date:** 2026-06-10

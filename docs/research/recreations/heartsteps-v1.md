@@ -1,3 +1,9 @@
+---
+title: "HeartSteps V1 Recreation Report"
+status: "active"
+last_reviewed: "2026-07-12"
+---
+
 # HeartSteps V1 Recreation Report
 
 **Recreation target:** Klasnja et al. (2015, UbiComp/ISWC) — MRT methodology paper; Klasnja et al. (2019, *Annals of Behavioral Medicine*) — efficacy results.

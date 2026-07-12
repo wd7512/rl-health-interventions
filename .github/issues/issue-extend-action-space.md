@@ -69,7 +69,7 @@ Each action needs two configurable penalties:
 - Learned transition functions (Phase 2)
 
 ## Related
-- `docs/design/initial_design.tex §3` (action space definition)
+- `docs/decisions/initial_design.tex §3` (action space definition)
 - `config/rule_based.yaml` (current 2-action config)
 - Issue #2 (state space extension — complementary)
 - Issue #3 (4 persona transition matrices — uses extended action set)

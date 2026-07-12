@@ -1,3 +1,9 @@
+---
+title: "Public Dataset Feasibility Study"
+status: "active"
+last_reviewed: "2026-07-12"
+---
+
 # Public Dataset Feasibility Study
 
 **Date:** 2026-06-09

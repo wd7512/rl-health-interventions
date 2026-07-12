@@ -1,12 +1,12 @@
 """Black-and-white transition matrix charts with complete directed edges.
 
-Writes matrix figures to ``docs/figures/<model>/matrices``.
+Writes matrix figures to ``docs/experiments/figures/<model>/matrices``.
 
 Usage:
     uv run python -m rl_health_interventions.llm_bootstrapping.visualize \\
         --files data/bootstrap/results_deepseek.jsonl \\
                data/bootstrap/results_glm5.2.jsonl \\
-        --fig-dir docs/figures
+        --fig-dir docs/experiments/figures
 """
 
 from __future__ import annotations
@@ -471,7 +471,7 @@ def main() -> None:
     parser.add_argument(
         "--fig-dir",
         type=Path,
-        default=Path("docs/figures"),
+        default=Path("docs/experiments/figures"),
         help="Base directory for figure output",
     )
     parser.add_argument(

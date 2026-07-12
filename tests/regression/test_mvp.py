@@ -1,7 +1,7 @@
 """Regression tests for MVP experiments.
 
 Re-runs all MVP configs at fixed seeds and compares against golden JSON fixtures
-stored in docs/experimental_phases/mvp/results/.
+stored in docs/experiments/mvp/results/.
 
 Tolerance: ±0.1% relative per metric.
 """
@@ -18,8 +18,8 @@ import pytest
 import yaml
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-_RUNNER = _REPO_ROOT / "docs" / "experimental_phases" / "mvp" / "run_experiments.py"
-_RESULTS_DIR = _REPO_ROOT / "docs" / "experimental_phases" / "mvp" / "results"
+_RUNNER = _REPO_ROOT / "docs" / "experiments" / "mvp" / "run_experiments.py"
+_RESULTS_DIR = _REPO_ROOT / "docs" / "experiments" / "mvp" / "results"
 _REL_TOLERANCE = 0.001  # 0.1% relative tolerance
 
 _METRICS = ["total_reward", "total_std", "per_step", "last50"]
@@ -78,12 +78,7 @@ def test_mvp_regression(config_name: str, mvp_results: dict[str, dict]) -> None:
 
     # Guard against seed drift: fixture seed must match config seed
     config_path = (
-        _REPO_ROOT
-        / "docs"
-        / "experimental_phases"
-        / "mvp"
-        / "configs"
-        / f"{config_name}.yaml"
+        _REPO_ROOT / "docs" / "experiments" / "mvp" / "configs" / f"{config_name}.yaml"
     )
     with config_path.open(encoding="utf-8") as f:
         config_seed = (yaml.safe_load(f) or {}).get("seed", 42)

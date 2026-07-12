@@ -1,3 +1,9 @@
+---
+title: "Research Recreations"
+status: "active"
+last_reviewed: "2026-07-12"
+---
+
 # Research Recreations
 
 This directory holds recreation reports for published papers relevant to the `rl-health-interventions` framework. Each report documents headline numbers from the original paper, what we can and cannot recreate given available data and code, and concrete next actions for the project.

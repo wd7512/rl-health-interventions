@@ -1,7 +1,7 @@
 """Regression tests for sprint1_random experiments.
 
 Re-runs all sprint1_random configs at fixed seeds and compares against golden
-JSON fixtures stored in docs/experimental_phases/sprint1_random/results/.
+JSON fixtures stored in docs/experiments/sprint1_random/results/.
 
 Tolerance: ±0.1% relative per metric.
 """
@@ -18,16 +18,8 @@ import pytest
 import yaml
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-_RUNNER = (
-    _REPO_ROOT
-    / "docs"
-    / "experimental_phases"
-    / "sprint1_random"
-    / "run_experiments.py"
-)
-_RESULTS_DIR = (
-    _REPO_ROOT / "docs" / "experimental_phases" / "sprint1_random" / "results"
-)
+_RUNNER = _REPO_ROOT / "docs" / "experiments" / "sprint1_random" / "run_experiments.py"
+_RESULTS_DIR = _REPO_ROOT / "docs" / "experiments" / "sprint1_random" / "results"
 _REL_TOLERANCE = 0.001  # 0.1% relative tolerance
 
 _METRICS = ["total_reward", "total_std", "per_step", "last50"]
@@ -93,7 +85,7 @@ def test_sprint1_random_regression(
     config_path = (
         _REPO_ROOT
         / "docs"
-        / "experimental_phases"
+        / "experiments"
         / "sprint1_random"
         / "configs"
         / f"{config_name}.yaml"

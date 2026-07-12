@@ -1,3 +1,9 @@
+---
+title: "LLM Prompting for Transition Bootstrap — Literature Review"
+status: "active"
+last_reviewed: "2026-07-12"
+---
+
 # LLM Prompting for Transition Bootstrap — Literature Review
 
 > **Date:** July 3, 2026

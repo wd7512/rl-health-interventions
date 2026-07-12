@@ -1,3 +1,9 @@
+---
+title: "Data Availability & Schema Reference"
+status: "reference"
+last_reviewed: "2026-07-12"
+---
+
 # Data Availability & Schema Reference
 
 ## Overview

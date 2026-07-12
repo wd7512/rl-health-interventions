@@ -1,3 +1,9 @@
+---
+title: "Fitbit Fitness Tracker Dataset"
+status: "reference"
+last_reviewed: "2026-07-12"
+---
+
 # Fitbit Fitness Tracker Dataset
 
 **Date:** 2026-06-10

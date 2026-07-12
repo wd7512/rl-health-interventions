@@ -18,9 +18,7 @@ from rl_health_interventions.config.schemas import (
     TransitionProbabilities,
 )
 
-_mvp_dir = (
-    pathlib.Path(__file__).resolve().parents[2] / "docs" / "experimental_phases" / "mvp"
-)
+_mvp_dir = pathlib.Path(__file__).resolve().parents[2] / "docs" / "experiments" / "mvp"
 sys.path.insert(0, str(_mvp_dir))
 try:
     _spec = importlib.util.spec_from_file_location(

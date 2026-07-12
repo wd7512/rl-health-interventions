@@ -1,3 +1,9 @@
+---
+title: "Additional Dataset Survey: HeartSteps and Other Sources"
+status: "active"
+last_reviewed: "2026-07-12"
+---
+
 # Additional Dataset Survey: HeartSteps and Other Sources
 
 **Date:** 2026-06-09
@@ -259,7 +265,7 @@ The largest publicly available step-count dataset. 14.7K participants with minut
 
 ## Dataset 9: TILES-2018 (Tracking IndividuaL performancE with Sensors)
 
-> **Correction note (2026-06-17):** A previous version of this section cited the dataset as "TILES" hosted on OSF (`osf.io/jm6du/`) and led by Laura Stroud (Northwestern), claiming it contained an "intervention arm with delivery logs." All three claims are incorrect. The OSF ID does not resolve to a TILES dataset (OSF API returns 404 on `/v2/nodes/jm6du/` and `/v2/registrations/jm6du/`). The canonical source is Mundnich et al. 2020, *Scientific Data* 7:354 (DOI `10.1038/s41597-020-00655-3`). The dataset is observational — it has no `a_t` variable, so it cannot be used to learn `P(s_{t+1} | s_t, a_t)`. It is retained here for its passive-sensing value (Fitbit steps/HR/sleep), not for transition learning. See `docs/plans/learned_transitions.md` for the dataset selection that resulted from this correction.
+> **Correction note (2026-06-17):** A previous version of this section cited the dataset as "TILES" hosted on OSF (`osf.io/jm6du/`) and led by Laura Stroud (Northwestern), claiming it contained an "intervention arm with delivery logs." All three claims are incorrect. The OSF ID does not resolve to a TILES dataset (OSF API returns 404 on `/v2/nodes/jm6du/` and `/v2/registrations/jm6du/`). The canonical source is Mundnich et al. 2020, *Scientific Data* 7:354 (DOI `10.1038/s41597-020-00655-3`). The dataset is observational — it has no `a_t` variable, so it cannot be used to learn `P(s_{t+1} | s_t, a_t)`. It is retained here for its passive-sensing value (Fitbit steps/HR/sleep), not for transition learning. See `docs/archive/plans/learned_transitions.md` for the dataset selection that resulted from this correction.
 
 **Source:** [tiles-data.isi.edu](https://tiles-data.isi.edu/)
 **Lead:** Karel Mundnich, Shrikanth Narayanan (USC / USC ISI)
@@ -286,7 +292,7 @@ Two-thousand-plus hours of Fitbit (steps + HR + sleep) from 212 participants in 
 
 ### Why It Does NOT Help With Transition Learning
 
-The dataset is observational. **There is no `a_t` variable** (no intervention delivered by an agent, no randomized arms). It cannot produce paired `(state, action, next_state)` tuples. For transition learning we use 4TU #1 "Collaboratively Setting Daily Step Goals" instead — see `docs/plans/learned_transitions.md`.
+The dataset is observational. **There is no `a_t` variable** (no intervention delivered by an agent, no randomized arms). It cannot produce paired `(state, action, next_state)` tuples. For transition learning we use 4TU #1 "Collaboratively Setting Daily Step Goals" instead — see `docs/archive/plans/learned_transitions.md`.
 
 ### Access
 
@@ -425,7 +431,7 @@ Pre-built synthetic RL environments designed specifically for offline RL algorit
 | 1 | NHANES Steps | Parameterise synthetic step distributions (14.7K participants, CC0) | Download now |
 | 2 | ExtraSensory / WISDM / PAMAP2 | Test data pipeline, validate schemas | Download now |
 | 3 | MMASH | Validate HR-activity-sleep correlations in synthetic data | Download now |
-| 4 | TILES-2018 | Passive Fitbit (steps/HR/sleep) for synthetic-distribution parameterisation; observational only — see `docs/plans/learned_transitions.md` | Download now |
+| 4 | TILES-2018 | Passive Fitbit (steps/HR/sleep) for synthetic-distribution parameterisation; observational only — see `docs/archive/plans/learned_transitions.md` | Download now |
 | 4b | 4TU #1 "Collaboratively Setting Daily Step Goals" | Open intervention-response data (step-goal proposals) for 1C calibration | Download now |
 | 5 | Health Gym | Test agent library (1D) with synthetic RL trajectories | Download now |
 | 6 | HeartSteps V1 | Best restricted intervention response data — start access request | Weeks-months |
@@ -450,5 +456,5 @@ Pre-built synthetic RL environments designed specifically for offline RL algorit
 |------|---------|
 | `sources/data_sources.md` | Large-scale population dataset feasibility study |
 | This document | JITAI trial datasets and accessible sources |
-| `initial_design.tex` | Formal MDP definition with state variables |
-| `code/codebase_plan.md` | Architecture and phased delivery plan |
+| `docs/decisions/initial_design.tex` | Formal MDP definition with state variables |
+| `docs/archive/plans/codebase_plan.md` | Architecture and phased delivery plan |

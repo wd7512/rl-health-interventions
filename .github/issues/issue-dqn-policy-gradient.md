@@ -67,7 +67,7 @@ On `config/rule_based.yaml` (2 states, 2 actions, 450 steps):
 4. Config schema updates for RL hyperparameters
 5. `config/dqn_baseline.yaml` — DQN config for rule_based transitions
 6. Tests: DQN learns on a simple deterministic environment, REINFORCE improves over random
-7. Benchmark results in `docs/mvp/extensions.tex` (same format as MVP spec) comparing all 6 agents
+7. Benchmark results in `docs/experiments/mvp/extensions.tex` (same format as MVP spec) comparing all 6 agents
 8. `uv run ruff check && uv run pytest && uv run ty check` — all pass
 
 ## Out of scope
@@ -80,6 +80,6 @@ On `config/rule_based.yaml` (2 states, 2 actions, 450 steps):
 - Issue #2 (state space enrichment — richer state → more meaningful RL)
 
 ## Related
-- `docs/mvp/mvp.tex §5` (bandit results showing the gap)
+- `docs/experiments/mvp/mvp.tex §5` (bandit results showing the gap)
 - `src/rl_health_interventions/agents/_base.py` (Agent ABC)
 - `src/rl_health_interventions/config/schemas.py` (agent config validation)

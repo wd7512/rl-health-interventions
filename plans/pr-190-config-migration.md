@@ -28,8 +28,8 @@ and test fixture. End state: one config format, one model, zero legacy paths.
    table-backed transitions. MVP configs use inline probs, sprint1 uses JSON table files.
 9. **MVP regression target**: 165.0 total reward — preserved because cache iteration order
    and RNG seeding are unchanged for inline-prob configs.
-10. **All YAMLs migrated**: `config/rule_based.yaml`, `docs/sprint1/configs/sprint1.yaml`,
-    and all 4 `docs/experimental_phases/mvp/configs/*.yaml` rewritten to the new format.
+10. **All YAMLs migrated**: `config/rule_based.yaml`, `docs/experiments/sprint1_bootstrap/configs/sprint1.yaml`,
+    and all 4 `docs/experiments/mvp/configs/*.yaml` rewritten to the new format.
 
 ## File inventory
 
@@ -56,19 +56,19 @@ and test fixture. End state: one config format, one model, zero legacy paths.
 | File | Action |
 |---|---|
 | `config/rule_based.yaml` | Rewrite to new format — factor `activity_level`, inline probs preserved |
-| `docs/sprint1/configs/sprint1.yaml` | `state.factors` → `state.variables` + `state.parameters`. Add `agents` block with `context_features: [step_bin, burden, day_of_week, sleep]` |
-| `docs/experimental_phases/mvp/configs/mvp.yaml` | Rewrite |
-| `docs/experimental_phases/mvp/configs/mvp_masked.yaml` | Rewrite |
-| `docs/experimental_phases/mvp/configs/mvp_extensions.yaml` | Rewrite |
-| `docs/experimental_phases/mvp/configs/mvp_extensions_masked.yaml` | Rewrite |
+| `docs/experiments/sprint1_bootstrap/configs/sprint1.yaml` | `state.factors` → `state.variables` + `state.parameters`. Add `agents` block with `context_features: [step_bin, burden, day_of_week, sleep]` |
+| `docs/experiments/mvp/configs/mvp.yaml` | Rewrite |
+| `docs/experiments/mvp/configs/mvp_masked.yaml` | Rewrite |
+| `docs/experiments/mvp/configs/mvp_extensions.yaml` | Rewrite |
+| `docs/experiments/mvp/configs/mvp_extensions_masked.yaml` | Rewrite |
 
 ### Runner scripts (3 updated)
 
 | File | Action |
 |---|---|
-| `docs/experimental_phases/mvp/optimal_bound.py` | Replace `config.states`/`config.actions` access with new model properties |
-| `docs/experimental_phases/mvp/_shared.py` | `config.actions` → `config.action_names` |
-| `docs/experimental_phases/mvp/run_experiments.py` | Verify no legacy field access (none expected) |
+| `docs/experiments/mvp/optimal_bound.py` | Replace `config.states`/`config.actions` access with new model properties |
+| `docs/experiments/mvp/_shared.py` | `config.actions` → `config.action_names` |
+| `docs/experiments/mvp/run_experiments.py` | Verify no legacy field access (none expected) |
 
 ### Test files (12 updated, 4 new)
 
@@ -223,8 +223,8 @@ class FixedAgent(Agent):
    - `tests/regression/test_mvp.py` (all 4 MVP configs against golden fixtures)
 5. Manual: `load_config("config/rule_based.yaml")` — returns unified model, agents run
    episode, total reward matches fixture
-6. Manual: `load_config("docs/sprint1/configs/sprint1.yaml")` — validates correctly
-7. Manual: `uv run python docs/experimental_phases/mvp/optimal_bound.py mvp.yaml` — runs
+6. Manual: `load_config("docs/experiments/sprint1_bootstrap/configs/sprint1.yaml")` — validates correctly
+7. Manual: `uv run python docs/experiments/mvp/optimal_bound.py mvp.yaml` — runs
    without error
 
 ## Amendment log

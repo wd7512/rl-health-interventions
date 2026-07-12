@@ -267,7 +267,7 @@ class TestHeartStepsIntegration:
         config_path = (
             Path(__file__).parents[3]
             / "docs"
-            / "experimental_phases"
+            / "experiments"
             / "mvp"
             / "configs"
             / "mvp.yaml"
@@ -291,7 +291,7 @@ class TestHeartStepsIntegration:
         config_path = (
             Path(__file__).parents[3]
             / "docs"
-            / "experimental_phases"
+            / "experiments"
             / "mvp"
             / "configs"
             / "mvp.yaml"

@@ -51,7 +51,7 @@ For each archetype, produce a `P(s' | s, a)` matrix. With the 2-state `{sedentar
 
 ### Deliverables
 
-1. **Design doc section** — Write up the 4 archetype definitions and their transition matrices in `docs/design/initial_design.tex §3` (or new appendix)
+1. **Design doc section** — Write up the 4 archetype definitions and their transition matrices in `docs/decisions/initial_design.tex §3` (or new appendix)
    - For each archetype: narrative description, transition matrix table, rationale for key probability choices
    - Document citations: StepCountJITAI for response magnitude ranges, HeartSteps for burden/engagement decay
    - Document limitations: discrete archetypes are a simplification; Phase 2 should use continuous parameters
@@ -64,7 +64,7 @@ For each archetype, produce a `P(s' | s, a)` matrix. With the 2-state `{sedentar
 
 3. **Validation script** — Verify matrices sum to 1.0, match Reactance theory expectations, produce distinct behaviour distributions (ANOVA on continuous summary metrics of simulated trajectories, e.g. mean active ratio per episode)
 
-4. **Results doc** — Run Thompson Sampling on each archetype config for 10 seeds, produce a `.tex` + `.pdf` in `docs/mvp/extensions.tex` showing per-archetype agent performance (similar pattern to `docs/mvp/mvp.tex`)
+4. **Results doc** — Run Thompson Sampling on each archetype config for 10 seeds, produce a `.tex` + `.pdf` in `docs/experiments/mvp/extensions.tex` showing per-archetype agent performance (similar pattern to `docs/experiments/mvp/mvp.tex`)
 
 ## Out of scope
 - Burden accumulation/decay dynamics in the Environment (requires M-04 code changes)
@@ -72,8 +72,8 @@ For each archetype, produce a `P(s' | s, a)` matrix. With the 2-state `{sedentar
 - Real-data calibration (requires HeartSteps/TILES access — Phase 2)
 
 ## Related
-- `docs/design/initial_design.tex §3` (archetype definitions)
+- `docs/decisions/initial_design.tex §3` (archetype definitions)
 - `docs/plans/subphase_1c_user_simulation.md`
-- `docs/plans/ROADMAP.md` (M-04: User Simulation Engine)
+- `docs/overview/ROADMAP.md` (M-04: User Simulation Engine)
 - Issue #1 (6-action space — matrices depend on full action set)
-- `docs/mvp/mvp.tex` (reference for result doc format)
+- `docs/experiments/mvp/mvp.tex` (reference for result doc format)

@@ -97,7 +97,7 @@ For a first iteration, add:
 - Multi-feature synthetic data for HR/sleep (M-07)
 
 ## Related
-- `docs/design/initial_design.tex §3` (full state definition)
+- `docs/decisions/initial_design.tex §3` (full state definition)
 - Issue #1 (action extension — complements enriched state)
 - Issue #3 (4 persona matrices — uses archetype field)
 - `src/rl_health_interventions/state.py`

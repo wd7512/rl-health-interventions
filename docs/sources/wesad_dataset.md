@@ -1,3 +1,9 @@
+---
+title: "WESAD — Wearable Stress and Affect Detection"
+status: "reference"
+last_reviewed: "2026-07-12"
+---
+
 # WESAD — Wearable Stress and Affect Detection
 
 **Date:** 2026-06-10

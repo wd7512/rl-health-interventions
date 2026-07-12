@@ -895,8 +895,8 @@ def main() -> None:
     parser.add_argument(
         "--fig-dir",
         type=Path,
-        default=Path("docs/figures"),
-        help="Base directory for figure output (default: docs/figures)",
+        default=Path("docs/experiments/figures"),
+        help="Base directory for figure output (default: docs/experiments/figures)",
     )
     args = parser.parse_args()
 

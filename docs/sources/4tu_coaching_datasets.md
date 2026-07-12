@@ -1,3 +1,9 @@
+---
+title: "4TU Physical Activity Coaching Datasets"
+status: "reference"
+last_reviewed: "2026-07-12"
+---
+
 # 4TU Physical Activity Coaching Datasets
 
 **Date:** 2026-06-10

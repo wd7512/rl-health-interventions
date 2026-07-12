@@ -1,3 +1,9 @@
+---
+title: "HARTH Dataset Family (Human Activity Recognition for Thigh and Back)"
+status: "reference"
+last_reviewed: "2026-07-12"
+---
+
 # HARTH Dataset Family (Human Activity Recognition for Thigh and Back)
 
 **Date:** 2026-06-10

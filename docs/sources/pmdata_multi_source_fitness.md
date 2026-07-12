@@ -1,3 +1,9 @@
+---
+title: "PMData — A Sports Logging Dataset"
+status: "reference"
+last_reviewed: "2026-07-12"
+---
+
 # PMData — A Sports Logging Dataset
 
 **Date:** 2026-06-10

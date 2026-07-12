@@ -1,3 +1,9 @@
+---
+title: "ScientISST MOVE — Annotated Wearable Multimodal Biosignals During Everyday Life"
+status: "draft"
+last_reviewed: "2026-07-12"
+---
+
 # ScientISST MOVE — Annotated Wearable Multimodal Biosignals During Everyday Life
 
 **Date:** 2026-06-10

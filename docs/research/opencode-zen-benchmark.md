@@ -1,3 +1,9 @@
+---
+title: "OpenCode Zen Free Model Benchmark"
+status: "active"
+last_reviewed: "2026-07-12"
+---
+
 # OpenCode Zen Free Model Benchmark
 
 Tested 2026-06-28 (updated). Free-tier API key, endpoint

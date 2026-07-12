@@ -1,3 +1,9 @@
+---
+title: "DREAMT — Dataset for Real-time Sleep Stage Estimation Using Multisensor Wearable Technology"
+status: "draft"
+last_reviewed: "2026-07-12"
+---
+
 # DREAMT — Dataset for Real-time Sleep Stage Estimation Using Multisensor Wearable Technology
 
 **Date:** 2026-06-10

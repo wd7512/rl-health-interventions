@@ -92,8 +92,8 @@ def hand_compute(config_path: Path) -> dict:
 
 def main() -> None:
     configs = [
-        ("docs/experimental_phases/mvp/configs/mvp.yaml", None),
-        ("docs/experimental_phases/mvp/configs/mvp_masked.yaml", [1, 1, 1, 1, 0]),
+        ("docs/experiments/mvp/configs/mvp.yaml", None),
+        ("docs/experiments/mvp/configs/mvp_masked.yaml", [1, 1, 1, 1, 0]),
     ]
 
     for config_path, expected_mult in configs:
