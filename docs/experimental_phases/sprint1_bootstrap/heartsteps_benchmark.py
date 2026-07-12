@@ -18,6 +18,7 @@ from rl_health_interventions.agents.fixed import FixedAgent
 from rl_health_interventions.agents.heartsteps.agent import HeartStepsAgent
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.episode import run_episode
+from rl_health_interventions.evaluation.metrics import compute_metrics
 
 logger = logging.getLogger(__name__)
 
@@ -35,15 +36,6 @@ _PERSONA_CONFIGS = [
     ("init_deepseek", f"{_CROSS}/initial_deepseek/{_EXT}"),
     ("init_glm5.2", f"{_CROSS}/initial_glm5.2/{_EXT}"),
 ]
-
-
-def _summarize(rewards: np.ndarray) -> dict:
-    return {
-        "total_mean": float(rewards.sum(axis=1).mean()),
-        "total_std": float(rewards.sum(axis=1).std()),
-        "per_step": float(rewards.mean()),
-        "last50": float(rewards[:, -50:].mean()),
-    }
 
 
 def _run_heartsteps(config, n_seeds: int, gamma: float = 0.5) -> np.ndarray:
@@ -104,25 +96,27 @@ def _run_idle(config, n_seeds: int) -> dict:
         agent = FixedAgent(action="idle")
         records = run_episode(config, agent, seed=seed)
         rewards.append([r["reward"] for r in records])
-    return _summarize(np.array(rewards))
+    return compute_metrics(np.array(rewards))
 
 
 def _print_comparison(result: dict) -> None:
     dp_val = result["dp"]["optimal_value"]
     hs = result["heartsteps"]
     idle = result["idle"]
-    hs_pct = 100 * hs["total_mean"] / dp_val if dp_val != 0 else 0.0
+    hs_pct = 100 * hs["total_reward"] / dp_val if dp_val != 0 else 0.0
     logger.info(
         "\n  DP: %.2f | HS: %.2f (%.1f%%, %+.2f vs idle) | Idle: %.2f",
         dp_val,
-        hs["total_mean"],
+        hs["total_reward"],
         hs_pct,
-        hs["total_mean"] - idle["total_mean"],
-        idle["total_mean"],
+        hs["total_reward"] - idle["total_reward"],
+        idle["total_reward"],
     )
-    for al, bv in sorted(result["bandits"].items(), key=lambda x: -x[1]["total_mean"]):
-        pct = 100 * bv["total_mean"] / dp_val if dp_val != 0 else 0.0
-        logger.info("  %-20s %.2f (%.1f%% of DP)", al, bv["total_mean"], pct)
+    for al, bv in sorted(
+        result["bandits"].items(), key=lambda x: -x[1]["total_reward"]
+    ):
+        pct = 100 * bv["total_reward"] / dp_val if dp_val != 0 else 0.0
+        logger.info("  %-20s %.2f (%.1f%% of DP)", al, bv["total_reward"], pct)
 
 
 def main() -> None:  # noqa: PLR0915
@@ -160,13 +154,13 @@ def main() -> None:  # noqa: PLR0915
             al = agent_label(agent_cfg)
             logger.info("  %s...", al)
             rewards = run_agent(config, agent_cfg, n_seeds)
-            bandits[al] = _summarize(rewards)
+            bandits[al] = compute_metrics(rewards)
         result["bandits"] = bandits
 
         logger.info("HeartSteps (gamma=%.1f)...", args.gamma)
         t0 = time.perf_counter()
         hs_rewards = _run_heartsteps(config, n_seeds, gamma=args.gamma)
-        result["heartsteps"] = _summarize(hs_rewards)
+        result["heartsteps"] = compute_metrics(hs_rewards)
         result["heartsteps"]["gamma"] = args.gamma
         result["heartsteps"]["time_s"] = time.perf_counter() - t0
 

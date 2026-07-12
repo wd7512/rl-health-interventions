@@ -17,7 +17,6 @@ from pathlib import Path
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-
 from _optimal_dp import OptimalBound
 
 matplotlib.use("Agg")
@@ -59,7 +58,12 @@ def run_alpha_grid() -> dict:
         for alpha in ALPHAS:
             bound = OptimalBound(BASE_CONFIG, alpha=alpha, table_dir=table_dir)
             r = bound.report()
-            logger.info("  alpha=%.1f: solving %d states x %d timesteps...", alpha, r["n_states"], r["n_timesteps"])
+            logger.info(
+                "  alpha=%.1f: solving %d states x %d timesteps...",
+                alpha,
+                r["n_states"],
+                r["n_timesteps"],
+            )
             bound.run()
             r = bound.report()
             activity = bound.policy_activity(seed=42)
@@ -100,7 +104,15 @@ def draw_chart(results: dict) -> None:
     for (label, data), color in zip(results.items(), colors):
         alphas = [e["alpha"] for e in data]
         activity = [e["activity_pct"] for e in data]
-        ax.plot(alphas, activity, marker="o", color=color, label=label, linewidth=1.5, markersize=4)
+        ax.plot(
+            alphas,
+            activity,
+            marker="o",
+            color=color,
+            label=label,
+            linewidth=1.5,
+            markersize=4,
+        )
 
     ax.set_xlabel("Alpha (step_bin weight)", fontsize=12)
     ax.set_ylabel("Optimal Policy Activity (%)", fontsize=12)
@@ -117,7 +129,11 @@ def draw_chart(results: dict) -> None:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    logger.info("Alpha grid search over %d table sets x %d alpha values", len(TABLE_SETS), len(ALPHAS))
+    logger.info(
+        "Alpha grid search over %d table sets x %d alpha values",
+        len(TABLE_SETS),
+        len(ALPHAS),
+    )
     results = run_alpha_grid()
     save_results(results)
     draw_chart(results)

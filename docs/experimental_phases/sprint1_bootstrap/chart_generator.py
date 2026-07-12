@@ -15,9 +15,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from _shared import agent_label, resolve_config, run_agent
+from optimal_bound import compute_bounds
 
 from rl_health_interventions.config.loader import load_config
-from optimal_bound import compute_bounds
 
 logger = logging.getLogger(__name__)
 
