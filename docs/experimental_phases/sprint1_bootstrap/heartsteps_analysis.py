@@ -9,7 +9,6 @@ import time
 from pathlib import Path
 
 import numpy as np
-
 from _shared import resolve_config
 
 from rl_health_interventions.agents import derive_agent_seed
@@ -38,7 +37,9 @@ def _build_init_vec(config, n_features: int) -> np.ndarray:
     return vec
 
 
-def _track_episode(config, agent, seed: int, init_vec: np.ndarray, gamma: float) -> dict:
+def _track_episode(
+    config, agent, seed: int, init_vec: np.ndarray, gamma: float
+) -> dict:
     state_vars = {k: v.names for k, v in config.state.variables.items()}
     extra = {"step_of_day": list(range(config.steps_per_day))}
     records = run_episode(config, agent, seed=seed)
