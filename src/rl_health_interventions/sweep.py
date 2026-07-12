@@ -80,11 +80,10 @@ def run_experiment_csv(
     config = load_config(config_path)
     all_records: list[dict] = []
     for i, agent_cfg in enumerate(config.agents):
-        kwargs = {
-            k: v
-            for k, v in agent_cfg.model_dump().items()
-            if v is not None and k != "type"
-        }
+        exclude: set[str] = {"type"}
+        if not getattr(agent_cfg, "contextual", False):
+            exclude |= {"contextual", "context_features"}
+        kwargs = agent_cfg.model_dump(exclude=exclude, exclude_none=True)
         kwargs["actions"] = config.action_names
         kwargs["seed"] = derive_agent_seed(config.seed, agent_index=i)
         agent = make_agent(agent_cfg.type, **kwargs)

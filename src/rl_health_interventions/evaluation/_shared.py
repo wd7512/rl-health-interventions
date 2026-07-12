@@ -48,10 +48,11 @@ def run_agent(config, agent_cfg, n_seeds: int) -> np.ndarray:
     exclude = {"type"}
     if not agent_cfg.contextual:
         exclude |= {"contextual", "context_features"}
+    base_kwargs = agent_cfg.model_dump(exclude=exclude, exclude_none=True)
+    base_kwargs["actions"] = config.action_names
     rewards = []
     for seed in range(1, n_seeds + 1):
-        kwargs = agent_cfg.model_dump(exclude=exclude, exclude_none=True)
-        kwargs["actions"] = config.action_names
+        kwargs = base_kwargs.copy()
         kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
         agent = make_agent(agent_cfg.type, **kwargs)
         records = run_episode(config, agent, seed=seed)
