@@ -344,7 +344,7 @@ Read:
 - reports/phase1_design_analysis.md
 - All source files in src/ and config/
 
-Produce `docs/ROADMAP_TECHNICAL_DEPS.md` containing:
+Produce `docs/roadmap-technical-deps.md` containing:
 
 ## Technical Dependency Graph
 A Mermaid flowchart showing all major technical components and their
@@ -365,7 +365,7 @@ For each major component:
 For every stub file found in src/:
 | Stub File | What It Must Implement | Test Criteria | Blocking Milestone ID |
 
-Save to `docs/ROADMAP_TECHNICAL_DEPS.md`.
+Save to `docs/roadmap-technical-deps.md`.
 Return a one-paragraph summary when done.
 
 --- END SUBAGENT PROMPT ---
@@ -417,7 +417,7 @@ DOMAIN 4B — Risk Register Issues
 ════════════════════════════════
 
 [HERMES SKILL INVOCATION — to-issues]
-  Source file   : docs/ROADMAP_TECHNICAL_DEPS.md
+  Source file   : docs/roadmap-technical-deps.md
   Section filter: risk-register
   Labels        : [risk, technical-debt]
   Output file   : reports/phase4b_issues.json
@@ -455,7 +455,7 @@ DOMAIN 4D — Stub Implementation Issues
 ════════════════════════════════
 
 [HERMES SKILL INVOCATION — to-issues]
-  Source file   : docs/ROADMAP_TECHNICAL_DEPS.md
+  Source file   : docs/roadmap-technical-deps.md
   Section filter: stub-tracker
   Labels        : [implementation, good-first-issue]
   Output file   : reports/phase4d_issues.json
@@ -748,7 +748,7 @@ Create the audit PR branch and stage all new files. Execute these git commands:
 
 ```bash
 git checkout -b audit/comprehensive-review-$(date +%Y%m%d)
-git add docs/ROADMAP.md docs/ROADMAP_TECHNICAL_DEPS.md
+git add docs/ROADMAP.md docs/roadmap-technical-deps.md
 git add reports/
 git add AUDIT_MASTER.md REVIEW_LOG.md
 mkdir -p .github/PULL_REQUEST_TEMPLATE
@@ -1008,7 +1008,7 @@ rl-health-interventions/
 │   │   ├── subphase_1a_data_layer.md   ← Ingested in Phase 3
 │   │   └── ...
 │   ├── ROADMAP.md                      ← NEW: Phase 3A canonical roadmap
-│   └── ROADMAP_TECHNICAL_DEPS.md       ← NEW: Phase 3B deps + risk register
+│   └── roadmap-technical-deps.md       ← NEW: Phase 3B deps + risk register
 ├── reports/
 │   ├── phase1_design_analysis.md       ← Phase 1: initial_design.tex critique (primary)
 │   ├── phase2_doc_alignment_raw.md     ← Phase 2A: skill scan output

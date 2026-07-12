@@ -153,7 +153,7 @@ New dataset = new config, not new code. Genuinely new data structures (e.g., GPS
 
 ## Public Datasets (Feasibility Complete ✅)
 
-Two datasets evaluated for simulator training. Full study: [`sources/data_sources.md`](sources/data_sources.md).
+Two datasets evaluated for simulator training. Full study: [`sources/data-sources.md`](sources/data-sources.md).
 
 1. **All of Us Fitbit Dataset** — Nature Medicine 2026
    - 59,000+ participants, Fitbit data, 14-year span
@@ -171,11 +171,11 @@ Two datasets evaluated for simulator training. Full study: [`sources/data_source
 
 **Finding:** Both datasets require institutional applications with 4-8 week lead times. Neither provides downloadable samples. **Phase 1 uses synthetic data generators parameterised from published statistics.** Real data integration is Phase 2.
 
-**Supplementary finding:** HeartSteps V1/V2 micro-randomized trials contain the only available *intervention response* data. These are smaller (50–100 participants) but directly calibrate the user simulation (1C). See [`sources/additional_data_sources.md`](sources/additional_data_sources.md).
+**Supplementary finding:** HeartSteps V1/V2 micro-randomized trials contain the only available *intervention response* data. These are smaller (50–100 participants) but directly calibrate the user simulation (1C). See [`sources/additional-data-sources.md`](sources/additional-data-sources.md).
 
 ## Logging & Error Handling
 
-See canonical setup in [`code_design.md`](code_design.md#logging--error-handling-canonical).
+See canonical setup in [`code-design.md`](code-design.md#logging--error-handling-canonical).
 
 Project-wide observability concerns:
 

@@ -210,14 +210,14 @@ Since neither dataset is immediately accessible, Phase 1 should focus on:
 
 Phase 2 dataset priority (per `initial_design.tex` decision log):
 
-1. **HeartSteps V1/V2** — MRT data with *action → response* mappings for calibrating the user simulator. Start data access requests early (see `additional_data_sources.md`).
+1. **HeartSteps V1/V2** — MRT data with *action → response* mappings for calibrating the user simulator. Start data access requests early (see `additional-data-sources.md`).
 2. **All of Us** — apply for researcher workbench access (cloud-based)
 3. **UK Biobank** — submit research application (4-8 weeks)
 4. Swap synthetic data for real data by changing the config YAML
 5. Validate simulator behaviour against real distributions
 
 Several immediately-accessible datasets exist for Phase 1 pipeline testing
-and synthetic parameterisation — see `additional_data_sources.md` for
+and synthetic parameterisation — see `additional-data-sources.md` for
 NHANES, TILES, MMASH, ExtraSensory, and WISDM.
 
 ### Dataset Selection
@@ -236,5 +236,5 @@ NHANES, TILES, MMASH, ExtraSensory, and WISDM.
 | File | Purpose |
 |------|---------|
 | `initial_design.tex` | Formal MDP definition with state variables |
-| `code/codebase_plan.md` | Architecture and phased delivery plan |
+| `code/codebase-plan.md` | Architecture and phased delivery plan |
 | This document | Dataset feasibility and gap analysis |

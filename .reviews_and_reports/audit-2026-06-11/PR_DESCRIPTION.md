@@ -120,7 +120,7 @@ This audit provides the complete roadmap from current state (3.3/10) to Nature-r
 
 ### Roadmap (2 files)
 - `docs/ROADMAP.md` — 10-milestone roadmap with Mermaid Gantt
-- `docs/ROADMAP_TECHNICAL_DEPS.md` — Technical deps, risk register, TRL, stub tracker
+- `docs/roadmap-technical-deps.md` — Technical deps, risk register, TRL, stub tracker
 
 ### Master Documents (3 files)
 - `AUDIT_MASTER.md` — 8-section master audit report

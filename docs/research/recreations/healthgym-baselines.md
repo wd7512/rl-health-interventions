@@ -164,7 +164,7 @@ Five concrete actions:
 5. **For the project's RL agent library, add CQL, IQL, and
    EDAC as stretch agents.** The current library has
    Thompson Sampling; the offline-RL agents are stretch goals
-   in subphase_1d_agent_library.md.
+   in subphase-1d-agent-library.md.
 
 ---
 

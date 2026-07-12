@@ -3,7 +3,7 @@
 ### What This PR Contains
 - [x] Phase 1: Design analysis (reports/phase1_design_analysis.md)
 - [x] Phase 2: Doc-alignment audit + synthesis (reports/phase2_doc_alignment_raw.md, reports/phase2_orchestrator_analysis.md)
-- [x] Phase 3: New roadmap (docs/ROADMAP.md, docs/ROADMAP_TECHNICAL_DEPS.md)
+- [x] Phase 3: New roadmap (docs/ROADMAP.md, docs/roadmap-technical-deps.md)
 - [x] Phase 4: GitHub issue manifests (reports/phase4_all_issues.json, 43 issues)
 - [x] Phase 5: 6-domain codebase audit (reports/audit_*.md, reports/phase5_swarm_audit_synthesis.md)
 - [x] Phase 6: Master audit doc (AUDIT_MASTER.md)

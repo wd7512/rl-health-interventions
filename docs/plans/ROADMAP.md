@@ -112,7 +112,7 @@ eventual shape of the framework, not the order it will be built in.
 
 **Nature-publication contribution:** User archetypes enable systematic evaluation across population segments. The 4-archetype model is a simplification that must be validated against real data in Phase 2.
 
-**Source sub-plan:** subphase_1c_user_simulation.md, initial_design.tex §3.2 (4 archetypes)
+**Source sub-plan:** subphase_1c_user_simulation.md, docs/design/initial_design.tex §3.2 (4 archetypes)
 
 ---
 

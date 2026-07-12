@@ -3,7 +3,7 @@ title: "State Space Design — Research Artifacts"
 status: "active"
 date: "2026-06-23"
 purpose: "Collate evidence and reference configurations informing state space design"
-related: "decision-catalogue.md · action-space-design/ · docs/initial_design.tex §3"
+related: "decision-catalogue.md · action-space-design/ · docs/design/initial_design.tex §3"
 ---
 
 # State Space Design — Research Artifacts
@@ -24,5 +24,5 @@ related: "decision-catalogue.md · action-space-design/ · docs/initial_design.t
 
 - [decision-catalogue.md](../decision-catalogue.md) — all open design decisions
 - [action-space-design/](../action-space-design/) — companion research on action representation
-- [docs/initial_design.tex §3](../../initial_design.tex) — MDP design containing state specifications
+- [docs/design/initial_design.tex §3](../../design/initial_design.tex) — MDP design containing state specifications
 - [decision-trees/online-vs-offline-rl.md](../decision-trees/online-vs-offline-rl.md) — upstream framing decision

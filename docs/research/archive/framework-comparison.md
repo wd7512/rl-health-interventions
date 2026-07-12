@@ -4,7 +4,7 @@ status: "draft v0.1"
 date: "2026-06-14"
 author: "W. Dennis (research-assistant prep)"
 purpose: "Positioning table for the Nature Methods paper introduction"
-related: "docs/initial_design.tex §2 · docs/research/decision-trees/online-vs-offline-rl.md"
+related: "docs/design/initial_design.tex §2 · docs/research/decision-trees/online-vs-offline-rl.md"
 ---
 
 > **Archived 2026-06-23.** This document was part of the June-14 research batch
@@ -189,8 +189,8 @@ and source code (where applicable):
 
 | Framework | Primary citation | Source code |
 |---|---|---|
-| StepCountJITAI | karine2024stepcountjitai (in `docs/references.bib`) | github.com/karinekay/StepCountJITAI (verify) |
-| Health Gym | gateno2023healthgym (in `docs/references.bib`) | github.com/nikooo777/health-gym |
+| StepCountJITAI | karine2024stepcountjitai (in `docs/design/references.bib`) | github.com/karinekay/StepCountJITAI (verify) |
+| Health Gym | gateno2023healthgym (in `docs/design/references.bib`) | github.com/nikooo777/health-gym |
 | MicroRCT sim | Liu et al. 2024 (not in bib — needs entry) | varies |
 | CASIE | Tang et al. 2023 (not in bib — needs entry) | github.com/clinicalml/casie (verify) |
 | OHDSI PLP | OHDSI community (not in bib — needs entry) | github.com/OHDSI |

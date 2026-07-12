@@ -11,8 +11,8 @@
 
 1. No commits to `main`. All work on branches, all changes via PR.
 2. No code generation. Research artefacts are markdown only.
-3. No changes to `docs/initial_design.tex` (awaiting Swapnil's sign-off on the MDP).
-4. No changes to `docs/ROADMAP.md` (already merged, signed off in effect via #84).
+3. No changes to `docs/design/initial_design.tex` (awaiting Swapnil's sign-off on the MDP).
+4. No changes to `docs/plans/ROADMAP.md` (already merged, signed off in effect via #84).
 5. No new stub implementations in `src/rl_health_interventions/`. The audit found 8/17 stubs; don't add more.
 6. PRs must be self-contained and mergeable on their own. No "part 1 of 3" linking.
 7. PRs touching `docs/research/` need a clear external reviewer in mind (supervisor, Mengyan, or external).
