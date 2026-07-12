@@ -74,3 +74,7 @@ class ProxyValue:
     @property
     def value_table(self) -> np.ndarray:
         return self._H.copy()
+
+    @property
+    def action_idx(self) -> dict[str, int]:
+        return self._action_idx

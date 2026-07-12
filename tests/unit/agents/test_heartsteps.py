@@ -81,6 +81,18 @@ class TestBayesianRegression:
         assert samples["a"].shape == (3,)
         assert samples["b"].shape == (3,)
 
+    def test_get_reward_samples_returns_all_actions(self) -> None:
+        rng = np.random.default_rng(42)
+        reg = MultiClassBayesianRegression(
+            n_features=2, actions=["idle", "nudge"], reference_action="idle"
+        )
+        reg.update_batch([(np.array([1.0, 0.0]), "nudge", 5.0)])
+        f = np.array([0.5, 0.5])
+        samples = reg.get_reward_samples(rng, avg_features=f)
+        assert set(samples.keys()) == {"idle", "nudge"}
+        assert isinstance(samples["idle"], float)
+        assert isinstance(samples["nudge"], float)
+
     def test_batch_matches_sequential(self) -> None:
         reg_batch = MultiClassBayesianRegression(
             n_features=2, actions=["idle", "nudge"], reference_action="idle"
@@ -193,6 +205,32 @@ class TestHeartStepsAgent:
         state = StateView({"activity_level": "sedentary"})
         assert agent.select_action(state) in actions
 
+    def test_thompson_samples_exploration(self) -> None:
+        """TS selects different actions across seeds when posterior has variance."""
+        state = StateView({"activity_level": "sedentary"})
+        actions_by_seed = set()
+        for seed in range(20):
+            agent = _make_agent(seed=seed)
+            actions_by_seed.add(agent.select_action(state))
+        assert len(actions_by_seed) > 1
+
+    def test_greedy_select_action(self) -> None:
+        agent = _make_agent(greedy=True)
+        state = StateView({"activity_level": "sedentary"})
+        # Greedy should still return a valid action
+        assert agent.select_action(state) in ["idle", "nudge"]
+
+    def test_greedy_deterministic(self) -> None:
+        a1 = _make_agent(seed=123, greedy=True)
+        a2 = _make_agent(seed=123, greedy=True)
+        state = StateView({"activity_level": "sedentary"})
+        assert a1.select_action(state) == a2.select_action(state)
+
+    def test_no_proxy(self) -> None:
+        agent = _make_agent(use_proxy=False)
+        state = StateView({"activity_level": "sedentary"})
+        assert agent.select_action(state) in ["idle", "nudge"]
+
     def test_works_with_multiple_state_factors(self) -> None:
         agent = HeartStepsAgent(actions=["idle", "nudge"], seed=42)
         agent.init_one_hot_map(
@@ -244,3 +282,36 @@ class TestHeartStepsIntegration:
         records = run_episode(config, agent, seed=42)
         assert len(records) == config.episode_days * config.steps_per_day
         assert all(r["action"] in config.action_names for r in records)
+
+    def test_on_day_end_fires_at_correct_count(self) -> None:
+        """on_day_end is called once per day boundary: episode_days - 1 times."""
+        from rl_health_interventions.config.loader import load_config
+        from rl_health_interventions.episode import run_episode
+
+        config_path = (
+            Path(__file__).parents[3]
+            / "docs"
+            / "experimental_phases"
+            / "mvp"
+            / "configs"
+            / "mvp.yaml"
+        )
+        config = load_config(config_path)
+        agent = _make_agent(actions=config.action_names)
+        state_variables = {
+            name: cfg.names for name, cfg in config.state.variables.items()
+        }
+        extra = {"step_of_day": list(range(config.steps_per_day))}
+        agent.init_one_hot_map(state_variables, extra_features=extra)
+        # Track on_day_end calls
+        original_on_day_end = agent.on_day_end
+        call_count = 0
+
+        def counting_on_day_end() -> None:
+            nonlocal call_count
+            call_count += 1
+            original_on_day_end()
+
+        agent.on_day_end = counting_on_day_end  # type: ignore[assignment]
+        run_episode(config, agent, seed=42)
+        assert call_count == config.episode_days

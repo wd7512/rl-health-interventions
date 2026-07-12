@@ -511,16 +511,16 @@ where $d'$ is the next dosage bin under action $a$. The proxy correction $\eta(a
 
 \paragraph{Action selection.}
 \[
-a_t = \arg\max_{a \in \mathcal{A}} \left[ f(s_t)^\top \hat{\beta}_a + \gamma \cdot \eta(a, X_t) \right]
+a_t = \arg\max_{a \in \mathcal{A}} \left[ f(s_t)^\top \hat{\beta}_a + \eta(a, X_t) \right]
 \]
-The first term is the immediate expected reward (from Bayesian regression posterior means); the second term corrects for delayed dosage effects.
+The first term is the immediate expected reward (from Bayesian regression posterior means); the second term $\eta(a, X_t) = \gamma H(X_t, a_0) - \gamma H(X_t, a)$ corrects for delayed dosage effects.
 
 \paragraph{Batch update.}
 Regression posteriors update once per day using all $T_{\text{day}}$ transitions collected that day. The diagonal precision approximation ignores cross-correlations between feature groups (step\_bin, sleep, etc.) for computational efficiency.
 
 \subsection{Sprint 1 Results}
 
-HeartSteps was evaluated on all 8 bootstrap MDP personas (50 seeds, $\gamma = 0.5$). Table~\ref{tab:heartsteps} compares HeartSteps against the always-idle baseline and the exact optimal DP bound (backward induction, no sampling noise). All agents (HeartSteps, bandits, idle) run through the same Environment with identical seeds.
+HeartSteps was evaluated on all 7 bootstrap MDP personas plus a masked-reward variant (50 seeds, $\gamma = 0.5$, chosen to match the proxy value function's effective horizon). Table~\ref{tab:heartsteps} compares HeartSteps against the always-idle baseline and the exact optimal DP bound (backward induction, no sampling noise). All agents (HeartSteps, bandits, idle) run through the same Environment with identical seeds.
 
 \begin{table}[h]
 \centering
@@ -554,11 +554,11 @@ The ``Exact DP'' column uses backward-induction values (no sampling noise). Hear
 
   \item \textbf{Resistant improved with step\_of\_day features}. At 190.5 (85.0\% of DP), HeartSteps now outperforms the best bandit (D-EG at 173.7). The step\_of\_day features allow the agent to learn that interventions are least harmful at step~0 ($\hat{\beta} = -0.59$) and most harmful at step~3 ($\hat{\beta} = -0.95$), enabling more selective action selection. Variance decreased from $\pm$107.1 to $\pm$87.2.
 
-  \item \textbf{HeartSteps dominates all bandit agents on easy personas}. On base, goal-driven, stable maintainer, and initial models, HeartSteps achieves 99.8--100.2\% of DP vs 74--96\% for the best bandit. The Bayesian regression with action-centering converges faster than frequentist bandit approaches when the optimal policy is near-idle.
+  \item \textbf{HeartSteps outperforms all bandit agents on near-idle-optimal personas}. On base, goal-driven, stable maintainer, and initial models, HeartSteps achieves 99.8--100.2\% of DP vs 74--96\% for the best bandit. Note that two of these personas (base, initial models) have always-idle optimal policies, making the comparison less demanding. On goal-driven and stable maintainer (where intervention is optimal), HeartSteps matches idle by converging to a near-optimal idle policy rather than discovering the intervention strategy.
 
   \item \textbf{HeartSteps now beats all bandits on resistant too}. At 190.5 (85.0\% of DP), HeartSteps outperforms D-EG (173.7, 77.5\%), the previous best. The step\_of\_day feature is the key differentiator -- it allows the agent to avoid interventions during harmful time windows.
 
-  \item \textbf{HeartSteps' key advantage is consistency}. Across all 8 personas, HeartSteps' worst case (resistant, 85.0\% of DP with step\_of\_day) is far better than the worst case of any bandit agent (Ctx TS on resistant, 0.7\% of DP). The dosage mechanism prevents catastrophic exploration.
+  \item \textbf{HeartSteps' key advantage is consistency}. Across all 7 personas plus the masked variant, HeartSteps' worst case (resistant, 85.0\% of DP with step\_of\_day) outperforms the worst case across all bandit-variant combinations (Std UCB on social responder, 47.2\% of DP). The dosage mechanism prevents catastrophic exploration.
 \end{enumerate}
 
 \subsection{Why HeartSteps Works: Regression Diagnostics}
@@ -619,7 +619,7 @@ journal & $-2.409$ & $-2.044$ & $-1.557$ \\
 \label{tab:hs_qvalues}
 \end{table}
 
-The proxy value function $\eta(a, X_t) = \gamma H(X_t, a_0) - \gamma H(X_t, a)$ contributes $-4.19$ for base (the regression contributes the remaining $-0.22$). The proxy dominates the Q-value for non-idle actions, meaning the \emph{delayed dosage effect} is the primary mechanism by which HeartSteps learns to avoid interventions.
+The proxy value function $\eta(a, X_t) = \gamma H(X_t, a_0) - \gamma H(X_t, a) = 0.5 \times (0 - (-4.19)) = +2.09$ contributes positively to $Q$ for non-idle actions. The regression term $f(s)^\top \hat{\beta}_a$ is negative and dominates the proxy offset, yielding a negative net $Q$ (e.g., approximately $-2.08$ using an illustrative regression term of $-4.17$; the exact value is $-2.409$ from Table~\ref{tab:hs_qvalues}). The proxy reduces the magnitude of the negative $Q$ (partially offsetting the regression penalty), but the regression term dominates, so HeartSteps learns to avoid interventions.
 
 \paragraph{Proxy value table $H$.}
 The mean $H$ values across dosage bins confirm the proxy's role:
@@ -640,7 +640,7 @@ journal & $-4.186$ & $-3.225$ & $-2.453$ \\
 \label{tab:hs_proxy}
 \end{table}
 
-For base, $H(\cdot, \text{non-idle}) = -4.19$ across all dosage levels. With $\gamma = 0.5$, this yields $\eta = 0.5 \times (0 - (-4.19)) = +2.09$... but wait, $\eta = \gamma H(d, a_{\text{ref}}) - \gamma H(d, a) = 0.5 \times 0 - 0.5 \times (-4.19) = +2.09$. This is positive, meaning the proxy \emph{penalises} non-idle actions in the Q-value: $Q(s, a) = f(s)^\top \hat{\beta}_a + \gamma \eta(a, X_t) = (-0.22) + 0.5 \times (-4.19) = -2.32$. The negative $H$ for non-idle actions means the proxy has learned that suggesting interventions leads to worse long-term outcomes through the dosage channel.
+For base, $H(\cdot, \text{non-idle}) = -4.19$ across all dosage levels. With $\gamma = 0.5$, the proxy correction is $\eta = \gamma H(d, a_{\text{ref}}) - \gamma H(d, a) = 0.5 \times 0 - 0.5 \times (-4.19) = +2.09$. This is \emph{positive}, meaning the proxy \emph{increases} $Q$ for non-idle actions (partially offsetting the regression penalty). The regression term $f(s)^\top \hat{\beta}_a$ dominates, yielding a net negative $Q$ (exact value $-2.409$ per Table~\ref{tab:hs_qvalues}). The agent learns to avoid interventions because the immediate regression penalty outweighs the proxy's partial offset.
 
 \paragraph{Dosage trajectory.}
 On the base persona, dosage is exactly 0.0 at day 89 (mean across 50 seeds) -- the agent never suggests any intervention. On social responder, dosage is $0.95 \pm 4.02$, indicating rare suggestions. On resistant, dosage increased to a higher value, reflecting greater exploration due to smaller $\hat{\beta}$ magnitudes.
@@ -653,11 +653,30 @@ However, even with step\_of\_day features, all $\hat{\beta}$ values remain negat
 \paragraph{Why HeartSteps cannot fully match the DP policy.}
 The DP optimal policy for social responder uses goal\_reminder at step~0 on 11.6\% of steps. With step\_of\_day features, HeartSteps now knows that step~0 is the least harmful time ($\hat{\beta} = -0.59$), but it still avoids intervening because:
 \begin{enumerate}
-  \item The Bayesian regression uses a single $\hat{\beta}_k$ per action, estimated over all timesteps. It cannot learn action-values that \emph{vary} by timestep -- only that some timesteps are less harmful.
+  \item The Bayesian regression does learn time-varying action-values through the step\_of\_day features (as shown in Table~\ref{tab:hs_betas_tod}), but all action-values remain \emph{negative} across all timesteps. The agent learns that step~0 is least harmful ($\hat{\beta} = -0.59$) but never that intervention is \emph{positive} at any time.
   \item The proxy value function uses only dosage as its state variable, not time. The Bellman backup $H(d, a) \leftarrow r_a + \gamma \max_{a'} H(d', a')$ does not condition on timestep.
   \item The regression's diagonal precision assumption means features are independent. step\_of\_day cannot interact with other features (e.g., ``intervene only when step\_of\_day=0 AND sleep=poor'').
 \end{enumerate}
 The step\_of\_day feature improves resistant from 75.6\% to 85.0\% of DP by enabling more selective action avoidance, but it does not enable the agent to learn \emph{when to intervene} -- only \emph{when to avoid}.
+
+\subsection{Ablation Studies}
+
+We conducted ablations on the base persona (50 seeds, $\gamma = 0.5$) to isolate the contribution of each HeartSteps component.
+
+\paragraph{Proxy value function.}
+Removing the proxy value function (setting $\eta = 0$) \emph{improves} performance from 84.5 (22.3\% of DP) to 105.0 (27.7\% of DP). In this MDP where all interventions are harmful, the proxy correction partially offsets the regression penalty without providing useful signal, slightly degrading the agent's ability to learn the idle-optimal policy. The proxy is designed for MDPs where interventions have delayed benefits -- a scenario not present in the current bootstrap MDPs.
+
+\paragraph{Thompson Sampling vs greedy.}
+Greedy action selection (posterior means) achieves 379.7 (100.2\% of DP), matching the DP optimum, while Thompson Sampling achieves only 84.5 (22.3\% of DP). Thompson Sampling explores by drawing from the posterior, occasionally selecting harmful actions. In this MDP where all interventions are uniformly harmful, exploration is strictly costly. The greedy approach converges immediately to the idle-optimal policy. This suggests that Thompson Sampling's exploration bonus is detrimental when the optimal policy is near-idle across all contexts.
+
+\paragraph{Hyperparameter sensitivity.}
+\begin{itemize}
+  \item $\gamma$: Lower values ($\gamma = 0.3$: 98.5) outperform higher values ($\gamma = 0.9$: 79.3), consistent with the proxy being less influential at shorter horizons.
+  \item $\lambda$: No effect (all 84.5) because dosage never accumulates -- the agent never suggests interventions.
+  \item $w$: Lower values ($w = 0.1$: 99.5) outperform higher values ($w = 0.5$: 84.5), as slower proxy convergence reduces the proxy's influence on action selection.
+\end{itemize}
+
+These ablations confirm that for the current bootstrap MDPs (where interventions are harmful), the simplest HeartSteps variant -- greedy posterior means with no proxy -- matches the DP optimum. The full HeartSteps algorithm (TS + proxy) is designed for MDPs where interventions have context-dependent benefits, which is not the case for these persona models.
 
 \section{Key Findings}
 

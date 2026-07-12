@@ -29,12 +29,17 @@ class HeartStepsAgent(Agent):
         reference_action: str | None = None,
         prior_mean: float = 0.0,
         prior_cov: float = 1.0,
+        greedy: bool = False,
+        use_proxy: bool = True,
         **_kwargs: object,
     ) -> None:
         self._actions = actions or ["idle", "nudge"]
         self._rng = np.random.default_rng(seed)
         self._reference_action = reference_action or self._actions[0]
+        self._greedy = greedy
+        self._use_proxy = use_proxy
         self._feature_names: tuple[str, ...] = ()
+        self._feature_names_list: list[str] = []
         self._n_features = 0
         self._feature_index: dict[str, int] = {}
         self._one_hot_map: dict[str, dict[str | int, int]] = {}
@@ -111,10 +116,14 @@ class HeartStepsAgent(Agent):
         assert self._regression is not None, "Call init_one_hot_map first"
         f = self._one_hot(state)
         dosage = self._dosage_tracker.get_dosage()
-        q_means = self._regression.get_reward_means(avg_features=f)
-        for a in self._actions:
-            q_means[a] += self._proxy.get_eta(a, dosage)
-        return max(q_means, key=lambda a: q_means[a])
+        if self._greedy:
+            q_values = self._regression.get_reward_means(avg_features=f)
+        else:
+            q_values = self._regression.get_reward_samples(self._rng, avg_features=f)
+        if self._use_proxy:
+            for a in self._actions:
+                q_values[a] += self._proxy.get_eta(a, dosage)
+        return max(q_values, key=lambda a: q_values[a])
 
     @override
     def update(self, state, action: str, reward: float, next_state) -> None:
@@ -160,4 +169,4 @@ class HeartStepsAgent(Agent):
 
     def get_action_index(self) -> dict[str, int]:
         """Return mapping from action name to index."""
-        return self._proxy._action_idx
+        return self._proxy.action_idx

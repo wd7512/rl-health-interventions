@@ -7,7 +7,17 @@ class MultiClassBayesianRegression:
     """Bayesian linear regression with action-centering for K actions.
 
     Maintains K-1 posteriors for beta_k where r(s, a_k) - r(s, a_0) = f(s)^T beta_k.
-    Uses precision vector representation for efficient incremental updates.
+
+    Diagonal precision approximation: the precision matrix is stored as a
+    1D vector (diagonal only), not a full D x D matrix. This means off-diagonal
+    entries are implicitly zero and posterior correlations between features are
+    ignored. This is a mean-field approximation to the full Bayesian linear
+    regression used in Liao et al. (2019), which uses rank-1 outer-product
+    updates (O(D^2) per transition). The diagonal approximation reduces this
+    to O(D) per transition, at the cost of ignoring cross-feature correlations
+    in the posterior. This is particularly relevant for one-hot encoded features
+    where mutually exclusive categories (e.g., step_bin_active vs step_bin_inactive)
+    are treated as independent a posteriori.
     """
 
     def __init__(
@@ -51,7 +61,9 @@ class MultiClassBayesianRegression:
         with negated features/reward. When non-reference action a is taken,
         update only posterior for a.
 
-        Uses element-wise operations for O(D) complexity.
+        Uses diagonal precision approximation: phi_sq is element-wise (phi * phi),
+        not the outer product (phi @ phi^T). This gives O(D) complexity per
+        transition instead of O(D^2), but discards posterior correlations.
         """
         for phi, action, reward in transitions:
             phi_arr = np.asarray(phi, dtype=np.float64)
@@ -94,3 +106,17 @@ class MultiClassBayesianRegression:
         means = self.get_beta_means()
         f = avg_features if avg_features is not None else np.zeros(self._n_features)
         return {a: float(np.dot(means[a], f)) for a in self._actions}
+
+    def get_reward_samples(
+        self,
+        rng: np.random.Generator,
+        avg_features: np.ndarray | None = None,
+    ) -> dict[str, float]:
+        """Sampled reward for each action via Thompson Sampling.
+
+        Draws beta samples from the posterior and computes Q-values,
+        enabling principled exploration through posterior uncertainty.
+        """
+        betas = self.sample_betas(rng)
+        f = avg_features if avg_features is not None else np.zeros(self._n_features)
+        return {a: float(np.dot(betas[a], f)) for a in self._actions}
