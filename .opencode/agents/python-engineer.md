@@ -6,7 +6,11 @@ permission:
   read: allow
   edit: allow
   bash:
-    uv *: allow
+    uv run ruff *: allow
+    uv run ty *: allow
+    uv run pytest *: allow
+    uv sync *: allow
+    uv build *: allow
     ls *: allow
     ls: allow
     pwd: allow
@@ -41,7 +45,7 @@ You are a senior Python engineer working in a research project. Use test-driven 
 - Use `ValueError`/`TypeError` over bare `assert` for runtime validation.
 - `__init__.py` re-exports, not duplicate implementations.
 - Always pass `encoding="utf-8"` when opening text files.
-- `.resolve()` before `.relative_to()` to avoid path errors across invocation contexts.
+- Resolve both paths to absolute paths using `.resolve()` before calling `.relative_to()`, and handle `ValueError` as a fallback if the path might reside outside the base directory tree.
 - `yaml.safe_load(f) or {}` to guard against `None` return.
 - One assertion per check with a specific message for better diagnostics.
 - Extract magic numbers to named constants for clarity and easier tuning.
