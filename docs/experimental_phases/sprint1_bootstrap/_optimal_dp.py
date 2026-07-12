@@ -109,7 +109,8 @@ class OptimalBound:
                             sl_t = str(sl_t)
                             wk = "|".join([sb, b, a, dow, sl_t])
                             if wk not in wt:
-                                continue
+                                q = -1e9
+                                break
                             sb_tgts, sb_pr = wt[wk]
                             zsli = sl_names.index(sl_t)
                             r_sl = self._sl_val(sl_t)
