@@ -73,17 +73,13 @@ class HeartStepsAgent(Agent):
                 val: offset + i for i, val in enumerate(var_values)
             }
             offset += len(var_values)
-            self._feature_names_list.extend(
-                f"{var_name}_{val}" for val in var_values
-            )
+            self._feature_names_list.extend(f"{var_name}_{val}" for val in var_values)
         for feat_name, feat_values in (extra_features or {}).items():
             self._one_hot_map[feat_name] = {
                 val: offset + i for i, val in enumerate(feat_values)
             }
             offset += len(feat_values)
-            self._feature_names_list.extend(
-                f"{feat_name}_{val}" for val in feat_values
-            )
+            self._feature_names_list.extend(f"{feat_name}_{val}" for val in feat_values)
         self._total_one_hot_dim = offset
         self._n_features = self._total_one_hot_dim
         self._feature_names = tuple(self._feature_names_list)
