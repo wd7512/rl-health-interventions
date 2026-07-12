@@ -19,15 +19,9 @@ import yaml
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _RUNNER = (
-    _REPO_ROOT
-    / "docs"
-    / "experiments"
-    / "sprint1_bootstrap"
-    / "run_experiments.py"
+    _REPO_ROOT / "docs" / "experiments" / "sprint1_bootstrap" / "run_experiments.py"
 )
-_RESULTS_DIR = (
-    _REPO_ROOT / "docs" / "experiments" / "sprint1_bootstrap" / "results"
-)
+_RESULTS_DIR = _REPO_ROOT / "docs" / "experiments" / "sprint1_bootstrap" / "results"
 _REL_TOLERANCE = 0.001  # 0.1% relative tolerance
 
 _METRICS = ["total_reward", "total_std", "per_step", "last50"]
@@ -93,9 +87,9 @@ def test_sprint1_bootstrap_regression(
     config_path = (
         _REPO_ROOT
         / "docs"
-/ "experiments"
-    / "sprint1_bootstrap"
-    / "configs"
+        / "experiments"
+        / "sprint1_bootstrap"
+        / "configs"
         / f"{config_name}.yaml"
     )
     with config_path.open(encoding="utf-8") as f:

@@ -112,7 +112,7 @@ eventual shape of the framework, not the order it will be built in.
 
 **Nature-publication contribution:** User archetypes enable systematic evaluation across population segments. The 4-archetype model is a simplification that must be validated against real data in Phase 2.
 
-**Source sub-plan:** subphase_1c_user_simulation.md, docs/decisions/initial_design.tex §3.2 (4 archetypes)
+**Source sub-plan:** docs/decisions/initial_design.tex §3.2 (4 archetypes)
 
 ---
 
@@ -169,7 +169,7 @@ eventual shape of the framework, not the order it will be built in.
 
 **Nature-publication contribution:** Synthetic data enables pipeline development and agent benchmarking before real data access. The generation parameters must be documented for reproducibility.
 
-**Source sub-plan:** subphase_1a_data_layer.md (SyntheticDataGenerator), docs/decisions/initial_design.tex §5 (Data Sources)
+**Source sub-plan:** docs/decisions/initial_design.tex §5 (Data Sources)
 
 ---
 
