@@ -2329,22 +2329,22 @@ name = "rl-health-interventions"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "datasets" },
-    { name = "huggingface-hub" },
-    { name = "kagglehub" },
-    { name = "litellm" },
     { name = "numpy" },
     { name = "polars" },
     { name = "pydantic" },
-    { name = "python-dotenv" },
     { name = "pyyaml" },
-    { name = "tenacity" },
     { name = "typing-extensions" },
-    { name = "ucimlrepo" },
-    { name = "wfdb" },
 ]
 
 [package.dev-dependencies]
+data = [
+    { name = "datasets" },
+    { name = "huggingface-hub" },
+    { name = "kagglehub" },
+    { name = "requests" },
+    { name = "ucimlrepo" },
+    { name = "wfdb" },
+]
 dev = [
     { name = "matplotlib" },
     { name = "pandas" },
@@ -2354,25 +2354,30 @@ dev = [
     { name = "ruff" },
     { name = "ty" },
 ]
+llm = [
+    { name = "litellm" },
+    { name = "python-dotenv" },
+    { name = "tenacity" },
+]
 
 [package.metadata]
 requires-dist = [
-    { name = "datasets", specifier = ">=5.0.0" },
-    { name = "huggingface-hub", specifier = ">=1.18.0" },
-    { name = "kagglehub", specifier = ">=1.0.2" },
-    { name = "litellm", specifier = ">=1.91.0" },
     { name = "numpy", specifier = ">=1.24.0" },
     { name = "polars", specifier = ">=1.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
-    { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "pyyaml", specifier = ">=6.0" },
-    { name = "tenacity", specifier = ">=9.1.4" },
     { name = "typing-extensions", specifier = ">=4.6.0" },
-    { name = "ucimlrepo", specifier = ">=0.0.7" },
-    { name = "wfdb", specifier = ">=4.3.1" },
 ]
 
 [package.metadata.requires-dev]
+data = [
+    { name = "datasets", specifier = ">=5.0.0" },
+    { name = "huggingface-hub", specifier = ">=1.18.0" },
+    { name = "kagglehub", specifier = ">=1.0.2" },
+    { name = "requests", specifier = ">=2.31.0" },
+    { name = "ucimlrepo", specifier = ">=0.0.7" },
+    { name = "wfdb", specifier = ">=4.3.1" },
+]
 dev = [
     { name = "matplotlib", specifier = ">=3.7.0" },
     { name = "pandas", specifier = ">=3.0.3" },
@@ -2381,6 +2386,11 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.8.0,<4" },
     { name = "ruff", specifier = ">=0.14.10,<0.15" },
     { name = "ty", specifier = ">=0.0.42,<0.1" },
+]
+llm = [
+    { name = "litellm", specifier = ">=1.91.0" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "tenacity", specifier = ">=9.1.4" },
 ]
 
 [[package]]
