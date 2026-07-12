@@ -6,6 +6,7 @@
 \usetheme{Madrid}
 \usecolortheme{dolphin}
 \setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{caption}[numbered]
 
 % ==================================================
 % Packages
@@ -14,6 +15,7 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{siunitx}
+\usepackage{xcolor}
 
 \sisetup{detect-all}
 
@@ -35,45 +37,150 @@
 % ==================================================
 
 % --------------------------------------------------
-% Slide 1 — Title
+% Slide 1 --- Title
 % --------------------------------------------------
 \begin{frame}
     \titlepage
 \end{frame}
 
 % --------------------------------------------------
-% Slide 2 — Problem Definition
+% Slide 2 --- Problem Definition
 % --------------------------------------------------
 \begin{frame}{Problem Definition}
-    % TODO
+    \textbf{Goal:} Optimise personalised physical-activity interventions using RL.
+
+    \vspace{4pt}
+    \textbf{MDP formulation:} \(\mathcal{M} = (\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)\)
+    \begin{itemize}
+        \item \(\mathcal{S}\): 36-state factored MDP (step bin, sleep quality, day of week, burden)
+        \item \(\mathcal{A}\): 4 actions (idle, movement suggestion, goal reminder, journal)
+        \item \(\mathcal{P}\): Unknown --- estimated via LLM simulation or hand-curated tables
+        \item \(\mathcal{R}\): \(\alpha\!\cdot\!f(\text{step\_bin}) + (1{-}\alpha)\!\cdot\!g(\text{sleep}) - \lambda\!\cdot\!\mathbb{I}[\text{action} \neq \text{idle}]\)
+    \end{itemize}
+
+    \vspace{6pt}
+    \textbf{Core challenge:} How do we iterate on RL agents without live patients?
+
+    \vspace{4pt}
+    \textit{Approach:} Build a config-driven simulation framework with LLM-bootstrapped user models.
 \end{frame}
 
 % --------------------------------------------------
-% Slide 3 — Existing Work
+% Slide 3 --- Existing Work
 % --------------------------------------------------
 \begin{frame}{Existing Work}
-    % TODO
+    \begin{table}
+        \centering
+        \small
+        \begin{tabular}{lccc}
+            \toprule
+            & \textbf{HeartSteps V2} & \textbf{PEARL} & \textbf{StepCountJITAI} \\
+            \midrule
+            Type & MRT & 4-arm RCT & Simulator \\
+            Sample & {$n \approx 97$} & {$n = 13{,}463$} & Synthetic \\
+            Algorithm & TS bandit & RL bandit & DQN \\
+            Actions & $\sim$5 types & 155 nudges & 4 types \\
+            \specialrule{0.15em}{2pt}{2pt}
+            Outcome & 78.4\% improved & {+}296 steps\textsuperscript{*} & DQN $\approx$ 3000 \\
+            Theory & SDT / FBM & COM-B & --- \\
+            \bottomrule
+        \end{tabular}
+        \vspace{2pt}
+        {\footnotesize \textsuperscript{*}RL vs control at 1 month, \(p = 0.0002\).}
+    \end{table}
+
+    \vspace{-4pt}
+    \textbf{Key gap:} No existing framework combines \emph{config-driven experiment definition} with \emph{LLM-bootstrapped user simulation} for rapid agent prototyping before real-world deployment.
 \end{frame}
 
 % --------------------------------------------------
-% Slide 4 — Subproblem
+% Slide 4 --- Our Approach
 % --------------------------------------------------
-\begin{frame}{Subproblem: How do we iterate without live patients?}
-    % TODO
+\begin{frame}{Our Approach}
+    \textbf{Two pillars:}
+
+    \vspace{4pt}
+    \begin{enumerate}
+        \item \textbf{Config-Driven Framework}
+        \begin{itemize}
+            \item Entire MDP defined in YAML --- no source code changes
+            \item 36-state factored environment, expression-based rewards, 3 transition types
+            \item 7 RL/bandit agents, evaluation runner with multi-seed benchmarking
+        \end{itemize}
+
+        \item \textbf{Synthetic LLM Patients}
+        \begin{itemize}
+            \item 22{,}320 prompts per persona, 5 distinct behavioural personas
+            \item LLM-as-transition-model: DeepSeek V4 Flash samples next-state probabilities
+            \item Total API cost: \textbf{\$0.27} for the entire bootstrap
+        \end{itemize}
+    \end{enumerate}
+
+    \vspace{6pt}
+    \begin{center}
+        \includegraphics[height=0.28\textheight]{images/framework_pipeline.png}
+    \end{center}
 \end{frame}
 
 % --------------------------------------------------
-% Slide 5 — Initial Results
+% Slide 5 --- Initial Results
 % --------------------------------------------------
 \begin{frame}{Initial Results}
-    % TODO
+    \textbf{HeartSteps V2} (Liao et al., 2019) reproduced with Bayesian linear regression, dosage tracking, and proxy value function.
+
+    \vspace{6pt}
+    \begin{center}
+        \includegraphics[height=0.40\textheight]{images/heartsteps_benchmark.png}
+    \end{center}
+
+    \vspace{2pt}
+    \begin{table}
+        \centering
+        \small
+        \begin{tabular}{lccc}
+            \toprule
+            Persona & Optimal DP & HeartSteps (\% of opt) & Best Bandit (\% of opt) \\
+            \midrule
+            Stable Maintainer & 441.8 & 440.8 (99.8\%) & 402.5 (91.1\%) \\
+            Base & 379.7 & 379.1 (99.9\%) & 327.8 (86.3\%) \\
+            Resistant & 214.6 & 163.5 (76.2\%) & 151.7 (70.7\%) \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+
+    \vspace{-4pt}
+    {\footnotesize HeartSteps achieves 97--100\% of optimal across all 7 persona configurations.}
 \end{frame}
 
 % --------------------------------------------------
-% Slide 6 — What is Next
+% Slide 6 --- What is Next
 % --------------------------------------------------
 \begin{frame}{What is Next}
-    % TODO
+    \begin{enumerate}
+        \item \textbf{Sensor Foundation Models}
+        \begin{itemize}
+            \item Wearable FM POC (NormWear, 768-dim embeddings) --- feature branch
+            \item FM-guided dynamic action spaces (15 interventions, 3 archetypes)
+        \end{itemize}
+
+        \item \textbf{Additional LLM Backends}
+        \begin{itemize}
+            \item Beyond DeepSeek V4 Flash: GLM 5.2, Qwen, Claude
+            \item Multi-turn persona dialogues for richer state transitions
+        \end{itemize}
+
+        \item \textbf{Prompt Engineering}
+        \begin{itemize}
+            \item COM-B behaviour-change taxonomy integration
+            \item Structured JSON schema enforcement, chain-of-thought prompting
+        \end{itemize}
+
+        \item \textbf{Synthetic Clinical Results}
+        \begin{itemize}
+            \item Calibrate transition tables to real-world effect sizes (PEARL: +200--300 steps)
+            \item Integration with wearable datasets (All of Us, UK Biobank)
+        \end{itemize}
+    \end{enumerate}
 \end{frame}
 
 % ==================================================

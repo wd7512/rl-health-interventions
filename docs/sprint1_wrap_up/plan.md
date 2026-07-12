@@ -15,6 +15,8 @@ Goals
     - JITAI
 *Notes* - everything in slides + more detail i.e. one or two liners on each paper <10 papers. Can reference pearl again
 
+pearl: https://arxiv.org/abs/2508.10060
+
 # Our work so far 
 ## Config Driven Environment/Package
 
