@@ -27,8 +27,8 @@ class HeartStepsAgent(Agent):
         w: float = 0.5,
         sigma_sq: float = 1.0,
         reference_action: str | None = None,
-        _prior_mean: float = 0.0,
-        _prior_cov: float = 1.0,
+        prior_mean: float = 0.0,
+        prior_cov: float = 1.0,
         **_kwargs: object,
     ) -> None:
         self._actions = actions or ["idle", "nudge"]
@@ -41,6 +41,8 @@ class HeartStepsAgent(Agent):
         self._total_one_hot_dim = 0
         self._dosage_tracker = DosageTracker(lambda_decay=lambda_dosage)
         self._sigma_sq = sigma_sq
+        self._prior_mean = prior_mean
+        self._prior_cov = prior_cov
         self._regression: MultiClassBayesianRegression | None = None
         self._proxy = ProxyValue(
             actions=self._actions,
@@ -89,6 +91,8 @@ class HeartStepsAgent(Agent):
             actions=self._actions,
             reference_action=self._reference_action,
             sigma_sq=self._sigma_sq,
+            prior_mean=self._prior_mean,
+            prior_cov=self._prior_cov,
         )
         self._feature_sum = np.zeros(self._n_features, dtype=np.float64)
         self._feature_count = 0
@@ -109,7 +113,7 @@ class HeartStepsAgent(Agent):
         dosage = self._dosage_tracker.get_dosage()
         q_means = self._regression.get_reward_means(avg_features=f)
         for a in self._actions:
-            q_means[a] += self._gamma * self._proxy.get_eta(a, dosage)
+            q_means[a] += self._proxy.get_eta(a, dosage)
         return max(q_means, key=lambda a: q_means[a])
 
     @override
@@ -134,3 +138,26 @@ class HeartStepsAgent(Agent):
         reward_means = self._regression.get_reward_means(avg_features)
         self._proxy.update(reward_means)
         self._buffer.clear()
+        self._feature_sum = np.zeros(self._n_features, dtype=np.float64)
+        self._feature_count = 0
+
+    def get_beta_means(self) -> dict[str, np.ndarray]:
+        """Return posterior means for each action."""
+        assert self._regression is not None, "Call init_one_hot_map first"
+        return self._regression.get_beta_means()
+
+    def get_proxy_table(self) -> np.ndarray:
+        """Return the proxy value table H."""
+        return self._proxy.value_table
+
+    def get_dosage(self) -> float:
+        """Return current dosage value."""
+        return self._dosage_tracker.get_dosage()
+
+    def get_gamma(self) -> float:
+        """Return the discount factor."""
+        return self._gamma
+
+    def get_action_index(self) -> dict[str, int]:
+        """Return mapping from action name to index."""
+        return self._proxy._action_idx

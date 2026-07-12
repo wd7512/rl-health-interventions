@@ -66,8 +66,13 @@ def _run_heartsteps(config, n_seeds: int, gamma: float = 0.5) -> np.ndarray:
 
 def _run_dp_bound(config_path: str) -> dict:
     # Local import: _optimal_dp lives alongside this script, not on sys.path.
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from _optimal_dp import OptimalBound  # noqa: PLC0415
+    _script_dir = str(Path(__file__).resolve().parent)
+    _orig_path = sys.path[:]
+    sys.path.insert(0, _script_dir)
+    try:
+        from _optimal_dp import OptimalBound  # noqa: PLC0415
+    finally:
+        sys.path[:] = _orig_path
 
     t0 = time.perf_counter()
     bound = OptimalBound(config_path)
@@ -106,16 +111,17 @@ def _print_comparison(result: dict) -> None:
     dp_val = result["dp"]["optimal_value"]
     hs = result["heartsteps"]
     idle = result["idle"]
+    hs_pct = 100 * hs["total_mean"] / dp_val if dp_val != 0 else 0.0
     logger.info(
         "\n  DP: %.2f | HS: %.2f (%.1f%%, %+.2f vs idle) | Idle: %.2f",
         dp_val,
         hs["total_mean"],
-        100 * hs["total_mean"] / dp_val,
+        hs_pct,
         hs["total_mean"] - idle["total_mean"],
         idle["total_mean"],
     )
     for al, bv in sorted(result["bandits"].items(), key=lambda x: -x[1]["total_mean"]):
-        pct = 100 * bv["total_mean"] / dp_val
+        pct = 100 * bv["total_mean"] / dp_val if dp_val != 0 else 0.0
         logger.info("  %-20s %.2f (%.1f%% of DP)", al, bv["total_mean"], pct)
 
 
@@ -170,7 +176,11 @@ def main() -> None:  # noqa: PLR0915
         _print_comparison(result)
         all_results[label] = result
 
-    out_path = _RESULTS_DIR / "heartsteps_benchmark_50seeds.json"
+    if args.config or args.persona:
+        label = args.persona or Path(args.config).stem
+        out_path = _RESULTS_DIR / f"heartsteps_benchmark_{label}.json"
+    else:
+        out_path = _RESULTS_DIR / "heartsteps_benchmark_50seeds.json"
     _RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=2)

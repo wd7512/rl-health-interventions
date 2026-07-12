@@ -262,12 +262,27 @@ class AgentConfig(BaseModel):
                 raise ValueError("lambda_dosage must be in (0, 1) for heartsteps")
             if self.w is not None and not (0 <= self.w <= 1):
                 raise ValueError("w must be in [0, 1] for heartsteps")
-            if self.epsilon_0 is not None and not (0 <= self.epsilon_0 < 0.5):  # noqa: PLR2004
-                raise ValueError("epsilon_0 must be in [0, 0.5) for heartsteps")
-            if self.epsilon_1 is not None and not (0 < self.epsilon_1 <= 0.5):  # noqa: PLR2004
-                raise ValueError("epsilon_1 must be in (0, 0.5] for heartsteps")
             if self.sigma_sq is not None and self.sigma_sq <= 0:
                 raise ValueError("sigma_sq must be > 0 for heartsteps")
+            if self.prior_mean is not None and not isinstance(
+                self.prior_mean, (int, float)
+            ):
+                raise ValueError("prior_mean must be a number for heartsteps")
+            if self.prior_cov is not None and self.prior_cov <= 0:
+                raise ValueError("prior_cov must be > 0 for heartsteps")
+            if (
+                self.alpha_prior is not None
+                or self.beta_prior is not None
+                or self.epsilon is not None
+                or self.epsilon_start is not None
+                or self.c is not None
+                or self.decay_steps is not None
+                or self.epsilon_0 is not None
+                or self.epsilon_1 is not None
+            ):
+                raise ValueError(
+                    "heartsteps agent does not accept alpha_prior, beta_prior, epsilon, epsilon_start, c, decay_steps, epsilon_0, or epsilon_1"
+                )
         return self
 
 

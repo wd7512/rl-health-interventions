@@ -10,6 +10,8 @@ from pathlib import Path
 
 import numpy as np
 
+from _shared import resolve_config
+
 from rl_health_interventions.agents import derive_agent_seed
 from rl_health_interventions.agents import make as make_agent
 from rl_health_interventions.agents.heartsteps.agent import HeartStepsAgent
@@ -19,12 +21,6 @@ from rl_health_interventions.episode import run_episode
 
 logger = logging.getLogger(__name__)
 _RESULTS_DIR = Path(__file__).resolve().parent / "results"
-_CONFIGS_DIR = Path(__file__).resolve().parent / "configs"
-
-
-def _resolve_config(name: str) -> str:
-    p = Path(name)
-    return str(p) if p.is_absolute() else str(_CONFIGS_DIR / p)
 
 
 def _build_init_vec(config, n_features: int) -> np.ndarray:
@@ -42,7 +38,7 @@ def _build_init_vec(config, n_features: int) -> np.ndarray:
     return vec
 
 
-def _track_episode(config, agent, seed: int, init_vec: np.ndarray) -> dict:
+def _track_episode(config, agent, seed: int, init_vec: np.ndarray, gamma: float) -> dict:
     state_vars = {k: v.names for k, v in config.state.variables.items()}
     extra = {"step_of_day": list(range(config.steps_per_day))}
     records = run_episode(config, agent, seed=seed)
@@ -53,7 +49,7 @@ def _track_episode(config, agent, seed: int, init_vec: np.ndarray) -> dict:
         "heartsteps",
         actions=config.action_names,
         seed=derive_agent_seed(seed, agent_index=0),
-        gamma=agent._gamma,
+        gamma=gamma,
     )
     assert isinstance(agent2, HeartStepsAgent)
     agent2.init_one_hot_map(state_vars, extra_features=extra)
@@ -61,12 +57,12 @@ def _track_episode(config, agent, seed: int, init_vec: np.ndarray) -> dict:
     betas, dosages, h_means, q_inits = [], [], [], []
     for rec in records:
         if agent2._regression is not None:
-            bm = agent2._regression.get_beta_means()
-            h = agent2._proxy.value_table
-            d = agent2._dosage_tracker.get_dosage()
+            bm = agent2.get_beta_means()
+            h = agent2.get_proxy_table()
+            d = agent2.get_dosage()
             qr = agent2._regression.get_reward_means(avg_features=init_vec)
             qv = {
-                a: float(qr[a] + agent2._gamma * agent2._proxy.get_eta(a, d))
+                a: float(qr[a] + agent2.get_gamma() * agent2._proxy.get_eta(a, d))
                 for a in config.action_names
             }
             betas.append(
@@ -85,7 +81,7 @@ def _track_episode(config, agent, seed: int, init_vec: np.ndarray) -> dict:
                     "day": rec["day"],
                     "h_mean": {
                         a: float(h[:, i].mean())
-                        for a, i in agent2._proxy._action_idx.items()
+                        for a, i in agent2.get_action_index().items()
                     },
                 }
             )
@@ -126,7 +122,7 @@ def _run_with_tracking(config, n_seeds: int, gamma: float = 0.5) -> dict:
         )
         assert isinstance(agent, HeartStepsAgent)
         agent.init_one_hot_map(state_vars, extra_features=extra)
-        all_seeds.append(_track_episode(config, agent, si, init_vec))
+        all_seeds.append(_track_episode(config, agent, si, init_vec, gamma))
         if si % 10 == 0:
             logger.info("  seed %d/%d done", si, n_seeds)
 
@@ -179,7 +175,7 @@ def main() -> None:  # noqa: PLR0915, C901
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    config = load_config(_resolve_config(args.config))
+    config = load_config(resolve_config(args.config))
     logger.info(
         "Running HeartSteps analysis: %d seeds, gamma=%.1f", args.seeds, args.gamma
     )
