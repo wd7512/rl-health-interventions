@@ -239,7 +239,8 @@ class TestHeartStepsIntegration:
         state_variables = {
             name: cfg.names for name, cfg in config.state.variables.items()
         }
-        agent.init_one_hot_map(state_variables)
+        extra = {"step_of_day": list(range(config.steps_per_day))}
+        agent.init_one_hot_map(state_variables, extra_features=extra)
         records = run_episode(config, agent, seed=42)
         assert len(records) == config.episode_days * config.steps_per_day
         assert all(r["action"] in config.action_names for r in records)

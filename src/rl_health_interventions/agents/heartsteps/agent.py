@@ -54,20 +54,39 @@ class HeartStepsAgent(Agent):
         self._feature_sum = np.zeros(0, dtype=np.float64)
         self._feature_count = 0
 
-    def init_one_hot_map(self, state_variables: dict[str, list[str]]) -> None:
-        """Build one-hot encoding map from state variable definitions."""
+    def init_one_hot_map(
+        self,
+        state_variables: dict[str, list[str]],
+        extra_features: dict[str, list[int]] | None = None,
+    ) -> None:
+        """Build one-hot encoding map from state variable definitions.
+
+        Args:
+            state_variables: MDP state variables (str-valued).
+            extra_features: Additional integer-valued features (e.g. step_of_day).
+        """
         self._one_hot_map = {}
+        self._feature_names_list: list[str] = []
         offset = 0
         for var_name, var_values in state_variables.items():
             self._one_hot_map[var_name] = {
                 val: offset + i for i, val in enumerate(var_values)
             }
             offset += len(var_values)
+            self._feature_names_list.extend(
+                f"{var_name}_{val}" for val in var_values
+            )
+        for feat_name, feat_values in (extra_features or {}).items():
+            self._one_hot_map[feat_name] = {
+                val: offset + i for i, val in enumerate(feat_values)
+            }
+            offset += len(feat_values)
+            self._feature_names_list.extend(
+                f"{feat_name}_{val}" for val in feat_values
+            )
         self._total_one_hot_dim = offset
         self._n_features = self._total_one_hot_dim
-        self._feature_names = tuple(
-            f"{var}_{val}" for var, vals in state_variables.items() for val in vals
-        )
+        self._feature_names = tuple(self._feature_names_list)
         self._feature_index = {name: i for i, name in enumerate(self._feature_names)}
         self._regression = MultiClassBayesianRegression(
             n_features=self._n_features,
