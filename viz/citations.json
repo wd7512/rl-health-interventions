@@ -172,9 +172,9 @@
         "ref:hsv1:u",
         "ref:hsv1:af",
         "ref:hsv2:as",
-        "ref:pearl:ar",
+        "10.1037/0033-2909.136.6.969",
         "ref:pearl:as",
-        "ref:pearl:at"
+        "10.1001/jamacardio.2016.4395"
       ]
     },
     "arxiv:2411.00336": {
@@ -393,8 +393,7 @@
         "ref:ukb:bf",
         "ref:ukb:bg",
         "ref:ukb:bh",
-        "ref:hg:bp",
-        "ref:ukb:ad"
+        "ref:hg:bp"
       ]
     },
     "10.1038/s41591-026-04352-3": {
@@ -1047,17 +1046,6 @@
       "curated": false,
       "cites": []
     },
-    "ref:pearl:ar": {
-      "label": "COM-B framework",
-      "authors": "Michie et al. 2011",
-      "year": 2011,
-      "venue": "Psych Bulletin",
-      "type": "curated",
-      "headline": "COM-B framework",
-      "detail": "The behaviour change wheel: A new method for characterising designing behaviour change interventions.",
-      "curated": true,
-      "cites": []
-    },
     "ref:pearl:as": {
       "label": "SwellDay",
       "authors": "Klasnja et al. 2017",
@@ -1066,17 +1054,6 @@
       "type": "ref",
       "headline": "SwellDay",
       "detail": "SwellDay: Exploring micro-interventions for stress.",
-      "curated": false,
-      "cites": []
-    },
-    "ref:pearl:at": {
-      "label": "MyHeartCounts",
-      "authors": "McConnell et al. 2017",
-      "year": 2017,
-      "venue": "JAMA Cardiology",
-      "type": "ref",
-      "headline": "MyHeartCounts",
-      "detail": "Feasibility of obtaining measures of lifestyle from a smartphone app.",
       "curated": false,
       "cites": []
     },
