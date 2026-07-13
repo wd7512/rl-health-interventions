@@ -35,7 +35,7 @@
     },
     "openalex": {
       "type": "local",
-      "command": ["npx", "openalex-research-mcp"],
+      "command": ["npx", "-y", "openalex-research-mcp"],
       "enabled": true
     },
     "pubmed": {
