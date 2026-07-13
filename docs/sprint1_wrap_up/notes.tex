@@ -1,6 +1,6 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[10pt,a4paper]{article}
 
-\usepackage[margin=2.2cm]{geometry}
+\usepackage[margin=1.7cm]{geometry}
 \usepackage{amsmath, amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -45,6 +45,14 @@ We formulate the problem as a Markov Decision Process \(\mathcal{M} = (\mathcal{
 
 \paragraph{LLM-based simulation} Park et al. (2023) demonstrate generative agent simulations of human behaviour. Wang et al. (2024) use LLMs to simulate patient responses (Patient-\(\Psi\)). Lu et al. (2025) benchmark LLM agents for multi-turn human behaviour simulation.
 
+\paragraph{Data-Driven Simulators \& Burden} Wang et al. (2021)~\cite{wang2021optimizing} developed data-driven behavioral simulators incorporating frequency constraints to explicitly mitigate user over-notification and habituation, maximizing long-term intervention responsiveness.
+
+\paragraph{User Heterogeneity \& Pooling} Tomkins et al. (2021)~\cite{tomkins2021intelligentpooling} introduced \emph{IntelligentPooling} to dynamically balance personalization with group-level data sharing. Similarly, Ghosh et al. (2024)~\cite{ghosh2024rebandit} proposed \emph{reBandit}, utilizing random effects and Empirical Bayes to optimize online hyperparameter adjustment in highly noisy mHealth environments.
+
+\paragraph{Count-Based Bandits} Recent work extending Thompson Sampling to non-linear count data models~\cite{liu2025thompson} (e.g., Poisson and Negative Binomial regressions) demonstrates significant reductions in variance and regret when modeling highly skewed proximal health outcomes compared to standard linear baselines.
+
+\paragraph{Power-Constrained Exploration} Yao et al. (2021)~\cite{yao2021power} established meta-algorithms for probability clipping (\(\pi_{min} \le P(A|S) \le \pi_{max}\)) to protect exploration, ensuring that deploying adaptive personalization policies does not compromise the post-trial statistical power required to test overall intervention efficacy.
+
 \section{Our Work: Config-Driven Environment}
 
 The framework is driven entirely by YAML configuration files validated through Pydantic schemas. No source code changes are required to define new MDPs, agents, or experiments. Core components:
@@ -54,7 +62,7 @@ The framework is driven entirely by YAML configuration files validated through P
   \item \textbf{Transitions:} Three types --- rule\_based (hand-curated), random (Dirichlet tables, baseline), bootstrap (LLM-generated JSON tables).
   \item \textbf{Rewards:} Safe arithmetic expression parser (AST-based). Variables from state factors or action, with configurable mappings.
   \item \textbf{Agents:} 7 implemented --- fixed, random, epsilon-greedy, decaying epsilon-greedy, Thompson Sampling, UCB, HeartSteps V2. All support contextual variants.
-  \item \textbf{Evaluation:} Multi-seed benchmark runner, regression test suite (MVP, sprint1\_random, sprint1\_bootstrap), comparison table formatting.
+  \item \textbf{Evaluation:} Multi-seed benchmark runner, regression test suite\\ (MVP, sprint1\_random, sprint1\_bootstrap), comparison table formatting.
 \end{itemize}
 
 \section{Our Work: Synthetic LLM Patients}
@@ -65,11 +73,11 @@ We generate patient transition probability tables by prompting LLMs to sample pl
 
 \begin{itemize}
   \item 22{,}320 prompts per persona (full state-action-timestep factorial, N=10 per cell)
-  \item 5 distinct behavioural personas: base, goal\_driven, social\_responder,\\ resistant, stable\_maintainer
+  \item 5 distinct behavioural personas (base, goal\_driven, social\_responder, resistant, stable\_maintainer)
   \item \textbf{Total cost: \$0.27} (DeepSeek V4 Flash via OpenCode Zen)
-  \item 42 JSON transition tables generated (6 within-day + 1 day-boundary per persona/initial model)
-  \item Comprehensive analysis pipeline: parse rate, output distributions, cell consistency, burden interactions, step histograms, transition matrix visualizations (85 PDF figures)
-  \item Literature review: 36 papers across 8 dimensions supporting LLM-as-transition-model approach
+  \item 42 JSON transition tables (6 within-day + 1 day-boundary per persona/initial model)
+  \item Analysis pipeline: parse rate, output distributions, cell consistency, burden interactions, step histograms, transition matrix visualizations (85 PDF figures)
+  \item 36-paper literature review across 8 dimensions
 \end{itemize}
 
 \section{Initial Results}
@@ -94,16 +102,16 @@ HeartSteps V2 achieves \textbf{97--100\% of the optimal DP bound} across all 7 p
   \end{tabular}
 \end{table}
 
-\textbf{Key findings:} (1) Persona effects are large --- Stable Maintainer (441) vs Resistant (215). (2) Epsilon-greedy is the best bandit across most conditions but still 10--40pp behind HeartSteps. (3) Feature importance: time-of-day features and step activity levels are most predictive. (4) In the base persona, HeartSteps selects idle $\approx$62\% of the time --- personalisation is partly about knowing when \emph{not} to intervene.
+\textbf{Key findings:} (1) Large persona effects --- Stable Maintainer (441) vs Resistant (215). (2) Epsilon-greedy is the best bandit but still 10--40pp behind HeartSteps. (3) Time-of-day features and step activity levels are most predictive. (4) HeartSteps selects idle $\approx$62\% of the time --- personalisation is partly about knowing when \emph{not} to intervene.
 
 \section{What is Next}
 
 \begin{enumerate}
-  \item \textbf{Sensor Foundation Models.} Wearable FM POC on feature branch (2,754 lines): NormWear integration (768-dim embeddings from PPG/accelerometer), FM-guided action space (15 interventions, 3 archetypes), Thompson Sampling with FM context keys. 6 publishable research gaps identified across 12 FM models.
-  \item \textbf{Other LLMs.} Extend bootstrapping to GLM 5.2, Qwen, Claude. Multi-turn persona dialogues for richer state transitions. Cost-benefit trade-off analysis.
-  \item \textbf{Better Prompting.} Integrate COM-B behaviour-change taxonomy into prompt design. Structured JSON schema enforcement. Chain-of-thought reasoning for transition probability generation.
-  \item \textbf{Synthetic Clinical Results.} Calibrate LLM-bootstrapped transitions to real-world effect sizes (PEARL: +200--300 steps). Integrate All of Us (n=59K, Fitbit) and UK Biobank (n=100K, accelerometer) data for learned transition models.
-  \item \textbf{Deep RL agents.} Extend beyond bandits to DQN and policy-gradient methods for temporal credit assignment over longer horizons.
+  \item \textbf{Sensor Foundation Models.} Wearable FM POC (2,754 lines): NormWear (768-dim embeddings), FM-guided action space (15 interventions, 3 archetypes), Thompson Sampling with FM context keys.
+  \item \textbf{Other LLMs.} Extend bootstrapping to GLM 5.2, Qwen, Claude. Multi-turn persona dialogues for richer state transitions.
+  \item \textbf{Better Prompting.} COM-B behaviour-change taxonomy integration. Structured JSON schema enforcement. Chain-of-thought prompting.
+  \item \textbf{Synthetic Clinical Results.} Calibrate transitions to PEARL effect sizes (+200--300 steps). Integrate All of Us (n=59K) and UK Biobank (n=100K) for learned transition models.
+  \item \textbf{Deep RL agents.} Extend beyond bandits to DQN and policy-gradient methods for temporal credit assignment. Add power-constrained exploration~\cite{yao2021power} and count-based likelihoods~\cite{liu2025thompson}.
 \end{enumerate}
 
 % --- References (not counted toward 2-page limit) ---
