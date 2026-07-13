@@ -101,9 +101,10 @@ for pid in papers:
     evidence[pid] = float(BASE_EVIDENCE.get(pid, 0)) + 0.1 * paper_def_rel[pid]
 for rid in refs:
     citing = [pid for pid in papers if rid in papers[pid]["cites"]]
-    evidence[rid] = sum(
+    citing_scores = [
         float(BASE_EVIDENCE.get(pid, 0)) + 0.1 * paper_def_rel[pid] for pid in citing
-    )
+    ]
+    evidence[rid] = max(citing_scores) if citing_scores else 0
 
 # Step 3: compute definition relevance for all entries
 def_rel = {}

@@ -8,7 +8,12 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; overflow: hidden; }
+.banner { position: fixed; top: 0; left: 0; right: 0; background: #0e0e16; border-bottom: 1px solid #2a2a35; padding: 14px 24px 12px; z-index: 200; display: flex; align-items: baseline; gap: 16px; }
+.banner h1 { font-size: 20px; font-weight: 700; color: #fff; white-space: nowrap; }
+.banner .banner-sub { font-size: 12px; color: #888; white-space: nowrap; }
+.banner .banner-desc { font-size: 11px; color: #555; line-height: 1.4; max-width: 640px; margin-left: auto; }
 #graph { width: 100vw; height: 100vh; }
+#frontier-chart { display: none; position: absolute; top: 0; left: 0; }
 .layer-label { font-size: 10px; fill: #444; text-anchor: middle; letter-spacing: 1px; }
 .link { fill: none; stroke: #3a4a6a; stroke-opacity: 0.55; }
 .node-circle { cursor: pointer; transition: r 0.15s; }
@@ -33,30 +38,39 @@ body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', -apple-system,
 .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
 .legend-item:last-child { margin-bottom: 0; }
 .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
-.header { position: absolute; top: 20px; left: 20px; z-index: 10; }
-.header h1 { font-size: 20px; font-weight: 700; color: #fff; }
-.header p { font-size: 12px; color: #666; margin-top: 2px; }
-.tabs { position: absolute; top: 20px; right: 20px; display: flex; gap: 8px; z-index: 10; }
-.tab-btn { background: #16161e; border: 1px solid #2a2a35; border-radius: 8px; padding: 8px 16px; font-size: 13px; color: #888; cursor: pointer; transition: all 0.15s; }
-.tab-btn:hover { border-color: #555; color: #ddd; }
-.tab-btn.active { background: #5b8def; border-color: #5b8def; color: #fff; }
+.banner .tabs { display: flex; gap: 8px; margin-left: 16px; }
+.banner .tab-btn { background: #16161e; border: 1px solid #2a2a35; border-radius: 6px; padding: 5px 14px; font-size: 13px; color: #888; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.banner .tab-btn:hover { border-color: #555; color: #ddd; }
+.banner .tab-btn.active { background: #5b8def; border-color: #5b8def; color: #fff; }
 .highlight-edge { stroke: #a0c0ff !important; stroke-opacity: 1 !important; stroke-width: 3px !important; }
 .dim { opacity: 0.15; }
 .frontier-ring { fill: none; stroke: #ffd700; stroke-width: 2.5; filter: url(#gold-glow); pointer-events: none; }
 .frontier-star { fill: #ffd700; font-size: 14px; pointer-events: none; }
+.frontier-chart-axis path, .frontier-chart-axis line { stroke: #444; }
+.frontier-chart-axis text { fill: #888; font-size: 11px; }
+.frontier-chart-grid line { stroke: #1e1e2a; stroke-dasharray: 3,3; }
+.frontier-point { cursor: pointer; transition: r 0.15s; }
+.frontier-point:hover { filter: brightness(1.3); }
+.frontier-label { font-size: 11px; fill: #ffd700; text-anchor: middle; font-weight: 700; pointer-events: none; paint-order: stroke; stroke: #000; stroke-width: 1.5px; }
+.frontier-axis-label { fill: #aaa; font-size: 13px; text-anchor: middle; }
+.frontier-title { font-size: 22px; fill: #fff; font-weight: 700; }
+.frontier-subtitle { font-size: 13px; fill: #999; }
+.main-label { font-size: 12px; fill: #ccc; text-anchor: middle; font-weight: 600; pointer-events: none; paint-order: stroke; stroke: #0a0a0f; stroke-width: 2px; }
+.main-glow { filter: drop-shadow(0 0 6px rgba(91,139,239,0.6)); }
+#frontier-tooltip { font-family: 'Inter', -apple-system, sans-serif; line-height: 1.4; }
 </style>
 </head>
 <body>
-<div class="header">
+<div class="banner">
   <h1>Citation Graph</h1>
-  <p>HeartSteps V2 & PEARL — references and citations</p>
-  <p style="font-size:11px;color:#555;margin-top:6px;max-width:600px;line-height:1.4">Reinforcement learning for personalizing just-in-time adaptive behavioral interventions (JITAIs) in mobile health, learning treatment policies from micro-randomized trial data under constraints of non-stationarity, habituation, and user burden.</p>
-</div>
-<div class="tabs" id="tabs">
-  <button class="tab-btn active" data-mode="curated">Curated</button>
-  <button class="tab-btn" data-mode="full">Full</button>
-  <button class="tab-btn" data-mode="frontier">Frontier</button>
-  <button class="tab-btn" id="dynamic-btn" style="border-color:#555">Static</button>
+  <span class="banner-sub">HeartSteps V2 &amp; PEARL — references and citations</span>
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-mode="curated">Curated</button>
+    <button class="tab-btn" data-mode="full">Full</button>
+    <button class="tab-btn" data-mode="frontier">Frontier</button>
+    <button class="tab-btn" id="dynamic-btn" style="border-color:#555">Static</button>
+  </div>
+  <span class="banner-desc">Reinforcement learning for personalizing just-in-time adaptive behavioral interventions (JITAIs) in mobile health, learning treatment policies from micro-randomized trial data under constraints of non-stationarity, habituation, and user burden.</span>
 </div>
 <div class="side-panel" id="side-panel">
   <button class="sp-close" id="sp-close">✕</button>
@@ -74,16 +88,21 @@ body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', -apple-system,
   <div class="sp-links" id="sp-links"></div>
 </div>
 <div class="legend" id="legend">
-  <div class="legend-item"><div class="legend-dot" style="background:#5b8def"></div> Main papers</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#334466"></div> References</div>
+  <div class="legend-item"><div class="legend-dot" style="width:16px;height:16px;background:#5b8def;border:2px solid #7baaff"></div> Real Trial</div>
+  <div class="legend-item"><div class="legend-dot" style="width:14px;height:14px;background:#f97316;border:1.5px solid #fdba74"></div> Synthetic Trial</div>
+  <div class="legend-item"><div class="legend-dot" style="width:12px;height:12px;background:#4ade80;border:1.5px solid #86efac"></div> Dataset</div>
+  <div class="legend-item"><div class="legend-dot" style="width:12px;height:12px;background:#a78bfa;border:1.5px solid #c4b5fd"></div> Framework</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#334466"></div> Reference</div>
   <div class="legend-item" style="margin-top:4px;border-top:1px solid #333;padding-top:5px"><svg width="28" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#3a4a6a" stroke-width="2.4"/><polygon points="20,1 28,5 20,9" fill="#3a4a6a"/></svg> cites</div>
-  <div class="legend-item" style="margin-top:4px;padding-top:4px"><div class="legend-dot" style="width:16px;height:16px;border:2.5px solid #ffd700;background:transparent;border-radius:50%"></div> Pareto Frontier</div>
 </div>
 <svg id="graph"></svg>
+<svg id="frontier-chart" style="display:none;position:absolute;top:0;left:0"></svg>
 <script>
+const bannerH = 52;
 const width = window.innerWidth;
-const height = window.innerHeight;
-const svg = d3.select("#graph").attr("width", width).attr("height", height);
+const height = window.innerHeight - bannerH;
+const svg = d3.select("#graph").attr("width", width).attr("height", height).style("margin-top", bannerH + "px");
+const fSvg = d3.select("#frontier-chart").attr("width", width).attr("height", height).style("margin-top", bannerH + "px");
 const years = ["1900","1910","1920","1930","1940","1950","1960","1970","1980","1990","2000","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024","2025","2026"];
 const colWidth = (width - 160) / years.length;
 const yearX = {};
@@ -99,6 +118,35 @@ let mode = 'curated';
 let dynamic = false, sim = null, pinned = false;
 const central = new Set(["arxiv:1909.03539","arxiv:2508.10060"]);
 const isMain = d => !d.id.startsWith("ref:");
+const isRealTrial = (d) => ['MRT', 'MRT+RL', 'RCT'].includes(d.type);
+
+function getCategory(d) {
+  if (d.id.startsWith("ref:")) return "ref";
+  if (["MRT","MRT+RL","RCT"].includes(d.type)) return "real-trial";
+  if (["Simulator","Benchmark"].includes(d.type)) return "synthetic-trial";
+  if (d.type === "Dataset") return "dataset";
+  if (d.type === "Framework") return "framework";
+  return "ref";
+}
+
+const catStyle = {
+  "real-trial":    { r: 16, fill: "#5b8def", stroke: "#7baaff", glow: true  },
+  "synthetic-trial":{ r: 14, fill: "#f97316", stroke: "#fdba74", glow: false },
+  "dataset":       { r: 12, fill: "#4ade80", stroke: "#86efac", glow: false },
+  "framework":     { r: 12, fill: "#a78bfa", stroke: "#c4b5fd", glow: false },
+  "ref":           { r: 8,  fill: "#334466", stroke: "none",    glow: false },
+};
+
+const catLabel = {
+  "real-trial": "Real Trial",
+  "synthetic-trial": "Synthetic Trial",
+  "dataset": "Dataset",
+  "framework": "Framework",
+  "ref": "Reference",
+};
+
+function categoryStyle(cat) { return catStyle[cat] || catStyle["ref"]; }
+
 const zoom = d3.zoom().scaleExtent([0.3,4]).on("zoom", e=>{ if(g) g.attr("transform",e.transform); });
 const panel = document.getElementById("side-panel");
 const spTitle = document.getElementById("sp-title");
@@ -109,11 +157,16 @@ const spDetail = document.getElementById("sp-detail");
 const spCitedBy = document.getElementById("sp-citedby");
 const spCites = document.getElementById("sp-cites");
 const spLinks = document.getElementById("sp-links");
+const spClose = document.getElementById("sp-close");
+const spFrontier = document.getElementById("sp-frontier");
 
 function hidePanel() {
   panel.classList.remove("open");
   pinned = false;
 }
+
+spClose.addEventListener("click", hidePanel);
+document.addEventListener("keydown", e => { if (e.key === "Escape") hidePanel(); });
 
 function nodeGap(a, b, mode) {
   const aP = isMain(a) || central.has(a.id);
@@ -137,6 +190,87 @@ function getVisibleIds() {
 }
 
 function isFrontierPaper(d) { return d.frontier === true || d.frontier === "true"; }
+
+function showPanel(d, frontierSet) {
+  const isDoi = d.id.startsWith("10.");
+  const isArxiv = d.id.startsWith("arxiv:");
+  const url = isDoi ? `https://doi.org/${d.id}` : isArxiv ? `https://arxiv.org/abs/${d.id.replace("arxiv:","")}` : null;
+  const linkLabel = isDoi ? `DOI: ${d.id}` : isArxiv ? `arXiv: ${d.id.replace("arxiv:","")}` : "";
+  spTitle.textContent = d.label;
+  spAuthors.textContent = `${d.authors} (${d.year})`;
+  spVenue.textContent = d.venue;
+  spHeadline.textContent = d.headline || "";
+  spHeadline.style.display = d.headline ? "block" : "none";
+  spDetail.textContent = d.detail || "";
+  spDetail.style.display = d.detail ? "block" : "none";
+  spLinks.innerHTML = url ? `<a href="${url}" target="_blank">${linkLabel}</a>` : "";
+
+  // Frontier info
+  const onFrontier = frontierSet ? frontierSet.has(d.id) : isFrontierPaper(d);
+  const ev = d.evidence_score !== undefined ? d.evidence_score : null;
+  const fs = d.frontier_score !== undefined ? d.frontier_score : null;
+  const dr = d.def_rel !== undefined ? d.def_rel : null;
+  const cat = getCategory(d);
+  const cs = categoryStyle(cat);
+  let html = '';
+  if (onFrontier) {
+    html += '<div style="color:#ffd700;font-weight:700;margin-bottom:4px">\u2605 Progress Frontier</div>';
+  }
+  html += `<div style="margin-bottom:6px"><span style="display:inline-block;background:${cs.fill}22;border:1.5px solid ${cs.fill};border-radius:4px;padding:2px 8px;font-size:12px;color:${cs.fill}">${catLabel[cat]}</span></div>`;
+  if (ev !== null) {
+    html += `<div style="margin-top:2px">Impact Score: <span style="color:#fff">${ev.toFixed(4)}</span></div>`;
+    html += `<div>Year: <span style="color:#fff">${d.year}</span></div>`;
+  } else if (fs !== null) {
+    const barW = Math.round(fs * 100);
+    html += `<div style="margin-top:2px">Frontier Score: <span style="color:#fff">${fs.toFixed(3)}</span> <span style="display:inline-block;width:${barW}%;height:6px;background:#ffd700;border-radius:3px;vertical-align:middle"></span></div>`;
+  }
+  if (dr !== null) {
+    html += `<div>Relevance: <span style="color:#fff">${dr.toFixed(3)}</span></div>`;
+  }
+  spFrontier.innerHTML = html || '<span style="color:#555;font-size:12px">Not scored</span>';
+
+  // Cited by (papers that cite this node)
+  const citedBy = allLinks.filter(l => (l.target.id||l.target) === d.id).map(l => l.source.id||l.source);
+  const citedByNames = citedBy.map(id => nodeMap.get(id)).filter(Boolean);
+  spCitedBy.innerHTML = citedByNames.length
+    ? citedByNames.map(n => `<span class="sp-tag">${n.label}</span>`).join("")
+    : '<span style="color:#555;font-size:12px">None</span>';
+
+  // Cites (papers this node cites)
+  const cites = allLinks.filter(l => (l.source.id||l.source) === d.id).map(l => l.target.id||l.target);
+  const citesNames = cites.map(id => nodeMap.get(id)).filter(Boolean);
+  spCites.innerHTML = citesNames.length
+    ? citesNames.map(n => `<span class="sp-tag">${n.label}</span>`).join("")
+    : '<span style="color:#555;font-size:12px">None</span>';
+
+  panel.classList.add("open");
+  pinned = true;
+}
+
+function updateLegend(m) {
+  const leg = d3.select("#legend");
+  if (m === 'frontier') {
+    leg.html(
+      '<div class="legend-item"><div class="legend-dot" style="width:16px;height:16px;background:#5b8def;border:2px solid #7baaff"></div> Real Trial</div>' +
+      '<div class="legend-item"><div class="legend-dot" style="width:14px;height:14px;background:#f97316;border:1.5px solid #fdba74"></div> Synthetic Trial</div>' +
+      '<div class="legend-item"><div class="legend-dot" style="width:12px;height:12px;background:#4ade80;border:1.5px solid #86efac"></div> Dataset</div>' +
+      '<div class="legend-item"><div class="legend-dot" style="width:12px;height:12px;background:#a78bfa;border:1.5px solid #c4b5fd"></div> Framework</div>' +
+      '<div class="legend-item"><div class="legend-dot" style="background:#334466"></div> Reference</div>' +
+      '<div class="legend-item" style="margin-top:4px;border-top:1px solid #333;padding-top:5px"><div class="legend-dot" style="width:14px;height:14px;border:3px solid #ffd700;background:transparent;border-radius:50%"></div> Progress Frontier</div>' +
+      '<div class="legend-item"><svg width="24" height="10"><line x1="0" y1="5" x2="16" y2="5" stroke="#ffd700" stroke-width="2" stroke-dasharray="4,2"/></svg> Best impact to date</div>' +
+      '<div class="legend-item" style="opacity:0.4"><div class="legend-dot" style="background:#334466;width:12px;height:12px;border-radius:50%"></div> Score exceeds frontier</div>'
+    );
+  } else {
+    leg.html(
+      '<div class="legend-item"><div class="legend-dot" style="width:16px;height:16px;background:#5b8def;border:2px solid #7baaff"></div> Real Trial</div>' +
+      '<div class="legend-item"><div class="legend-dot" style="width:14px;height:14px;background:#f97316;border:1.5px solid #fdba74"></div> Synthetic Trial</div>' +
+      '<div class="legend-item"><div class="legend-dot" style="width:12px;height:12px;background:#4ade80;border:1.5px solid #86efac"></div> Dataset</div>' +
+      '<div class="legend-item"><div class="legend-dot" style="width:12px;height:12px;background:#a78bfa;border:1.5px solid #c4b5fd"></div> Framework</div>' +
+      '<div class="legend-item"><div class="legend-dot" style="background:#334466"></div> Reference</div>' +
+      '<div class="legend-item" style="margin-top:4px;border-top:1px solid #333;padding-top:5px"><svg width="28" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#3a4a6a" stroke-width="2.4"/><polygon points="20,1 28,5 20,9" fill="#3a4a6a"/></svg> cites</div>'
+    );
+  }
+}
 
 function compactLabel(d) {
   const a = d.authors || d.label || '';
@@ -465,12 +599,12 @@ function render() {
   node = g.append("g").selectAll("g").data(nodes).join("g").attr("class","node-group")
     .attr("transform",d=>`translate(${d.x},${d.y})`);
 
-  // Circles
+  // Circles — category-based sizing/coloring
   node.append("circle").attr("class","node-circle")
-    .attr("r", d => central.has(d.id) ? 20 : isMain(d) ? 14 : 8)
-    .attr("fill", d => central.has(d.id) ? "#5b8def" : isMain(d) ? "#4a7acc" : "#334466")
-    .attr("stroke", d => central.has(d.id) ? "#a0c0ff" : "none")
-    .attr("stroke-width", d => central.has(d.id) ? 2 : 0);
+    .attr("r", d => central.has(d.id) ? 20 : categoryStyle(getCategory(d)).r)
+    .attr("fill", d => central.has(d.id) ? "#5b8def" : categoryStyle(getCategory(d)).fill)
+    .attr("stroke", d => central.has(d.id) ? "#a0c0ff" : categoryStyle(getCategory(d)).stroke)
+    .attr("stroke-width", d => central.has(d.id) ? 2 : (categoryStyle(getCategory(d)).stroke !== "none" ? 1.5 : 0));
 
   // Gold ring for frontier papers
   node.filter(d => mode === 'frontier' && isFrontierPaper(d)).append("circle")
@@ -504,65 +638,7 @@ function render() {
       return 18;
     })
     .text(d => d.year);
-  const spFrontier = document.getElementById("sp-frontier");
 
-  function showPanel(d) {
-    const isDoi = d.id.startsWith("10.");
-    const isArxiv = d.id.startsWith("arxiv:");
-    const url = isDoi ? `https://doi.org/${d.id}` : isArxiv ? `https://arxiv.org/abs/${d.id.replace("arxiv:","")}` : null;
-    const linkLabel = isDoi ? `DOI: ${d.id}` : isArxiv ? `arXiv: ${d.id.replace("arxiv:","")}` : "";
-    spTitle.textContent = d.label;
-    spAuthors.textContent = `${d.authors} (${d.year})`;
-    spVenue.textContent = d.venue;
-    spHeadline.textContent = d.headline || "";
-    spHeadline.style.display = d.headline ? "block" : "none";
-    spDetail.textContent = d.detail || "";
-    spDetail.style.display = d.detail ? "block" : "none";
-    spLinks.innerHTML = url ? `<a href="${url}" target="_blank">${linkLabel}</a>` : "";
-
-    // Frontier info
-    const onFrontier = isFrontierPaper(d);
-    const fs = d.frontier_score !== undefined ? d.frontier_score : null;
-    const ev = d.evidence_score !== undefined ? d.evidence_score : null;
-    const dr = d.def_rel !== undefined ? d.def_rel : null;
-    let html = '';
-    if (onFrontier) {
-      html += '<div style="color:#ffd700;font-weight:700;margin-bottom:4px">★ Pareto Frontier</div>';
-    }
-    if (fs !== null) {
-      const barW = Math.round(fs * 100);
-      html += `<div style="margin-top:2px">Frontier Score: <span style="color:#fff">${fs.toFixed(3)}</span> <span style="display:inline-block;width:${barW}%;height:6px;background:#ffd700;border-radius:3px;vertical-align:middle"></span></div>`;
-    }
-    if (ev !== null) {
-      html += `<div>Evidence: <span style="color:#fff">${ev.toFixed(2)}</span></div>`;
-    }
-    if (dr !== null) {
-      html += `<div>Relevance: <span style="color:#fff">${dr.toFixed(3)}</span></div>`;
-    }
-    spFrontier.innerHTML = html || '<span style="color:#555;font-size:12px">Not scored</span>';
-
-    // Cited by (papers that cite this node)
-    const citedBy = allLinks.filter(l => (l.target.id||l.target) === d.id).map(l => l.source.id||l.source);
-    const citedByNames = citedBy.map(id => nodeMap.get(id)).filter(Boolean);
-    spCitedBy.innerHTML = citedByNames.length
-      ? citedByNames.map(n => `<span class="sp-tag">${n.label}</span>`).join("")
-      : '<span style="color:#555;font-size:12px">None</span>';
-
-    // Cites (papers this node cites)
-    const cites = allLinks.filter(l => (l.source.id||l.source) === d.id).map(l => l.target.id||l.target);
-    const citesNames = cites.map(id => nodeMap.get(id)).filter(Boolean);
-    spCites.innerHTML = citesNames.length
-      ? citesNames.map(n => `<span class="sp-tag">${n.label}</span>`).join("")
-      : '<span style="color:#555;font-size:12px">None</span>';
-
-    panel.classList.add("open");
-    pinned = true;
-  }
-
-  function hidePanel() {
-    panel.classList.remove("open");
-    pinned = false;
-  }
 
   node.on("mouseenter", (event,d)=>{
     // lightweight hover: just highlight the circle
@@ -599,6 +675,177 @@ function render() {
   if (dynamic) startSimulation(nodes, rlinks);
 }
 
+function renderFrontier() {
+  const fsvg = d3.select("#frontier-chart")
+    .style("display", "block")
+    .attr("width", width)
+    .attr("height", height)
+    .style("margin-top", bannerH + "px");
+  fsvg.selectAll("*").remove();
+
+  const visibleNodes = allNodes.filter(n => getVisibleIds().has(n.id));
+  if (visibleNodes.length === 0) return;
+
+  const margin = { top: 100, right: 90, bottom: 80, left: 80 };
+  const w = width - margin.left - margin.right;
+  const h = height - margin.top - margin.bottom;
+
+  const minYear = d3.min(visibleNodes, d => d.year) - 5;
+  const maxYear = d3.max(visibleNodes, d => d.year) + 5;
+  const maxImpact = d3.max(visibleNodes, d => d.evidence_score);
+
+  const xScale = d3.scaleLinear().domain([minYear, maxYear]).range([0, w]);
+  const yScale = d3.scaleLinear().domain([0, maxImpact * 1.15]).range([h, 0]);
+
+  // Title
+  fsvg.append("text").attr("class","frontier-title")
+    .attr("x", margin.left).attr("y", 45).text("Research Progress Frontier");
+  fsvg.append("text").attr("class","frontier-subtitle")
+    .attr("x", margin.left).attr("y", 67)
+    .text("Real-world health impact over time\u2009\u2014\u2009main papers and curated references");
+
+  const g = fsvg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // Grid lines
+  g.append("g").attr("class","frontier-chart-grid")
+    .call(d3.axisLeft(yScale).tickSize(-w).tickFormat(""));
+  g.append("g").attr("class","frontier-chart-grid")
+    .attr("transform", `translate(0,${h})`)
+    .call(d3.axisBottom(xScale).tickSize(-h).tickFormat(""));
+
+  // Axes
+  g.append("g").attr("class","frontier-chart-axis")
+    .call(d3.axisLeft(yScale).ticks(8).tickFormat(d3.format(".2f")));
+  g.append("g").attr("class","frontier-chart-axis")
+    .attr("transform", `translate(0,${h})`)
+    .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+
+  // Axis labels
+  g.append("text").attr("class","frontier-axis-label")
+    .attr("x", w / 2).attr("y", h + 50).text("Publication Year");
+  g.append("text").attr("class","frontier-axis-label")
+    .attr("x", -margin.left + 30).attr("y", h / 2)
+    .attr("transform", `rotate(-90,${-margin.left + 30},${h / 2})`)
+    .text("Real-World Impact Score");
+
+  // Compute time-based frontier: only main papers advance the frontier
+  const frontierCandidates = visibleNodes.filter(isMain).sort((a, b) => a.year - b.year || a.evidence_score - b.evidence_score);
+  const frontier = [];
+  let maxImpactSoFar = -1;
+  for (const n of frontierCandidates) {
+    if (n.evidence_score > maxImpactSoFar) {
+      frontier.push(n);
+      maxImpactSoFar = n.evidence_score;
+    }
+  }
+  const frontierAtYear = (year) => {
+    let val = 0;
+    for (const f of frontier) {
+      if (f.year <= year) val = f.evidence_score;
+    }
+    return val;
+  };
+  const frontierSet = new Set(frontier.map(n => n.id));
+
+  // Frontier step line
+  if (frontier.length > 0) {
+    const lineData = [
+      { x: minYear, y: 0 },
+      ...frontier.map(p => ({ x: p.year, y: p.evidence_score })),
+      { x: maxYear, y: frontier[frontier.length - 1].evidence_score }
+    ];
+    g.append("path")
+      .datum(lineData)
+      .attr("fill", "none")
+      .attr("stroke", "#ffd700")
+      .attr("stroke-width", 2.5)
+      .attr("stroke-dasharray", "6,3")
+      .attr("d", d3.line().x(d => xScale(d.x)).y(d => yScale(d.y)).curve(d3.curveStepAfter));
+
+    // "Progress Frontier" label at the end of the line
+    const last = frontier[frontier.length - 1];
+    g.append("text")
+      .attr("x", xScale(last.year) + 12)
+      .attr("y", yScale(last.evidence_score) - 8)
+      .attr("fill", "#ffd700").attr("font-size", "11px").attr("opacity", 0.7)
+      .text("Progress Frontier");
+  }
+
+  // Tooltip
+  let tooltip = d3.select("#frontier-tooltip");
+  if (tooltip.empty()) {
+    tooltip = d3.select("body").append("div").attr("id", "frontier-tooltip")
+      .style("position", "absolute").style("background", "#1a1a24")
+      .style("border", "1px solid #333").style("border-radius", "6px")
+      .style("padding", "8px 12px").style("color", "#ddd")
+      .style("font-size", "12px").style("pointer-events", "none")
+      .style("opacity", 0).style("z-index", 300)
+      .style("transition", "opacity 0.15s");
+  }
+
+  // Points — category-based sizing/coloring, refs clamped at frontier
+  const clamped = (d) => !isMain(d) && d.evidence_score > frontierAtYear(d.year);
+  g.selectAll("circle.frontier-point")
+    .data(visibleNodes)
+    .join("circle")
+    .attr("class", d => categoryStyle(getCategory(d)).glow ? "frontier-point main-glow" : "frontier-point")
+    .attr("cx", d => xScale(d.year))
+    .attr("cy", d => yScale(isMain(d) ? d.evidence_score : Math.min(d.evidence_score, frontierAtYear(d.year))))
+    .attr("r", d => categoryStyle(getCategory(d)).r)
+    .attr("fill", d => categoryStyle(getCategory(d)).fill)
+    .attr("opacity", d => clamped(d) ? 0.35 : 1)
+    .attr("stroke", d => {
+      if (frontierSet.has(d.id)) return "#ffd700";
+      return categoryStyle(getCategory(d)).stroke;
+    })
+    .attr("stroke-width", d => frontierSet.has(d.id) ? 3 : (categoryStyle(getCategory(d)).stroke !== "none" ? 1.5 : 0))
+    .attr("stroke-dasharray", d => clamped(d) ? "3,2" : "none")
+    .on("mouseenter", function(event, d) {
+      tooltip.style("opacity", 1);
+      tooltip.html(
+        `<strong>${d.label}</strong><br>${d.year} &middot; Impact: ${d.evidence_score.toFixed(3)}` +
+        (clamped(d) ? '<br><em style="color:#888">score exceeds frontier at this year</em>' : '')
+      ).style("left", (event.pageX + 14) + "px").style("top", (event.pageY - 30) + "px");
+    })
+    .on("mousemove", function(event) {
+      tooltip.style("left", (event.pageX + 14) + "px").style("top", (event.pageY - 30) + "px");
+    })
+    .on("mouseleave", () => { tooltip.style("opacity", 0); })
+    .on("click", (event, d) => {
+      event.stopPropagation();
+      showPanel(d, frontierSet);
+    });
+
+  // Real trial labels below circle
+  g.selectAll("text.main-label")
+    .data(visibleNodes.filter(d => getCategory(d) === "real-trial"))
+    .join("text")
+    .attr("class", "main-label")
+    .attr("x", d => xScale(d.year))
+    .attr("y", d => yScale(d.evidence_score) + 28)
+    .text(d => d.label);
+
+  // Frontier point labels (gold, above point — collision avoidance)
+  const labelData = frontier.map(d => ({ ...d, _y: yScale(d.evidence_score) - 16 }));
+  labelData.sort((a, b) => a.year - b.year);
+  for (let i = 1; i < labelData.length; i++) {
+    const p = labelData[i - 1], c = labelData[i];
+    if (c.year - p.year <= 3 && c._y + 8 > p._y - 8) {
+      c._y = p._y - 12;
+    }
+  }
+  g.selectAll("text.frontier-label")
+    .data(labelData)
+    .join("text")
+    .attr("class", "frontier-label")
+    .attr("x", d => xScale(d.year))
+    .attr("y", d => d._y)
+    .text(d => d.label);
+
+  // Close panel on background click
+  fsvg.on("click", () => { hidePanel(); });
+}
+
 d3.json("citations.json").then(data => {
   if (!data || !data.papers) throw new Error("citations.json missing 'papers' key");
   const mainPapers = data.papers;
@@ -622,23 +869,41 @@ d3.json("citations.json").then(data => {
     });
   });
 
+  // Initial render (curated mode)
+  mode = 'curated';
+  d3.select("#graph").style("display", "block");
+  d3.select("#frontier-chart").style("display", "none");
+  updateLegend('curated');
   render();
   d3.selectAll(".tab-btn[data-mode]").on("click", function() {
     hidePanel();
-    if (dynamic) {
-      if (sim) sim.stop();
-      sim = null;
-      dynamic = false;
-      d3.select("#dynamic-btn").text("Static");
-    }
     d3.selectAll(".tab-btn[data-mode]").classed("active", false);
     d3.select(this).classed("active", true);
     mode = d3.select(this).attr("data-mode");
-    render();
+    updateLegend(mode);
+
+    if (mode === 'frontier') {
+      d3.select("#graph").style("display", "none");
+      d3.select("#frontier-chart").style("display", "block");
+      d3.select("#dynamic-btn").style("display", "none");
+      if (sim) { sim.stop(); sim = null; }
+      dynamic = false;
+      renderFrontier();
+    } else {
+      d3.select("#graph").style("display", "block");
+      d3.select("#frontier-chart").style("display", "none");
+      d3.select("#dynamic-btn").style("display", "inline-block");
+      if (dynamic) {
+        if (sim) sim.stop();
+        sim = null;
+        dynamic = false;
+        d3.select("#dynamic-btn").text("Static");
+      }
+      render();
+    }
   });
   d3.select("#dynamic-btn").on("click", function() {
     pinned = false;
-    d3.select("#tooltip").style("opacity",0);
     dynamic = !dynamic;
     d3.select(this).text(dynamic ? "Dynamic" : "Static");
     if (!dynamic) {

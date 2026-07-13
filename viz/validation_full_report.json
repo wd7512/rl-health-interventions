@@ -1,0 +1,28 @@
+{
+  "validation_date": "2026-07-13 22:07:16",
+  "total_papers": 10,
+  "total_refs": 520,
+  "total_ids": 530,
+  "citation_targets": 283,
+  "doi_validations": {
+    "valid": 0,
+    "mismatch": 6,
+    "not_found": 4,
+    "error": 0,
+    "rate_limited": 0,
+    "skipped": 520
+  },
+  "issues": [
+    "10.1007/s12160-018-0049-1: not found in CrossRef",
+    "arxiv:1909.03539: mismatch",
+    "arxiv:2508.10060: mismatch",
+    "arxiv:2411.00336: mismatch",
+    "10.1038/s41597-023-02763-w: not found in CrossRef",
+    "10.1001/jamacardio.2016.4395: mismatch",
+    "10.1038/s41746-024-01062-3: mismatch",
+    "10.1038/s41591-026-04352-3: mismatch",
+    "10.13026/5M0E-GX79: not found in CrossRef",
+    "10.1037/0033-2909.136.6.969: not found in CrossRef"
+  ],
+  "issue_count": 10
+}
