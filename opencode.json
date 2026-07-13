@@ -19,12 +19,14 @@
     "semantic-scholar": {
       "type": "local",
       "command": ["npx", "-y", "@xbghc/semanticscholar-mcp"],
-      "enabled": true
+      "description": "Disabled: requires SEMANTIC_SCHOLAR_API_KEY env var (rate-limited to 1 req/5s without it)",
+      "enabled": false
     },
     "arxiv": {
       "type": "local",
       "command": ["npx", "-y", "@cyanheads/arxiv-mcp-server"],
-      "enabled": true
+      "description": "Disabled: upstream schema bug — MCP response doesn't match its own output schema",
+      "enabled": false
     },
     "crossref": {
       "type": "local",
@@ -44,12 +46,14 @@
     "unpaywall": {
       "type": "local",
       "command": ["npx", "-y", "unpaywall-mcp"],
-      "enabled": true
+      "description": "Disabled: requires UNPAYWALL_EMAIL env var (API rejects non-personal emails)",
+      "enabled": false
     },
     "zotero": {
       "type": "local",
       "command": ["npx", "-y", "@oscardvs/zoteus"],
-      "enabled": true
+      "description": "Disabled: requires ZOTERO_API_KEY + ZOTERO_USER_ID or a running Zotero desktop app",
+      "enabled": false
     }
   },
   "agent": {
