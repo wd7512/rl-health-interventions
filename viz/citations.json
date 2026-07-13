@@ -515,7 +515,7 @@
       "type": "ref",
       "headline": "Control engineering for behavioral treatments",
       "detail": "Control engineering methods for robust behavioral treatments.",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:d": {
@@ -548,7 +548,7 @@
       "type": "ref",
       "headline": "Randomised trials for Fitbit generation",
       "detail": "Discussion of mobile health trial design.",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:g": {
@@ -570,7 +570,7 @@
       "type": "ref",
       "headline": "Habituation effects",
       "detail": "Habituation: effects of regular and stochastic stimulation.",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:i": {
@@ -592,7 +592,7 @@
       "type": "ref",
       "headline": "RL for weight loss",
       "detail": "Can RL optimize weight loss treatment using digital data?",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:k": {
@@ -691,7 +691,7 @@
       "type": "ref",
       "headline": "Wearable sensors for routine activities",
       "detail": "Using wearables to understand human recall.",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:t": {
@@ -724,7 +724,7 @@
       "type": "ref",
       "headline": "Contextual-bandit news recommendation",
       "detail": "Contextual bandit approach to news recommendation.",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:w": {
@@ -757,7 +757,7 @@
       "type": "ref",
       "headline": "Sample size for MRTs",
       "detail": "Sample size calculations for micro-randomized trials.",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:z": {
@@ -801,7 +801,7 @@
       "type": "ref",
       "headline": "Efficient RL via posterior sampling",
       "detail": "More efficient RL via posterior sampling.",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:ad": {
@@ -823,7 +823,7 @@
       "type": "ref",
       "headline": "Why posterior sampling",
       "detail": "Why posterior sampling better than optimism for RL?",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:af": {
@@ -845,7 +845,7 @@
       "type": "ref",
       "headline": "PopTherapy",
       "detail": "Coping with stress through pop-culture.",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:ah": {
@@ -856,7 +856,7 @@
       "type": "ref",
       "headline": "MyBehavior",
       "detail": "Personalized health feedback using smartphones.",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:ai": {
@@ -911,7 +911,7 @@
       "type": "ref",
       "headline": "Data-efficient off-policy evaluation",
       "detail": "Data-efficient off-policy policy evaluation.",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:ao": {
@@ -922,7 +922,7 @@
       "type": "ref",
       "headline": "RL for diabetes PA",
       "detail": "Encouraging PA in diabetes patients using RL.",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv1:ap": {
@@ -966,7 +966,7 @@
       "type": "ref",
       "headline": "Minimax-optimal off-policy evaluation",
       "detail": "Minimax-optimal policy evaluation.",
-      "curated": false,
+      "curated": true,
       "cites": []
     },
     "ref:hsv2:at": {
