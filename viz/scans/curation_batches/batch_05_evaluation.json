@@ -1,0 +1,74 @@
+{
+  "batch_id": 5,
+  "evaluator": "subagent-05",
+  "promotions": [
+    {
+      "id": "ref:ukb:at",
+      "label": "PA with GENEA accelerometer",
+      "reason": "Directly applicable to core domain data processing: provides methods for physical activity classification using wrist accelerometer data, which is essential for computing the step_bin state variable in the 36-state factored MDP. Wrist accelerometry is the primary sensor modality for the project."
+    },
+    {
+      "id": "ref:ukb:au",
+      "label": "Wrist vs ankle accelerometer",
+      "reason": "Core domain relevance: activity recognition methods using a single wrist or ankle accelerometer. Directly informs how the project processes wearable sensor data to infer physical activity states for the JITAI RL agent."
+    },
+    {
+      "id": "ref:ukb:av",
+      "label": "Hip and wrist algorithms",
+      "reason": "Directly applicable methodology: accelerometer algorithms for behavior classification at hip and wrist placements. Informs the sensor processing pipeline needed to derive the step_bin and activity state features from raw accelerometer data in the MDP."
+    },
+    {
+      "id": "ref:ukb:ba",
+      "label": "UK Biobank accelerometer study",
+      "reason": "Core domain reference: large-scale physical activity assessment using wrist accelerometers in UK Biobank (the primary data source for the project's UKB references). Demonstrates the feasibility and methodology of wrist-based PA measurement at population scale, directly relevant to the project's wearable data pipeline."
+    },
+    {
+      "id": "ref:ukb:bb",
+      "label": "GENEA validation",
+      "reason": "Implementation-relevant: validation of the GENEA accelerometer, which is the same sensor used in UK Biobank and relevant to the project's wearable data collection. Understanding sensor accuracy is critical for reliable step_bin and activity state estimation."
+    },
+    {
+      "id": "ref:ukb:bc",
+      "label": "Smartwatch biometrics",
+      "reason": "Core domain relevance: methods for smartphone and smartwatch-based biometrics using activities of daily living. Directly applicable to the project's wearable sensor processing pipeline for extracting features from smartwatch data streams."
+    },
+    {
+      "id": "ref:ukb:bg",
+      "label": "Activity monitoring benchmark",
+      "reason": "Implementation-relevant: provides a benchmarked dataset for activity monitoring, which is directly applicable for evaluating and comparing activity recognition algorithms used to process the project's wearable sensor data and derive MDP state features."
+    },
+    {
+      "id": "ref:ukb:bh",
+      "label": "Human behavior recognition",
+      "reason": "Directly applicable methodology: analysis of human behavior recognition based on acceleration data. This is the core sensor processing task -- converting raw accelerometer signals into behavior classifications that feed into the step_bin and burden dimensions of the MDP."
+    },
+    {
+      "id": "ref:aou:y",
+      "label": "US accelerometer steps",
+      "reason": "Core domain data: provides reference distributions of accelerometer-determined steps per day in US adults (Tudor-Locke et al.), directly useful for defining step_bin threshold boundaries in the 36-state MDP and calibrating the PA simulation model against population norms."
+    },
+    {
+      "id": "ref:aou:aa",
+      "label": "SSL step counts in UK Biobank",
+      "reason": "Implementation-relevant and directly connected to next steps: self-supervised machine learning for step counts from UK Biobank accelerometer data. Self-supervised approaches for step counting directly relate to the project's planned sensor foundation model work (NormWear 768-dim embeddings) and improve step_bin state estimation."
+    },
+    {
+      "id": "ref:aou:ab",
+      "label": "NHANES step counting",
+      "reason": "Core domain methodology: comparison of step counting algorithms for wrist accelerometry in NHANES. Directly applicable to selecting and validating the step counting algorithm used to compute the step_bin state variable from raw accelerometer data."
+    },
+    {
+      "id": "ref:aou:ai",
+      "label": "Sleep tracking accuracy",
+      "reason": "Directly applicable to the sleep dimension of the MDP: evaluates accuracy of commercial sleep-tracking devices, which is essential for understanding measurement error in the sleep state variable. Sleep is one of the four core dimensions (step_bin, sleep, day_of_week, burden) of the 36-state factored MDP."
+    }
+  ],
+  "demotions": [],
+  "summary": {
+    "total_evaluated": 52,
+    "promoted": 12,
+    "demoted": 0,
+    "kept_curated": 0,
+    "kept_regular": 40
+  }
+}
