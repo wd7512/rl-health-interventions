@@ -15,15 +15,20 @@ body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', -apple-system,
 .node-circle:hover { filter: brightness(1.3); }
 .node-label { font-size: 10px; fill: #bbb; text-anchor: middle; pointer-events: none; font-weight: 500; }
 .node-year { font-size: 8px; fill: #666; text-anchor: middle; pointer-events: none; }
-.tooltip { position: absolute; background: #16161e; border: 1px solid #333; border-radius: 8px; padding: 14px 18px; font-size: 13px; line-height: 1.5; max-width: 380px; pointer-events: none; opacity: 0; transition: opacity 0.15s; box-shadow: 0 8px 32px rgba(0,0,0,0.6); z-index: 100; }
-.tooltip .tt-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-.tooltip .tt-authors { font-size: 12px; color: #999; }
-.tooltip .tt-venue { font-size: 11px; color: #6b8afd; margin-bottom: 6px; }
-.tooltip .tt-headline { font-size: 12px; color: #bbb; border-left: 2px solid #6b8afd; padding-left: 8px; margin: 6px 0; }
-.tooltip .tt-detail { font-size: 12px; color: #888; }
-.tooltip .tt-links { font-size: 11px; color: #6b8afd; margin-top: 6px; }
-.tooltip .tt-links a { color: #6b8afd; text-decoration: none; }
-.tooltip .tt-links a:hover { text-decoration: underline; }
+.side-panel { position: fixed; top: 0; right: 0; width: 380px; height: 100vh; background: #14141c; border-left: 1px solid #2a2a35; padding: 24px; overflow-y: auto; transform: translateX(100%); transition: transform 0.25s ease; box-shadow: -8px 0 32px rgba(0,0,0,0.5); z-index: 200; }
+.side-panel.open { transform: translateX(0); }
+.side-panel .sp-close { position: absolute; top: 16px; right: 16px; background: none; border: 1px solid #333; border-radius: 6px; color: #888; font-size: 16px; cursor: pointer; padding: 4px 10px; transition: all 0.15s; }
+.side-panel .sp-close:hover { color: #fff; border-color: #555; }
+.side-panel .sp-title { font-size: 18px; font-weight: 700; color: #fff; margin: 8px 0 8px; padding-right: 40px; line-height: 1.3; }
+.side-panel .sp-authors { font-size: 13px; color: #999; margin-bottom: 4px; }
+.side-panel .sp-venue { font-size: 12px; color: #6b8afd; margin-bottom: 12px; }
+.side-panel .sp-headline { font-size: 13px; color: #bbb; border-left: 3px solid #6b8afd; padding-left: 10px; margin: 14px 0; line-height: 1.4; }
+.side-panel .sp-detail { font-size: 13px; color: #777; line-height: 1.6; margin-bottom: 16px; }
+.side-panel .sp-links { margin-top: 12px; }
+.side-panel .sp-links a { display: inline-block; background: #1e1e2a; border: 1px solid #333; border-radius: 6px; padding: 8px 14px; color: #6b8afd; text-decoration: none; font-size: 12px; font-family: 'SF Mono', 'Fira Code', monospace; transition: all 0.15s; }
+.side-panel .sp-links a:hover { background: #2a2a3a; border-color: #6b8afd; }
+.side-panel .sp-section { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
+.side-panel .sp-tag { display: inline-block; background: #1e1e2a; border: 1px solid #333; border-radius: 4px; padding: 2px 8px; font-size: 11px; color: #888; margin-right: 4px; margin-bottom: 4px; }
 .legend { position: absolute; bottom: 20px; left: 20px; background: #16161e; border: 1px solid #2a2a35; border-radius: 8px; padding: 12px 16px; font-size: 12px; }
 .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
 .legend-item:last-child { margin-bottom: 0; }
@@ -49,7 +54,19 @@ body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', -apple-system,
   <button class="tab-btn" data-mode="full">Full</button>
   <button class="tab-btn" id="dynamic-btn" style="border-color:#555">Static</button>
 </div>
-<div class="tooltip" id="tooltip"></div>
+<div class="side-panel" id="side-panel">
+  <button class="sp-close" id="sp-close">✕</button>
+  <div class="sp-title" id="sp-title"></div>
+  <div class="sp-authors" id="sp-authors"></div>
+  <div class="sp-venue" id="sp-venue"></div>
+  <div class="sp-headline" id="sp-headline"></div>
+  <div class="sp-detail" id="sp-detail"></div>
+  <div class="sp-section">Cited By</div>
+  <div id="sp-citedby"></div>
+  <div class="sp-section">Cites</div>
+  <div id="sp-cites"></div>
+  <div class="sp-links" id="sp-links"></div>
+</div>
 <div class="legend" id="legend">
   <div class="legend-item"><div class="legend-dot" style="background:#5b8def"></div> Main papers</div>
   <div class="legend-item"><div class="legend-dot" style="background:#334466"></div> References</div>
@@ -76,6 +93,20 @@ let dynamic = false, sim = null, pinned = false;
 const central = new Set(["arxiv:1909.03539","arxiv:2508.10060"]);
 const isMain = d => !d.id.startsWith("ref:");
 const zoom = d3.zoom().scaleExtent([0.3,4]).on("zoom", e=>{ if(g) g.attr("transform",e.transform); });
+const panel = document.getElementById("side-panel");
+const spTitle = document.getElementById("sp-title");
+const spAuthors = document.getElementById("sp-authors");
+const spVenue = document.getElementById("sp-venue");
+const spHeadline = document.getElementById("sp-headline");
+const spDetail = document.getElementById("sp-detail");
+const spCitedBy = document.getElementById("sp-citedby");
+const spCites = document.getElementById("sp-cites");
+const spLinks = document.getElementById("sp-links");
+
+function hidePanel() {
+  panel.classList.remove("open");
+  pinned = false;
+}
 
 function nodeGap(a, b, mode) {
   const aP = isMain(a) || central.has(a.id);
@@ -443,30 +474,46 @@ function render() {
   node.filter(d => !isCompact(d)).append("text").attr("class","node-year")
     .attr("dy", d => central.has(d.id) ? 34 : isMain(d) ? 26 : 18)
     .text(d => d.year);
-  const tooltip = d3.select("#tooltip");
-
-  function showTooltip(event, d) {
+  function showPanel(d) {
     const isDoi = d.id.startsWith("10.");
     const isArxiv = d.id.startsWith("arxiv:");
     const url = isDoi ? `https://doi.org/${d.id}` : isArxiv ? `https://arxiv.org/abs/${d.id.replace("arxiv:","")}` : null;
     const linkLabel = isDoi ? `DOI: ${d.id}` : isArxiv ? `arXiv: ${d.id.replace("arxiv:","")}` : "";
-    tooltip.style("opacity",1).html(`
-      <div class="tt-title">${d.label}</div>
-      <div class="tt-authors">${d.authors} (${d.year})</div>
-      <div class="tt-venue">${d.venue}</div>
-      <div class="tt-headline">${d.headline}</div>
-      <div class="tt-detail">${d.detail}</div>
-      ${url?`<div class="tt-links"><a href="${url}" target="_blank">${linkLabel}</a></div>`:""}
-    `);
-    tooltip.style("left",(event.pageX+16)+"px").style("top",(event.pageY-10)+"px");
+    spTitle.textContent = d.label;
+    spAuthors.textContent = `${d.authors} (${d.year})`;
+    spVenue.textContent = d.venue;
+    spHeadline.textContent = d.headline || "";
+    spHeadline.style.display = d.headline ? "block" : "none";
+    spDetail.textContent = d.detail || "";
+    spDetail.style.display = d.detail ? "block" : "none";
+    spLinks.innerHTML = url ? `<a href="${url}" target="_blank">${linkLabel}</a>` : "";
+
+    // Cited by (papers that cite this node)
+    const citedBy = allLinks.filter(l => (l.target.id||l.target) === d.id).map(l => l.source.id||l.source);
+    const citedByNames = citedBy.map(id => nodeMap.get(id)).filter(Boolean);
+    spCitedBy.innerHTML = citedByNames.length
+      ? citedByNames.map(n => `<span class="sp-tag">${n.label}</span>`).join("")
+      : '<span style="color:#555;font-size:12px">None</span>';
+
+    // Cites (papers this node cites)
+    const cites = allLinks.filter(l => (l.source.id||l.source) === d.id).map(l => l.target.id||l.target);
+    const citesNames = cites.map(id => nodeMap.get(id)).filter(Boolean);
+    spCites.innerHTML = citesNames.length
+      ? citesNames.map(n => `<span class="sp-tag">${n.label}</span>`).join("")
+      : '<span style="color:#555;font-size:12px">None</span>';
+
+    panel.classList.add("open");
+    pinned = true;
+  }
+
+  function hidePanel() {
+    panel.classList.remove("open");
+    pinned = false;
   }
 
   node.on("mouseenter", (event,d)=>{
-    showTooltip(event, d);
-  }).on("mousemove", event=>{
-    tooltip.style("left",(event.pageX+16)+"px").style("top",(event.pageY-10)+"px");
+    // lightweight hover: just highlight the circle
   }).on("mouseleave", ()=>{
-    if (!pinned) tooltip.style("opacity",0);
   });
 
   node.on("click", (event,d)=>{
@@ -480,15 +527,16 @@ function render() {
     link.classed("dim", l=>l.source.id!==d.id&&l.target.id!==d.id)
       .classed("highlight-edge", l=>l.source.id===d.id||l.target.id===d.id)
       .attr("marker-end", l=>l.source.id===d.id||l.target.id===d.id?"url(#arrow-hl)":"url(#arrow)");
-    showTooltip(event, d);
+    showPanel(d);
   });
+
+  d3.select("#sp-close").on("click", hidePanel);
 
   svg.on("click", event=>{
     if(event.target===svg.node()){
-      pinned = false;
+      hidePanel();
       node.classed("dim",false);
       link.classed("dim",false).classed("highlight-edge",false).attr("marker-end","url(#arrow)");
-      tooltip.style("opacity",0);
     }
   });
 
@@ -523,8 +571,7 @@ d3.json("citations.json").then(data => {
 
   render();
   d3.selectAll(".tab-btn[data-mode]").on("click", function() {
-    pinned = false;
-    d3.select("#tooltip").style("opacity",0);
+    hidePanel();
     if (dynamic) {
       if (sim) sim.stop();
       sim = null;
