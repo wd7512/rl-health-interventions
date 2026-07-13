@@ -10,6 +10,11 @@
     "git": {
       "type": "local",
       "command": ["uvx", "mcp-server-git", "--repository", "."],
+      "enabled": false
+    },
+    "github": {
+      "type": "local",
+      "command": ["gh", "mcp"],
       "enabled": true
     }
   },
