@@ -16,6 +16,7 @@
 \usepackage{booktabs}
 \usepackage{siunitx}
 \usepackage{xcolor}
+\usepackage{ragged2e}
 
 \sisetup{detect-all}
 
@@ -72,6 +73,8 @@
     \begin{center}
         \scriptsize
         \renewcommand{\arraystretch}{1.15}
+        \makebox[\textwidth][c]{%
+        \resizebox{0.94\textwidth}{!}{%
         \begin{tabular}{lccc}
             \toprule
             & \textbf{HeartSteps V2} & \textbf{PEARL} & \textbf{StepCountJITAI} \\
@@ -80,16 +83,18 @@
             Sample & {$n \approx 97$} & {$n = 13{,}463$} & Synthetic \\
             Algorithm & TS bandit & RL bandit & DQN \\
             Actions & $\sim$5 types & 155 nudges & 4 types \\
-            Outcome & 78.4\% improved & +296 steps$^{*}$ & DQN $\approx$ 3000 \\
+            Outcome & 78.4\% improved & {+}296 steps\textsuperscript{*} & DQN $\approx$ 3000 \\
             Theory & SDT / FBM & COM-B & --- \\
             \bottomrule
-        \end{tabular}
+        \end{tabular}%
+        }}
 
-        \vspace{3pt}
-        {\footnotesize $^{*}$RL vs control at 1 month, \(p = 0.0002\).}
+        \vspace{2pt}
+        {\footnotesize \textsuperscript{*}RL vs control at 1 month, \(p = 0.0002\).}
     \end{center}
 
     \vspace{2pt}
+    \justifying
     \textbf{Key gap:} No existing framework combines \emph{config-driven experiment definition} with \emph{LLM-bootstrapped user simulation} for rapid agent prototyping before real-world deployment.
 \end{frame}
 
@@ -123,48 +128,58 @@
 \begin{frame}{What We Have Done}
     \begin{center}
         \scriptsize
-        \renewcommand{\arraystretch}{1.2}
+        \renewcommand{\arraystretch}{1.18}
+        \makebox[\textwidth][c]{%
+        \resizebox{0.96\textwidth}{!}{%
         \begin{tabular}{lp{0.24\textwidth}p{0.24\textwidth}p{0.24\textwidth}}
             \toprule
             & \textbf{MVP Simulator} & \textbf{LLM Bootstrap} & \textbf{Experiments} \\
             \midrule
             Purpose & Prove the pipeline & Generate patient behaviour & Evaluate agents \\
-            \midrule
             State space & 2-state & 36-state factored & Both \\
-            Transitions & Hand-curated rules & 22{,}320 LLM prompts & From YAML config \\
-            Output & 285 hyperparam combos & 42 tables, 85 figures & 7 personas $\times$ 7 agents \\
+            Transitions & Hand-curated rules & 22{,}320 LLM prompts & YAML-defined \\
+            Output & 285 configs & 42 tables, 85 figures & 7 personas $\times$ 7 agents \\
             Cost & \$0 & \textbf{\$0.27 total} & \$0 \\
             \bottomrule
-        \end{tabular}
+        \end{tabular}%
+        }}
     \end{center}
 
     \vspace{4pt}
-    \textbf{Key point:} A 2-state hand-curated MDP and a 36-state LLM-bootstrapped MDP run through the \emph{same} YAML schema, same agent library, same evaluation runner.
+    \justifying
+    \textbf{Key point:} The 2-state curated MDP and 36-state LLM-bootstrapped MDP use the \emph{same} YAML schema, agent library, and evaluation runner.
 \end{frame}
 
 % --------------------------------------------------
 % Slide 6 --- Initial Results
 % --------------------------------------------------
 \begin{frame}{Initial Results}
-    {\small \textbf{Transition analysis ---} persona differentiation is real, burden degrades intervention effectiveness.}
+    \begin{columns}[T,onlytextwidth]
+        \begin{column}{0.34\textwidth}
+            \small
+            \textbf{Transition analysis}
 
-    \vspace{2pt}
-    \begin{columns}[t]
-        \begin{column}{0.48\textwidth}
-            \small \textbf{Persona contrast ---} identical action, different personas produce fundamentally different transition patterns.
+            \vspace{6pt}
+            \begin{itemize}
+                \item Personas separate clearly under the same intervention.
+                \item Notification burden reduces movement-suggestion effectiveness.
+                \item Learned transition tables encode plausible behavioural heterogeneity.
+                \item HeartSteps V2 agent outperforms all bandit baselines.
+            \end{itemize}
         \end{column}
-        \begin{column}{0.48\textwidth}
-            \small \textbf{Burden effect ---} as notification burden rises, movement suggestion becomes less effective.
+
+        \begin{column}{0.64\textwidth}
+            \centering
+            {\scriptsize \textbf{Persona contrast:} same action, different transition patterns.\par}
+            \vspace{2pt}
+            \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{images/persona_contrast.png}
+
+            \vspace{5pt}
+            {\scriptsize \textbf{Burden effect:} higher notification burden weakens suggestions.\par}
+            \vspace{2pt}
+            \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{images/burden_degradation.png}
         \end{column}
     \end{columns}
-
-    \vspace{4pt}
-    \begin{center}
-        \includegraphics[height=0.32\textheight]{images/persona_contrast.png}
-
-        \vspace{6pt}
-        \includegraphics[height=0.32\textheight]{images/burden_degradation.png}
-    \end{center}
 \end{frame}
 
 % --------------------------------------------------
@@ -172,6 +187,7 @@
 % --------------------------------------------------
 \begin{frame}{Next Steps}
     \small
+    \setlength{\itemsep}{1pt}
     \begin{enumerate}
         \item \textbf{Broader Agent Suite}
         \begin{itemize}
