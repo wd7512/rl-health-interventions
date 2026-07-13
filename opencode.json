@@ -5,7 +5,6 @@
   "skills": {
     "paths": [".opencode/skills"]
   },
-  "plugin": [".opencode/plugins/write-size-guard.ts"],
   "mcp": {
     "git": {
       "type": "local",
