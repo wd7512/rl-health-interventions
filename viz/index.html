@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citation Graph — HeartSteps V2 & PEARL</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; overflow: hidden; }
+#graph { width: 100vw; height: 100vh; }
+.layer-label { font-size: 10px; fill: #444; text-anchor: middle; letter-spacing: 1px; }
+.link { fill: none; stroke: #3a4a6a; stroke-opacity: 0.55; }
+.node-circle { cursor: pointer; transition: r 0.15s; }
+.node-circle:hover { filter: brightness(1.3); }
+.node-label { font-size: 10px; fill: #bbb; text-anchor: middle; pointer-events: none; font-weight: 500; }
+.node-year { font-size: 8px; fill: #666; text-anchor: middle; pointer-events: none; }
+.tooltip { position: absolute; background: #16161e; border: 1px solid #333; border-radius: 8px; padding: 14px 18px; font-size: 13px; line-height: 1.5; max-width: 380px; pointer-events: none; opacity: 0; transition: opacity 0.15s; box-shadow: 0 8px 32px rgba(0,0,0,0.6); z-index: 100; }
+.tooltip .tt-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.tooltip .tt-authors { font-size: 12px; color: #999; }
+.tooltip .tt-venue { font-size: 11px; color: #6b8afd; margin-bottom: 6px; }
+.tooltip .tt-headline { font-size: 12px; color: #bbb; border-left: 2px solid #6b8afd; padding-left: 8px; margin: 6px 0; }
+.tooltip .tt-detail { font-size: 12px; color: #888; }
+.tooltip .tt-links { font-size: 11px; color: #6b8afd; margin-top: 6px; }
+.tooltip .tt-links a { color: #6b8afd; text-decoration: none; }
+.tooltip .tt-links a:hover { text-decoration: underline; }
+.legend { position: absolute; bottom: 20px; left: 20px; background: #16161e; border: 1px solid #2a2a35; border-radius: 8px; padding: 12px 16px; font-size: 12px; }
+.legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.legend-item:last-child { margin-bottom: 0; }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+.header { position: absolute; top: 20px; left: 20px; z-index: 10; }
+.header h1 { font-size: 20px; font-weight: 700; color: #fff; }
+.header p { font-size: 12px; color: #666; margin-top: 2px; }
+.tabs { position: absolute; top: 20px; right: 20px; display: flex; gap: 8px; z-index: 10; }
+.tab-btn { background: #16161e; border: 1px solid #2a2a35; border-radius: 8px; padding: 8px 16px; font-size: 13px; color: #888; cursor: pointer; transition: all 0.15s; }
+.tab-btn:hover { border-color: #555; color: #ddd; }
+.tab-btn.active { background: #5b8def; border-color: #5b8def; color: #fff; }
+.highlight-edge { stroke: #a0c0ff !important; stroke-opacity: 1 !important; stroke-width: 3px !important; }
+.dim { opacity: 0.08; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Citation Graph</h1>
+  <p>HeartSteps V2 & PEARL — references and citations</p>
+</div>
+<div class="tabs" id="tabs">
+  <button class="tab-btn active" data-mode="curated">Curated</button>
+  <button class="tab-btn" data-mode="full">Full</button>
+</div>
+<div class="tooltip" id="tooltip"></div>
+<div class="legend" id="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#5b8def"></div> Main papers</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#334466"></div> References</div>
+  <div class="legend-item" style="margin-top:4px;border-top:1px solid #333;padding-top:5px"><svg width="28" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#3a4a6a" stroke-width="2.4"/><polygon points="20,1 28,5 20,9" fill="#3a4a6a"/></svg> cites</div>
+</div>
+<svg id="graph"></svg>
+<script>
+const width = window.innerWidth;
+const height = window.innerHeight;
+const svg = d3.select("#graph").attr("width", width).attr("height", height);
+const years = ["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024","2025","2026"];
+const colWidth = (width - 160) / years.length;
+const yearX = {};
+years.forEach((y, i) => { yearX[y] = 80 + colWidth * i + colWidth / 2; });
+function yearBucket(y) {
+  if (yearX[String(y)]) return String(y);
+  const closest = years.reduce((prev, curr) => Math.abs(curr - y) < Math.abs(prev - y) ? curr : prev);
+  return closest;
+}
+let g, simulation, link, node;
+let allNodes, allLinks, nodeMap;
+let mode = 'curated';
+const central = new Set(["arxiv:1909.03539","arxiv:2508.10060"]);
+
+function getVisibleIds() {
+  if (mode === 'full') return new Set(allNodes.map(n => n.id));
+  const visible = new Set();
+  allNodes.forEach(n => {
+    if (!n.id.startsWith("ref:")) visible.add(n.id);
+    else if (n.curated) visible.add(n.id);
+  });
+  return visible;
+}
+function render() {
+  svg.selectAll("g").remove();
+  const visibleIds = getVisibleIds();
+  const nodes = allNodes.filter(n => visibleIds.has(n.id));
+  const nm = new Map(nodes.map(n => [n.id, n]));
+  const links = allLinks.filter(l => {
+    const s = l.source.id || l.source;
+    const t = l.target.id || l.target;
+    return nm.has(s) && nm.has(t);
+  });
+
+  const nodesInCol = {};
+  nodes.forEach(n => { const c = yearBucket(n.year); nodesInCol[c] = (nodesInCol[c]||0)+1; });
+  const nodeY = {};
+  nodes.forEach(n => {
+    const c = yearBucket(n.year);
+    const count = nodesInCol[c] || 1;
+    const spacing = height / (count + 1);
+    const idx = Object.keys(nodeY).filter(k => {
+      const pp = nm.get(k);
+      return pp && yearBucket(pp.year) === c;
+    }).length;
+    nodeY[n.id] = spacing * (idx + 1);
+  });
+
+  nodes.forEach(n => {
+    n.x = yearX[yearBucket(n.year)] + (Math.random()-0.5)*20;
+    n.y = nodeY[n.id];
+    n.fx = yearX[yearBucket(n.year)];
+  });
+
+  simulation = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d=>d.id).distance(100).strength(0.2))
+    .force("charge", d3.forceManyBody().strength(-200))
+    .force("y", d3.forceY(d=>nodeY[d.id]).strength(0.85))
+    .force("x", d3.forceX(d=>yearX[yearBucket(d.year)]).strength(0.95))
+    .force("collision", d3.forceCollide(25))
+    .alphaDecay(0.02);
+
+  const defs = svg.append("defs");
+  defs.append("marker").attr("id","arrow").attr("viewBox","0 0 10 10")
+    .attr("refX",9).attr("refY",5).attr("markerWidth",8).attr("markerHeight",8)
+    .attr("orient","auto")
+    .append("path").attr("d","M0,1 L8,5 L0,9 Z").attr("fill","#3a4a6a");
+  defs.append("marker").attr("id","arrow-hl").attr("viewBox","0 0 10 10")
+    .attr("refX",9).attr("refY",5).attr("markerWidth",10).attr("markerHeight",10)
+    .attr("orient","auto")
+    .append("path").attr("d","M0,1 L8,5 L0,9 Z").attr("fill","#a0c0ff");
+
+  g = svg.append("g");
+  svg.call(d3.zoom().scaleExtent([0.3,4]).on("zoom", e=>g.attr("transform",e.transform)));
+  link = g.append("g").selectAll("line").data(links).join("line")
+    .attr("class","link").attr("stroke-width",2).attr("marker-end","url(#arrow)");
+  node = g.append("g").selectAll("g").data(nodes).join("g").attr("class","node-group");
+
+  const isMain = d => !d.id.startsWith("ref:");
+  node.append("circle").attr("class","node-circle")
+    .attr("r", d => central.has(d.id) ? 20 : isMain(d) ? 14 : 8)
+    .attr("fill", d => central.has(d.id) ? "#5b8def" : isMain(d) ? "#4a7acc" : "#334466")
+    .attr("stroke", d => central.has(d.id) ? "#a0c0ff" : "none")
+    .attr("stroke-width", d => central.has(d.id) ? 2 : 0);
+  node.append("text").attr("class","node-label")
+    .attr("dy", d => central.has(d.id) ? -28 : isMain(d) ? -22 : -14)
+    .text(d => d.label);
+  node.append("text").attr("class","node-year")
+    .attr("dy", d => central.has(d.id) ? 34 : isMain(d) ? 26 : 18)
+    .text(d => d.year);
+
+  const tooltip = d3.select("#tooltip");
+  node.on("mouseenter", (event,d)=>{
+    const isDoi = d.id.startsWith("10.");
+    const isArxiv = d.id.startsWith("arxiv:");
+    const url = isDoi ? `https://doi.org/${d.id}` : isArxiv ? `https://arxiv.org/abs/${d.id.replace("arxiv:","")}` : null;
+    const linkLabel = isDoi ? `DOI: ${d.id}` : isArxiv ? `arXiv: ${d.id.replace("arxiv:","")}` : "";
+    tooltip.style("opacity",1).html(`
+      <div class="tt-title">${d.label}</div>
+      <div class="tt-authors">${d.authors} (${d.year})</div>
+      <div class="tt-venue">${d.venue}</div>
+      <div class="tt-headline">${d.headline}</div>
+      <div class="tt-detail">${d.detail}</div>
+      ${url?`<div class="tt-links"><a href="${url}" target="_blank">${linkLabel}</a></div>`:""}
+    `);
+  }).on("mousemove", event=>{
+    tooltip.style("left",(event.pageX+16)+"px").style("top",(event.pageY-10)+"px");
+  }).on("mouseleave", ()=>tooltip.style("opacity",0));
+
+  node.on("click", (event,d)=>{
+    const connected = new Set([d.id]);
+    links.forEach(l=>{
+      const s=l.source.id||l.source, t=l.target.id||l.target;
+      if(s===d.id) connected.add(t); if(t===d.id) connected.add(s);
+    });
+    node.classed("dim", n=>!connected.has(n.id));
+    link.classed("dim", l=>(l.source.id||l.source)!==d.id&&(l.target.id||l.target)!==d.id)
+      .classed("highlight-edge", l=>(l.source.id||l.source)===d.id||(l.target.id||l.target)===d.id)
+      .attr("marker-end", l=>(l.source.id||l.source)===d.id||(l.target.id||l.target)===d.id?"url(#arrow-hl)":"url(#arrow)");
+  });
+  svg.on("click", event=>{
+    if(event.target===svg.node()){
+      node.classed("dim",false);
+      link.classed("dim",false).classed("highlight-edge",false).attr("marker-end","url(#arrow)");
+    }
+  });
+
+  g.selectAll(".layer-label").data(years.map(y=>({x:yearX[y],y:35,text:y}))).join("text")
+    .attr("class","layer-label").attr("x",d=>d.x).attr("y",d=>d.y).text(d=>d.text);
+  simulation.on("tick", ()=>{
+    link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y)
+        .attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+    node.attr("transform",d=>`translate(${d.x},${d.y})`);
+  });
+}
+
+d3.json("citations.json").then(data => {
+  const mainPapers = data.papers;
+  const refs = data.refs || {};
+  allNodes = Object.entries(mainPapers).map(([id, p]) => ({ id, ...p }));
+  Object.entries(refs).forEach(([id, r]) => { allNodes.push({ id, ...r }); });
+  allNodes.forEach(n => { if (n.curated === undefined) n.curated = false; });
+  nodeMap = new Map(allNodes.map(n => [n.id, n]));
+  allLinks = [];
+  Object.entries(mainPapers).forEach(([srcId, p]) => {
+    (p.cites || []).forEach(tgtId => {
+      if (nodeMap.has(tgtId)) allLinks.push({ source: srcId, target: tgtId });
+    });
+  });
+
+  render();
+  d3.selectAll(".tab-btn").on("click", function() {
+    d3.selectAll(".tab-btn").classed("active", false);
+    d3.select(this).classed("active", true);
+    mode = d3.select(this).attr("data-mode");
+    render();
+  });
+});
+</script>
+</body>
+</html>
