@@ -1,0 +1,54 @@
+{
+  "batch_id": 3,
+  "evaluator": "subagent-03",
+  "promotions": [
+    {
+      "id": "ref:mhc:b",
+      "label": "US physical activity by accelerometer",
+      "reason": "Core domain data: accelerometer-based measurement of physical activity in the US population directly informs the step-counting state variable (step_bin) in the 36-state factored MDP and provides benchmarks for wearable sensor processing."
+    },
+    {
+      "id": "ref:mhc:i",
+      "label": "Text messaging for lifestyle",
+      "reason": "Directly applicable to JITAI intervention design: lifestyle-focused text messaging is a key delivery channel for the 4-action set (movement_suggestion, goal_reminder), and this RCT provides evidence of effectiveness for mobile health behavior change interventions."
+    },
+    {
+      "id": "ref:mhc:j",
+      "label": "Smartphone app accuracy",
+      "reason": "Core domain data: validation of smartphone-based physical activity tracking accuracy is essential for the wearable/sensor processing pipeline that feeds the step_bin state variable, and informs the project's sensor FM work with NormWear embeddings."
+    },
+    {
+      "id": "ref:mhc:l",
+      "label": "Consumer mobile health",
+      "reason": "Implementation-relevant: comprehensive review of consumer mobile health science covering wearable sensors, digital intervention delivery, and mobile health platforms directly relevant to building JITAIs for physical activity and the config-driven RL framework."
+    },
+    {
+      "id": "ref:mhc:m",
+      "label": "Motion sensor validity",
+      "reason": "Core domain data: validation of motion sensors (accelerometers) for physical activity measurement is fundamental to the project's wearable sensor processing and the step_bin state estimation in the factored MDP."
+    },
+    {
+      "id": "ref:mhc:n",
+      "label": "US pedometer-measured PA",
+      "reason": "Core domain data: pedometer-based step count measurement in US adults provides population benchmarks for the step_bin state variable and grounds the project's physical activity intervention targets in real-world data."
+    },
+    {
+      "id": "ref:mhc:o",
+      "label": "Accelerometer sedentary time",
+      "reason": "Core domain data: systematic review of accelerometer-measured sedentary behavior provides methodological grounding for the project's wearable data processing pipeline and informs the sedentary/activity state estimation used in the RL state space."
+    }
+  ],
+  "demotions": [],
+  "summary": {
+    "total_evaluated": 52,
+    "promoted": 7,
+    "demoted": 0,
+    "kept_curated": 0,
+    "kept_regular": 45
+  },
+  "notes": {
+    "no_demotions": "All 52 papers in this batch have curated=false (regular status). None were currently curated, so no demotions apply.",
+    "hg_papers_assessment": "The 34 ref:hg:* papers in this batch are general statistics (t-tests, KS test, Box-Cox, density estimation), general ML (adversarial feature matching, diffusion models, CausalVAE, curriculum learning), software tools (Python, SciPy, scikit-learn, Pandas, MATLAB, SQL), unrelated health conditions (Glasgow Coma Scale, Sepsis-3, HIV), or privacy/policy documents. None are directly applicable to config-driven RL for JITAIs in physical activity.",
+    "mhc_domain_background_kept_regular": "Several ref:mhc:* papers provide domain motivation (exercise and mortality, PA and longevity, physical inactivity pandemic, CVD risk, ACSM guidelines) but are epidemiological background evidence rather than directly applicable methodology or data for the RL/JITAI system. Kept regular."
+  }
+}
