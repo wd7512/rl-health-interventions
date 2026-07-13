@@ -39,7 +39,7 @@ class _NumpyDictWrapper:
         return list(self.action_to_index.keys())
 
     def values(self) -> list[Any]:
-        return [self.array[idx] for idx in sorted(self.action_to_index.values())]
+        return [self.array[self.action_to_index[action]] for action in self.action_to_index]
 
     def get(self, key: str, default: Any = None) -> Any:
         if isinstance(key, str) and key in self.action_to_index:

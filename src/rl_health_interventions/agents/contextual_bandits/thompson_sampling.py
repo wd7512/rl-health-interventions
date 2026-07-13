@@ -51,6 +51,23 @@ class _PosteriorDictWrapper:
         return repr({a: Posterior(alpha=self.alphas[i], beta=self.betas[i])
                      for a, i in self.action_to_index.items()})
 
+    def get(self, key: str, default: object = None) -> object:
+        if isinstance(key, str) and key in self.action_to_index:
+            idx = self.action_to_index[key]
+            return Posterior(alpha=self.alphas[idx], beta=self.betas[idx])
+        return default
+
+    def keys(self) -> list[str]:
+        return list(self.action_to_index.keys())
+
+    def values(self) -> list[Posterior]:
+        return [Posterior(alpha=self.alphas[self.action_to_index[a]], beta=self.betas[self.action_to_index[a]])
+                for a in self.action_to_index]
+
+    def items(self) -> list[tuple[str, Posterior]]:
+        return [(a, Posterior(alpha=self.alphas[self.action_to_index[a]], beta=self.betas[self.action_to_index[a]]))
+                for a in self.action_to_index]
+
 
 class ThompsonSamplingAgent(ContextualBanditAgent):
     """Beta-Bernoulli Thompson Sampling for binary actions.

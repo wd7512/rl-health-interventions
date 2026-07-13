@@ -94,7 +94,7 @@ class StateView:
 
     @override
     def __hash__(self) -> int:
-        cached_hash = object.__getattribute__(self, "_hash")
+        cached_hash = self._hash
         if cached_hash is None:
             cached_hash = hash(
                 (

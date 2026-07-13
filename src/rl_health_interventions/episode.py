@@ -36,7 +36,7 @@ def run_episode(
     state = env.reset()
     records: list[dict] = []
     done = False
-    declared_vars = set(config.state.variables.keys())
+    declared_vars = list(config.state.variables.keys())
     while not done:
         action = agent.select_action(state)
         next_state, reward, done = env.step(action)
@@ -88,18 +88,19 @@ def run_episode_polars(
     env = Environment(config, seed=seed)
     state = env.reset()
     done = False
-    declared_vars = set(config.state.variables.keys())
+    declared_vars = list(config.state.variables.keys())
 
     # Pre-allocate schema for Polars DataFrame
+    # Order must match the record tuple construction below
     schema = {
         "step": pl.Int64,
         "day": pl.Int64,
         "step_of_day": pl.Int64,
-        "action": pl.Utf8,
-        "reward": pl.Float64,
     }
     for var in declared_vars:
         schema[var] = pl.Utf8
+    schema["action"] = pl.Utf8
+    schema["reward"] = pl.Float64
 
     # Build records as list of tuples for efficient DataFrame construction
     records: list[tuple] = []
