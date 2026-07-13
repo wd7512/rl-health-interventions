@@ -68,10 +68,11 @@ function yearBucket(y) {
   const closest = years.reduce((prev, curr) => Math.abs(curr - y) < Math.abs(prev - y) ? curr : prev);
   return closest;
 }
-let g, simulation, link, node;
+let g, link, node;
 let allNodes, allLinks, nodeMap;
 let mode = 'curated';
 const central = new Set(["arxiv:1909.03539","arxiv:2508.10060"]);
+const isMain = d => !d.id.startsWith("ref:");
 
 function getVisibleIds() {
   if (mode === 'full') return new Set(allNodes.map(n => n.id));
@@ -82,6 +83,239 @@ function getVisibleIds() {
   });
   return visible;
 }
+
+function compactLabel(d) {
+  const a = d.authors || d.label || '';
+  const first = a.split(/[\s,&;]+/)[0];
+  return `${first} (${d.year})`;
+}
+
+function computeLayout(nodes, links, mode) {
+  const mains = nodes.filter(isMain);
+  const refs = nodes.filter(n => !isMain(n));
+
+  const paperOrder = [
+    "10.1037/0033-2909.136.6.969",
+    "10.1007/s12160-018-0049-1",
+    "10.1001/jamacardio.2016.4395",
+    "10.1016/j.artmed.2024.102930",
+    "arxiv:1909.03539",
+    "10.1038/s41746-024-01089-6",
+    "arxiv:2508.10060",
+    "10.13026/5M0E-GX79",
+    "10.1093/jamia/ocae148",
+    "10.1016/j.cct.2024.107700",
+  ];
+
+  const paperIdx = {};
+  mains.forEach(p => { paperIdx[p.id] = paperOrder.indexOf(p.id); });
+
+  const topPad = 60, botPad = 40;
+  const paperY = {};
+  mains.forEach(p => {
+    const idx = paperIdx[p.id] >= 0 ? paperIdx[p.id] : 5;
+    paperY[p.id] = topPad + (idx / (paperOrder.length - 1)) * (height - topPad - botPad);
+  });
+
+  // Ensure minimum gap between same-column papers
+  const colPapers = {};
+  mains.forEach(p => {
+    const c = yearBucket(p.year);
+    if (!colPapers[c]) colPapers[c] = [];
+    colPapers[c].push(p);
+  });
+  Object.keys(colPapers).forEach(c => {
+    const ps = colPapers[c];
+    if (ps.length < 2) return;
+    ps.sort((a,b) => paperIdx[a.id] - paperIdx[b.id]);
+    for (let i = 1; i < ps.length; i++) {
+      paperY[ps[i].id] = Math.max(paperY[ps[i].id], paperY[ps[i-1].id] + 70);
+    }
+  });
+
+  // Citation map: ref -> set of citing paper IDs (only main→ref links)
+  const citeMap = {};
+  links.forEach(l => {
+    const src = l.source.id || l.source;
+    const tgt = l.target.id || l.target;
+    if (!isMain({id: src})) return;
+    if (!tgt.startsWith("ref:")) return;
+    if (!citeMap[tgt]) citeMap[tgt] = [];
+    citeMap[tgt].push(src);
+  });
+
+  // Barycenter for each ref = average y of citing papers
+  const barycenter = {};
+  refs.forEach(n => {
+    const citing = citeMap[n.id] || [];
+    if (citing.length === 0) {
+      barycenter[n.id] = height / 2;
+    } else {
+      const ys = citing.map(id => paperY[id] || height / 2);
+      barycenter[n.id] = ys.reduce((a,b) => a+b, 0) / ys.length;
+    }
+  });
+
+  // Sort nodes in each year column by reference y
+  const colNodes = {};
+  nodes.forEach(n => {
+    const c = yearBucket(n.year);
+    if (!colNodes[c]) colNodes[c] = [];
+    colNodes[c].push(n);
+  });
+
+  // Per-pair gap: larger spacing for papers and curated refs
+  function gap(a, b) {
+    const aP = isMain(a) || central.has(a.id);
+    const bP = isMain(b) || central.has(b.id);
+    if (aP || bP) return 64;
+    const aC = mode === 'curated' || a.curated;
+    const bC = mode === 'curated' || b.curated;
+    if (aC && bC) return 48;
+    if (aC || bC) return 36;
+    return 26;
+  }
+
+  const result = {};
+
+  Object.keys(colNodes).forEach(c => {
+    const ns = colNodes[c];
+    if (ns.length === 0) return;
+    const sorted = [...ns].sort((a,b) => {
+      const aY = isMain(a) ? (paperY[a.id] || 0) : (barycenter[a.id] || height/2);
+      const bY = isMain(b) ? (paperY[b.id] || 0) : (barycenter[b.id] || height/2);
+      return aY - bY;
+    });
+
+    let totalH = 0;
+    for (let i = 1; i < sorted.length; i++) totalH += gap(sorted[i-1], sorted[i]);
+    let startY = Math.max(55, (height - totalH) / 2);
+
+    // Place all nodes with dynamic gaps
+    function placeNodes(offset) {
+      const yp = {};
+      let curY = offset;
+      yp[sorted[0].id] = curY;
+      for (let i = 1; i < sorted.length; i++) {
+        curY += gap(sorted[i-1], sorted[i]);
+        yp[sorted[i].id] = curY;
+      }
+      return yp;
+    }
+
+    let yPos = placeNodes(startY);
+
+    // Shift column so main papers land near their natural positions
+    let offsetSum = 0, offsetCount = 0;
+    sorted.forEach(n => {
+      if (isMain(n)) {
+        offsetSum += paperY[n.id] - (yPos[n.id] || 0);
+        offsetCount++;
+      }
+    });
+    if (offsetCount > 0) {
+      const avg = offsetSum / offsetCount;
+      startY = Math.max(55, Math.min(height - totalH - 10, startY + avg));
+      yPos = placeNodes(startY);
+    }
+
+    Object.assign(result, yPos);
+  });
+
+  return result;
+}
+
+function penalizeHorizOverlap(nodes, positions, mode) {
+  const colN = {};
+  nodes.forEach(n => {
+    const c = yearBucket(n.year);
+    if (!colN[c]) colN[c] = [];
+    colN[c].push(n);
+  });
+  const cols = Object.keys(colN).sort((a,b) => a - b);
+
+  // Estimate label bounding box for a node
+  function bbox(n) {
+    const compact = mode === 'full' && !isMain(n) && !n.curated;
+    const text = compact ? compactLabel(n) : n.label;
+    const fs = compact ? 8 : 10;
+    const halfW = text.length * 0.62 * fs / 2;
+    const cx = yearX[yearBucket(n.year)];
+    const y = positions[n.id];
+    let t, b;
+    if (central.has(n.id)) { t = -42; b = -28; }
+    else if (isMain(n)) { t = -36; b = -22; }
+    else if (mode === 'curated' || n.curated) { t = -28; b = -14; }
+    else { t = 11; b = 22; }
+    return { l: cx - halfW, r: cx + halfW, t: y + t, b: y + b };
+  }
+
+  // Same gap logic as computeLayout for vertical re-spacing
+  function gap(a, b) {
+    const aP = isMain(a) || central.has(a.id);
+    const bP = isMain(b) || central.has(b.id);
+    if (aP || bP) return 64;
+    const aC = mode === 'curated' || a.curated;
+    const bC = mode === 'curated' || b.curated;
+    if (aC && bC) return 48;
+    if (aC || bC) return 36;
+    return 26;
+  }
+
+  for (let iter = 0; iter < 30; iter++) {
+    let moved = false;
+
+    // Phase 1: resolve horizontal overlaps between adjacent columns
+    for (let ci = 0; ci < cols.length - 1; ci++) {
+      const cA = cols[ci], cB = cols[ci+1];
+      const bnd = (yearX[cA] + yearX[cB]) / 2;
+
+      for (const a of colN[cA]) {
+        if (mode === 'full' && !isMain(a) && !a.curated) continue; // compact labels fit in column
+        const ba = bbox(a);
+        if (ba.r <= bnd) continue;
+
+        for (const b of colN[cB]) {
+          if (mode === 'full' && !isMain(b) && !b.curated) continue;
+          const bb = bbox(b);
+          if (bb.l >= bnd) continue;
+
+          const overlap = Math.min(ba.b, bb.b) - Math.max(ba.t, bb.t);
+          if (overlap > 0) {
+            const push = overlap + 5;
+            if (positions[a.id] < positions[b.id]) {
+              positions[b.id] += push;
+            } else {
+              positions[a.id] -= push;
+            }
+            moved = true;
+          }
+        }
+      }
+    }
+
+    // Phase 2: re-ensure vertical spacing within each column
+    Object.keys(colN).forEach(c => {
+      const ns = [...colN[c]].sort((x,y) => positions[x.id] - positions[y.id]);
+      for (let i = 0; i < ns.length - 1; i++) {
+        const curGap = positions[ns[i+1].id] - positions[ns[i].id];
+        const req = gap(ns[i], ns[i+1]);
+        if (curGap < req) {
+          const shift = req - curGap;
+          for (let j = i + 1; j < ns.length; j++) {
+            positions[ns[j].id] += shift;
+          }
+          moved = true;
+        }
+      }
+    });
+
+    if (!moved) break;
+  }
+
+  return positions;
+}
+
 function render() {
   svg.selectAll("g").remove();
   const visibleIds = getVisibleIds();
@@ -93,33 +327,19 @@ function render() {
     return nm.has(s) && nm.has(t);
   });
 
-  const nodesInCol = {};
-  nodes.forEach(n => { const c = yearBucket(n.year); nodesInCol[c] = (nodesInCol[c]||0)+1; });
-  const nodeY = {};
+  // Deterministic barycenter layout (no force simulation)
+  const positions = computeLayout(nodes, links, mode);
+  penalizeHorizOverlap(nodes, positions, mode);
   nodes.forEach(n => {
-    const c = yearBucket(n.year);
-    const count = nodesInCol[c] || 1;
-    const spacing = height / (count + 1);
-    const idx = Object.keys(nodeY).filter(k => {
-      const pp = nm.get(k);
-      return pp && yearBucket(pp.year) === c;
-    }).length;
-    nodeY[n.id] = spacing * (idx + 1);
+    n.x = yearX[yearBucket(n.year)];
+    n.y = positions[n.id];
   });
 
-  nodes.forEach(n => {
-    n.x = yearX[yearBucket(n.year)] + (Math.random()-0.5)*20;
-    n.y = nodeY[n.id];
-    n.fx = yearX[yearBucket(n.year)];
-  });
-
-  simulation = d3.forceSimulation(nodes)
-    .force("link", d3.forceLink(links).id(d=>d.id).distance(100).strength(0.2))
-    .force("charge", d3.forceManyBody().strength(-200))
-    .force("y", d3.forceY(d=>nodeY[d.id]).strength(0.85))
-    .force("x", d3.forceX(d=>yearX[yearBucket(d.year)]).strength(0.95))
-    .force("collision", d3.forceCollide(25))
-    .alphaDecay(0.02);
+  // Resolve link source/target from IDs → node objects for rendering
+  const rlinks = links.map(l => ({
+    source: nm.get(l.source.id || l.source),
+    target: nm.get(l.target.id || l.target),
+  })).filter(l => l.source && l.target);
 
   const defs = svg.append("defs");
   defs.append("marker").attr("id","arrow").attr("viewBox","0 0 10 10")
@@ -133,20 +353,49 @@ function render() {
 
   g = svg.append("g");
   svg.call(d3.zoom().scaleExtent([0.3,4]).on("zoom", e=>g.attr("transform",e.transform)));
-  link = g.append("g").selectAll("line").data(links).join("line")
-    .attr("class","link").attr("stroke-width",2).attr("marker-end","url(#arrow)");
-  node = g.append("g").selectAll("g").data(nodes).join("g").attr("class","node-group");
 
-  const isMain = d => !d.id.startsWith("ref:");
+  // Invisible wide click target behind each edge
+  g.append("g").selectAll("line").data(rlinks).join("line")
+    .attr("stroke","transparent").attr("stroke-width",16)
+    .attr("x1",d=>d.source.x).attr("y1",d=>d.source.y)
+    .attr("x2",d=>d.target.x).attr("y2",d=>d.target.y)
+    .on("click", (event,d)=>{
+      event.stopPropagation();
+      const connected = new Set([d.source.id, d.target.id]);
+      node.classed("dim", n=>!connected.has(n.id));
+      link.classed("dim", l=>l.source.id!==d.source.id&&l.target.id!==d.target.id)
+        .classed("highlight-edge", l=>l===d)
+        .attr("marker-end", l=>l===d?"url(#arrow-hl)":"url(#arrow)");
+    });
+
+  link = g.append("g").selectAll("line").data(rlinks).join("line")
+    .attr("class","link").attr("stroke-width",2).attr("marker-end","url(#arrow)")
+    .attr("x1",d=>d.source.x).attr("y1",d=>d.source.y)
+    .attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+
+  node = g.append("g").selectAll("g").data(nodes).join("g").attr("class","node-group")
+    .attr("transform",d=>`translate(${d.x},${d.y})`);
+
+  // Circles
   node.append("circle").attr("class","node-circle")
     .attr("r", d => central.has(d.id) ? 20 : isMain(d) ? 14 : 8)
     .attr("fill", d => central.has(d.id) ? "#5b8def" : isMain(d) ? "#4a7acc" : "#334466")
     .attr("stroke", d => central.has(d.id) ? "#a0c0ff" : "none")
     .attr("stroke-width", d => central.has(d.id) ? 2 : 0);
+
+  // Labels: conditional — compact for non-curated refs in full mode
+  const isCompact = d => mode === 'full' && !isMain(d) && !d.curated;
   node.append("text").attr("class","node-label")
-    .attr("dy", d => central.has(d.id) ? -28 : isMain(d) ? -22 : -14)
-    .text(d => d.label);
-  node.append("text").attr("class","node-year")
+    .attr("dy", d => central.has(d.id) ? -28 : isMain(d) ? -22 : (mode === 'curated' || d.curated) ? -14 : 11)
+    .attr("font-size", d => isCompact(d) ? "8px" : "10px")
+    .text(d => {
+      if (isMain(d)) return d.label;
+      if (mode === 'curated' || d.curated) return d.label;
+      return compactLabel(d);
+    });
+
+  // Year: only for nodes that have room (skip compact refs)
+  node.filter(d => !isCompact(d)).append("text").attr("class","node-year")
     .attr("dy", d => central.has(d.id) ? 34 : isMain(d) ? 26 : 18)
     .text(d => d.year);
 
@@ -170,15 +419,16 @@ function render() {
 
   node.on("click", (event,d)=>{
     const connected = new Set([d.id]);
-    links.forEach(l=>{
-      const s=l.source.id||l.source, t=l.target.id||l.target;
-      if(s===d.id) connected.add(t); if(t===d.id) connected.add(s);
+    rlinks.forEach(l=>{
+      if(l.source.id===d.id) connected.add(l.target.id);
+      if(l.target.id===d.id) connected.add(l.source.id);
     });
     node.classed("dim", n=>!connected.has(n.id));
-    link.classed("dim", l=>(l.source.id||l.source)!==d.id&&(l.target.id||l.target)!==d.id)
-      .classed("highlight-edge", l=>(l.source.id||l.source)===d.id||(l.target.id||l.target)===d.id)
-      .attr("marker-end", l=>(l.source.id||l.source)===d.id||(l.target.id||l.target)===d.id?"url(#arrow-hl)":"url(#arrow)");
+    link.classed("dim", l=>l.source.id!==d.id&&l.target.id!==d.id)
+      .classed("highlight-edge", l=>l.source.id===d.id||l.target.id===d.id)
+      .attr("marker-end", l=>l.source.id===d.id||l.target.id===d.id?"url(#arrow-hl)":"url(#arrow)");
   });
+
   svg.on("click", event=>{
     if(event.target===svg.node()){
       node.classed("dim",false);
@@ -188,11 +438,6 @@ function render() {
 
   g.selectAll(".layer-label").data(years.map(y=>({x:yearX[y],y:35,text:y}))).join("text")
     .attr("class","layer-label").attr("x",d=>d.x).attr("y",d=>d.y).text(d=>d.text);
-  simulation.on("tick", ()=>{
-    link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y)
-        .attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
-    node.attr("transform",d=>`translate(${d.x},${d.y})`);
-  });
 }
 
 d3.json("citations.json").then(data => {
