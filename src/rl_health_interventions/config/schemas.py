@@ -96,6 +96,10 @@ _KNOWN_AGENT_TYPES = frozenset(
         "decaying_epsilon_greedy",
         "fixed",
         "heartsteps",
+        "q_learning",
+        "dqn",
+        "reinforce",
+        "ppo",
     }
 )
 
@@ -121,6 +125,17 @@ class AgentConfig(BaseModel):
     context_features: str | list[str] | None = None
     action: str | None = None
     gamma: float | None = None
+    lr: float | None = None
+    hidden_dim: int | list[int] | None = None
+    policy_hidden_dim: int | list[int] | None = None
+    value_hidden_dim: int | list[int] | None = None
+    state_dim: int | None = None
+    batch_size: int | None = None
+    buffer_size: int | None = None
+    target_update_freq: int | None = None
+    clip_eps: float | None = None
+    gae_lambda: float | None = None
+    ppo_epochs: int | None = None
     lambda_dosage: float | None = None
     w: float | None = None
     epsilon_0: float | None = None
@@ -283,6 +298,60 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "heartsteps agent does not accept alpha_prior, beta_prior, epsilon, epsilon_start, c, decay_steps, epsilon_0, or epsilon_1"
                 )
+        if self.type in {"q_learning", "dqn"}:
+            if self.lr is None or self.lr <= 0:
+                raise ValueError("lr must be > 0 for q_learning and dqn")
+            if self.gamma is not None and not (0 <= self.gamma <= 1):
+                raise ValueError("gamma must be in [0, 1] for q_learning and dqn")
+            if self.epsilon is not None and not (0 <= self.epsilon <= 1):
+                raise ValueError("epsilon must be in [0, 1] for q_learning and dqn")
+            if self.state_dim is not None and self.state_dim <= 0:
+                raise ValueError("state_dim must be > 0 for q_learning and dqn")
+        if self.type == "dqn":
+            if self.batch_size is not None and self.batch_size <= 0:
+                raise ValueError("batch_size must be > 0 for dqn")
+            if self.buffer_size is not None and self.buffer_size <= 0:
+                raise ValueError("buffer_size must be > 0 for dqn")
+            if self.target_update_freq is not None and self.target_update_freq <= 0:
+                raise ValueError("target_update_freq must be > 0 for dqn")
+            if self.epsilon_start is not None and not (0 <= self.epsilon_start <= 1):
+                raise ValueError("epsilon_start must be in [0, 1] for dqn")
+            if self.epsilon_min is not None and not (0 <= self.epsilon_min <= 1):
+                raise ValueError("epsilon_min must be in [0, 1] for dqn")
+            if (
+                self.epsilon_start is not None
+                and self.epsilon_min is not None
+                and self.epsilon_min > self.epsilon_start
+            ):
+                raise ValueError("epsilon_min must not exceed epsilon_start for dqn")
+            if self.hidden_dim is not None:
+                if isinstance(self.hidden_dim, int):
+                    if self.hidden_dim <= 0:
+                        raise ValueError("hidden_dim must be > 0 for dqn")
+                elif not self.hidden_dim or not all(
+                    isinstance(h, int) and h > 0 for h in self.hidden_dim
+                ):
+                    raise ValueError("hidden_dim list must contain positive integers")
+        if self.type == "reinforce":
+            if self.lr is None or self.lr <= 0:
+                raise ValueError("lr must be > 0 for reinforce")
+            if self.gamma is not None and not (0 < self.gamma <= 1):
+                raise ValueError("gamma must be in (0, 1] for reinforce")
+            if self.state_dim is not None and self.state_dim <= 0:
+                raise ValueError("state_dim must be > 0 for reinforce")
+        if self.type == "ppo":
+            if self.lr is None or self.lr <= 0:
+                raise ValueError("lr must be > 0 for ppo")
+            if self.gamma is not None and not (0 < self.gamma <= 1):
+                raise ValueError("gamma must be in (0, 1] for ppo")
+            if self.gae_lambda is not None and not (0 <= self.gae_lambda <= 1):
+                raise ValueError("gae_lambda must be in [0, 1] for ppo")
+            if self.clip_eps is not None and self.clip_eps <= 0:
+                raise ValueError("clip_eps must be > 0 for ppo")
+            if self.ppo_epochs is not None and self.ppo_epochs <= 0:
+                raise ValueError("ppo_epochs must be > 0 for ppo")
+            if self.state_dim is not None and self.state_dim <= 0:
+                raise ValueError("state_dim must be > 0 for ppo")
         return self
 
 

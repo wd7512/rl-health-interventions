@@ -163,6 +163,25 @@ def _del(raw, *keys):
         (lambda raw: _set(raw, "agents", [{"type": "unknown_agent"}]), "unknown"),
         (
             lambda raw: _set(
+                raw, "agents", [{"type": "dqn", "lr": 0.01, "batch_size": 0}]
+            ),
+            "batch_size",
+        ),
+        (lambda raw: _set(raw, "agents", [{"type": "q_learning", "lr": 0}]), "lr"),
+        (
+            lambda raw: _set(
+                raw, "agents", [{"type": "reinforce", "lr": 0.01, "gamma": 0}]
+            ),
+            "gamma",
+        ),
+        (
+            lambda raw: _set(
+                raw, "agents", [{"type": "ppo", "lr": 0.01, "clip_eps": 0}]
+            ),
+            "clip_eps",
+        ),
+        (
+            lambda raw: _set(
                 raw,
                 "agents",
                 [
@@ -233,6 +252,10 @@ def _del(raw, *keys):
         "epsilon_greedy_epsilon_out_of_range",
         "ucb_c_non_positive",
         "unknown_agent_type",
+        "dqn_batch_size_non_positive",
+        "q_learning_lr_non_positive",
+        "reinforce_gamma_non_positive",
+        "ppo_clip_eps_non_positive",
         "random_contextual_not_supported",
         "context_features_without_contextual",
         "random_rejects_hyperparameters",
@@ -286,6 +309,50 @@ def test_validation_error(mutate, expected_match):
                     "beta_prior": 1,
                     "contextual": True,
                     "context_features": ["step_bin", "burden"],
+                }
+            ],
+        ),
+        lambda raw: _set(
+            raw,
+            "agents",
+            [{"type": "q_learning", "lr": 0.05, "gamma": 0.9, "epsilon": 0.1}],
+        ),
+        lambda raw: _set(
+            raw,
+            "agents",
+            [
+                {
+                    "type": "dqn",
+                    "lr": 0.01,
+                    "gamma": 0.95,
+                    "epsilon": 0.2,
+                    "batch_size": 8,
+                    "buffer_size": 64,
+                    "target_update_freq": 10,
+                    "hidden_dim": [16, 8],
+                    "state_dim": 32,
+                }
+            ],
+        ),
+        lambda raw: _set(
+            raw,
+            "agents",
+            [{"type": "reinforce", "lr": 0.01, "gamma": 0.99, "hidden_dim": 16}],
+        ),
+        lambda raw: _set(
+            raw,
+            "agents",
+            [
+                {
+                    "type": "ppo",
+                    "lr": 0.01,
+                    "gamma": 0.99,
+                    "gae_lambda": 0.95,
+                    "clip_eps": 0.2,
+                    "ppo_epochs": 2,
+                    "policy_hidden_dim": [16, 8],
+                    "value_hidden_dim": [16, 8],
+                    "state_dim": 32,
                 }
             ],
         ),
