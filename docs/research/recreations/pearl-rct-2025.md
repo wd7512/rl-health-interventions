@@ -78,7 +78,7 @@ The theoretical limit for a contextual bandit is `O(√(dT log T))` (Russo & Van
 | Paper / PR | Connection |
 |------------|------------|
 | HeartSteps V1 (Klasnja 2019) | Predecessor MRT; PEARL scales from ~50 to 13,463 |
-| HeartSteps V2 (Liao 2019) | Same algorithmic family; PEARL scales action space from ~5 to 155 |
+| HeartSteps V2 (Klasnja 2022) | Same algorithmic family; PEARL scales action space from ~5 to 155 |
 | StepCountJITAI (Karine 2024) | Simulation-based; PEARL validates real-world effect size range |
 | COM-B (Michie 2011) | PEARL's behavioural framework; our project does not yet integrate one |
 | Our project | PEARL provides effect-size calibration target |

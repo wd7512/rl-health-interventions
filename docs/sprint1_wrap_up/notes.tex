@@ -35,15 +35,15 @@ We formulate the problem as an MDP \(\mathcal{M} = (\mathcal{S}, \mathcal{A}, \m
 
 \section{Existing Work}
 \vspace{-2pt}
-\paragraph{HeartSteps V1/V2} (Klasnja et al., 2019~\cite{klasnja2019heartsteps}; Liao et al., 2019~\cite{klasnja2022heartsteps}) --- First RL-enabled MRT for physical activity. V1 ATE +35 steps; V2 introduced Thompson Sampling with dosage tracking and proxy value function for delayed effects.
+\paragraph{HeartSteps V1/V2} (Klasnja et al., 2019~\cite{klasnja2019heartsteps}; Klasnja et al., 2022~\cite{klasnja2022heartsteps}) --- First RL-enabled MRT for physical activity. V1 ATE +35 steps; V2 introduced Thompson Sampling with dosage tracking and proxy value function for delayed effects.
 
 \paragraph{PEARL} (Lee et al., 2025~\cite{lee2025pearl}) --- Largest RL-for-PA RCT (n=13,463, 4-arm). COM-B informed 155-nudge bank. RL +296 steps vs control (p=0.0002) at 1 month, sustained at 2 months.
 
 \paragraph{StepCountJITAI} (Karine \& Marlin, 2024~\cite{karine2024stepcountjitai}) --- Simulator for PA interventions, DQN $\approx$3,000 return vs TS $\approx$1,500.
 
-\paragraph{Bandit theory} Russo \& Van Roy (2018) establish TS regret bound \(O(\sqrt{dT\log T})\). Trella et al. (2022) provide design principles for RL in digital health.
+\paragraph{Bandit theory} Russo \& Van Roy (2018)~\cite{russo2018learning} establish TS regret bound \(O(\sqrt{dT\log T})\). Trella et al. (2022)~\cite{trella2022designing} provide design principles for RL in digital health.
 
-\paragraph{LLM-based simulation} Park et al. (2023) demonstrate generative agents; Wang et al. (2024) use LLMs to simulate patient responses; Lu et al. (2025) benchmark LLM agents for multi-turn human behaviour.
+\paragraph{LLM-based simulation} Park et al. (2023)~\cite{park2023generative} demonstrate generative agents; Wang et al. (2024) use LLMs to simulate patient responses; Lu et al. (2025) benchmark LLM agents for multi-turn human behaviour.
 
 \paragraph{Data-Driven Simulators \& Burden} Wang et al. (2021)~\cite{wang2021optimizing} developed behavioral simulators incorporating hard frequency constraints to mitigate over-notification and habituation.
 
