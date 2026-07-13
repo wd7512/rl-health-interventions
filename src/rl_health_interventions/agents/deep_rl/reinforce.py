@@ -75,6 +75,6 @@ class ReinforceAgent(Agent):
             probs = self._action_probs(state_vec)
             grad_logits = probs
             grad_logits[action_idx] -= 1.0
-            grad_logits *= -advantage
+            grad_logits *= advantage
             self._policy.backward_output_gradient(state_vec, grad_logits, lr=self.lr)
         self._trajectory.clear()

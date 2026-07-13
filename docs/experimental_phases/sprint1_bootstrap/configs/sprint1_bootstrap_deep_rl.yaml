@@ -1,0 +1,95 @@
+# Sprint1 with bootstrap transitions: Deep RL baselines.
+# Same base MDP as sprint1_bootstrap.yaml with deep RL agents:
+# - Q-Learning (tabular)
+# - DQN (neural network)
+# - REINFORCE (policy gradient)
+# - PPO (proximal policy optimization)
+
+initial_state:
+  step_bin: inactive
+  sleep: good
+  day_of_week: weekday
+  burden: low
+
+state:
+  variables:
+    step_bin:
+      names: [inactive, moderate, active]
+    sleep:
+      names: [good, poor]
+    day_of_week:
+      names: [weekday, weekend]
+      advanced:
+        type: cyclic
+        granularity: daily
+        pattern: [weekday, weekday, weekday, weekday, weekday, weekend, weekend]
+    burden:
+      names: [low, medium, high]
+      advanced:
+        type: rolling_window_count
+        window_size: 3
+        conditions:
+          - factor: action
+            type: in
+            values: [movement_suggestion, goal_reminder, journal]
+        mapping: {0: low, 1: medium, 2: high, 3: high}
+
+actions:
+  idle: {}
+  movement_suggestion: {}
+  goal_reminder: {}
+  journal: {}
+
+reward:
+  constants:
+    alpha: 0.9
+  variables:
+    step_bin_value:
+      source: state.step_bin
+      mapping: {inactive: 0.0, moderate: 0.5, active: 1.0}
+    sleep_value:
+      source: state.sleep
+      mapping: {good: 1.0, poor: -1.0}
+    action_penalty:
+      source: action
+      mapping: {idle: 0.0, movement_suggestion: 0.05, goal_reminder: 0.05, journal: 0.05}
+  formula: "alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty"
+
+transition_model:
+  type: bootstrap
+  table_dir: ../../../../tables/persona/base_deepseek-v4-flash
+
+episode_days: 90
+steps_per_day: 5
+seed: 42
+
+agents:
+  - type: q_learning
+    lr: 0.1
+    gamma: 0.95
+    epsilon: 0.1
+
+  - type: dqn
+    lr: 0.01
+    gamma: 0.95
+    epsilon: 0.2
+    batch_size: 8
+    buffer_size: 64
+    target_update_freq: 10
+    hidden_dim: [16, 8]
+    state_dim: 32
+
+  - type: reinforce
+    lr: 0.01
+    gamma: 0.99
+    hidden_dim: [16, 8]
+    state_dim: 32
+
+  - type: ppo
+    lr: 0.01
+    gamma: 0.99
+    gae_lambda: 0.95
+    clip_eps: 0.2
+    ppo_epochs: 2
+    hidden_dim: [16, 8]
+    state_dim: 32
