@@ -9,7 +9,7 @@
   "mcp": {
     "git": {
       "type": "local",
-      "command": ["uvx", "mcp-server-git", "--repository", "."],
+      "command": ["uvx", "mcp-server-git@0.1.2", "--repository", "."],
       "enabled": true
     }
   },
