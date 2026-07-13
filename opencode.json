@@ -16,6 +16,41 @@
       "type": "local",
       "command": ["gh", "mcp"],
       "enabled": false
+    },
+    "semantic-scholar": {
+      "type": "local",
+      "command": ["npx", "-y", "@xbghc/semanticscholar-mcp"],
+      "enabled": true
+    },
+    "arxiv": {
+      "type": "local",
+      "command": ["npx", "-y", "@cyanheads/arxiv-mcp-server"],
+      "enabled": true
+    },
+    "crossref": {
+      "type": "local",
+      "command": ["npx", "-y", "@cyanheads/crossref-mcp-server"],
+      "enabled": true
+    },
+    "openalex": {
+      "type": "local",
+      "command": ["npx", "openalex-research-mcp"],
+      "enabled": true
+    },
+    "pubmed": {
+      "type": "local",
+      "command": ["npx", "-y", "@cyanheads/pubmed-mcp-server"],
+      "enabled": true
+    },
+    "unpaywall": {
+      "type": "local",
+      "command": ["npx", "-y", "unpaywall-mcp"],
+      "enabled": true
+    },
+    "zotero": {
+      "type": "local",
+      "command": ["npx", "-y", "@oscardvs/zoteus"],
+      "enabled": true
     }
   },
   "agent": {
