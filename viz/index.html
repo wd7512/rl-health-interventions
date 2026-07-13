@@ -47,6 +47,7 @@ body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', -apple-system,
 <div class="tabs" id="tabs">
   <button class="tab-btn active" data-mode="curated">Curated</button>
   <button class="tab-btn" data-mode="full">Full</button>
+  <button class="tab-btn" id="dynamic-btn" style="border-color:#555">Static</button>
 </div>
 <div class="tooltip" id="tooltip"></div>
 <div class="legend" id="legend">
@@ -68,9 +69,10 @@ function yearBucket(y) {
   const closest = years.reduce((prev, curr) => Math.abs(curr - y) < Math.abs(prev - y) ? curr : prev);
   return closest;
 }
-let g, link, node;
+let g, link, node, bgLink;
 let allNodes, allLinks, nodeMap;
 let mode = 'curated';
+let dynamic = false, sim = null;
 const central = new Set(["arxiv:1909.03539","arxiv:2508.10060"]);
 const isMain = d => !d.id.startsWith("ref:");
 
@@ -333,6 +335,37 @@ function penalizeHorizOverlap(nodes, positions, mode) {
   return positions;
 }
 
+function startSimulation(nodes, links) {
+  if (sim) sim.stop();
+  // Pin central papers so they stay put
+  nodes.forEach(n => {
+    if (central.has(n.id)) { n.fx = n.x; n.fy = n.y; }
+    else { n.fx = null; n.fy = null; }
+  });
+  sim = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d=>d.id).distance(d => {
+      return Math.abs(d.source.year - d.target.year) * 30 + 60;
+    }).strength(0.25))
+    .force("charge", d3.forceManyBody().strength(-60))
+    .force("x", d3.forceX(d => yearX[String(d.year)] || yearX[yearBucket(d.year)]).strength(0.12))
+    .force("y", d3.forceY(d => d._initY || d.y).strength(0.06))
+    .force("collision", d3.forceCollide(d => {
+      if (central.has(d.id)) return 25;
+      if (isMain(d)) return 18;
+      if (mode === 'curated' || d.curated) return 20;
+      return 12;
+    }))
+    .alpha(0.6)
+    .alphaDecay(0.015)
+    .on("tick", () => {
+      node.attr("transform",d=>`translate(${d.x},${d.y})`);
+      link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y)
+          .attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+      bgLink.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y)
+            .attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+    });
+}
+
 function render() {
   svg.selectAll("g").remove();
   const visibleIds = getVisibleIds();
@@ -350,6 +383,7 @@ function render() {
   nodes.forEach(n => {
     n.x = yearX[yearBucket(n.year)];
     n.y = positions[n.id];
+    n._initY = n.y;
   });
 
   // Resolve link source/target from IDs → node objects for rendering
@@ -372,7 +406,7 @@ function render() {
   svg.call(d3.zoom().scaleExtent([0.3,4]).on("zoom", e=>g.attr("transform",e.transform)));
 
   // Invisible wide click target behind each edge
-  g.append("g").selectAll("line").data(rlinks).join("line")
+  bgLink = g.append("g").selectAll("line").data(rlinks).join("line")
     .attr("stroke","transparent").attr("stroke-width",16)
     .attr("x1",d=>d.source.x).attr("y1",d=>d.source.y)
     .attr("x2",d=>d.target.x).attr("y2",d=>d.target.y)
@@ -455,6 +489,8 @@ function render() {
 
   g.selectAll(".layer-label").data(years.map(y=>({x:yearX[y],y:35,text:y}))).join("text")
     .attr("class","layer-label").attr("x",d=>d.x).attr("y",d=>d.y).text(d=>d.text);
+
+  if (dynamic) startSimulation(nodes, rlinks);
 }
 
 d3.json("citations.json").then(data => {
@@ -472,10 +508,25 @@ d3.json("citations.json").then(data => {
   });
 
   render();
-  d3.selectAll(".tab-btn").on("click", function() {
-    d3.selectAll(".tab-btn").classed("active", false);
+  d3.selectAll(".tab-btn[data-mode]").on("click", function() {
+    if (dynamic) {
+      if (sim) sim.stop();
+      sim = null;
+      dynamic = false;
+      d3.select("#dynamic-btn").text("Static");
+    }
+    d3.selectAll(".tab-btn[data-mode]").classed("active", false);
     d3.select(this).classed("active", true);
     mode = d3.select(this).attr("data-mode");
+    render();
+  });
+  d3.select("#dynamic-btn").on("click", function() {
+    dynamic = !dynamic;
+    d3.select(this).text(dynamic ? "Dynamic" : "Static");
+    if (!dynamic) {
+      if (sim) sim.stop();
+      sim = null;
+    }
     render();
   });
 });
