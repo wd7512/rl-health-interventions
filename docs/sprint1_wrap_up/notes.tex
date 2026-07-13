@@ -23,9 +23,9 @@
 
 \section{Problem Definition}
 
-Physical inactivity is a leading global health risk. Just-in-Time Adaptive Interventions (JITAIs) use mobile/wearable devices to deliver personalised behaviour-change prompts at moments of opportunity~\cite{klasnja2019heartsteps}. Designing effective JITAI policies requires iteration, but real-world trials are slow and expensive.
+Physical inactivity is a leading global health risk. Just-in-Time Adaptive Interventions (JITAIs) deliver personalised behaviour-change prompts via wearable devices at moments of opportunity~\cite{klasnja2019heartsteps}. Designing effective JITAI policies requires rapid iteration, but real-world trials are slow, expensive, and cannot explore counterfactual policies.
 
-We formulate the problem as a Markov Decision Process \(\mathcal{M} = (\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)\):
+We formulate the problem as an MDP \(\mathcal{M} = (\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)\):
 \begin{itemize}
   \item \(\mathcal{S}\): 36-state factored space (step\_bin \(\in\) \{inactive, moderate, active\}, sleep \(\in\) \{good, poor\}, day\_of\_week \(\in\) \{weekday, weekend\}, burden \(\in\) \{low, medium, high\})
   \item \(\mathcal{A}\): 4 actions (idle, movement\_suggestion, goal\_reminder, journal)
@@ -34,55 +34,46 @@ We formulate the problem as a Markov Decision Process \(\mathcal{M} = (\mathcal{
 \end{itemize}
 
 \section{Existing Work}
+\vspace{-2pt}
+\paragraph{HeartSteps V1/V2} (Klasnja et al., 2019~\cite{klasnja2019heartsteps}; Liao et al., 2019~\cite{klasnja2022heartsteps}) --- First RL-enabled MRT for physical activity. V1 ATE +35 steps; V2 introduced Thompson Sampling with dosage tracking and proxy value function for delayed effects.
 
-\paragraph{HeartSteps V1/V2} (Klasnja et al., 2019~\cite{klasnja2019heartsteps}; Liao et al., 2019~\cite{klasnja2022heartsteps}) --- First RL-enabled MRT for physical activity. V1 ATE +35 steps (p=0.06). V2: Thompson Sampling with dosage tracking and proxy value function; 78.4\% of participants improved, mean +29.75.
+\paragraph{PEARL} (Lee et al., 2025~\cite{lee2025pearl}) --- Largest RL-for-PA RCT (n=13,463, 4-arm). COM-B informed 155-nudge bank. RL +296 steps vs control (p=0.0002) at 1 month, sustained at 2 months.
 
-\paragraph{PEARL} (Lee et al., 2025~\cite{lee2025pearl}) --- Largest RL-for-PA RCT to date (n=13,463, 4 arms). RL bandit with COM-B informed 155-nudge bank. RL +296 steps vs control (p=0.0002) at 1 month; sustained +210 at 2 months. Provides the real-world effect-size calibration target.
+\paragraph{StepCountJITAI} (Karine \& Marlin, 2024~\cite{karine2024stepcountjitai}) --- Simulator for PA interventions, DQN $\approx$3,000 return vs TS $\approx$1,500.
 
-\paragraph{StepCountJITAI} (Karine \& Marlin, 2024~\cite{karine2024stepcountjitai}) --- OpenAI Gym-style simulation environment for PA interventions, DQN $\approx$3,000 return.
+\paragraph{Bandit theory} Russo \& Van Roy (2018) establish TS regret bound \(O(\sqrt{dT\log T})\). Trella et al. (2022) provide design principles for RL in digital health.
 
-\paragraph{Bandit theory} Russo \& Van Roy (2018) establish TS regret bound \(O(\sqrt{dT\log T})\) for linear contextual bandits. Trella et al. (2022) provide design principles for RL in digital health.
+\paragraph{LLM-based simulation} Park et al. (2023) demonstrate generative agents; Wang et al. (2024) use LLMs to simulate patient responses; Lu et al. (2025) benchmark LLM agents for multi-turn human behaviour.
 
-\paragraph{LLM-based simulation} Park et al. (2023) demonstrate generative agent simulations of human behaviour. Wang et al. (2024) use LLMs to simulate patient responses (Patient-\(\Psi\)). Lu et al. (2025) benchmark LLM agents for multi-turn human behaviour simulation.
+\paragraph{Data-Driven Simulators \& Burden} Wang et al. (2021)~\cite{wang2021optimizing} developed behavioral simulators incorporating hard frequency constraints to mitigate over-notification and habituation.
 
-\paragraph{Data-Driven Simulators \& Burden} Wang et al. (2021)~\cite{wang2021optimizing} developed data-driven behavioral simulators incorporating frequency constraints to explicitly mitigate user over-notification and habituation, maximizing long-term intervention responsiveness.
+\paragraph{User Heterogeneity} Tomkins et al. (2021)~\cite{tomkins2021intelligentpooling} introduced IntelligentPooling to balance personalization with group-level data sharing via mixed-effects Thompson Sampling. Ghosh et al. (2024)~\cite{ghosh2024rebandit} extended this with reBandit (Empirical Bayes + informative priors).
 
-\paragraph{User Heterogeneity \& Pooling} Tomkins et al. (2021)~\cite{tomkins2021intelligentpooling} introduced \emph{IntelligentPooling} to dynamically balance personalization with group-level data sharing. Similarly, Ghosh et al. (2024)~\cite{ghosh2024rebandit} proposed \emph{reBandit}, utilizing random effects and Empirical Bayes to optimize online hyperparameter adjustment in highly noisy mHealth environments.
+\paragraph{Count-Based Bandits} Liu et al. (2025)~\cite{liu2025thompson} extended TS to Poisson/NB/ZIP/ZINB models, reducing variance for skewed proximal health outcomes.
 
-\paragraph{Count-Based Bandits} Recent work extending Thompson Sampling to non-linear count data models~\cite{liu2025thompson} (e.g., Poisson and Negative Binomial regressions) demonstrates significant reductions in variance and regret when modeling highly skewed proximal health outcomes compared to standard linear baselines.
+\paragraph{Power-Constrained Exploration} Yao et al. (2021)~\cite{yao2021power} established meta-algorithms for probability clipping (\(\pi_{min} \le P(A|S) \le \pi_{max}\)) to protect post-trial statistical power in MRTs.
 
-\paragraph{Power-Constrained Exploration} Yao et al. (2021)~\cite{yao2021power} established meta-algorithms for probability clipping (\(\pi_{min} \le P(A|S) \le \pi_{max}\)) to protect exploration, ensuring that deploying adaptive personalization policies does not compromise the post-trial statistical power required to test overall intervention efficacy.
+\section{Our Approach}
+\vspace{-2pt}
+\textbf{Two pillars:} (1) config-driven framework defining entire MDPs in YAML --- no source code changes between experiments; (2) LLM-bootstrapped transition models that generate plausible patient behaviour from persona descriptions.
 
-\section{Our Work: Config-Driven Environment}
+\textbf{Config-Driven Framework.} State spaces, action sets, transition models, reward functions, and agent selection are defined declaratively. Three transition types: rule\_based (hand-curated), random (Dirichlet baseline), and bootstrap (LLM-generated). Expression-based rewards via safe AST parser. Seven agents implemented with contextual variants, all pluggable by name in YAML.
 
-The framework is driven entirely by YAML configuration files validated through Pydantic schemas. No source code changes are required to define new MDPs, agents, or experiments. Core components:
+\textbf{Synthetic LLM Patients.} Transition probability tables generated by prompting LLMs (DeepSeek V4 Flash) to sample next-state distributions given a persona description, current state, and action. Pipeline: prompt generation \(\rightarrow\) concurrent API calling (litellm, 200 workers) \(\rightarrow\) JSON parsing \(\rightarrow\) probability table aggregation. 22{,}320 prompts per persona (full factorial, N=10 per cell), 5 distinct behavioural personas, total cost \$0.27. 42 JSON transition tables, comprehensive analysis (parse rates, cell consistency, burden interactions, step histograms), 85 visualization figures.
 
-\begin{itemize}
-  \item \textbf{State:} Factored state with cyclic advances (day\_of\_week) and rolling window counts (burden tracking over last N steps). Day-boundary sleep routing.
-  \item \textbf{Transitions:} Three types --- rule\_based (hand-curated), random (Dirichlet tables, baseline), bootstrap (LLM-generated JSON tables).
-  \item \textbf{Rewards:} Safe arithmetic expression parser (AST-based). Variables from state factors or action, with configurable mappings.
-  \item \textbf{Agents:} 7 implemented --- fixed, random, epsilon-greedy, decaying epsilon-greedy, Thompson Sampling, UCB, HeartSteps V2. All support contextual variants.
-  \item \textbf{Evaluation:} Multi-seed benchmark runner, regression test suite\\ (MVP, sprint1\_random, sprint1\_bootstrap), comparison table formatting.
-\end{itemize}
+\section{What We Have Done}
+\vspace{-2pt}
+\textbf{MVP Simulator.} A 2-state (sedentary/active), 2-action MDP with hand-curated transition rules. 285 hyperparameter combinations swept across epsilon-greedy, decaying epsilon-greedy, UCB, and Thompson Sampling variants. Full regression test suite with golden fixtures. Demonstrates the framework pipeline end-to-end.
 
-\section{Our Work: Synthetic LLM Patients}
+\textbf{LLM Bootstrap.} Generated 42 JSON transition tables from 22{,}320 LLM calls (5 personas + 2 initial model comparisons). Each persona produces distinct, behaviourally-plausible transition dynamics validated through parse rates, output distributions, cell consistency, burden interaction analysis, and step count histograms. A 36-paper literature review across 8 dimensions supports the LLM-as-transition-model methodology.
 
-We generate patient transition probability tables by prompting LLMs to sample plausible next-state behaviours:
-
-\textbf{Pipeline:} Prompt generation \(\rightarrow\) concurrent API calling (litellm, 200 workers) \(\rightarrow\) JSON parsing \(\rightarrow\) probability table aggregation.
-
-\begin{itemize}
-  \item 22{,}320 prompts per persona (full state-action-timestep factorial, N=10 per cell)
-  \item 5 distinct behavioural personas (base, goal\_driven, social\_responder, resistant, stable\_maintainer)
-  \item \textbf{Total cost: \$0.27} (DeepSeek V4 Flash via OpenCode Zen)
-  \item 42 JSON transition tables (6 within-day + 1 day-boundary per persona/initial model)
-  \item Analysis pipeline: parse rate, output distributions, cell consistency, burden interactions, step histograms, transition matrix visualizations (85 PDF figures)
-  \item 36-paper literature review across 8 dimensions
-\end{itemize}
+\textbf{Experiments.} Both MDP types run through the same YAML schema, agent library, and evaluation runner. Benchmark matrix: 7 persona configurations \(\times\) 4 variant types \(\times\) 7 agents \(\times\) 50 seeds = 9,800 simulation runs. HeartSteps V2 reproduced faithfully (Bayesian linear regression, dosage tracking, proxy value function) as a validation agent --- 4 implementation bugs independently discovered during reproduction.
 
 \section{Initial Results}
 
-HeartSteps V2 achieves \textbf{97--100\% of the optimal DP bound} across all 7 persona/initial-model configurations, dominating bandit baselines by 10--40 percentage points:
+\textbf{Transition validation.} The LLM-generated personas produce meaningfully differentiated behaviour. Burden degrades movement suggestion effectiveness: as notification burden rises from low to high, transition probabilities to higher step bins decrease systematically. Persona contrast is pronounced: identical actions applied to different personas yield fundamentally different transition probability matrices (e.g., stable maintainers retain active states; resistant users drop to inactive regardless of intervention).
+
+\textbf{Agent benchmarks.} HeartSteps V2 achieves 97--100\% of the optimal DP bound across all 7 persona/initial-model configurations, confirming the simulator is well-formed and can reproduce known results. Epsilon-greedy lags 10--40pp behind. Key findings:
 
 \begin{table}[ht]
   \centering
@@ -102,19 +93,19 @@ HeartSteps V2 achieves \textbf{97--100\% of the optimal DP bound} across all 7 p
   \end{tabular}
 \end{table}
 
-\textbf{Key findings:} (1) Large persona effects --- Stable Maintainer (441) vs Resistant (215). (2) Epsilon-greedy is the best bandit but still 10--40pp behind HeartSteps. (3) Time-of-day features and step activity levels are most predictive. (4) HeartSteps selects idle $\approx$62\% of the time --- personalisation is partly about knowing when \emph{not} to intervene.
+\textbf{Observations.} (1) Persona effects are large --- Stable Maintainer (441) vs Resistant (215). (2) Epsilon-greedy is the best bandit but lags substantially behind HeartSteps. (3) HeartSteps selects idle $\approx$62\% of the time in the base persona --- personalisation is partly about knowing when \emph{not} to intervene. (4) Time-of-day features and step activity levels are the most predictive state variables.
 
 \section{What is Next}
 
 \begin{enumerate}
-  \item \textbf{Sensor Foundation Models.} Wearable FM POC (2,754 lines): NormWear (768-dim embeddings), FM-guided action space (15 interventions, 3 archetypes), Thompson Sampling with FM context keys.
-  \item \textbf{Other LLMs.} Extend bootstrapping to GLM 5.2, Qwen, Claude. Multi-turn persona dialogues for richer state transitions.
-  \item \textbf{Better Prompting.} COM-B behaviour-change taxonomy integration. Structured JSON schema enforcement. Chain-of-thought prompting.
-  \item \textbf{Synthetic Clinical Results.} Calibrate transitions to PEARL effect sizes (+200--300 steps). Integrate All of Us (n=59K) and UK Biobank (n=100K) for learned transition models.
-  \item \textbf{Deep RL agents.} Extend beyond bandits to DQN and policy-gradient methods for temporal credit assignment. Add power-constrained exploration~\cite{yao2021power} and count-based likelihoods~\cite{liu2025thompson}.
+  \item \textbf{Sensor Foundation Models.} Wearable FM POC (2,754 lines, feature branch): NormWear integration (768-dim embeddings from PPG/accelerometer), FM-guided action space (15 interventions, 3 archetypes), Thompson Sampling with FM context keys. 6 publishable research gaps identified across 12 FM models.
+  \item \textbf{Additional LLM Backends.} Extend bootstrapping to GLM 5.2, Qwen, Claude. Multi-turn persona dialogues for richer, temporally-aware transition models. Cost-benefit analysis across providers.
+  \item \textbf{Better Prompting.} COM-B behaviour-change taxonomy integration. Structured JSON schema enforcement via constrained decoding. Chain-of-thought reasoning for transition probability generation.
+  \item \textbf{Synthetic Clinical Results.} Calibrate LLM transitions to real-world effect sizes (PEARL: +200--300 steps). Integrate All of Us (n=59K, Fitbit) and UK Biobank (n=100K, accelerometer) for learned transition models.
+  \item \textbf{Algorithmic advances.} Extend beyond bandits to DQN/policy-gradient for temporal credit assignment. Power-constrained exploration~\cite{yao2021power} and count-based likelihoods~\cite{liu2025thompson} for future MRT deployment.
 \end{enumerate}
 
-% --- References (not counted toward 2-page limit) ---
+% --- References (not counted toward page limit) ---
 \bibliographystyle{unsrtnat}
 \bibliography{../design/references}
 

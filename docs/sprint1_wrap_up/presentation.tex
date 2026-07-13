@@ -50,19 +50,19 @@
     \textbf{Goal:} Optimise personalised physical-activity interventions using RL.
 
     \vspace{4pt}
-    \textbf{MDP formulation:} \(\mathcal{M} = (\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)\)
+    \textbf{MDP:} \(\mathcal{M} = (\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)\)
     \begin{itemize}
-        \item \(\mathcal{S}\): 36-state factored MDP (step bin, sleep quality, day of week, burden)
+        \item \(\mathcal{S}\): 36-state factored MDP (step bin, sleep, day of week, burden)
         \item \(\mathcal{A}\): 4 actions (idle, movement suggestion, goal reminder, journal)
         \item \(\mathcal{P}\): Unknown --- estimated via LLM simulation or hand-curated tables
-        \item \(\mathcal{R}\): \(\alpha\!\cdot\!f(\text{step\_bin}) + (1{-}\alpha)\!\cdot\!g(\text{sleep}) - \lambda\!\cdot\!\mathbb{I}[\text{action} \neq \text{idle}]\)
+        \item \(\mathcal{R}\): \(\alpha\!\cdot\!f(\text{step}) + (1{-}\alpha)\!\cdot\!g(\text{sleep}) - \lambda\!\cdot\!\mathbb{I}[\text{action} \neq \text{idle}]\)
     \end{itemize}
 
     \vspace{6pt}
     \textbf{Core challenge:} How do we iterate on RL agents without live patients?
 
     \vspace{4pt}
-    \textit{Approach:} Build a config-driven simulation framework with LLM-bootstrapped user models.
+    \textit{Approach:} A config-driven simulation framework with LLM-bootstrapped user models.
 \end{frame}
 
 % --------------------------------------------------
@@ -90,11 +90,11 @@
     \end{table}
 
     \vspace{-4pt}
-    \textbf{Key gap:} No existing framework combines \emph{config-driven experiment definition} with \emph{LLM-bootstrapped user simulation} for rapid agent prototyping before real-world deployment.
+    \textbf{Key gap:} No existing framework combines \emph{config-driven experiment definition} with \emph{LLM-bootstrapped user simulation} for rapid agent prototyping.
 \end{frame}
 
 % --------------------------------------------------
-% Slide 4 --- Our Approach
+% Slide 4 --- Our Approach (ethos \& novelty)
 % --------------------------------------------------
 \begin{frame}{Our Approach}
     \textbf{Two pillars:}
@@ -103,16 +103,16 @@
     \begin{enumerate}
         \item \textbf{Config-Driven Framework}
         \begin{itemize}
-            \item Entire MDP defined in YAML --- no source code changes
-            \item 36-state factored environment, expression-based rewards, 3 transition types
-            \item 7 RL/bandit agents, evaluation runner with multi-seed benchmarking
+            \item Entire MDP defined in YAML --- no source code changes between experiments
+            \item Expression-based rewards, 3 transition types, 7 RL/bandit agents all registered by name
+            \item A researcher can define state, actions, rewards, and transitions in one file
         \end{itemize}
 
         \item \textbf{Synthetic LLM Patients}
         \begin{itemize}
-            \item 22{,}320 prompts per persona, 5 distinct behavioural personas
-            \item LLM-as-transition-model: DeepSeek V4 Flash samples next-state probabilities
-            \item Total API cost: \textbf{\$0.27} for the entire bootstrap
+            \item LLMs as transition models --- sampled next-state probabilities from personas
+            \item 5 behavioural archetypes: base, goal-driven, resistant, social responder, stable maintainer
+            \item Plug in a new persona table, run the same experiment config
         \end{itemize}
     \end{enumerate}
 
@@ -123,37 +123,68 @@
 \end{frame}
 
 % --------------------------------------------------
-% Slide 5 --- Initial Results
+% Slide 5 --- What We Have Done
 % --------------------------------------------------
-\begin{frame}{Initial Results}
-    \textbf{HeartSteps V2} (Liao et al., 2019) reproduced with Bayesian linear regression, dosage tracking, and proxy value function.
-
-    \vspace{6pt}
-    \begin{center}
-        \includegraphics[height=0.40\textheight]{images/heartsteps_benchmark.png}
-    \end{center}
-
-    \vspace{2pt}
+\begin{frame}{What We Have Done}
     \begin{table}
         \centering
         \small
-        \begin{tabular}{lccc}
+        \begin{tabular}{lp{0.25\textwidth}p{0.25\textwidth}p{0.25\textwidth}}
             \toprule
-            Persona & Optimal DP & HeartSteps (\% of opt) & Best Bandit (\% of opt) \\
+            & \textbf{MVP Simulator} & \textbf{LLM Bootstrap} & \textbf{Experiments} \\
             \midrule
-            Stable Maintainer & 441.8 & 440.8 (99.8\%) & 402.5 (91.1\%) \\
-            Base & 379.7 & 379.1 (99.9\%) & 327.8 (86.3\%) \\
-            Resistant & 214.6 & 163.5 (76.2\%) & 151.7 (70.7\%) \\
+            Purpose & Prove the pipeline & Generate patient behaviour & Evaluate agents \\
+            \specialrule{0.1em}{1pt}{1pt}
+            State space & 2-state & 36-state factored & Both \\
+            Transitions & Hand-curated rules & 22{,}320 LLM prompts & From YAML config \\
+            Output & 285 hyperparam combos & 42 tables, 85 figures & 7 personas $\times$ 7 agents \\
+            Cost & \$0 & \textbf{\$0.27 total} & \$0 \\
             \bottomrule
         \end{tabular}
     \end{table}
 
     \vspace{-4pt}
-    {\footnotesize HeartSteps achieves 97--100\% of optimal across all 7 persona configurations.}
+    \textbf{Key point:} A 2-state hand-curated MDP and a 36-state LLM-bootstrapped MDP run through the \emph{same} YAML schema, same agent library, same evaluation runner.
 \end{frame}
 
 % --------------------------------------------------
-% Slide 6 --- What is Next
+% Slide 6 --- Initial Results
+% --------------------------------------------------
+\begin{frame}{Initial Results}
+    {\small \textbf{Transition analysis ---} persona differentiation is real, burden degrades intervention effectiveness.}
+
+    \vspace{4pt}
+    \begin{center}
+        \includegraphics[height=0.28\textheight]{images/persona_contrast.png}
+        \hspace{4pt}
+        \includegraphics[height=0.28\textheight]{images/burden_degradation.png}
+    \end{center}
+
+    \vspace{4pt}
+    \begin{table}
+        \centering
+        \footnotesize
+        \begin{tabular}{lccc}
+            \toprule
+            Persona & Optimal DP & HeartSteps (\% opt) & Best Bandit (\% opt) \\
+            \midrule
+            Stable Maintainer & 441.8 & 440.8 (99.8\%) & 402.5 (91.1\%) \\
+            Base & 379.7 & 379.1 (99.9\%) & 327.8 (86.3\%) \\
+            Goal-driven & 414.1 & 414.5 (100.1\%) & 323.0 (78.0\%) \\
+            Initial DeepSeek & 381.6 & 373.6 (97.9\%) & 297.5 (78.0\%) \\
+            Initial GLM 5.2 & 374.6 & 374.0 (99.8\%) & 326.8 (87.2\%) \\
+            Social Responder & 313.5 & 306.8 (97.9\%) & 140.1 (44.7\%) \\
+            Resistant & 214.6 & 163.5 (76.2\%) & 151.7 (70.7\%) \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+
+    \vspace{-2pt}
+    {\footnotesize HeartSteps reproduced as a sanity check --- 97--100\% of optimal confirms the simulator is well-formed.}
+\end{frame}
+
+% --------------------------------------------------
+% Slide 7 --- What is Next
 % --------------------------------------------------
 \begin{frame}{What is Next}
     \begin{enumerate}
