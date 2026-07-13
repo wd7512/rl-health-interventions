@@ -216,6 +216,41 @@ Variance (best agent) & $\pm$82 & $\pm$14 \\
 \caption{Bootstrap transitions vs random transitions. The LLM-estimated tables produce structured dynamics with large agent differentials, while random transitions wash out all policy differences. Std UCB's low variance under bootstrap suggests reliable convergence.}
 \end{table}
 
+\subsection{Deep RL Agents Across All Sprint 1 Variants}
+
+We also evaluated the newly added deep RL baselines (Q-Learning, DQN, REINFORCE, PPO) on every Sprint 1 random and bootstrap variant (50 seeds each).
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Random Variant & DQN & PPO & Q-Learning & REINFORCE \\
+\midrule
+\texttt{sprint1\_random} & 185.0 $\pm$ 82.0 & 183.8 $\pm$ 82.9 & 182.4 $\pm$ 81.8 & 183.0 $\pm$ 82.7 \\
+\texttt{sprint1\_random\_masked} & 147.6 $\pm$ 66.4 & 147.2 $\pm$ 66.6 & 146.5 $\pm$ 66.1 & 146.7 $\pm$ 66.8 \\
+\texttt{sprint1\_random\_extensions} & 185.0 $\pm$ 82.0 & 183.8 $\pm$ 82.9 & 182.4 $\pm$ 81.8 & 183.0 $\pm$ 82.7 \\
+\texttt{sprint1\_random\_extensions\_masked} & 147.6 $\pm$ 66.4 & 147.2 $\pm$ 66.6 & 146.5 $\pm$ 66.1 & 146.7 $\pm$ 66.8 \\
+\bottomrule
+\end{tabular}
+\caption{Deep RL results on Sprint 1 random-transition variants (mean total reward $\pm$ SD, 50 seeds). DQN is consistently best, but all agents are tightly clustered.}
+\end{table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Bootstrap Variant & DQN & PPO & Q-Learning & REINFORCE \\
+\midrule
+\texttt{sprint1\_bootstrap} & 230.5 $\pm$ 81.9 & 157.7 $\pm$ 54.3 & 113.5 $\pm$ 23.8 & 88.4 $\pm$ 24.1 \\
+\texttt{sprint1\_bootstrap\_masked} & 174.7 $\pm$ 63.6 & 137.2 $\pm$ 48.4 & 94.9 $\pm$ 22.8 & 73.5 $\pm$ 20.1 \\
+\texttt{sprint1\_bootstrap\_extensions} & 230.5 $\pm$ 81.9 & 157.7 $\pm$ 54.3 & 113.5 $\pm$ 23.8 & 88.4 $\pm$ 24.1 \\
+\texttt{sprint1\_bootstrap\_extensions\_masked} & 174.7 $\pm$ 63.6 & 137.2 $\pm$ 48.4 & 94.9 $\pm$ 22.8 & 73.5 $\pm$ 20.1 \\
+\texttt{sprint1\_bootstrap\_context\_burden} & 230.5 $\pm$ 81.9 & 157.7 $\pm$ 54.3 & 113.5 $\pm$ 23.8 & 88.4 $\pm$ 24.1 \\
+\bottomrule
+\end{tabular}
+\caption{Deep RL results on Sprint 1 bootstrap-transition variants (mean total reward $\pm$ SD, 50 seeds). DQN dominates all other deep RL baselines in every variant.}
+\end{table}
+
 \section{Context Feature Comparison}
 
 The extensions benchmark used $\texttt{step\_bin}$ as the context feature (3 bins, same fragmentation as step\_bin). To test whether a better-chosen context could close the gap, we swapped to $\texttt{burden}$ (3 levels, same fragmentation) and re-ran the 9-agent benchmark. Results are 50 seeds.
