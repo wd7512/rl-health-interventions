@@ -33,8 +33,8 @@
 - `data-availability-schema.md` — master schema reference
 - 14 individual dataset files
 
-### [figures/](figures/) — Framework diagrams
-- `framework_pipeline.pdf` / `.png`
+### [figures/](figures/) — Analysis figures
+- Transition matrices, heatmaps, and persona analysis visualizations
 
 ## See also
 

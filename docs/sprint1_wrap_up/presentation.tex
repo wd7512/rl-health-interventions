@@ -1,0 +1,226 @@
+\documentclass[aspectratio=169]{beamer}
+
+% ==================================================
+% Theme Configuration
+% ==================================================
+\usetheme{Madrid}
+\usecolortheme{dolphin}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{caption}[numbered]
+
+% ==================================================
+% Packages
+% ==================================================
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{xcolor}
+\usepackage{ragged2e}
+
+\sisetup{detect-all}
+
+% ==================================================
+% Title Information
+% ==================================================
+\title[RL Health Interventions]
+{Config-Driven RL for Just-in-Time Adaptive Interventions}
+
+\author{William Dennis}
+
+\institute[UoB / NUS]
+{University of Bristol \and National University of Singapore}
+
+\date{July 2026}
+
+% ==================================================
+\begin{document}
+% ==================================================
+
+% --------------------------------------------------
+% Slide 1 --- Title
+% --------------------------------------------------
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% --------------------------------------------------
+% Slide 2 --- Problem Definition
+% --------------------------------------------------
+\begin{frame}{Problem Definition}
+    \textbf{Goal:} Optimise personalised physical-activity interventions with reinforcement learning.
+
+    \vspace{4pt}
+    \textbf{MDP formulation:} \(\mathcal{M} = (\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)\)
+    \begin{itemize}
+        \item \(\mathcal{S}\): 36-state factored MDP (step bin, sleep quality, day of week, burden)
+        \item \(\mathcal{A}\): 4 actions (idle, movement suggestion, goal reminder, journal)
+        \item \(\mathcal{P}\): Unknown transition dynamics, estimated from LLM simulation or curated tables
+        \item \(\mathcal{R}\): \(\alpha\!\cdot\!f(\text{step\_bin}) + (1{-}\alpha)\!\cdot\!g(\text{sleep}) - \lambda\!\cdot\!\mathbb{I}[\text{action} \neq \text{idle}]\)
+    \end{itemize}
+
+    \vspace{6pt}
+    \textbf{Core challenge:} How do we iterate on RL agents without live patients?
+
+    \vspace{4pt}
+    \textit{Approach:} Use a config-driven simulator with LLM-bootstrapped user models.
+\end{frame}
+
+% --------------------------------------------------
+% Slide 3 --- Existing Work
+% --------------------------------------------------
+\begin{frame}{Existing Work}
+    \begin{center}
+        \scriptsize
+        \renewcommand{\arraystretch}{1.15}
+        \makebox[\textwidth][c]{%
+        \resizebox{0.94\textwidth}{!}{%
+        \begin{tabular}{lccc}
+            \toprule
+            & \textbf{HeartSteps V2} & \textbf{PEARL} & \textbf{StepCountJITAI} \\
+            \midrule
+            Type & MRT & 4-arm RCT & Simulator \\
+            Sample & {$n \approx 97$} & {$n = 13{,}463$} & Synthetic \\
+            Algorithm & TS bandit & RL bandit & DQN \\
+            Actions & $\sim$5 types & 155 nudges & 4 types \\
+            Outcome & 78.4\% improved & {+}296 steps\textsuperscript{*} & DQN $\approx$ 3000 \\
+            Theory & SDT / FBM & COM-B & --- \\
+            \bottomrule
+        \end{tabular}%
+        }}
+
+        \vspace{2pt}
+        {\footnotesize \textsuperscript{*}RL vs control at 1 month, \(p = 0.0002\).}
+    \end{center}
+
+    \vspace{2pt}
+    \justifying
+    \textbf{Key gap:} No existing framework combines \emph{config-driven experiment definition} with \emph{LLM-bootstrapped user simulation} for rapid agent prototyping before real-world deployment.
+\end{frame}
+
+% --------------------------------------------------
+% Slide 4 --- Our Approach (ethos \& novelty)
+% --------------------------------------------------
+\begin{frame}{Our Approach}
+    \textbf{Two pillars:}
+
+    \vspace{4pt}
+    \begin{enumerate}
+        \item \textbf{Config-Driven Framework}
+        \begin{itemize}
+            \item Entire MDP defined in YAML, with no source-code changes
+            \item 36-state factored environment, expression-based rewards, 3 transition types
+            \item 7 RL/bandit agents, evaluation runner with multi-seed benchmarking
+        \end{itemize}
+
+        \item \textbf{Synthetic LLM Patients}
+        \begin{itemize}
+            \item 22{,}320 prompts per persona across 5 behavioural personas
+            \item LLM-as-transition-model samples next-state probabilities
+            \item Total API cost: \textbf{\$0.27} for the entire bootstrap
+        \end{itemize}
+    \end{enumerate}
+\end{frame}
+
+% --------------------------------------------------
+% Slide 5 --- What We Have Done
+% --------------------------------------------------
+\begin{frame}{What We Have Done}
+    \begin{center}
+        \scriptsize
+        \renewcommand{\arraystretch}{1.18}
+        \makebox[\textwidth][c]{%
+        \resizebox{0.96\textwidth}{!}{%
+        \begin{tabular}{lp{0.24\textwidth}p{0.24\textwidth}p{0.24\textwidth}}
+            \toprule
+            & \textbf{MVP Simulator} & \textbf{LLM Bootstrap} & \textbf{Experiments} \\
+            \midrule
+            Purpose & Prove the pipeline & Generate patient behaviour & Evaluate agents \\
+            State space & 2-state & 36-state factored & Both \\
+            Transitions & Hand-curated rules & 22{,}320 LLM prompts & YAML-defined \\
+            Output & 285 configs & 42 tables, 85 figures & 7 personas $\times$ 7 agents \\
+            Cost & \$0 & \textbf{\$0.27 total} & \$0 \\
+            \bottomrule
+        \end{tabular}%
+        }}
+    \end{center}
+
+    \vspace{4pt}
+    \justifying
+    \textbf{Key point:} The 2-state curated MDP and 36-state LLM-bootstrapped MDP use the \emph{same} YAML schema, agent library, and evaluation runner.
+\end{frame}
+
+% --------------------------------------------------
+% Slide 6 --- Initial Results
+% --------------------------------------------------
+\begin{frame}{Initial Results}
+    \begin{columns}[T,onlytextwidth]
+        \begin{column}{0.34\textwidth}
+            \small
+            \textbf{Transition analysis}
+
+            \vspace{6pt}
+            \begin{itemize}
+                \item Personas separate clearly under the same intervention.
+                \item Notification burden reduces movement-suggestion effectiveness.
+                \item Learned transition tables encode plausible behavioural heterogeneity.
+                \item HeartSteps V2 agent outperforms all bandit baselines.
+            \end{itemize}
+        \end{column}
+
+        \begin{column}{0.64\textwidth}
+            \centering
+            {\scriptsize \textbf{Persona contrast:} same action, different transition patterns.\par}
+            \vspace{2pt}
+            \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{images/persona_contrast.png}
+
+            \vspace{5pt}
+            {\scriptsize \textbf{Burden effect:} higher notification burden weakens suggestions.\par}
+            \vspace{2pt}
+            \includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{images/burden_degradation.png}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% --------------------------------------------------
+% Slide 7 --- Next Steps
+% --------------------------------------------------
+\begin{frame}{Next Steps}
+    \small
+    \setlength{\itemsep}{1pt}
+    \begin{enumerate}
+        \item \textbf{Broader Agent Suite}
+        \begin{itemize}
+            \item Add PEARL-style contextual bandit/RL agents for direct comparison
+            \item Stress-test offline RL, constrained RL, and adaptive bandit baselines
+        \end{itemize}
+
+        \item \textbf{Deep Learning Agents}
+        \begin{itemize}
+            \item Benchmark DQN, actor--critic, and sequence-based policies
+            \item Explore representation learning for high-dimensional wearable state inputs
+        \end{itemize}
+
+        \item \textbf{More Complex Environments}
+        \begin{itemize}
+            \item Expand state spaces with context, history, fatigue, and adherence dynamics
+            \item Model non-stationarity, delayed rewards, and intervention burden
+        \end{itemize}
+
+        \item \textbf{Sensor Foundation Models}
+        \begin{itemize}
+            \item Wearable foundation-model embeddings for dynamic action spaces
+            \item Connect interventions to sensor-derived activity and sleep context
+        \end{itemize}
+
+        \item \textbf{LLM and Prompt Variants}
+        \begin{itemize}
+            \item Compare DeepSeek, GLM, Qwen, Claude, and smaller local models
+            \item Test COM-B prompts, structured JSON, and multi-turn persona dialogues
+        \end{itemize}
+    \end{enumerate}
+\end{frame}
+
+% ==================================================
+\end{document}
+% ==================================================
