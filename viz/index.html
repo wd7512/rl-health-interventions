@@ -222,6 +222,23 @@ function computeLayout(nodes, links, mode) {
     Object.assign(result, yPos);
   });
 
+  // Stagger columns to prevent horizontal bands across adjacent years
+  const stagPat = [0, 10, -10, 10, -10, 10, -10, 10, -10, 10, -10, 10, -10, 10, -10, 10, -10];
+  Object.keys(colNodes).forEach(c => {
+    const ci = years.indexOf(String(c));
+    if (ci < 0) return;
+    const off = stagPat[ci % stagPat.length] || 0;
+    if (off === 0) return;
+    // Skip stagger if it would push a node past the margin
+    let safe = true;
+    colNodes[c].forEach(n => {
+      const ny = result[n.id] + off;
+      if (ny < 55 || ny > height - 25) safe = false;
+    });
+    if (!safe) return;
+    colNodes[c].forEach(n => { result[n.id] += off; });
+  });
+
   return result;
 }
 
