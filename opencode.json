@@ -6,6 +6,13 @@
     "paths": [".opencode/skills"]
   },
   "plugin": [".opencode/plugins/write-size-guard.ts"],
+  "mcp": {
+    "git": {
+      "type": "local",
+      "command": ["uvx", "mcp-server-git", "--repository", "."],
+      "enabled": true
+    }
+  },
   "agent": {
     "python-engineer": {
       "description": "Implements small, well-tested Python changes using uv, ruff, ty, and pytest.",
