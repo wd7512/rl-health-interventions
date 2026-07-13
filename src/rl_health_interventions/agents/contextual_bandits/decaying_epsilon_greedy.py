@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import numpy as np
+
 from typing_extensions import override
 
 from rl_health_interventions.agents.contextual_bandits._base import (
     ContextualBanditAgent,
+    _NumpyDictWrapper,
 )
 
 
@@ -15,6 +18,9 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
 
     When ``contextual=True``, maintains separate ``(q_value, count)``
     entries for each ``(context_value, action)`` pair.
+
+    For non-contextual mode, uses NumPy arrays internally for Q-values and counts
+    for better performance, but provides dict-like access for backward compatibility.
     """
 
     def __init__(
@@ -72,11 +78,25 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
         Q-values of 0.0 and visit counts of 0. In contextual mode,
         initializes empty dictionaries for lazy population.
         """
-        self.q_values: dict = {}
-        self.counts: dict = {}
-        if not self.contextual:
-            self.q_values = dict.fromkeys(self._actions, 0.0)
-            self.counts = dict.fromkeys(self._actions, 0)
+        if self._use_numpy:
+            # Use NumPy arrays for non-contextual mode
+            self.q_values_array: np.ndarray = np.zeros(
+                self._n_actions, dtype=np.float64
+            )
+            self.counts_array: np.ndarray = np.zeros(
+                self._n_actions, dtype=np.int64
+            )
+            # Provide dict-like access for backward compatibility
+            self.q_values: _NumpyDictWrapper = _NumpyDictWrapper(
+                self.q_values_array, self._action_to_index
+            )
+            self.counts: _NumpyDictWrapper = _NumpyDictWrapper(
+                self.counts_array, self._action_to_index
+            )
+        else:
+            # Use dicts for contextual mode
+            self.q_values: dict = {}
+            self.counts: dict = {}
 
     def _ensure_params(self, key: str | tuple[str, ...]) -> None:
         """
@@ -86,6 +106,8 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
             key: The parameter key; either an action string or a
                 (context_value, action) tuple.
         """
+        if self._use_numpy:
+            return  # NumPy arrays are pre-allocated
         if key not in self.q_values:
             self.q_values[key] = 0.0
             self.counts[key] = 0
@@ -121,15 +143,24 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
         if self._rng.random() < epsilon:
             idx = self._rng.integers(len(self._actions))
             return self._actions[idx]
-        action_values = {}
-        for action in self._actions:
-            key = self._get_context_key(state, action)
-            self._ensure_params(key)
-            action_values[action] = self.q_values[key]
-        max_q = max(action_values.values())
-        best = [a for a, q in action_values.items() if q == max_q]
-        idx = self._rng.integers(len(best))
-        return best[idx]
+
+        if self._use_numpy:
+            # Vectorized operations for non-contextual mode
+            max_q = np.max(self.q_values_array)
+            best_indices = np.where(self.q_values_array == max_q)[0]
+            idx = self._rng.integers(len(best_indices))
+            return self._actions[best_indices[idx]]
+        else:
+            # Dict-based for contextual mode
+            action_values = {}
+            for action in self._actions:
+                key = self._get_context_key(state, action)
+                self._ensure_params(key)
+                action_values[action] = self.q_values[key]
+            max_q = max(action_values.values())
+            best = [a for a, q in action_values.items() if q == max_q]
+            idx = self._rng.integers(len(best))
+            return best[idx]
 
     @override
     def update(self, state, action: str, reward: float, next_state) -> None:
@@ -144,8 +175,16 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
             reward: Scalar reward received from the environment.
             next_state: Successor state (unused by this agent).
         """
-        key = self._get_context_key(state, action)
-        self._ensure_params(key)
-        self.counts[key] += 1
-        n = self.counts[key]
-        self.q_values[key] += (reward - self.q_values[key]) / n
+        if self._use_numpy:
+            # For non-contextual, use action index directly
+            action_idx = self._action_to_index[action]
+            self.counts_array[action_idx] += 1
+            n = self.counts_array[action_idx]
+            self.q_values_array[action_idx] += (reward - self.q_values_array[action_idx]) / n
+        else:
+            # For contextual, use context key
+            key = self._get_context_key(state, action)
+            self._ensure_params(key)
+            self.counts[key] += 1
+            n = self.counts[key]
+            self.q_values[key] += (reward - self.q_values[key]) / n

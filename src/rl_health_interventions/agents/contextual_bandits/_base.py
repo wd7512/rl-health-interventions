@@ -1,8 +1,50 @@
 from __future__ import annotations
 
 import numpy as np
+from typing import Any
 
 from rl_health_interventions.agents._base import Agent
+
+
+class _NumpyDictWrapper:
+    """Wrapper to provide dict-like access to NumPy arrays for backward compatibility."""
+
+    def __init__(self, array: np.ndarray, action_to_index: dict[str, int]) -> None:
+        self.array = array
+        self.action_to_index = action_to_index
+
+    def __getitem__(self, key: str) -> Any:
+        if isinstance(key, str):
+            return self.array[self.action_to_index[key]]
+        return self.array[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        if isinstance(key, str):
+            self.array[self.action_to_index[key]] = value
+        else:
+            self.array[key] = value
+
+    def __contains__(self, key: str) -> bool:
+        if isinstance(key, str):
+            return key in self.action_to_index
+        return key < len(self.array)
+
+    def __repr__(self) -> str:
+        return repr(dict(self.items()))
+
+    def items(self) -> list[tuple[str, Any]]:
+        return [(action, self.array[idx]) for action, idx in self.action_to_index.items()]
+
+    def keys(self) -> list[str]:
+        return list(self.action_to_index.keys())
+
+    def values(self) -> list[Any]:
+        return [self.array[idx] for idx in sorted(self.action_to_index.values())]
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if isinstance(key, str) and key in self.action_to_index:
+            return self.array[self.action_to_index[key]]
+        return default
 
 
 class ContextualBanditAgent(Agent):
@@ -11,6 +53,10 @@ class ContextualBanditAgent(Agent):
     Subclasses implement ``select_action`` and ``update`` using
     ``_get_context_key`` to route per-action parameters based on the
     current state context.
+
+    For non-contextual agents, uses NumPy arrays internally for Q-values and counts
+    for better performance, but provides dict-like access for backward compatibility.
+    For contextual agents, uses dicts with tuple keys.
     """
 
     def __init__(
@@ -45,7 +91,13 @@ class ContextualBanditAgent(Agent):
             else context_features
         )
         self._actions = actions or ["nudge", "idle"]
+        self._n_actions = len(self._actions)
         self._rng = np.random.default_rng(seed)
+        # For non-contextual mode, pre-allocate NumPy arrays
+        # For contextual mode, use dicts (keys are dynamic tuples)
+        self._use_numpy = not contextual
+        # Create action to index mapping for non-contextual mode
+        self._action_to_index = {action: i for i, action in enumerate(self._actions)}
 
     def _get_context_key(self, state, action: str) -> str | tuple[str, ...]:
         """Return a key for parameter lookup.

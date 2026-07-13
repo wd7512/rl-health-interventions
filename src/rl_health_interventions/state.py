@@ -4,10 +4,19 @@ from typing_extensions import override
 
 
 class StateView:
+    __slots__ = (
+        "_factors",
+        "_day",
+        "_step_of_day",
+        "_steps_per_day",
+        "_hash",
+    )
+
     _factors: dict[str, str]
     _day: int
     _step_of_day: int
     _steps_per_day: int
+    _hash: int | None
 
     def __init__(
         self,
@@ -20,6 +29,7 @@ class StateView:
         object.__setattr__(self, "_day", day)
         object.__setattr__(self, "_step_of_day", step_of_day)
         object.__setattr__(self, "_steps_per_day", steps_per_day)
+        object.__setattr__(self, "_hash", None)
 
     def __getattr__(self, name: str) -> str:
         try:
@@ -84,14 +94,18 @@ class StateView:
 
     @override
     def __hash__(self) -> int:
-        return hash(
-            (
-                tuple(sorted(self._factors.items())),
-                self._day,
-                self._step_of_day,
-                self._steps_per_day,
+        cached_hash = object.__getattribute__(self, "_hash")
+        if cached_hash is None:
+            cached_hash = hash(
+                (
+                    tuple(sorted(self._factors.items())),
+                    self._day,
+                    self._step_of_day,
+                    self._steps_per_day,
+                )
             )
-        )
+            object.__setattr__(self, "_hash", cached_hash)
+        return cached_hash
 
     @override
     def __repr__(self) -> str:
