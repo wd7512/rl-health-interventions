@@ -72,7 +72,7 @@ function yearBucket(y) {
 let g, link, node, bgLink;
 let allNodes, allLinks, nodeMap;
 let mode = 'curated';
-let dynamic = false, sim = null;
+let dynamic = false, sim = null, pinned = false;
 const central = new Set(["arxiv:1909.03539","arxiv:2508.10060"]);
 const isMain = d => !d.id.startsWith("ref:");
 const zoom = d3.zoom().scaleExtent([0.3,4]).on("zoom", e=>{ if(g) g.attr("transform",e.transform); });
@@ -443,9 +443,9 @@ function render() {
   node.filter(d => !isCompact(d)).append("text").attr("class","node-year")
     .attr("dy", d => central.has(d.id) ? 34 : isMain(d) ? 26 : 18)
     .text(d => d.year);
-
   const tooltip = d3.select("#tooltip");
-  node.on("mouseenter", (event,d)=>{
+
+  function showTooltip(event, d) {
     const isDoi = d.id.startsWith("10.");
     const isArxiv = d.id.startsWith("arxiv:");
     const url = isDoi ? `https://doi.org/${d.id}` : isArxiv ? `https://arxiv.org/abs/${d.id.replace("arxiv:","")}` : null;
@@ -458,11 +458,19 @@ function render() {
       <div class="tt-detail">${d.detail}</div>
       ${url?`<div class="tt-links"><a href="${url}" target="_blank">${linkLabel}</a></div>`:""}
     `);
+    tooltip.style("left",(event.pageX+16)+"px").style("top",(event.pageY-10)+"px");
+  }
+
+  node.on("mouseenter", (event,d)=>{
+    showTooltip(event, d);
   }).on("mousemove", event=>{
     tooltip.style("left",(event.pageX+16)+"px").style("top",(event.pageY-10)+"px");
-  }).on("mouseleave", ()=>tooltip.style("opacity",0));
+  }).on("mouseleave", ()=>{
+    if (!pinned) tooltip.style("opacity",0);
+  });
 
   node.on("click", (event,d)=>{
+    pinned = true;
     const connected = new Set([d.id]);
     rlinks.forEach(l=>{
       if(l.source.id===d.id) connected.add(l.target.id);
@@ -472,12 +480,15 @@ function render() {
     link.classed("dim", l=>l.source.id!==d.id&&l.target.id!==d.id)
       .classed("highlight-edge", l=>l.source.id===d.id||l.target.id===d.id)
       .attr("marker-end", l=>l.source.id===d.id||l.target.id===d.id?"url(#arrow-hl)":"url(#arrow)");
+    showTooltip(event, d);
   });
 
   svg.on("click", event=>{
     if(event.target===svg.node()){
+      pinned = false;
       node.classed("dim",false);
       link.classed("dim",false).classed("highlight-edge",false).attr("marker-end","url(#arrow)");
+      tooltip.style("opacity",0);
     }
   });
 
@@ -512,6 +523,8 @@ d3.json("citations.json").then(data => {
 
   render();
   d3.selectAll(".tab-btn[data-mode]").on("click", function() {
+    pinned = false;
+    d3.select("#tooltip").style("opacity",0);
     if (dynamic) {
       if (sim) sim.stop();
       sim = null;
@@ -524,6 +537,8 @@ d3.json("citations.json").then(data => {
     render();
   });
   d3.select("#dynamic-btn").on("click", function() {
+    pinned = false;
+    d3.select("#tooltip").style("opacity",0);
     dynamic = !dynamic;
     d3.select(this).text(dynamic ? "Dynamic" : "Static");
     if (!dynamic) {
