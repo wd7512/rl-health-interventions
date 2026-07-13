@@ -42,6 +42,8 @@ body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', -apple-system,
 .tab-btn.active { background: #5b8def; border-color: #5b8def; color: #fff; }
 .highlight-edge { stroke: #a0c0ff !important; stroke-opacity: 1 !important; stroke-width: 3px !important; }
 .dim { opacity: 0.15; }
+.frontier-ring { fill: none; stroke: #ffd700; stroke-width: 2.5; filter: url(#gold-glow); pointer-events: none; }
+.frontier-star { fill: #ffd700; font-size: 14px; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -53,6 +55,7 @@ body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', -apple-system,
 <div class="tabs" id="tabs">
   <button class="tab-btn active" data-mode="curated">Curated</button>
   <button class="tab-btn" data-mode="full">Full</button>
+  <button class="tab-btn" data-mode="frontier">Frontier</button>
   <button class="tab-btn" id="dynamic-btn" style="border-color:#555">Static</button>
 </div>
 <div class="side-panel" id="side-panel">
@@ -66,12 +69,15 @@ body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', -apple-system,
   <div id="sp-citedby"></div>
   <div class="sp-section">Cites</div>
   <div id="sp-cites"></div>
+  <div class="sp-section">Frontier</div>
+  <div id="sp-frontier" style="font-size:13px;color:#999;line-height:1.5"></div>
   <div class="sp-links" id="sp-links"></div>
 </div>
 <div class="legend" id="legend">
   <div class="legend-item"><div class="legend-dot" style="background:#5b8def"></div> Main papers</div>
   <div class="legend-item"><div class="legend-dot" style="background:#334466"></div> References</div>
   <div class="legend-item" style="margin-top:4px;border-top:1px solid #333;padding-top:5px"><svg width="28" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#3a4a6a" stroke-width="2.4"/><polygon points="20,1 28,5 20,9" fill="#3a4a6a"/></svg> cites</div>
+  <div class="legend-item" style="margin-top:4px;padding-top:4px"><div class="legend-dot" style="width:16px;height:16px;border:2.5px solid #ffd700;background:transparent;border-radius:50%"></div> Pareto Frontier</div>
 </div>
 <svg id="graph"></svg>
 <script>
@@ -113,8 +119,8 @@ function nodeGap(a, b, mode) {
   const aP = isMain(a) || central.has(a.id);
   const bP = isMain(b) || central.has(b.id);
   if (aP || bP) return 64;
-  const aC = mode === 'curated' || a.curated;
-  const bC = mode === 'curated' || b.curated;
+  const aC = mode === 'curated' || mode === 'frontier' || a.curated;
+  const bC = mode === 'curated' || mode === 'frontier' || b.curated;
   if (aC && bC) return 48;
   if (aC || bC) return 36;
   return 26;
@@ -129,6 +135,8 @@ function getVisibleIds() {
   });
   return visible;
 }
+
+function isFrontierPaper(d) { return d.frontier === true || d.frontier === "true"; }
 
 function compactLabel(d) {
   const a = d.authors || d.label || '';
@@ -423,6 +431,10 @@ function render() {
     .attr("refX",9).attr("refY",5).attr("markerWidth",8).attr("markerHeight",8)
     .attr("orient","auto")
     .append("path").attr("d","M0,1 L8,5 L0,9 Z").attr("fill","#3a4a6a");
+  defs.append("filter").attr("id","gold-glow").attr("x","-50%").attr("y","-50%").attr("width","200%").attr("height","200%")
+    .append("feGaussianBlur").attr("stdDeviation","3").attr("result","blur");
+  defs.append("filter").attr("id","gold-glow-merge").attr("x","-50%").attr("y","-50%").attr("width","200%").attr("height","200%")
+    .html('<feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>');
   defs.append("marker").attr("id","arrow-hl").attr("viewBox","0 0 10 10")
     .attr("refX",9).attr("refY",5).attr("markerWidth",10).attr("markerHeight",10)
     .attr("orient","auto")
@@ -460,10 +472,22 @@ function render() {
     .attr("stroke", d => central.has(d.id) ? "#a0c0ff" : "none")
     .attr("stroke-width", d => central.has(d.id) ? 2 : 0);
 
+  // Gold ring for frontier papers
+  node.filter(d => mode === 'frontier' && isFrontierPaper(d)).append("circle")
+    .attr("class","frontier-ring")
+    .attr("r", d => central.has(d.id) ? 26 : isMain(d) ? 20 : 14)
+    .attr("cx", 0).attr("cy", 0);
+
   // Labels: conditional — compact for non-curated refs in full mode
   const isCompact = d => mode === 'full' && !isMain(d) && !d.curated;
   node.append("text").attr("class","node-label")
-    .attr("dy", d => central.has(d.id) ? -28 : isMain(d) ? -22 : (mode === 'curated' || d.curated) ? -14 : 11)
+    .attr("dy", d => {
+      if (central.has(d.id)) return -28;
+      if (isMain(d)) return -22;
+      if (isFrontierPaper(d) && mode === 'frontier') return -20;
+      if (mode === 'curated' || d.curated) return -14;
+      return 11;
+    })
     .attr("font-size", d => isCompact(d) ? "8px" : "10px")
     .text(d => {
       if (isMain(d)) return d.label;
@@ -473,8 +497,15 @@ function render() {
 
   // Year: only for nodes that have room (skip compact refs)
   node.filter(d => !isCompact(d)).append("text").attr("class","node-year")
-    .attr("dy", d => central.has(d.id) ? 34 : isMain(d) ? 26 : 18)
+    .attr("dy", d => {
+      if (central.has(d.id)) return 34;
+      if (isMain(d)) return 26;
+      if (isFrontierPaper(d) && mode === 'frontier') return 24;
+      return 18;
+    })
     .text(d => d.year);
+  const spFrontier = document.getElementById("sp-frontier");
+
   function showPanel(d) {
     const isDoi = d.id.startsWith("10.");
     const isArxiv = d.id.startsWith("arxiv:");
@@ -488,6 +519,27 @@ function render() {
     spDetail.textContent = d.detail || "";
     spDetail.style.display = d.detail ? "block" : "none";
     spLinks.innerHTML = url ? `<a href="${url}" target="_blank">${linkLabel}</a>` : "";
+
+    // Frontier info
+    const onFrontier = isFrontierPaper(d);
+    const fs = d.frontier_score !== undefined ? d.frontier_score : null;
+    const ev = d.evidence_score !== undefined ? d.evidence_score : null;
+    const dr = d.def_rel !== undefined ? d.def_rel : null;
+    let html = '';
+    if (onFrontier) {
+      html += '<div style="color:#ffd700;font-weight:700;margin-bottom:4px">★ Pareto Frontier</div>';
+    }
+    if (fs !== null) {
+      const barW = Math.round(fs * 100);
+      html += `<div style="margin-top:2px">Frontier Score: <span style="color:#fff">${fs.toFixed(3)}</span> <span style="display:inline-block;width:${barW}%;height:6px;background:#ffd700;border-radius:3px;vertical-align:middle"></span></div>`;
+    }
+    if (ev !== null) {
+      html += `<div>Evidence: <span style="color:#fff">${ev.toFixed(2)}</span></div>`;
+    }
+    if (dr !== null) {
+      html += `<div>Relevance: <span style="color:#fff">${dr.toFixed(3)}</span></div>`;
+    }
+    spFrontier.innerHTML = html || '<span style="color:#555;font-size:12px">Not scored</span>';
 
     // Cited by (papers that cite this node)
     const citedBy = allLinks.filter(l => (l.target.id||l.target) === d.id).map(l => l.source.id||l.source);
