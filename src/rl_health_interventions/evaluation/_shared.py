@@ -15,6 +15,10 @@ _SHORT_NAMES: dict[str, str] = {
     "epsilon_greedy": "EG",
     "ucb": "UCB",
     "decaying_epsilon_greedy": "D-EG",
+    "q_learning": "Q-Learning",
+    "dqn": "DQN",
+    "reinforce": "REINFORCE",
+    "ppo": "PPO",
     "random": "Random",
 }
 

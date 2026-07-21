@@ -68,7 +68,9 @@ class ThompsonSamplingAgent(ContextualBanditAgent):
         return max(samples, key=lambda a: samples[a])
 
     @override
-    def update(self, state, action: str, reward: float, next_state) -> None:
+    def update(
+        self, state, action: str, reward: float, next_state, done: bool = False
+    ) -> None:
         key = self._get_context_key(state, action)
         self._ensure_params(key)
         p = self.posteriors[key]
