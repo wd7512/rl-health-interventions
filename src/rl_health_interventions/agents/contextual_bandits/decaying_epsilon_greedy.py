@@ -132,7 +132,9 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
         return best[idx]
 
     @override
-    def update(self, state, action: str, reward: float, next_state) -> None:
+    def update(
+        self, state, action: str, reward: float, next_state, done: bool = False
+    ) -> None:
         """
         Update the Q-value estimate for a state-action pair.
 
@@ -143,6 +145,7 @@ class DecayingEpsilonGreedyAgent(ContextualBanditAgent):
             action: The action that was taken.
             reward: Scalar reward received from the environment.
             next_state: Successor state (unused by this agent).
+            done: Whether the episode terminated after this step.
         """
         key = self._get_context_key(state, action)
         self._ensure_params(key)

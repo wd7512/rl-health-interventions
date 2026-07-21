@@ -62,7 +62,9 @@ class EpsilonGreedyAgent(ContextualBanditAgent):
         return best[idx]
 
     @override
-    def update(self, state, action: str, reward: float, next_state) -> None:
+    def update(
+        self, state, action: str, reward: float, next_state, done: bool = False
+    ) -> None:
         key = self._get_context_key(state, action)
         self._ensure_params(key)
         self.counts[key] += 1

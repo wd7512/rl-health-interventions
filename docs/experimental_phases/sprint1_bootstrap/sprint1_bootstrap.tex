@@ -216,6 +216,36 @@ Variance (best agent) & $\pm$82 & $\pm$14 \\
 \caption{Bootstrap transitions vs random transitions. The LLM-estimated tables produce structured dynamics with large agent differentials, while random transitions wash out all policy differences. Std UCB's low variance under bootstrap suggests reliable convergence.}
 \end{table}
 
+\subsection{Deep RL Baselines on Bootstrap MDP}
+
+We evaluated the deep RL baselines (Q-Learning, DQN, REINFORCE, PPO) on the Sprint 1 bootstrap MDP (50 seeds). All agents now include temporal features (day, step\_of\_day) in their state encoding for fair comparison with bandit agents.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Agent & Total Reward & Per Step & Last 50 \\
+\midrule
+\textbf{Std DQN} & \textbf{148.3 $\pm$ 104.9} & \textbf{0.3296} & \textbf{0.3738} \\
+Std PPO & 127.4 $\pm$ 63.8 & 0.2830 & 0.3016 \\
+Std REINFORCE & 122.9 $\pm$ 57.7 & 0.2730 & 0.3323 \\
+Std Q-Learning & 100.7 $\pm$ 10.5 & 0.2239 & 0.2152 \\
+Random & 99.7 $\pm$ 10.9 & 0.2217 & 0.2149 \\
+\midrule
+\textit{Best bandit (Std UCB)} & \textit{358.1 $\pm$ 14.0} & \textit{0.7958} & \textit{0.8371} \\
+\bottomrule
+\end{tabular}
+\caption{Deep RL baselines on Sprint 1 bootstrap MDP (mean total reward $\pm$ SD, 50 seeds). DQN leads deep RL agents but all deep RL methods substantially underperform tuned bandits. REINFORCE now beats random after fixing return normalization.}
+\end{table}
+
+\paragraph{Key findings:}
+\begin{itemize}
+\item \textbf{Bandits dominate deep RL}: Std UCB (358.1) achieves 2.4$\times$ the reward of DQN (148.3), the best deep RL agent.
+\item \textbf{REINFORCE fix}: After removing return std-normalization (which violated the policy gradient theorem), REINFORCE now beats random (122.9 vs 99.7), whereas previously it underperformed random (88.4).
+\item \textbf{DQN variance}: DQN shows high variance ($\pm$104.9) despite gradient clipping, indicating training instability with small buffer (64) and aggressive target updates (freq=10).
+\item \textbf{Q-Learning matches random}: Tabular Q-Learning (100.7) performs similarly to random (99.7), suggesting the 36-state space is too large for effective tabular learning with sparse rewards.
+\end{itemize}
+
 \section{Context Feature Comparison}
 
 The extensions benchmark used $\texttt{step\_bin}$ as the context feature (3 bins, same fragmentation as step\_bin). To test whether a better-chosen context could close the gap, we swapped to $\texttt{burden}$ (3 levels, same fragmentation) and re-ran the 9-agent benchmark. Results are 50 seeds.

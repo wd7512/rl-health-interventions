@@ -96,6 +96,10 @@ _KNOWN_AGENT_TYPES = frozenset(
         "decaying_epsilon_greedy",
         "fixed",
         "heartsteps",
+        "q_learning",
+        "dqn",
+        "reinforce",
+        "ppo",
     }
 )
 
@@ -105,6 +109,44 @@ def _check_name(fname: str, field: str, val: str, names: set[str]) -> None:
         raise ValueError(
             f"state.variables.{fname}.advanced.{field} value "
             f"'{val}' not in variable names: {sorted(names)}"
+        )
+
+
+def _require_positive(
+    value: float | None, field: str, agent_type: str, *, required: bool = False
+) -> None:
+    if value is None:
+        if required:
+            raise ValueError(f"{field} must be provided for {agent_type}")
+        return
+    if value <= 0:
+        raise ValueError(f"{field} must be > 0 for {agent_type}")
+
+
+def _require_in_range(
+    value: float | None, lo: float, hi: float, field: str, agent_type: str
+) -> None:
+    if value is not None and not (lo <= value <= hi):
+        raise ValueError(f"{field} must be in [{lo}, {hi}] for {agent_type}")
+
+
+def _require_in_range_open_lo(
+    value: float | None, lo: float, hi: float, field: str, agent_type: str
+) -> None:
+    if value is not None and not (lo < value <= hi):
+        raise ValueError(f"{field} must be in ({lo}, {hi}] for {agent_type}")
+
+
+def _reject_fields(config: AgentConfig, fields: list[str], agent_type: str) -> None:
+    """Raise ValueError if any of the given fields are set but not applicable for agent type."""
+    violators = [f for f in fields if getattr(config, f) is not None]
+    if violators:
+        if len(violators) == 1:
+            raise ValueError(
+                f"field {violators[0]} is not applicable for agent type {agent_type}"
+            )
+        raise ValueError(
+            f"fields {', '.join(sorted(violators))} are not applicable for agent type {agent_type}"
         )
 
 
@@ -121,6 +163,18 @@ class AgentConfig(BaseModel):
     context_features: str | list[str] | None = None
     action: str | None = None
     gamma: float | None = None
+    lr: float | None = None
+    hidden_dim: int | list[int] | None = None
+    policy_hidden_dim: int | list[int] | None = None
+    value_hidden_dim: int | list[int] | None = None
+    state_dim: int | None = None
+    grad_clip: float | None = None
+    batch_size: int | None = None
+    buffer_size: int | None = None
+    target_update_freq: int | None = None
+    clip_eps: float | None = None
+    gae_lambda: float | None = None
+    ppo_epochs: int | None = None
     lambda_dosage: float | None = None
     w: float | None = None
     epsilon_0: float | None = None
@@ -283,6 +337,107 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "heartsteps agent does not accept alpha_prior, beta_prior, epsilon, epsilon_start, c, decay_steps, epsilon_0, or epsilon_1"
                 )
+        # ── Q-Learning ──────────────────────────────────────────────
+        if self.type == "q_learning":
+            _require_positive(self.lr, "lr", self.type, required=True)
+            _require_in_range(self.gamma, 0.0, 1.0, "gamma", self.type)
+            _require_in_range(self.epsilon, 0.0, 1.0, "epsilon", self.type)
+            _reject_fields(
+                self,
+                [
+                    "state_dim",
+                    "hidden_dim",
+                    "policy_hidden_dim",
+                    "value_hidden_dim",
+                    "batch_size",
+                    "buffer_size",
+                    "target_update_freq",
+                    "clip_eps",
+                    "gae_lambda",
+                    "ppo_epochs",
+                ],
+                "q_learning",
+            )
+        # ── DQN ────────────────────────────────────────────────────
+        if self.type == "dqn":
+            _require_positive(self.lr, "lr", self.type, required=True)
+            _require_in_range(self.gamma, 0.0, 1.0, "gamma", self.type)
+            _require_in_range(self.epsilon, 0.0, 1.0, "epsilon", self.type)
+            _require_positive(self.state_dim, "state_dim", self.type)
+            _require_positive(self.batch_size, "batch_size", "dqn")
+            _require_positive(self.buffer_size, "buffer_size", "dqn")
+            _require_positive(self.decay_steps, "decay_steps", "dqn")
+            _require_positive(self.target_update_freq, "target_update_freq", "dqn")
+            if self.grad_clip is not None and self.grad_clip < 0:
+                raise ValueError("grad_clip must be non-negative for dqn")
+            if (
+                self.buffer_size is not None
+                and self.batch_size is not None
+                and self.buffer_size < self.batch_size
+            ):
+                raise ValueError("buffer_size must be >= batch_size for dqn")
+            _require_in_range(self.epsilon_start, 0.0, 1.0, "epsilon_start", "dqn")
+            _require_in_range(self.epsilon_min, 0.0, 1.0, "epsilon_min", "dqn")
+            if (
+                self.epsilon_start is not None
+                and self.epsilon_min is not None
+                and self.epsilon_min > self.epsilon_start
+            ):
+                raise ValueError("epsilon_min must not exceed epsilon_start for dqn")
+            if self.hidden_dim is not None:
+                if isinstance(self.hidden_dim, int):
+                    _require_positive(self.hidden_dim, "hidden_dim", "dqn")
+                elif not self.hidden_dim or not all(
+                    isinstance(h, int) and h > 0 for h in self.hidden_dim
+                ):
+                    raise ValueError("hidden_dim list must contain positive integers")
+            _reject_fields(
+                self,
+                [
+                    "policy_hidden_dim",
+                    "value_hidden_dim",
+                    "clip_eps",
+                    "gae_lambda",
+                    "ppo_epochs",
+                ],
+                "dqn",
+            )
+        # ── REINFORCE ──────────────────────────────────────────────
+        if self.type == "reinforce":
+            _require_positive(self.lr, "lr", self.type, required=True)
+            _require_in_range_open_lo(self.gamma, 0.0, 1.0, "gamma", self.type)
+            _require_positive(self.state_dim, "state_dim", self.type)
+            _reject_fields(
+                self,
+                [
+                    "policy_hidden_dim",
+                    "value_hidden_dim",
+                    "batch_size",
+                    "buffer_size",
+                    "target_update_freq",
+                    "clip_eps",
+                    "gae_lambda",
+                    "ppo_epochs",
+                ],
+                "reinforce",
+            )
+        # ── PPO ────────────────────────────────────────────────────
+        if self.type == "ppo":
+            _require_positive(self.lr, "lr", self.type, required=True)
+            _require_in_range_open_lo(self.gamma, 0.0, 1.0, "gamma", self.type)
+            _require_positive(self.state_dim, "state_dim", self.type)
+            _require_in_range(self.gae_lambda, 0.0, 1.0, "gae_lambda", "ppo")
+            _require_positive(self.clip_eps, "clip_eps", "ppo")
+            _require_positive(self.ppo_epochs, "ppo_epochs", "ppo")
+            _reject_fields(
+                self,
+                [
+                    "batch_size",
+                    "buffer_size",
+                    "target_update_freq",
+                ],
+                "ppo",
+            )
         return self
 
 

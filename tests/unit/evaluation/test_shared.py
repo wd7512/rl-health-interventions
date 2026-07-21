@@ -52,6 +52,12 @@ class TestAgentLabel:
         cfg.contextual = False
         assert agent_label(cfg) == "Std EG"
 
+    def test_standard_ppo(self):
+        cfg = MagicMock()
+        cfg.type = "ppo"
+        cfg.contextual = False
+        assert agent_label(cfg) == "Std PPO"
+
 
 class TestRunAgent:
     def test_returns_correct_shape(self):
