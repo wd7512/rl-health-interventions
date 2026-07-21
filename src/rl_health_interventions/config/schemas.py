@@ -112,8 +112,14 @@ def _check_name(fname: str, field: str, val: str, names: set[str]) -> None:
         )
 
 
-def _require_positive(value: float | None, field: str, agent_type: str) -> None:
-    if value is not None and value <= 0:
+def _require_positive(
+    value: float | None, field: str, agent_type: str, *, required: bool = False
+) -> None:
+    if value is None:
+        if required:
+            raise ValueError(f"{field} must be provided for {agent_type}")
+        return
+    if value <= 0:
         raise ValueError(f"{field} must be > 0 for {agent_type}")
 
 
@@ -318,7 +324,7 @@ class AgentConfig(BaseModel):
                     "heartsteps agent does not accept alpha_prior, beta_prior, epsilon, epsilon_start, c, decay_steps, epsilon_0, or epsilon_1"
                 )
         if self.type in {"q_learning", "dqn", "reinforce", "ppo"}:
-            _require_positive(self.lr, "lr", self.type)
+            _require_positive(self.lr, "lr", self.type, required=True)
             _require_positive(self.state_dim, "state_dim", self.type)
         if self.type in {"q_learning", "dqn"}:
             _require_in_range(self.gamma, 0.0, 1.0, "gamma", self.type)

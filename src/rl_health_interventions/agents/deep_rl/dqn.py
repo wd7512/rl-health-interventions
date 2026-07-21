@@ -100,22 +100,13 @@ class DQNAgent(Agent):
             grad_output[transition.action_idx] = 2.0 * (
                 pred[transition.action_idx] - td_target
             )
-            self._backprop_into(
-                transition.state, grad_output, total_grad_w, total_grad_b
+            grads_w, grads_b = self._online.compute_gradients(
+                transition.state, grad_output
             )
+            for idx in range(len(self._online.weights)):
+                total_grad_w[idx] += grads_w[idx]
+                total_grad_b[idx] += grads_b[idx]
         return total_grad_w, total_grad_b
-
-    def _backprop_into(self, state, grad_output, total_grad_w, total_grad_b):
-        fwd = self._online.forward(state)
-        delta = grad_output
-        for layer_idx in reversed(range(len(self._online.weights))):
-            a_prev = fwd.activations[layer_idx]
-            total_grad_w[layer_idx] += np.outer(a_prev, delta)
-            total_grad_b[layer_idx] += delta
-            if layer_idx > 0:
-                delta = self._online.weights[layer_idx] @ delta
-                relu_grad = (fwd.activations[layer_idx] > 0).astype(np.float64)
-                delta *= relu_grad
 
     @override
     def update(self, state, action: str, reward: float, next_state) -> None:

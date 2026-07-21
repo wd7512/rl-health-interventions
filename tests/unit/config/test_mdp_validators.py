@@ -169,6 +169,22 @@ def _del(raw, *keys):
         ),
         (lambda raw: _set(raw, "agents", [{"type": "q_learning", "lr": 0}]), "lr"),
         (
+            lambda raw: _set(raw, "agents", [{"type": "q_learning"}]),
+            "lr",
+        ),
+        (
+            lambda raw: _set(raw, "agents", [{"type": "dqn"}]),
+            "lr",
+        ),
+        (
+            lambda raw: _set(raw, "agents", [{"type": "reinforce"}]),
+            "lr",
+        ),
+        (
+            lambda raw: _set(raw, "agents", [{"type": "ppo"}]),
+            "lr",
+        ),
+        (
             lambda raw: _set(
                 raw, "agents", [{"type": "reinforce", "lr": 0.01, "gamma": 0}]
             ),
@@ -254,6 +270,10 @@ def _del(raw, *keys):
         "unknown_agent_type",
         "dqn_batch_size_non_positive",
         "q_learning_lr_non_positive",
+        "q_learning_lr_missing",
+        "dqn_lr_missing",
+        "reinforce_lr_missing",
+        "ppo_lr_missing",
         "reinforce_gamma_non_positive",
         "ppo_clip_eps_non_positive",
         "random_contextual_not_supported",

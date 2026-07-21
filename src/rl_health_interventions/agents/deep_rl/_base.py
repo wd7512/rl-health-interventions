@@ -73,8 +73,8 @@ class MLP:
     def from_weights(cls, weights: list[np.ndarray], biases: list[np.ndarray]) -> MLP:
         obj = cls.__new__(cls)
         obj._rng = np.random.default_rng(0)
-        obj.weights = list(weights)
-        obj.biases = list(biases)
+        obj.weights = [w.copy() for w in weights]
+        obj.biases = [b.copy() for b in biases]
         return obj
 
     def copy(self) -> MLP:
@@ -99,9 +99,9 @@ class MLP:
     def predict(self, x: np.ndarray) -> np.ndarray:
         return self.forward(x).output
 
-    def backward_output_gradient(
-        self, x: np.ndarray, grad_output: np.ndarray, lr: float
-    ) -> None:
+    def compute_gradients(
+        self, x: np.ndarray, grad_output: np.ndarray
+    ) -> tuple[list[np.ndarray], list[np.ndarray]]:
         forward = self.forward(x)
         grads_w = [np.zeros_like(w) for w in self.weights]
         grads_b = [np.zeros_like(b) for b in self.biases]
@@ -116,6 +116,12 @@ class MLP:
                 relu_grad = (forward.activations[layer_idx] > 0).astype(np.float64)
                 delta *= relu_grad
 
+        return grads_w, grads_b
+
+    def backward_output_gradient(
+        self, x: np.ndarray, grad_output: np.ndarray, lr: float
+    ) -> None:
+        grads_w, grads_b = self.compute_gradients(x, grad_output)
         for idx in range(len(self.weights)):
             self.weights[idx] -= lr * grads_w[idx]
             self.biases[idx] -= lr * grads_b[idx]

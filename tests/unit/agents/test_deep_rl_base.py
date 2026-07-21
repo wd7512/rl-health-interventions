@@ -175,6 +175,48 @@ class TestMLPBackward:
         np.testing.assert_allclose(mlp.weights[0], expected_w, atol=1e-10)
 
 
+class TestMLPComputeGradients:
+    def test_returns_correct_shapes(self):
+        mlp = MLP(input_dim=3, output_dim=2, hidden_dims=(4,), seed=0)
+        x = np.array([1.0, -0.5, 0.3])
+        grad_output = np.array([1.0, -0.5])
+        grads_w, grads_b = mlp.compute_gradients(x, grad_output)
+        assert len(grads_w) == 2
+        assert len(grads_b) == 2
+        assert grads_w[0].shape == (3, 4)
+        assert grads_w[1].shape == (4, 2)
+        assert grads_b[0].shape == (4,)
+        assert grads_b[1].shape == (2,)
+
+    def test_does_not_modify_weights(self):
+        mlp = MLP(input_dim=2, output_dim=1, hidden_dims=(3,), seed=0)
+        weights_before = [w.copy() for w in mlp.weights]
+        biases_before = [b.copy() for b in mlp.biases]
+        x = np.array([1.0, 2.0])
+        grad_output = np.array([1.0])
+        mlp.compute_gradients(x, grad_output)
+        for w_before, w_after in zip(weights_before, mlp.weights, strict=True):
+            np.testing.assert_array_equal(w_before, w_after)
+        for b_before, b_after in zip(biases_before, mlp.biases, strict=True):
+            np.testing.assert_array_equal(b_before, b_after)
+
+    def test_consistent_with_backward(self):
+        mlp1 = MLP(input_dim=2, output_dim=1, hidden_dims=(3,), seed=0)
+        mlp2 = mlp1.copy()
+        x = np.array([1.0, -0.5])
+        grad_output = np.array([0.7])
+        lr = 0.05
+        grads_w, grads_b = mlp1.compute_gradients(x, grad_output)
+        for idx in range(len(mlp1.weights)):
+            mlp1.weights[idx] -= lr * grads_w[idx]
+            mlp1.biases[idx] -= lr * grads_b[idx]
+        mlp2.backward_output_gradient(x, grad_output, lr=lr)
+        for w1, w2 in zip(mlp1.weights, mlp2.weights, strict=True):
+            np.testing.assert_allclose(w1, w2, atol=1e-10)
+        for b1, b2 in zip(mlp1.biases, mlp2.biases, strict=True):
+            np.testing.assert_allclose(b1, b2, atol=1e-10)
+
+
 class TestMLPCopy:
     def test_independent_weights(self):
         mlp = MLP(input_dim=2, output_dim=1, hidden_dims=(3,), seed=0)
@@ -216,6 +258,16 @@ class TestMLPFromWeights:
         )
         x = np.array([1.0, -0.5, 0.3])
         np.testing.assert_array_equal(mlp.predict(x), restored.predict(x))
+
+    def test_defensive_copies(self):
+        mlp = MLP(input_dim=2, output_dim=1, hidden_dims=(), seed=0)
+        weights = mlp.weights
+        biases = mlp.biases
+        restored = MLP.from_weights(weights, biases)
+        weights[0][0, 0] = 999.0
+        biases[0][0] = 888.0
+        assert restored.weights[0][0, 0] != 999.0
+        assert restored.biases[0][0] != 888.0
 
 
 class TestValidationHelpers:
