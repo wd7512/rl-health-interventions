@@ -27,5 +27,4 @@ This is a generic Python project template using `uv`, `ruff`, `ty`, and `pytest`
 - `opencode.json` configures project-local OpenCode behavior.
 - `.opencode/agents/` contains reusable OpenCode agents.
 - `.opencode/skills/` contains reusable workflow skills for AI-assisted development.
-- `.opencode/plugins/write-size-guard.ts` prevents oversized generated writes.
-- `.opencode/plugins-available/` contains optional telemetry plugins that can be copied into `.opencode/plugins/` when desired.
+- `.opencode/plugins-available/` contains optional plugins (auth-check, session-lifecycle, tool-observer, write-size-guard) that can be copied into `.opencode/plugins/` when desired.
