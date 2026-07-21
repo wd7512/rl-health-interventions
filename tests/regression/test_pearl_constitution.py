@@ -199,7 +199,9 @@ def test_reference_schema_valid() -> None:
 
     import jsonschema
 
-    schema_path = _REPO_ROOT / "docs" / "research" / "reference" / "pearl_reference_schema.json"
+    schema_path = (
+        _REPO_ROOT / "docs" / "research" / "reference" / "pearl_reference_schema.json"
+    )
     data_path = _REPO_ROOT / "docs" / "research" / "reference" / "pearl_reference.json"
 
     with schema_path.open(encoding="utf-8") as f:
