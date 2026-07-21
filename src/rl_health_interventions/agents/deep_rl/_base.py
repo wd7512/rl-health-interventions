@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import zlib
 from dataclasses import dataclass
 from itertools import pairwise
 
@@ -32,7 +33,8 @@ def hash_state_vector(state, state_dim: int) -> np.ndarray:
     key = state_to_key(state)
     vec = np.zeros(state_dim, dtype=np.float64)
     for idx, value in enumerate(key):
-        vec[hash((idx, value)) % state_dim] += 1.0
+        h = zlib.crc32(f"{idx}:{value}".encode())
+        vec[h % state_dim] += 1.0
     return vec
 
 
@@ -67,11 +69,19 @@ class MLP:
             )
             self.biases.append(np.zeros(fan_out, dtype=np.float64))
 
+    @classmethod
+    def from_weights(cls, weights: list[np.ndarray], biases: list[np.ndarray]) -> MLP:
+        obj = cls.__new__(cls)
+        obj._rng = np.random.default_rng(0)
+        obj.weights = [w.copy() for w in weights]
+        obj.biases = [b.copy() for b in biases]
+        return obj
+
     def copy(self) -> MLP:
-        copied = MLP(1, 1, (), seed=0)
-        copied.weights = [w.copy() for w in self.weights]
-        copied.biases = [b.copy() for b in self.biases]
-        return copied
+        return MLP.from_weights(
+            [w.copy() for w in self.weights],
+            [b.copy() for b in self.biases],
+        )
 
     def sync_from(self, other: MLP) -> None:
         self.weights = [w.copy() for w in other.weights]
@@ -89,9 +99,9 @@ class MLP:
     def predict(self, x: np.ndarray) -> np.ndarray:
         return self.forward(x).output
 
-    def backward_output_gradient(
-        self, x: np.ndarray, grad_output: np.ndarray, lr: float
-    ) -> None:
+    def compute_gradients(
+        self, x: np.ndarray, grad_output: np.ndarray
+    ) -> tuple[list[np.ndarray], list[np.ndarray]]:
         forward = self.forward(x)
         grads_w = [np.zeros_like(w) for w in self.weights]
         grads_b = [np.zeros_like(b) for b in self.biases]
@@ -106,6 +116,52 @@ class MLP:
                 relu_grad = (forward.activations[layer_idx] > 0).astype(np.float64)
                 delta *= relu_grad
 
+        return grads_w, grads_b
+
+    def backward_output_gradient(
+        self, x: np.ndarray, grad_output: np.ndarray, lr: float
+    ) -> None:
+        grads_w, grads_b = self.compute_gradients(x, grad_output)
         for idx in range(len(self.weights)):
             self.weights[idx] -= lr * grads_w[idx]
             self.biases[idx] -= lr * grads_b[idx]
+
+
+def validate_lr(lr: float) -> None:
+    if lr <= 0:
+        raise ValueError("lr must be > 0")
+
+
+def validate_gamma(gamma: float, *, positive: bool = False) -> None:
+    if positive:
+        if not (0.0 < gamma <= 1.0):
+            raise ValueError("gamma must be in (0, 1]")
+    elif not (0.0 <= gamma <= 1.0):
+        raise ValueError("gamma must be in [0, 1]")
+
+
+def validate_unit_interval(value: float, name: str) -> None:
+    if not (0.0 <= value <= 1.0):
+        raise ValueError(f"{name} must be in [0, 1]")
+
+
+def validate_positive_int(value: int, name: str) -> None:
+    if value <= 0:
+        raise ValueError(f"{name} must be > 0")
+
+
+def validate_positive_float(value: float, name: str) -> None:
+    if value <= 0:
+        raise ValueError(f"{name} must be > 0")
+
+
+def validate_state_dim(state_dim: int) -> None:
+    if state_dim <= 0:
+        raise ValueError("state_dim must be > 0")
+
+
+def validate_hidden_dim(hidden_dim: int | list[int]) -> None:
+    if isinstance(hidden_dim, int):
+        validate_positive_int(hidden_dim, "hidden_dim")
+    elif not hidden_dim or not all(isinstance(h, int) and h > 0 for h in hidden_dim):
+        raise ValueError("hidden_dim list must contain positive integers")

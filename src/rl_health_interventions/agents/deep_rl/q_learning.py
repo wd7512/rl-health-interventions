@@ -4,7 +4,12 @@ import numpy as np
 from typing_extensions import override
 
 from rl_health_interventions.agents._base import Agent
-from rl_health_interventions.agents.deep_rl._base import state_to_key
+from rl_health_interventions.agents.deep_rl._base import (
+    state_to_key,
+    validate_gamma,
+    validate_lr,
+    validate_unit_interval,
+)
 
 
 class QLearningAgent(Agent):
@@ -16,12 +21,9 @@ class QLearningAgent(Agent):
         epsilon: float = 0.1,
         seed: int = 42,
     ) -> None:
-        if lr <= 0:
-            raise ValueError("lr must be > 0")
-        if not (0.0 <= gamma <= 1.0):
-            raise ValueError("gamma must be in [0, 1]")
-        if not (0.0 <= epsilon <= 1.0):
-            raise ValueError("epsilon must be in [0, 1]")
+        validate_lr(lr)
+        validate_gamma(gamma)
+        validate_unit_interval(epsilon, "epsilon")
         self._rng = np.random.default_rng(seed)
         self._actions = actions or ["nudge", "idle"]
         self.lr = lr

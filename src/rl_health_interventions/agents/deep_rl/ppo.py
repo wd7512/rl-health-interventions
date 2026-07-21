@@ -9,11 +9,15 @@ from rl_health_interventions.agents.deep_rl._base import (
     hash_state_vector,
     parse_hidden_dims,
     softmax,
+    validate_gamma,
+    validate_lr,
+    validate_positive_float,
+    validate_positive_int,
 )
 
 
 class PPOAgent(Agent):
-    def __init__(  # noqa: C901
+    def __init__(
         self,
         actions: list[str] | None = None,
         lr: float = 1e-2,
@@ -27,16 +31,12 @@ class PPOAgent(Agent):
         state_dim: int = 64,
         seed: int = 42,
     ) -> None:
-        if lr <= 0:
-            raise ValueError("lr must be > 0")
-        if not (0.0 < gamma <= 1.0):
-            raise ValueError("gamma must be in (0, 1]")
+        validate_lr(lr)
+        validate_gamma(gamma, positive=True)
         if not (0.0 <= gae_lambda <= 1.0):
             raise ValueError("gae_lambda must be in [0, 1]")
-        if clip_eps <= 0:
-            raise ValueError("clip_eps must be > 0")
-        if ppo_epochs <= 0:
-            raise ValueError("ppo_epochs must be > 0")
+        validate_positive_float(clip_eps, "clip_eps")
+        validate_positive_int(ppo_epochs, "ppo_epochs")
         self._rng = np.random.default_rng(seed)
         self._actions = actions or ["nudge", "idle"]
         self.lr = lr
@@ -87,9 +87,21 @@ class PPOAgent(Agent):
         self._trajectory.append((state_vec, action_idx, reward, value, log_prob))
 
     @override
-    def on_day_end(self) -> None:  # noqa: C901, PLR0912
+    def on_day_end(self) -> None:
         if not self._trajectory:
             return
+        advantages, returns, old_log_probs = self._compute_gae()
+        if len(advantages) > 1:
+            advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+        for _ in range(self.ppo_epochs):
+            for idx, (state_vec, action_idx, _, _, _) in enumerate(self._trajectory):
+                self._policy_step(
+                    state_vec, action_idx, old_log_probs[idx], advantages[idx]
+                )
+                self._value_step(state_vec, returns[idx])
+        self._trajectory.clear()
+
+    def _compute_gae(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         n = len(self._trajectory)
         rewards = np.array([t[2] for t in self._trajectory], dtype=np.float64)
         values = np.array([t[3] for t in self._trajectory], dtype=np.float64)
@@ -103,30 +115,29 @@ class PPOAgent(Agent):
             advantages[t] = gae
             next_value = values[t]
         returns = advantages + values
-        if n > 1:
-            advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+        return advantages, returns, old_log_probs
 
-        for _ in range(self.ppo_epochs):
-            for idx, (state_vec, action_idx, _, _, _) in enumerate(self._trajectory):
-                probs = self._action_probs(state_vec)
-                log_prob = float(np.log(probs[action_idx] + 1e-12))
-                ratio = float(np.exp(log_prob - old_log_probs[idx]))
-                advantage = float(advantages[idx])
-                if (advantage >= 0.0 and ratio > (1.0 + self.clip_eps)) or (
-                    advantage < 0.0 and ratio < (1.0 - self.clip_eps)
-                ):
-                    policy_coef = 0.0
-                else:
-                    policy_coef = -advantage * ratio
-                grad_logits = -policy_coef * probs
-                grad_logits[action_idx] += policy_coef
-                self._policy.backward_output_gradient(
-                    state_vec, grad_logits, lr=self.lr
-                )
+    def _policy_step(
+        self,
+        state_vec: np.ndarray,
+        action_idx: int,
+        old_log_prob: float,
+        advantage: float,
+    ) -> None:
+        probs = self._action_probs(state_vec)
+        new_log_prob = float(np.log(probs[action_idx] + 1e-12))
+        ratio = float(np.exp(new_log_prob - old_log_prob))
+        if (advantage >= 0.0 and ratio > (1.0 + self.clip_eps)) or (
+            advantage < 0.0 and ratio < (1.0 - self.clip_eps)
+        ):
+            policy_coef = 0.0
+        else:
+            policy_coef = -advantage * ratio
+        grad_logits = -policy_coef * probs
+        grad_logits[action_idx] += policy_coef
+        self._policy.backward_output_gradient(state_vec, grad_logits, lr=self.lr)
 
-                value_pred = self._value_estimate(state_vec)
-                value_grad = np.array(
-                    [2.0 * (value_pred - returns[idx])], dtype=np.float64
-                )
-                self._value.backward_output_gradient(state_vec, value_grad, lr=self.lr)
-        self._trajectory.clear()
+    def _value_step(self, state_vec: np.ndarray, target_return: float) -> None:
+        value_pred = self._value_estimate(state_vec)
+        value_grad = np.array([2.0 * (value_pred - target_return)], dtype=np.float64)
+        self._value.backward_output_gradient(state_vec, value_grad, lr=self.lr)
