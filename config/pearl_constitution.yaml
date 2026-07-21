@@ -1,0 +1,84 @@
+# PEARL Constitution: 4-arm replication config
+# Maps PEARL arms to simulation agents:
+#   Control → FixedAgent(action="idle")       [agent index 0]
+#   Random  → RandomAgent (uniform)           [agent index 1]
+#   Fixed   → FixedAgent(action="movement_suggestion")  [agent index 2]
+#   RL      → ThompsonSampling                [agent index 3]
+#
+# Episode: 60 days × 5 steps = 300 steps per seed.
+# Baseline period: first 7 days (35 steps) used for pre-intervention checks.
+
+initial_state:
+  step_bin: inactive
+  sleep: good
+  day_of_week: weekday
+  burden: low
+
+state:
+  variables:
+    step_bin:
+      names: [inactive, moderate, active]
+    sleep:
+      names: [good, poor]
+    day_of_week:
+      names: [weekday, weekend]
+      advanced:
+        type: cyclic
+        granularity: daily
+        pattern: [weekday, weekday, weekday, weekday, weekday, weekend, weekend]
+    burden:
+      names: [low, medium, high]
+      advanced:
+        type: rolling_window_count
+        window_size: 3
+        conditions:
+          - factor: action
+            type: in
+            values: [movement_suggestion, goal_reminder, journal]
+        mapping: {0: low, 1: medium, 2: high, 3: high}
+
+actions:
+  idle: {}
+  movement_suggestion: {}
+  goal_reminder: {}
+  journal: {}
+
+reward:
+  constants:
+    alpha: 0.9
+  variables:
+    step_bin_value:
+      source: state.step_bin
+      mapping: {inactive: 0.0, moderate: 0.5, active: 1.0}
+    sleep_value:
+      source: state.sleep
+      mapping: {good: 1.0, poor: -1.0}
+    action_penalty:
+      source: action
+      mapping: {idle: 0.0, movement_suggestion: 0.05, goal_reminder: 0.05, journal: 0.05}
+  formula: "alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty"
+
+transition_model:
+  type: bootstrap
+  table_dir: ../tables/persona/base_deepseek-v4-flash
+
+episode_days: 60
+steps_per_day: 5
+seed: 42
+
+agents:
+  # Agent 0 — Control arm: always idle
+  - type: fixed
+    action: idle
+
+  # Agent 1 — Random arm: uniform random over all actions
+  - type: random
+
+  # Agent 2 — Fixed nudge arm: always movement_suggestion
+  - type: fixed
+    action: movement_suggestion
+
+  # Agent 3 — RL arm: Thompson sampling bandit
+  - type: thompson_sampling
+    alpha_prior: 1.0
+    beta_prior: 1.0

@@ -17,12 +17,14 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "jsonschema>=4.26.0",
     "matplotlib>=3.7.0",
     "pandas>=3.0.3",
     "pytest>=8.4.0,<10",
     "pytest-timeout>=2.3.0,<3",
     "pytest-xdist>=3.8.0,<4",
     "ruff>=0.14.10,<0.15",
+    "scipy>=1.17.1",
     "ty>=0.0.42,<0.1",
 ]
 
@@ -102,8 +104,11 @@ polars = "pl"
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = [
     "ARG001",   # pytest hook params must match hookspec names
+    "C901",     # Allow complexity in test functions
     "PLC0415",  # Allow non-top-level imports in test functions
+    "PLR0124",  # NaN self-comparison accepted
     "PLR2004",  # Allow magic values in test assertions
+    "SIM202",   # NaN check pattern accepted
 ]
 "src/rl_health_interventions/data/loaders.py" = [
     "BLE001",   # Blind except is pragmatic for heterogeneous data sources
@@ -177,6 +182,17 @@ polars = "pl"
     "PLR0912",  # Many branches accepted
     "PLR0915",  # Many statements accepted
     "PLR2004",  # Magic values in array operations
+]
+"scripts/pearl_constitution/**" = [
+    "ARG001",   # Script functions have consistent signatures
+    "C901",     # Check functions with multiple thresholds accepted
+    "E501",     # Long docstring usage lines accepted
+    "PLC0415",  # Imports inside function bodies for optional checks
+    "PLR0912",  # Multiple branches in configurable check functions
+    "PLR0915",  # Many statements in main() accepted
+    "PLR2004",  # Magic values are explicit threshold constants
+    "RUF001",   # En-dashes in docstrings and threshold strings accepted
+    "RUF002",   # En-dashes in docstrings accepted
 ]
 "scripts/eda_all_datasets.py" = [
     "BLE001",   # Blind except is pragmatic for data exploration scripts
