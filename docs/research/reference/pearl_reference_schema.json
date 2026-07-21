@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PEARL Reference Data",
+  "description": "Structured statistics from the PEARL longitudinal study for validating synthetic patient data.",
+  "type": "object",
+  "required": ["demographics", "effect_sizes", "design", "retention", "derived"],
+  "properties": {
+    "demographics": {
+      "type": "object",
+      "required": ["N_enrolled", "N_analysis", "mean_age", "pct_female", "mean_baseline_steps"],
+      "properties": {
+        "N_enrolled": {"type": "integer", "description": "Number of participants enrolled"},
+        "N_analysis": {"type": "integer", "description": "Number of participants in mITT analysis"},
+        "mean_age": {"type": "number", "description": "Mean age of participants"},
+        "pct_female": {"type": "number", "description": "Proportion of female participants"},
+        "mean_baseline_steps": {"type": "number", "description": "Mean daily steps during baseline"}
+      }
+    },
+    "effect_sizes": {
+      "type": "object",
+      "required": ["rl_vs_control_1mo", "rl_vs_control_2mo", "rl_vs_random_1mo", "rl_vs_fixed_1mo", "gee_sustained"],
+      "patternProperties": {
+        "^[a-z0-9_]+$": {
+          "type": "object",
+          "required": ["delta", "p"],
+          "properties": {
+            "delta": {"type": "number", "description": "Effect size in daily steps"},
+            "p": {"type": "number", "description": "P-value for the effect"}
+          }
+        }
+      }
+    },
+    "design": {
+      "type": "object",
+      "required": ["arms", "nudge_bank_size", "behavioural_framework", "duration_months", "decision_points_per_day"],
+      "properties": {
+        "arms": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Study arm names"
+        },
+        "nudge_bank_size": {"type": "integer"},
+        "behavioural_framework": {"type": "string"},
+        "duration_months": {"type": "integer"},
+        "decision_points_per_day": {"type": "string"}
+      }
+    },
+    "retention": {
+      "type": "object",
+      "required": ["randomized_to_analysis_reduction", "attrition_note"],
+      "properties": {
+        "randomized_to_analysis_reduction": {"type": "number"},
+        "attrition_note": {"type": "string"}
+      }
+    },
+    "derived": {
+      "type": "object",
+      "required": ["effect_size_pct_baseline", "attenuation_1mo_to_2mo"],
+      "properties": {
+        "effect_size_pct_baseline": {"type": "number", "description": "Effect size as percentage of baseline mean steps"},
+        "attenuation_1mo_to_2mo": {"type": "number", "description": "Proportional attenuation from 1-month to 2-month effect"}
+      }
+    }
+  }
+}
