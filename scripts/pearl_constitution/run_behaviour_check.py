@@ -51,6 +51,15 @@ def check_t3_1_burden_saturation(
     # Mean across seeds, then across days in each window
     rl_mean = np.mean(rl, axis=0)  # (n_days,)
 
+    if len(rl_mean) <= PEAK_WINDOW_END:
+        return format_check_result(
+            "T3.1",
+            "Burden saturation",
+            False,
+            f"Episode duration ({len(rl_mean)} days) is too short (minimum {PEAK_WINDOW_END + 1} days required)",
+            tier=3,
+        )
+
     peak_window_mean = float(np.mean(rl_mean[:PEAK_WINDOW_END]))
     post_peak_mean = float(np.mean(rl_mean[PEAK_WINDOW_END:]))
 

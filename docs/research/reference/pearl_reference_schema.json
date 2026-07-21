@@ -20,7 +20,7 @@
       "type": "object",
       "required": ["rl_vs_control_1mo", "rl_vs_control_2mo", "rl_vs_random_1mo", "rl_vs_fixed_1mo", "gee_sustained"],
       "patternProperties": {
-        "^[a-z_]+$": {
+        "^[a-z0-9_]+$": {
           "type": "object",
           "required": ["delta", "p"],
           "properties": {
