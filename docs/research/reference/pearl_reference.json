@@ -1,0 +1,31 @@
+{
+  "demographics": {
+    "N_enrolled": 13463,
+    "N_analysis": 7711,
+    "mean_age": 42.1,
+    "pct_female": 0.863,
+    "mean_baseline_steps": 5618.2
+  },
+  "effect_sizes": {
+    "rl_vs_control_1mo": {"delta": 296, "p": 0.0002},
+    "rl_vs_control_2mo": {"delta": 210, "p": 0.0122},
+    "rl_vs_random_1mo": {"delta": 218, "p": 0.005},
+    "rl_vs_fixed_1mo": {"delta": 238, "p": 0.002},
+    "gee_sustained": {"delta": 208, "p": 0.002}
+  },
+  "design": {
+    "arms": ["control", "random", "fixed", "rl"],
+    "nudge_bank_size": 155,
+    "behavioural_framework": "COM-B",
+    "duration_months": 2,
+    "decision_points_per_day": "~1"
+  },
+  "retention": {
+    "randomized_to_analysis_reduction": 0.427,
+    "attrition_note": "42.7% from randomization to mITT analysis"
+  },
+  "derived": {
+    "effect_size_pct_baseline": 0.053,
+    "attenuation_1mo_to_2mo": 0.29
+  }
+}

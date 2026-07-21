@@ -2353,12 +2353,14 @@ llm = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "jsonschema" },
     { name = "matplotlib" },
     { name = "pandas" },
     { name = "pytest" },
     { name = "pytest-timeout" },
     { name = "pytest-xdist" },
     { name = "ruff" },
+    { name = "scipy" },
     { name = "ty" },
 ]
 
@@ -2383,12 +2385,14 @@ provides-extras = ["llm", "data"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "matplotlib", specifier = ">=3.7.0" },
     { name = "pandas", specifier = ">=3.0.3" },
     { name = "pytest", specifier = ">=8.4.0,<10" },
     { name = "pytest-timeout", specifier = ">=2.3.0,<3" },
     { name = "pytest-xdist", specifier = ">=3.8.0,<4" },
     { name = "ruff", specifier = ">=0.14.10,<0.15" },
+    { name = "scipy", specifier = ">=1.17.1" },
     { name = "ty", specifier = ">=0.0.42,<0.1" },
 ]
 
