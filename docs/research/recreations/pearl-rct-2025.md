@@ -8,7 +8,7 @@ doi_jmir: "10.2196/preprints.91156"
 clinical_trial: "OSF.IO/TW7UP (doi: 10.17605/OSF.IO/TW7UP)"
 license: "CC BY-NC-SA 4.0"
 publisher: "JMIR Publications Inc."
-purpose: "Largest RL-for-physical-activity RCT to date; provides real-world effect-size calibration for our simulator."
+purpose: "First large-scale RL-for-physical-activity RCT; provides real-world effect-size calibration for our simulator."
 related: "heartsteps-v1.md · heartsteps-v2-effect-size.md · stepcountjitai-baselines.md"
 openalex_id: "W7125932538"
 openalex_topics:
@@ -71,7 +71,7 @@ PEARL is the first large-scale, four-arm RCT assessing an RL algorithm — infor
 | License | CC BY-NC-SA 4.0 |
 | Publisher | JMIR Publications Inc. |
 | OpenAlex ID | [W7125932538](https://openalex.org/W7125932538) |
-| References | 27 cited works |
+| References | 27 cited works (26 unique DOIs) |
 | OpenAlex Topics | Digital Mental Health Interventions; Physical Activity and Health; Behavioral Health and Interventions |
 | OpenAccess | Gold OA |
 
@@ -91,7 +91,7 @@ PEARL is the first large-scale, four-arm RCT assessing an RL algorithm — infor
 | GEE sustained effect (RL vs Control) | +208 steps, p=0.002 | Abstract |
 | Nudge bank size | 155 | Abstract |
 | Behavioural framework | COM-B | Abstract |
-| Attrition rate | 42.7% | Derived (13,463 - 7,711) / 13,463 |
+| Randomized-to-analysis reduction | 42.7% | Derived (13,463 - 7,711) / 13,463 |
 | Effect size (% baseline) | ~5.3% at 1 month | Derived |
 
 ## 5. Full Abstract
@@ -132,7 +132,7 @@ For comparison:
 - HeartSteps V2: 78.4% improved, +29.75 mean improvement
 - PEARL: +296 steps (p=0.0002)
 
-The theoretical limit for a contextual bandit is `O(sqrt(dT log T))` (Russo & Van Roy 2018). With 155 actions and ~60 decision points per participant, the algorithm is severely data-limited. PEARL's effect size suggests real signal but far from saturating the action space.
+The theoretical regret bound for a contextual bandit is `O(sqrt(dT log T))` (Russo & Van Roy 2018), where `d` is the feature dimension and `T` is the total number of decision points. With 155 actions and ~60 decision points per participant (~460K pooled across 7,711 participants), the algorithm is severely data-limited relative to the action space. PEARL's effect size suggests real signal but far from saturating the action space.
 
 **Assessment:** Not at the theoretical limit. A simulator with known transitions could test whether richer state representations push effect sizes higher.
 
@@ -209,7 +209,6 @@ The paper cites 27 works. Key references extracted from Crossref:
 | ref21 | `10.1109/tnn.1998.712192` | IEEE Trans Neural Networks |
 | ref23 | `10.1111/insr.12583` | International Statistical Review |
 | ref24 | `10.1037/hea0000306` | Health Psychology |
-| ref25 | `10.1093/abm/kay067` | Annals of Behavioral Medicine |
 | ref26 | `10.1016/j.hrthm.2020.02.013` | Heart Rhythm |
 | ref27 | `10.1007/s00415-016-8334-6` | Journal of Neurology |
 | ref28 | `10.3386/w4509` | NBER Working Paper |
