@@ -248,7 +248,7 @@ Random & 99.7 $\pm$ 10.9 & 0.2217 & 0.2149 \\
 
 \subsection{Deep RL Cross-Variant Comparison}
 
-To validate deep RL agents across all Sprint 1 experimental conditions, we ran all four deep RL agents (DQN, PPO, Q-Learning, REINFORCE) on each of the nine Sprint 1 configurations. Results are 50 seeds per agent per config.
+To validate deep RL agents across all Sprint 1 experimental conditions, we ran all four deep RL agents (DQN, PPO, Q-Learning, REINFORCE) on each of the nine Sprint 1 configurations. Results are 50 seeds per agent per config. Note that these runs use a different state encoding than the baselines above (no temporal features), so absolute numbers differ; the cross-variant comparison is valid within this table.
 
 \begin{table}[h]
 \centering
@@ -274,7 +274,7 @@ sprint1\_bootstrap\_context\_burden & $169.5 \pm 118.4$ & $145.3 \pm 79.0$ & $99
 \paragraph{Key findings:}
 \begin{itemize}
 \item \textbf{Q-Learning struggles on bootstrap MDP}: Q-Learning achieves only 99.5 on bootstrap vs 187.2 on random --- a 47\% drop. The 36-state bootstrap MDP is too large for effective tabular learning.
-\item \textbf{Masking reduces performance ~20\%}: All masked variants score ~150 vs ~188 for unmasked, consistent across random and bootstrap MDPs.
+\item \textbf{Masking reduces performance}: On random, masked variants score ~150 vs ~188 for unmasked ($\sim$18\% drop). On bootstrap, masking drops DQN from 169.5 to 132.0 and Q-Learning from 99.5 to 83.2.
 \item \textbf{DQN has highest variance}: DQN shows $\sigma=118$ on bootstrap compared to Q-Learning's $\sigma=13.4$, indicating training instability.
 \item \textbf{Extensions have no effect}: bootstrap\_extensions produces identical results to bootstrap\_base, confirming the transition model dominates.
 \end{itemize}

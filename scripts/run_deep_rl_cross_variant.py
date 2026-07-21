@@ -18,6 +18,7 @@ import argparse
 import json
 import logging
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -25,10 +26,6 @@ import yaml
 
 from rl_health_interventions.sweep import run_experiment_multi_seed
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
 logger = logging.getLogger(__name__)
 
 # Deep RL agent configs (same as sprint1_bootstrap_deep_rl.yaml)
@@ -121,12 +118,17 @@ def run_benchmark(
             base_config["transition_model"]["table_dir"] = str(abs_table_dir)
             logger.info("Fixed table_dir to: %s", abs_table_dir)
 
-    # Write to temp file in the config's directory so relative paths work
-    tmp_path = config_dir / f"temp_deep_rl_{Path(config_path).stem}.yaml"
-    with open(tmp_path, "w") as f:
-        yaml.dump(base_config, f)
-
+    # Write to a unique temp file so concurrent runs don't collide
     try:
+        tmp_fd, tmp_path_str = tempfile.mkstemp(
+            suffix=".yaml",
+            prefix=f"temp_deep_rl_{Path(config_path).stem}_",
+            dir=str(config_dir),
+        )
+        tmp_path = Path(tmp_path_str)
+        with open(tmp_fd, "w") as f:
+            yaml.dump(base_config, f)
+
         results = run_experiment_multi_seed(str(tmp_path), n_seeds=n_seeds)
     finally:
         tmp_path.unlink(missing_ok=True)
@@ -139,7 +141,12 @@ def run_benchmark(
     return results
 
 
-def main() -> int:  # noqa: C901, PLR0915
+def main() -> int:  # noqa: C901, PLR0912, PLR0915
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+
     parser = argparse.ArgumentParser(description="Run deep RL cross-variant benchmarks")
     parser.add_argument(
         "--n-seeds",
@@ -160,6 +167,9 @@ def main() -> int:  # noqa: C901, PLR0915
     )
     args = parser.parse_args()
 
+    if args.n_seeds <= 0:
+        parser.error("--n-seeds must be a positive integer")
+
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
@@ -168,6 +178,7 @@ def main() -> int:  # noqa: C901, PLR0915
 
     # Run benchmarks
     all_results: dict[str, dict[str, Any]] = {}
+    failed = False
 
     for config in CONFIGS:
         config_name = Path(config).stem
@@ -183,22 +194,23 @@ def main() -> int:  # noqa: C901, PLR0915
         except (OSError, ValueError, RuntimeError) as e:
             logger.error("Failed on %s: %s", config, e)
             all_results[config_name] = {"error": str(e)}  # type: ignore[assignment]
+            failed = True
 
     # Print LaTeX table
-    print("\n" + "=" * 80)
-    print("Deep RL Cross-Variant Results (50 seeds)")
-    print("=" * 80)
+    logger.info("=" * 80)
+    logger.info("Deep RL Cross-Variant Results (%d seeds)", args.n_seeds)
+    logger.info("=" * 80)
 
-    print("\\begin{table}[h]")
-    print("\\centering")
-    print("\\begin{tabular}{lrrrr}")
-    print("\\toprule")
-    print("Config & DQN & PPO & Q-Learning & REINFORCE \\\\")
-    print("\\midrule")
+    logger.info("\\begin{table}[h]")
+    logger.info("\\centering")
+    logger.info("\\begin{tabular}{lrrrr}")
+    logger.info("\\toprule")
+    logger.info("Config & DQN & PPO & Q-Learning & REINFORCE \\\\")
+    logger.info("\\midrule")
 
     for config_name, results in all_results.items():
         if "error" in results:
-            print(f"{config_name} & -- & -- & -- & -- \\\\")
+            logger.info("%s & -- & -- & -- & -- \\\\", config_name)
             continue
 
         dqn = results.get("dqn", {}).get("total_reward", 0)
@@ -210,22 +222,32 @@ def main() -> int:  # noqa: C901, PLR0915
         rf = results.get("reinforce", {}).get("total_reward", 0)
         rf_std = results.get("reinforce", {}).get("total_std", 0)
 
-        print(
-            f"{config_name} & "
-            f"${dqn:.1f} \\pm {dqn_std:.1f}$ & "
-            f"${ppo:.1f} \\pm {ppo_std:.1f}$ & "
-            f"${ql:.1f} \\pm {ql_std:.1f}$ & "
-            f"${rf:.1f} \\pm {rf_std:.1f}$ \\\\"
+        logger.info(
+            "%s & "
+            "$%.1f \\pm %.1f$ & "
+            "$%.1f \\pm %.1f$ & "
+            "$%.1f \\pm %.1f$ & "
+            "$%.1f \\pm %.1f$ \\\\",
+            config_name,
+            dqn,
+            dqn_std,
+            ppo,
+            ppo_std,
+            ql,
+            ql_std,
+            rf,
+            rf_std,
         )
 
-    print("\\bottomrule")
-    print("\\end{tabular}")
-    print(
+    logger.info("\\bottomrule")
+    logger.info("\\end{tabular}")
+    logger.info(
         "\\caption{Deep RL results across Sprint 1 variants (mean total reward "
-        "\\pm SD, 50 seeds)}"
+        "\\pm SD, %d seeds)}",
+        args.n_seeds,
     )
-    print("\\label{tab:deep_rl_cross_variant}")
-    print("\\end{table}")
+    logger.info("\\label{tab:deep_rl_cross_variant}")
+    logger.info("\\end{table}")
 
     # Save summary JSON
     summary_path = args.output_dir / "summary.json"
@@ -233,6 +255,8 @@ def main() -> int:  # noqa: C901, PLR0915
         json.dump(all_results, f, indent=2)
     logger.info("Saved summary to %s", summary_path)
 
+    if failed:
+        return 1
     return 0
 
 
