@@ -8,12 +8,16 @@ from rl_health_interventions.agents.deep_rl._base import (
     MLP,
     hash_state_vector,
     parse_hidden_dims,
+    validate_gamma,
+    validate_lr,
+    validate_positive_int,
+    validate_unit_interval,
 )
 from rl_health_interventions.agents.deep_rl.replay import ReplayBuffer, Transition
 
 
 class DQNAgent(Agent):
-    def __init__(  # noqa: C901, PLR0912, PLR0915
+    def __init__(
         self,
         actions: list[str] | None = None,
         lr: float = 1e-2,
@@ -29,22 +33,14 @@ class DQNAgent(Agent):
         state_dim: int = 64,
         seed: int = 42,
     ) -> None:
-        if lr <= 0:
-            raise ValueError("lr must be > 0")
-        if not (0.0 <= gamma <= 1.0):
-            raise ValueError("gamma must be in [0, 1]")
-        if not (0.0 <= epsilon <= 1.0):
-            raise ValueError("epsilon must be in [0, 1]")
-        if not (0.0 <= epsilon_min <= 1.0):
-            raise ValueError("epsilon_min must be in [0, 1]")
-        if decay_steps <= 0:
-            raise ValueError("decay_steps must be > 0")
-        if batch_size <= 0:
-            raise ValueError("batch_size must be > 0")
-        if buffer_size <= 0:
-            raise ValueError("buffer_size must be > 0")
-        if target_update_freq <= 0:
-            raise ValueError("target_update_freq must be > 0")
+        validate_lr(lr)
+        validate_gamma(gamma)
+        validate_unit_interval(epsilon, "epsilon")
+        validate_unit_interval(epsilon_min, "epsilon_min")
+        validate_positive_int(decay_steps, "decay_steps")
+        validate_positive_int(batch_size, "batch_size")
+        validate_positive_int(buffer_size, "buffer_size")
+        validate_positive_int(target_update_freq, "target_update_freq")
         self._rng = np.random.default_rng(seed)
         self._actions = actions or ["nudge", "idle"]
         self.lr = lr
@@ -86,15 +82,40 @@ class DQNAgent(Agent):
         if len(self._replay) < self.batch_size:
             return
         batch = self._replay.sample(self.batch_size, self._rng)
+        total_grad_w, total_grad_b = self._accumulate_batch_gradients(batch)
+        scale = self.lr / self.batch_size
+        for idx in range(len(self._online.weights)):
+            self._online.weights[idx] -= scale * total_grad_w[idx]
+            self._online.biases[idx] -= scale * total_grad_b[idx]
+
+    def _accumulate_batch_gradients(self, batch):
+        n_actions = len(self._actions)
+        total_grad_w = [np.zeros_like(w) for w in self._online.weights]
+        total_grad_b = [np.zeros_like(b) for b in self._online.biases]
         for transition in batch:
             target_next = self._target.predict(transition.next_state)
             td_target = transition.reward + self.gamma * float(np.max(target_next))
             pred = self._online.predict(transition.state)
-            grad = np.zeros_like(pred)
-            grad[transition.action_idx] = 2.0 * (
+            grad_output = np.zeros(n_actions, dtype=np.float64)
+            grad_output[transition.action_idx] = 2.0 * (
                 pred[transition.action_idx] - td_target
             )
-            self._online.backward_output_gradient(transition.state, grad, lr=self.lr)
+            self._backprop_into(
+                transition.state, grad_output, total_grad_w, total_grad_b
+            )
+        return total_grad_w, total_grad_b
+
+    def _backprop_into(self, state, grad_output, total_grad_w, total_grad_b):
+        fwd = self._online.forward(state)
+        delta = grad_output
+        for layer_idx in reversed(range(len(self._online.weights))):
+            a_prev = fwd.activations[layer_idx]
+            total_grad_w[layer_idx] += np.outer(a_prev, delta)
+            total_grad_b[layer_idx] += delta
+            if layer_idx > 0:
+                delta = self._online.weights[layer_idx] @ delta
+                relu_grad = (fwd.activations[layer_idx] > 0).astype(np.float64)
+                delta *= relu_grad
 
     @override
     def update(self, state, action: str, reward: float, next_state) -> None:

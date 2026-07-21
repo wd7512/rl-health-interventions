@@ -112,6 +112,25 @@ def _check_name(fname: str, field: str, val: str, names: set[str]) -> None:
         )
 
 
+def _require_positive(value: float | None, field: str, agent_type: str) -> None:
+    if value is not None and value <= 0:
+        raise ValueError(f"{field} must be > 0 for {agent_type}")
+
+
+def _require_in_range(
+    value: float | None, lo: float, hi: float, field: str, agent_type: str
+) -> None:
+    if value is not None and not (lo <= value <= hi):
+        raise ValueError(f"{field} must be in [{lo}, {hi}] for {agent_type}")
+
+
+def _require_in_range_open_lo(
+    value: float | None, lo: float, hi: float, field: str, agent_type: str
+) -> None:
+    if value is not None and not (lo < value <= hi):
+        raise ValueError(f"{field} must be in ({lo}, {hi}] for {agent_type}")
+
+
 class AgentConfig(BaseModel):
     type: str
     alpha_prior: float | None = None
@@ -298,26 +317,20 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "heartsteps agent does not accept alpha_prior, beta_prior, epsilon, epsilon_start, c, decay_steps, epsilon_0, or epsilon_1"
                 )
+        if self.type in {"q_learning", "dqn", "reinforce", "ppo"}:
+            _require_positive(self.lr, "lr", self.type)
+            _require_positive(self.state_dim, "state_dim", self.type)
         if self.type in {"q_learning", "dqn"}:
-            if self.lr is None or self.lr <= 0:
-                raise ValueError("lr must be > 0 for q_learning and dqn")
-            if self.gamma is not None and not (0 <= self.gamma <= 1):
-                raise ValueError("gamma must be in [0, 1] for q_learning and dqn")
-            if self.epsilon is not None and not (0 <= self.epsilon <= 1):
-                raise ValueError("epsilon must be in [0, 1] for q_learning and dqn")
-            if self.state_dim is not None and self.state_dim <= 0:
-                raise ValueError("state_dim must be > 0 for q_learning and dqn")
+            _require_in_range(self.gamma, 0.0, 1.0, "gamma", self.type)
+            _require_in_range(self.epsilon, 0.0, 1.0, "epsilon", self.type)
+        if self.type in {"reinforce", "ppo"}:
+            _require_in_range_open_lo(self.gamma, 0.0, 1.0, "gamma", self.type)
         if self.type == "dqn":
-            if self.batch_size is not None and self.batch_size <= 0:
-                raise ValueError("batch_size must be > 0 for dqn")
-            if self.buffer_size is not None and self.buffer_size <= 0:
-                raise ValueError("buffer_size must be > 0 for dqn")
-            if self.target_update_freq is not None and self.target_update_freq <= 0:
-                raise ValueError("target_update_freq must be > 0 for dqn")
-            if self.epsilon_start is not None and not (0 <= self.epsilon_start <= 1):
-                raise ValueError("epsilon_start must be in [0, 1] for dqn")
-            if self.epsilon_min is not None and not (0 <= self.epsilon_min <= 1):
-                raise ValueError("epsilon_min must be in [0, 1] for dqn")
+            _require_positive(self.batch_size, "batch_size", "dqn")
+            _require_positive(self.buffer_size, "buffer_size", "dqn")
+            _require_positive(self.target_update_freq, "target_update_freq", "dqn")
+            _require_in_range(self.epsilon_start, 0.0, 1.0, "epsilon_start", "dqn")
+            _require_in_range(self.epsilon_min, 0.0, 1.0, "epsilon_min", "dqn")
             if (
                 self.epsilon_start is not None
                 and self.epsilon_min is not None
@@ -326,32 +339,15 @@ class AgentConfig(BaseModel):
                 raise ValueError("epsilon_min must not exceed epsilon_start for dqn")
             if self.hidden_dim is not None:
                 if isinstance(self.hidden_dim, int):
-                    if self.hidden_dim <= 0:
-                        raise ValueError("hidden_dim must be > 0 for dqn")
+                    _require_positive(self.hidden_dim, "hidden_dim", "dqn")
                 elif not self.hidden_dim or not all(
                     isinstance(h, int) and h > 0 for h in self.hidden_dim
                 ):
                     raise ValueError("hidden_dim list must contain positive integers")
-        if self.type == "reinforce":
-            if self.lr is None or self.lr <= 0:
-                raise ValueError("lr must be > 0 for reinforce")
-            if self.gamma is not None and not (0 < self.gamma <= 1):
-                raise ValueError("gamma must be in (0, 1] for reinforce")
-            if self.state_dim is not None and self.state_dim <= 0:
-                raise ValueError("state_dim must be > 0 for reinforce")
         if self.type == "ppo":
-            if self.lr is None or self.lr <= 0:
-                raise ValueError("lr must be > 0 for ppo")
-            if self.gamma is not None and not (0 < self.gamma <= 1):
-                raise ValueError("gamma must be in (0, 1] for ppo")
-            if self.gae_lambda is not None and not (0 <= self.gae_lambda <= 1):
-                raise ValueError("gae_lambda must be in [0, 1] for ppo")
-            if self.clip_eps is not None and self.clip_eps <= 0:
-                raise ValueError("clip_eps must be > 0 for ppo")
-            if self.ppo_epochs is not None and self.ppo_epochs <= 0:
-                raise ValueError("ppo_epochs must be > 0 for ppo")
-            if self.state_dim is not None and self.state_dim <= 0:
-                raise ValueError("state_dim must be > 0 for ppo")
+            _require_in_range(self.gae_lambda, 0.0, 1.0, "gae_lambda", "ppo")
+            _require_positive(self.clip_eps, "clip_eps", "ppo")
+            _require_positive(self.ppo_epochs, "ppo_epochs", "ppo")
         return self
 
 

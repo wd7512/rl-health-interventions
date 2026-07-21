@@ -9,6 +9,8 @@ from rl_health_interventions.agents.deep_rl._base import (
     hash_state_vector,
     parse_hidden_dims,
     softmax,
+    validate_gamma,
+    validate_lr,
 )
 
 
@@ -22,10 +24,8 @@ class ReinforceAgent(Agent):
         state_dim: int = 64,
         seed: int = 42,
     ) -> None:
-        if lr <= 0:
-            raise ValueError("lr must be > 0")
-        if not (0.0 < gamma <= 1.0):
-            raise ValueError("gamma must be in (0, 1]")
+        validate_lr(lr)
+        validate_gamma(gamma, positive=True)
         self._rng = np.random.default_rng(seed)
         self._actions = actions or ["nudge", "idle"]
         self.lr = lr
