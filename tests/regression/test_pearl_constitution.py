@@ -143,7 +143,7 @@ def test_master_runner_produces_matrix() -> None:
     assert "Validation Summary Matrix" in result.stdout, "Missing summary matrix title"
 
     checks = _extract_check_results(result.stdout)
-    expected_tiers_1_3 = set(_ALL_CHECK_IDS[:-4])  # Exclude Tier 4
+    expected_tiers_1_3 = {cid for tier in (1, 2, 3) for cid in _EXPECTED_CHECKS[tier]}
     check_ids = {c["check_id"] for c in checks}
     assert check_ids == expected_tiers_1_3, (
         f"Expected checks for tiers 1-3, got {check_ids}"

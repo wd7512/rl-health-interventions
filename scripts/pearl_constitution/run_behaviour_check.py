@@ -54,11 +54,11 @@ def check_t3_1_burden_saturation(
     peak_window_mean = float(np.mean(rl_mean[:PEAK_WINDOW_END]))
     post_peak_mean = float(np.mean(rl_mean[PEAK_WINDOW_END:]))
 
-    # Find where the maximum occurs
-    peak_day = int(np.argmax(rl_mean[:PEAK_WINDOW_END]))
+    # Find where the maximum occurs across the FULL series
+    peak_day = int(np.argmax(rl_mean))
 
-    # Burden saturation: peak must be in first 21 days and must decline after
-    peak_in_window = peak_day <= PEAK_WINDOW_END - 1
+    # Burden saturation: peak must be in 14-21 day window and must decline after
+    peak_in_window = PEAK_WINDOW_START <= peak_day <= PEAK_WINDOW_END - 1
     declined = post_peak_mean < peak_window_mean * 0.95  # at least 5% decline
 
     passed = peak_in_window and declined
@@ -220,6 +220,14 @@ def main() -> None:
         stream=sys.stderr,
     )
 
+    # Dedicated stdout logger for the summary matrix
+    results_logger = logging.getLogger(f"{__name__}.results")
+    results_logger.propagate = False
+    _stdout_handler = logging.StreamHandler(sys.stdout)
+    _stdout_handler.setFormatter(logging.Formatter("%(message)s"))
+    results_logger.addHandler(_stdout_handler)
+    results_logger.setLevel(logging.INFO)
+
     logger.info("Loading config (persona=%s, seeds=%d)...", args.persona, args.seeds)
     config = load_constitution_config(args.persona, args.config)
 
@@ -238,7 +246,7 @@ def main() -> None:
     ]
 
     matrix = format_matrix(results)
-    print(matrix)
+    results_logger.info(matrix)
 
     n_pass = sum(1 for r in results if r["passed"])
     if n_pass < len(results):

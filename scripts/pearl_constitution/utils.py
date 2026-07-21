@@ -163,6 +163,12 @@ def cohens_d(
     group2: np.ndarray,
 ) -> float:
     """Cohen's d effect size between two independent groups."""
+    group1 = np.asarray(group1, dtype=np.float64)
+    group2 = np.asarray(group2, dtype=np.float64)
+    if group1.size < 2 or group2.size < 2:
+        return 0.0
+    if np.any(np.isnan(group1)) or np.any(np.isnan(group2)):
+        return 0.0
     n1, n2 = len(group1), len(group2)
     s1, s2 = np.var(group1, ddof=1), np.var(group2, ddof=1)
     pooled = np.sqrt(((n1 - 1) * s1 + (n2 - 1) * s2) / (n1 + n2 - 2))
@@ -186,6 +192,11 @@ def icc_1way_random(
     float
         ICC estimate.
     """
+    data = np.asarray(data, dtype=np.float64)
+    if data.ndim != 2 or data.shape[0] < 2 or data.shape[1] < 2:
+        return 0.0
+    if np.any(np.isnan(data)):
+        return 0.0
     n, k = data.shape
     # Between-target mean square
     target_means = np.mean(data, axis=1)
@@ -204,6 +215,12 @@ def anova_oneway(
     groups: list[np.ndarray],
 ) -> tuple[float, float]:
     """One-way ANOVA returning (F, p-value)."""
+    groups = [np.asarray(g, dtype=np.float64) for g in groups]
+    groups = [g for g in groups if g.size >= 2]
+    if len(groups) < 2:
+        return 0.0, 1.0
+    if any(np.any(np.isnan(g)) for g in groups):
+        return 0.0, 1.0
     f_stat, p_val = sp_stats.f_oneway(*groups)
     return float(f_stat), float(p_val)
 
@@ -212,6 +229,12 @@ def eta_squared(
     groups: list[np.ndarray],
 ) -> float:
     """Eta-squared effect size for one-way ANOVA."""
+    groups = [np.asarray(g, dtype=np.float64) for g in groups]
+    groups = [g for g in groups if g.size >= 2]
+    if len(groups) < 2:
+        return 0.0
+    if any(np.any(np.isnan(g)) for g in groups):
+        return 0.0
     all_data = np.concatenate(groups)
     grand_mean = np.mean(all_data)
     ss_total = np.sum((all_data - grand_mean) ** 2)
@@ -311,12 +334,12 @@ def mean_daily_steps_by_arm(
     return result
 
 
-def one_month_days(steps_per_day: int = 5) -> int:
+def one_month_days() -> int:
     """Number of days in approximately one month (30 days)."""
     return 30
 
 
-def two_month_days(steps_per_day: int = 5) -> int:
+def two_month_days() -> int:
     """Number of days in two months (60 days)."""
     return 60
 

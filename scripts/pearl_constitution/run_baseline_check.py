@@ -181,6 +181,14 @@ def main() -> None:
         stream=sys.stderr,
     )
 
+    # Dedicated stdout logger for the summary matrix
+    results_logger = logging.getLogger(f"{__name__}.results")
+    results_logger.propagate = False
+    _stdout_handler = logging.StreamHandler(sys.stdout)
+    _stdout_handler.setFormatter(logging.Formatter("%(message)s"))
+    results_logger.addHandler(_stdout_handler)
+    results_logger.setLevel(logging.INFO)
+
     logger.info("Loading PEARL reference data...")
     ref = load_reference()
     ref_steps = ref["demographics"]["mean_baseline_steps"]
@@ -207,7 +215,7 @@ def main() -> None:
     ]
 
     matrix = format_matrix(results)
-    print(matrix)
+    results_logger.info(matrix)
 
     n_pass = sum(1 for r in results if r["passed"])
     if n_pass < len(results):

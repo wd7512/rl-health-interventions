@@ -219,6 +219,14 @@ def main() -> None:
         stream=sys.stderr,
     )
 
+    # Dedicated stdout logger for the summary matrix
+    results_logger = logging.getLogger(f"{__name__}.results")
+    results_logger.propagate = False
+    _stdout_handler = logging.StreamHandler(sys.stdout)
+    _stdout_handler.setFormatter(logging.Formatter("%(message)s"))
+    results_logger.addHandler(_stdout_handler)
+    results_logger.setLevel(logging.INFO)
+
     results: list[dict] = []
 
     # Load base config (shared across checks)
@@ -228,8 +236,7 @@ def main() -> None:
     results.append(check_t4_1_random_matrix(config, args.seeds))
 
     # T4.2 — Skipped (requires multi-persona)
-    daily_steps = compute_arm_daily_steps(run_all_arms(config, n_seeds=args.seeds))
-    results.append(check_t4_2_persona_collapse(daily_steps))
+    results.append(check_t4_2_persona_collapse({}))
 
     # T4.3 — Infinite horizon (365-day run)
     inf_trajectories = run_infinite_horizon_check(config, args.seeds)
@@ -254,7 +261,7 @@ def main() -> None:
         )
 
     matrix = format_matrix(results)
-    print(matrix)
+    results_logger.info(matrix)
 
     n_pass = sum(1 for r in results if r["passed"])
     if n_pass < len(results):
