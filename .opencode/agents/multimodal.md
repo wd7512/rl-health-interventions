@@ -1,7 +1,7 @@
 ---
 description: Multimodal agent for analyzing images, videos, and audio files
 mode: subagent
-model: mimo/mimo-v2.5
+model: opencode-go/mimo-v2.5
 permission:
   read: allow
   edit: deny
