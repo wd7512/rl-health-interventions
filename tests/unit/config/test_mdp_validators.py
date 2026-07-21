@@ -243,6 +243,54 @@ def _del(raw, *keys):
         (
             lambda raw: _set(
                 raw,
+                "agents",
+                [
+                    {
+                        "type": "q_learning",
+                        "lr": 0.05,
+                        "gamma": 0.9,
+                        "epsilon": 0.1,
+                        "state_dim": 32,
+                    }
+                ],
+            ),
+            "not applicable for agent type q_learning",
+        ),
+        (
+            lambda raw: _set(
+                raw,
+                "agents",
+                [
+                    {
+                        "type": "reinforce",
+                        "lr": 0.01,
+                        "gamma": 0.99,
+                        "policy_hidden_dim": [16],
+                    }
+                ],
+            ),
+            "not applicable for agent type reinforce",
+        ),
+        (
+            lambda raw: _set(
+                raw,
+                "agents",
+                [
+                    {
+                        "type": "dqn",
+                        "lr": 0.01,
+                        "gamma": 0.9,
+                        "epsilon": 0.2,
+                        "batch_size": 64,
+                        "buffer_size": 32,
+                    }
+                ],
+            ),
+            "buffer_size must be >= batch_size for dqn",
+        ),
+        (
+            lambda raw: _set(
+                raw,
                 "state",
                 "variables",
                 "day",
@@ -280,6 +328,9 @@ def _del(raw, *keys):
         "context_features_without_contextual",
         "random_rejects_hyperparameters",
         "fixed_agent_rejects_contextual",
+        "q_learning_rejects_state_dim",
+        "reinforce_rejects_policy_hidden_dim",
+        "dqn_buffer_size_lt_batch_size",
         "reserved_state_name",
     ],
 )

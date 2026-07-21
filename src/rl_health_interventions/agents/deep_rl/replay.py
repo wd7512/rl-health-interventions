@@ -12,6 +12,7 @@ class Transition:
     action_idx: int
     reward: float
     next_state: np.ndarray
+    done: bool = False
 
 
 class ReplayBuffer:

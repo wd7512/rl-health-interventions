@@ -126,7 +126,9 @@ class HeartStepsAgent(Agent):
         return max(q_values, key=lambda a: q_values[a])
 
     @override
-    def update(self, state, action: str, reward: float, next_state) -> None:
+    def update(
+        self, state, action: str, reward: float, next_state, done: bool = False
+    ) -> None:
         assert self._regression is not None, "Call init_one_hot_map first"
         f = self._one_hot(state)
         suggestion = action != self._reference_action

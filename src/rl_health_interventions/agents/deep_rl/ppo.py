@@ -59,7 +59,9 @@ class PPOAgent(Agent):
             hidden_dims=value_dims,
             seed=seed + 1,
         )
-        self._trajectory: list[tuple[np.ndarray, int, float, float, float]] = []
+        self._trajectory: list[
+            tuple[np.ndarray, int, float, float, float, float, bool]
+        ] = []
 
     def _encode(self, state) -> np.ndarray:
         return hash_state_vector(state, self._state_dim)
@@ -78,13 +80,18 @@ class PPOAgent(Agent):
         return self._actions[idx]
 
     @override
-    def update(self, state, action: str, reward: float, next_state) -> None:
+    def update(
+        self, state, action: str, reward: float, next_state, done: bool = False
+    ) -> None:
         state_vec = self._encode(state)
         action_idx = self._actions.index(action)
         probs = self._action_probs(state_vec)
         log_prob = float(np.log(probs[action_idx] + 1e-12))
         value = self._value_estimate(state_vec)
-        self._trajectory.append((state_vec, action_idx, reward, value, log_prob))
+        next_value = 0.0 if done else self._value_estimate(self._encode(next_state))
+        self._trajectory.append(
+            (state_vec, action_idx, reward, value, log_prob, next_value, done)
+        )
 
     @override
     def on_day_end(self) -> None:
@@ -93,12 +100,15 @@ class PPOAgent(Agent):
         advantages, returns, old_log_probs = self._compute_gae()
         if len(advantages) > 1:
             advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+        scale = 1.0 / len(self._trajectory)
         for _ in range(self.ppo_epochs):
-            for idx, (state_vec, action_idx, _, _, _) in enumerate(self._trajectory):
+            for idx, (state_vec, action_idx, _, _, _, _, _) in enumerate(
+                self._trajectory
+            ):
                 self._policy_step(
                     state_vec, action_idx, old_log_probs[idx], advantages[idx]
                 )
-                self._value_step(state_vec, returns[idx])
+                self._value_step(state_vec, returns[idx], scale=scale)
         self._trajectory.clear()
 
     def _compute_gae(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -106,14 +116,15 @@ class PPOAgent(Agent):
         rewards = np.array([t[2] for t in self._trajectory], dtype=np.float64)
         values = np.array([t[3] for t in self._trajectory], dtype=np.float64)
         old_log_probs = np.array([t[4] for t in self._trajectory], dtype=np.float64)
+        next_values = np.array([t[5] for t in self._trajectory], dtype=np.float64)
+        dones = np.array([t[6] for t in self._trajectory], dtype=bool)
         advantages = np.zeros(n, dtype=np.float64)
         gae = 0.0
-        next_value = 0.0
         for t in reversed(range(n)):
-            delta = rewards[t] + self.gamma * next_value - values[t]
+            next_v = 0.0 if dones[t] else next_values[t]
+            delta = rewards[t] + self.gamma * next_v - values[t]
             gae = delta + self.gamma * self.gae_lambda * gae
             advantages[t] = gae
-            next_value = values[t]
         returns = advantages + values
         return advantages, returns, old_log_probs
 
@@ -137,7 +148,11 @@ class PPOAgent(Agent):
         grad_logits[action_idx] += policy_coef
         self._policy.backward_output_gradient(state_vec, grad_logits, lr=self.lr)
 
-    def _value_step(self, state_vec: np.ndarray, target_return: float) -> None:
+    def _value_step(
+        self, state_vec: np.ndarray, target_return: float, scale: float = 1.0
+    ) -> None:
         value_pred = self._value_estimate(state_vec)
-        value_grad = np.array([2.0 * (value_pred - target_return)], dtype=np.float64)
+        value_grad = (
+            np.array([2.0 * (value_pred - target_return)], dtype=np.float64) * scale
+        )
         self._value.backward_output_gradient(state_vec, value_grad, lr=self.lr)

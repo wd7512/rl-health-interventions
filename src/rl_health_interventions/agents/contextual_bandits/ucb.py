@@ -77,7 +77,9 @@ class UCBAgent(ContextualBanditAgent):
         return best[idx]
 
     @override
-    def update(self, state, action: str, reward: float, next_state) -> None:
+    def update(
+        self, state, action: str, reward: float, next_state, done: bool = False
+    ) -> None:
         self._total_steps += 1
         key = self._get_context_key(state, action)
         self._ensure_params(key)

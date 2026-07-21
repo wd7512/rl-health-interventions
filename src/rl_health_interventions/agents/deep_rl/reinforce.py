@@ -53,7 +53,9 @@ class ReinforceAgent(Agent):
         return self._actions[idx]
 
     @override
-    def update(self, state, action: str, reward: float, next_state) -> None:
+    def update(
+        self, state, action: str, reward: float, next_state, done: bool = False
+    ) -> None:
         state_vec = self._encode(state)
         action_idx = self._actions.index(action)
         self._trajectory.append((state_vec, action_idx, reward))
@@ -68,7 +70,7 @@ class ReinforceAgent(Agent):
             running = self._trajectory[i][2] + self.gamma * running
             returns[i] = running
         if len(returns) > 1:
-            returns = (returns - returns.mean()) / (returns.std() + 1e-8)
+            returns = returns - returns.mean()  # Baseline subtraction only
         for (state_vec, action_idx, _), advantage in zip(
             self._trajectory, returns, strict=False
         ):

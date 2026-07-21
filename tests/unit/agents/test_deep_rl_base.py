@@ -21,8 +21,10 @@ from rl_health_interventions.agents.deep_rl._base import (
 
 
 class FakeState:
-    def __init__(self, *values):
+    def __init__(self, *values, day=0, step_of_day=0):
         self.state_key = values
+        self.day = day
+        self.step_of_day = step_of_day
 
 
 class TestParseHiddenDims:
@@ -46,7 +48,11 @@ class TestParseHiddenDims:
 
 class TestStateToKey:
     def test_converts_to_strings(self):
-        assert state_to_key(FakeState("a", 1)) == ("a", "1")
+        assert state_to_key(FakeState("a", 1)) == ("a", "1", "0", "0")
+
+    def test_includes_temporal_features(self):
+        key = state_to_key(FakeState("a", day=3, step_of_day=4))
+        assert key == ("a", "3", "4")
 
 
 class TestHashStateVector:
@@ -67,9 +73,19 @@ class TestHashStateVector:
         v2 = hash_state_vector(FakeState("b"), 64)
         assert not np.array_equal(v1, v2)
 
-    def test_nonzero_entries(self):
+    def test_total_mass_reflects_all_entries(self):
         v = hash_state_vector(FakeState("a", "b"), 32)
-        assert np.sum(v) == 2.0
+        assert np.sum(v) == 4.0  # 2 factors + day + step_of_day
+
+    def test_same_factors_different_step_of_day_differ(self):
+        v1 = hash_state_vector(FakeState("a", day=0, step_of_day=0), 64)
+        v2 = hash_state_vector(FakeState("a", day=0, step_of_day=1), 64)
+        assert not np.array_equal(v1, v2)
+
+    def test_same_factors_different_day_differ(self):
+        v1 = hash_state_vector(FakeState("a", day=0, step_of_day=0), 64)
+        v2 = hash_state_vector(FakeState("a", day=1, step_of_day=0), 64)
+        assert not np.array_equal(v1, v2)
 
     def test_invalid_dim_raises(self):
         with pytest.raises(ValueError, match="state_dim"):

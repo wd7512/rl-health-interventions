@@ -24,7 +24,11 @@ def parse_hidden_dims(hidden_dim: int | list[int] | None) -> tuple[int, ...]:
 
 
 def state_to_key(state) -> tuple[str, ...]:
-    return tuple(str(v) for v in state.state_key)
+    return (
+        *tuple(str(v) for v in state.state_key),
+        str(state.day),
+        str(state.step_of_day),
+    )
 
 
 def hash_state_vector(state, state_dim: int) -> np.ndarray:
@@ -99,10 +103,9 @@ class MLP:
     def predict(self, x: np.ndarray) -> np.ndarray:
         return self.forward(x).output
 
-    def compute_gradients(
-        self, x: np.ndarray, grad_output: np.ndarray
+    def compute_gradients_from_forward(
+        self, forward: ForwardPass, grad_output: np.ndarray
     ) -> tuple[list[np.ndarray], list[np.ndarray]]:
-        forward = self.forward(x)
         grads_w = [np.zeros_like(w) for w in self.weights]
         grads_b = [np.zeros_like(b) for b in self.biases]
         delta = grad_output.astype(np.float64, copy=False)
@@ -117,6 +120,12 @@ class MLP:
                 delta *= relu_grad
 
         return grads_w, grads_b
+
+    def compute_gradients(
+        self, x: np.ndarray, grad_output: np.ndarray
+    ) -> tuple[list[np.ndarray], list[np.ndarray]]:
+        forward = self.forward(x)
+        return self.compute_gradients_from_forward(forward, grad_output)
 
     def backward_output_gradient(
         self, x: np.ndarray, grad_output: np.ndarray, lr: float

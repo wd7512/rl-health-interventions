@@ -47,9 +47,14 @@ class QLearningAgent(Agent):
         return self._actions[idx]
 
     @override
-    def update(self, state, action: str, reward: float, next_state) -> None:
+    def update(
+        self, state, action: str, reward: float, next_state, done: bool = False
+    ) -> None:
         q_values = self._values_for(state)
-        next_q = self._values_for(next_state)
         action_idx = self._actions.index(action)
-        td_target = reward + self.gamma * float(np.max(next_q))
+        if done:
+            td_target = reward
+        else:
+            next_q = self._values_for(next_state)
+            td_target = reward + self.gamma * float(np.max(next_q))
         q_values[action_idx] += self.lr * (td_target - q_values[action_idx])

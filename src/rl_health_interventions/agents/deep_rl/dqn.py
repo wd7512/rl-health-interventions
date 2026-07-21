@@ -31,6 +31,7 @@ class DQNAgent(Agent):
         target_update_freq: int = 50,
         hidden_dim: int | list[int] | None = None,
         state_dim: int = 64,
+        grad_clip: float = 1.0,
         seed: int = 42,
     ) -> None:
         validate_lr(lr)
@@ -41,10 +42,13 @@ class DQNAgent(Agent):
         validate_positive_int(batch_size, "batch_size")
         validate_positive_int(buffer_size, "buffer_size")
         validate_positive_int(target_update_freq, "target_update_freq")
+        if grad_clip < 0:
+            raise ValueError(f"grad_clip must be >= 0, got {grad_clip}")
         self._rng = np.random.default_rng(seed)
         self._actions = actions or ["nudge", "idle"]
         self.lr = lr
         self.gamma = gamma
+        self.grad_clip = grad_clip
         self.epsilon_start = epsilon if epsilon_start is None else epsilon_start
         self.epsilon_min = epsilon_min
         self.decay_steps = decay_steps
@@ -83,6 +87,14 @@ class DQNAgent(Agent):
             return
         batch = self._replay.sample(self.batch_size, self._rng)
         total_grad_w, total_grad_b = self._accumulate_batch_gradients(batch)
+        if self.grad_clip > 0:
+            for idx in range(len(total_grad_w)):
+                total_grad_w[idx] = np.clip(
+                    total_grad_w[idx], -self.grad_clip, self.grad_clip
+                )
+                total_grad_b[idx] = np.clip(
+                    total_grad_b[idx], -self.grad_clip, self.grad_clip
+                )
         scale = self.lr / self.batch_size
         for idx in range(len(self._online.weights)):
             self._online.weights[idx] -= scale * total_grad_w[idx]
@@ -93,15 +105,20 @@ class DQNAgent(Agent):
         total_grad_w = [np.zeros_like(w) for w in self._online.weights]
         total_grad_b = [np.zeros_like(b) for b in self._online.biases]
         for transition in batch:
-            target_next = self._target.predict(transition.next_state)
-            td_target = transition.reward + self.gamma * float(np.max(target_next))
-            pred = self._online.predict(transition.state)
+            if transition.done:
+                td_target = transition.reward
+            else:
+                target_next = self._target.predict(transition.next_state)
+                td_target = transition.reward + self.gamma * float(np.max(target_next))
+            # Single forward pass: get prediction and gradients together
+            forward = self._online.forward(transition.state)
+            pred = forward.output
             grad_output = np.zeros(n_actions, dtype=np.float64)
             grad_output[transition.action_idx] = 2.0 * (
                 pred[transition.action_idx] - td_target
             )
-            grads_w, grads_b = self._online.compute_gradients(
-                transition.state, grad_output
+            grads_w, grads_b = self._online.compute_gradients_from_forward(
+                forward, grad_output
             )
             for idx in range(len(self._online.weights)):
                 total_grad_w[idx] += grads_w[idx]
@@ -109,7 +126,9 @@ class DQNAgent(Agent):
         return total_grad_w, total_grad_b
 
     @override
-    def update(self, state, action: str, reward: float, next_state) -> None:
+    def update(
+        self, state, action: str, reward: float, next_state, done: bool = False
+    ) -> None:
         action_idx = self._actions.index(action)
         self._replay.append(
             Transition(
@@ -117,6 +136,7 @@ class DQNAgent(Agent):
                 action_idx=action_idx,
                 reward=reward,
                 next_state=self._encode(next_state),
+                done=done,
             )
         )
         self._steps += 1
