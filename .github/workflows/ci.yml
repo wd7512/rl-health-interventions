@@ -97,8 +97,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: read
     steps:
-      - name: Check for unresolved review threads
+      - name: Check review thread resolution
         uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -106,8 +108,6 @@ jobs:
             const prNumber = context.issue.number;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-
-            core.info(`Checking PR #${prNumber} for unresolved review threads...`);
 
             let allThreads = [];
             let cursor = null;
@@ -123,6 +123,7 @@ jobs:
                           isResolved
                           isOutdated
                           comments(first: 1) {
+                            totalCount
                             nodes {
                               author { login }
                               body
@@ -154,8 +155,10 @@ jobs:
 
             core.info(`Found ${allThreads.length} review threads total.`);
 
-            const unresolved = allThreads.filter(t => !t.isResolved && !t.isOutdated);
+            const errors = [];
 
+            // Check 1: unresolved threads
+            const unresolved = allThreads.filter(t => !t.isResolved && !t.isOutdated);
             if (unresolved.length > 0) {
               for (const t of unresolved) {
                 const c = t.comments?.nodes?.[0];
@@ -164,10 +167,28 @@ jobs:
                 const body = (c?.body ?? '').slice(0, 200);
                 core.warning(`Unresolved thread by ${author} on ${path}: ${body}`);
               }
-              core.setFailed(
+              errors.push(
                 `${unresolved.length} review thread(s) are unresolved. ` +
                 `Reply to each thread and resolve it before merging.`
               );
+            }
+
+            // Check 2: resolved without a reply
+            const resolvedNoReply = allThreads.filter(
+              t => t.isResolved && !t.isOutdated && t.comments.totalCount === 1
+            );
+            if (resolvedNoReply.length > 0) {
+              for (const t of resolvedNoReply) {
+                core.warning(`Thread ${t.id} was resolved without any reply.`);
+              }
+              errors.push(
+                `${resolvedNoReply.length} review thread(s) were resolved without a comment. ` +
+                `Post a reply explaining the fix before resolving.`
+              );
+            }
+
+            if (errors.length > 0) {
+              core.setFailed(errors.join('\n\n'));
             } else {
-              core.info('All review threads resolved. ✅');
+              core.info('All review threads resolved correctly. ✅');
             }

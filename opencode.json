@@ -74,7 +74,7 @@
     "multimodal": {
       "description": "Analyzes images, videos, and audio files — use when the current model lacks multimodal capabilities",
       "mode": "subagent",
-      "model": "mimo/mimo-v2.5"
+      "model": "opencode-go/mimo-v2.5"
     }
   },
   "command": {
