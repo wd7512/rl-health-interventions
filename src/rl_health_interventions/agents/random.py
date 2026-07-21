@@ -19,7 +19,9 @@ class RandomAgent(Agent):
         return self._actions[idx]
 
     @override
-    def update(self, state, action: str, reward: float, next_state) -> None:
+    def update(
+        self, state, action: str, reward: float, next_state, done: bool = False
+    ) -> None:
         pass
 
 
