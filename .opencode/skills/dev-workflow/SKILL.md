@@ -154,6 +154,10 @@ uv run pytest
 uv build
 ```
 
+## If CI Fails
+
+Load the `ci-fix` skill (`.opencode/skills/ci-fix/SKILL.md`). It maps each failing check name to exact fix commands — thread-gate, lint, build, test, check-linked-issue, type-check.
+
 ## Rules
 
 - **Always use a worktree.** Never edit files in the main repo checkout.
