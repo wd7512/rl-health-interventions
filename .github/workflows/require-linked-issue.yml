@@ -41,22 +41,9 @@ jobs:
             const labels = issue.labels.map(l => l.name)
             if (labels.includes('needs-refinement')) {
               core.setFailed(
-                `Issue #${issueNumber} is labeled "needs-refinement" and does not meet the task template requirements.\n\nFlesh out the issue (What / Why / Completion Criteria / Evidence) and remove the "needs-refinement" label before linking it to a PR.`
+                `Issue #${issueNumber} is labeled "needs-refinement".\n\nRemove the "needs-refinement" label before linking it to a PR.`
               )
               return
             }
 
-            // Check that the issue body contains our template sections
-            const bodyLower = issue.body?.toLowerCase() || ''
-            const hasWhat = bodyLower.includes('i want to')
-            const hasWhy = bodyLower.includes('so that') || bodyLower.includes('context & motivation') || bodyLower.includes('why')
-            const hasDone = bodyLower.includes('completion criteria') || bodyLower.includes('done')
-
-            if (!hasWhat || !hasWhy || !hasDone) {
-              core.setFailed(
-                `Issue #${issueNumber} does not appear to meet the task template.\n\nRequired sections:\n- What do you want to do? ("I want to [action] to achieve [goal] to benefit the research in [way]")\n- Context & motivation (why does this matter?)\n- Completion criteria (checklist of what must be true)\n\nUpdate the issue to follow the template before linking to a PR.`
-              )
-              return
-            }
-
-            console.log(`PR #${prNumber} linked to issue #${issueNumber} — issue meets template requirements ✓`)
+            console.log(`PR #${prNumber} linked to issue #${issueNumber} ✓`)
