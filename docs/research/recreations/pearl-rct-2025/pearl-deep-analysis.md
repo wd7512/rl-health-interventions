@@ -11,15 +11,14 @@ related: "pearl-rct-2025.md · pearl-constitution.md · pearl_reference.json"
 
 ## 1. Decision Point Timing
 
-**Confirmed: 2 decision points per day (morning 6 AM, afternoon 3 PM)**
+**Confirmed: 1 decision point per day, delivered at either morning (6 AM) or afternoon (3 PM)**
 
-- Delivery times: morning (6 AM) and afternoon (3 PM)
 - 12 distinct action classes = 6 nudge themes × 2 delivery times
-- One text-only in-app push notification per day
+- One text-only in-app push notification per day (delivered at either 6 AM or 3 PM, not both)
 - Nudges are dismissible and presented once per day
 - All delivered nudges remain accessible on the study home page throughout the day
 
-**Simulator impact:** Must model 2 decision points per day, not 5 steps. The current config uses `steps_per_day: 5` which is incorrect for PEARL.
+**Simulator impact:** Must model 1 decision point per day with a choice of delivery time, not 5 steps. The current config uses `steps_per_day: 5` which is incorrect for PEARL. Set `steps_per_day: 1` while preserving the 12 action classes as theme/time combinations.
 
 ## 2. Nudge Bank
 
@@ -51,7 +50,7 @@ The six nudge themes map to COM-B components:
 | **Opportunity** | Social | Social Opportunity | 83% | 15.1% |
 | **Opportunity** | Physical | Physical Opportunity | 79% | 15.6% |
 
-**Key finding:** The RL agent independently discovered that Ability-focused nudges are most effective, allocating 27% to Ability vs. the Fixed arm's 11.8%.
+**Key finding:** The RL agent allocated 27% of nudges to Ability vs. the Fixed arm's 11.8%, showing a distinct preference pattern. Ability-themed nudges also received the highest favorability rates in user feedback (90% thumbs-up).
 
 **Simulator impact:** Theme-specific reward weights are needed. Physical Opportunity nudges should have lower acceptance probability than Ability nudges.
 
@@ -61,9 +60,9 @@ The six nudge themes map to COM-B components:
 **Contextual Multi-Armed Bandit (C-MAB) with ε-greedy exploration**
 
 - **Exploration strategy:** ε-greedy with ε = 0.7 or 0.8
-  - With probability ε, follow the policy's recommendation (exploit)
-  - With probability 1-ε, choose uniformly at random from 12 actions (explore)
-  - Higher exploration (ε=0.7) when model has high variability across ensemble models
+  - With probability ε, follow the policy's recommendation (i.e., the action that maximizes expected reward)
+  - With probability 1-ε, choose uniformly at random from the set of 12 possible actions
+  - A lower ε leads to higher exploration; ε=0.7 is used when the model has high variability across ensemble models
 - **Reward prediction model:** XGBoost decision trees
 - **Policy evaluation:** Importance sampling (unbiased estimator of policy value)
 - **Optimization:** Empirical risk minimization oracle
@@ -107,7 +106,7 @@ Formally:
 6. **5 AM:** Model decision finalized
 7. **6 AM / 3 PM:** Nudge delivered
 
-**Simulator impact:** The RL algorithm is a contextual bandit with ε-greedy exploration, not Thompson Sampling. The current config uses `type: thompson_sampling` which needs to be changed to `type: contextual_bandit` or similar.
+**Simulator impact:** The RL algorithm is a contextual bandit with ε-greedy exploration, not Thompson Sampling. The current config uses `type: thompson_sampling` which needs to be changed. Also, the ε-greedy convention is: ε = exploit (follow policy), 1-ε = explore (random action).
 
 ## 5. Four-Arm Design
 
@@ -128,7 +127,7 @@ Formally:
 
 ### RL Arm Logic
 - ε-greedy C-MAB with XGBoost reward models
-- Learns population-level preferences (e.g., Ability theme, morning timing)
+- Learns population-level preferences (e.g., Ability theme, evening timing)
 - Adapts to individual trajectories over time
 
 **Simulator impact:** The current config maps Fixed to `movement_suggestion` but PEARL's Fixed arm uses survey-based logic, not a single action. Need a rule-based agent that selects based on COM-B barrier scores.
@@ -150,7 +149,7 @@ Comparative overview of mHealth studies (HeartSteps, DIAMANTE, mSTAR, etc.). PEA
 | Suburban | 1,153 (63.6%) | 1,216 (63.9%) | 1,267 (63.3%) | 1,240 (62.2%) |
 | Rural | 376 (20.7%) | 375 (19.7%) | 408 (20.4%) | 435 (21.8%) |
 
-**Note:** Baseline steps in Table 2 (7,160-7,248) differ from abstract (5,618.2). Table 2 reports pre-study baseline for the ITT population (N=13,463), while 5,618.2 is the mITT population (N=7,711) that met the <8,000 steps/day criterion.
+**Note:** Baseline steps in Table 2 (7,160-7,248) differ from the abstract (5,618.2) and Table 3 (5,580). The source of this discrepancy is unresolved — it may reflect different populations (ITT vs mITT) or different baseline window definitions. The arm counts and other values in Table 2 are retained as reported.
 
 ### Table 3: Step Count Across Study Phases
 
@@ -223,13 +222,12 @@ See Section 4 (RL Algorithm Details) above for full feature list.
 - Clear gradient: Capability > Motivation > Opportunity
 
 ### Figure 9: Nudge Content Distribution
-- RL: 27% Ability (vs 17% random baseline)
+- RL allocated 27% to Ability (vs 17% random baseline), showing a distinct preference pattern
 - Fixed: 24.3% Planning, 21.5% Physical Opportunity
-- RL independently discovered Ability theme is most effective
 
 ### Figure 10: Nudge Timing Distribution
-- RL prefers morning delivery (7 AM - 12 PM)
-- Random/Fixed have more uniform distribution
+- RL delivered 7% more evening nudges than Random group (per paper text)
+- The paper reports delivery windows at 6 AM and 3 PM; timing allocation varies by arm
 
 ### Figure 11: Nudge Distribution Over Time
 - RL initially prioritizes Perceived Benefit and Planning
@@ -247,7 +245,7 @@ See Section 4 (RL Algorithm Details) above for full feature list.
 
 | Design Dimension | PEARL (Paper) | Current Simulator | Gap |
 |------------------|---------------|-------------------|-----|
-| **Decision points/day** | 2 (morning 6 AM, afternoon 3 PM) | 5 steps/day | Major mismatch |
+| **Decision points/day** | 1 (delivered at either 6 AM or 3 PM) | 5 steps/day | Major mismatch |
 | **Action space** | 12 (6 themes × 2 times) | 4 (idle, movement_suggestion, goal_reminder, journal) | Need 12 actions |
 | **Nudge bank size** | 155 (~180 messages) | 4 actions | Need COM-B themes |
 | **RL algorithm** | C-MAB with ε-greedy (ε=0.7-0.8) | Thompson Sampling | Different algorithm |
@@ -259,9 +257,9 @@ See Section 4 (RL Algorithm Details) above for full feature list.
 | **Reward** | Relative step change vs individual baseline | alpha * step_bin + (1-alpha) * sleep - penalty | Different formula |
 | **State variables** | 20+ features (static + dynamic) | 4 state variables (step_bin, sleep, day_of_week, burden) | Major gap |
 | **Personas** | N/A (real participants) | 5 personas (base, goal_driven, etc.) | Different approach |
-| **Attrition** | ~15% withdrawal, ~5% insufficient data | Not modeled | Need attrition model |
+| **Attrition** | 1,522 withdrew (11.3%); 7,711 of 13,463 met inclusion criteria (57.3%) | Not modeled | Need attrition model |
 | **Weekly seasonality** | Confirmed (weekday/weekend) | day_of_week state variable | Partially matched |
-| **Time-of-day effects** | Morning nudges preferred | Not modeled | Need timing |
+| **Time-of-day effects** | RL delivered 7% more evening nudges than Random | Not modeled | Need timing |
 | **Exploration** | Explicit ε-greedy | Thompson Sampling (implicit) | Different mechanism |
 | **Feature engineering** | Static (COM-B, demographics) + Dynamic (7-day windows) | Minimal | Major gap |
 | **Baseline steps** | 5,618 (mITT), 7,160-7,248 (ITT) | Configurable | Can match 5,618 |
@@ -280,7 +278,7 @@ See Section 4 (RL Algorithm Details) above for full feature list.
 ## 10. Recommended Next Steps
 
 1. **Create PEARL-matched config** (Issue #252) with:
-   - 2 decision points per day (morning, afternoon)
+   - 1 decision point per day with choice of delivery time (6 AM or 3 PM)
    - 12 actions (6 COM-B themes × 2 times)
    - ε-greedy C-MAB agent (not Thompson Sampling)
    - PEARL's reward formula (relative step change)
