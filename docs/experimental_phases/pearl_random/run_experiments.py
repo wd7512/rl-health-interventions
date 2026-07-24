@@ -7,7 +7,7 @@ import json
 import logging
 from pathlib import Path
 
-from _shared import agent_label, resolve_config, run_agent
+from _shared import agent_label, resolve_config, run_agent_detailed
 
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.evaluation.metrics import (
@@ -17,8 +17,10 @@ from rl_health_interventions.evaluation.metrics import (
 
 logger = logging.getLogger(__name__)
 
-_CONFIGS_DIR = Path(__file__).resolve().parent / "configs"
+_HERE = Path(__file__).resolve().parent
+_CONFIGS_DIR = _HERE / "configs"
 _PEARL_CONFIGS = [_CONFIGS_DIR / "pearl_random.yaml"]
+_TRAJECTORY_DIR = _HERE / "results" / "trajectories"
 
 
 def _positive_int(value: str) -> int:
@@ -35,6 +37,7 @@ def _benchmark_config(
     output_dir: Path | None = None,
     dump_json: bool = False,
     confirm_overwrite: bool = False,
+    dump_trajectories: bool = False,
 ) -> dict[str, dict[str, float]]:
     config = load_config(config_path)
     config_name = Path(config_path).stem
@@ -51,11 +54,15 @@ def _benchmark_config(
     logger.info("Seeds: %d\n", n_seeds)
 
     results: dict[str, dict[str, float]] = {}
+    all_trajectories: dict[str, list[list[dict]]] = {}
     for i, agent_cfg in enumerate(config.agents):
         label = agent_label(agent_cfg)
         logger.info("Running %s...", label)
-        rewards = run_agent(config, agent_cfg, n_seeds, agent_index=i)
+        rewards, trajectories = run_agent_detailed(
+            config, agent_cfg, n_seeds, agent_index=i
+        )
         results[label] = compute_metrics(rewards)
+        all_trajectories[label] = trajectories
 
     logger.info("\n%s", format_comparison_table(results))
 
@@ -70,7 +77,57 @@ def _benchmark_config(
             confirm_overwrite=confirm_overwrite,
         )
 
+    if dump_trajectories:
+        _write_trajectories(
+            all_trajectories,
+            config.seed,
+            n_seeds,
+        )
+
     return results
+
+
+def _write_trajectories(
+    trajectories: dict[str, list[list[dict]]],
+    config_seed: int,
+    n_seeds: int,
+) -> None:
+    out_path = _TRAJECTORY_DIR / "pearl_random_trajectories.json"
+    _TRAJECTORY_DIR.mkdir(parents=True, exist_ok=True)
+
+    if out_path.exists():
+        msg = (
+            f"Refusing to overwrite existing trajectories: {out_path}\n"
+            "Delete it manually or re-run as a fresh experiment."
+        )
+        raise FileExistsError(msg)
+
+    compact: dict[str, dict] = {}
+    for arm_label, seed_records in trajectories.items():
+        seeds_data: dict[str, list[dict]] = {}
+        for sidx, records in enumerate(seed_records, 1):
+            seeds_data[f"seed_{sidx}"] = [
+                {
+                    "step": r["step"],
+                    "day": r["day"],
+                    "action": r["action"],
+                    "reward": r["reward"],
+                    "burden": r.get("burden", "low"),
+                }
+                for r in records
+            ]
+        compact[arm_label] = seeds_data
+
+    payload = {
+        "config_seed": config_seed,
+        "n_seeds": n_seeds,
+        "arms": compact,
+    }
+
+    with out_path.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
+
+    logger.info("Wrote trajectories: %s", out_path)
 
 
 def _write_json_fixture(
@@ -150,6 +207,11 @@ def main() -> None:
         action="store_true",
         help="Allow overwriting existing golden fixtures (use when re-baselining)",
     )
+    parser.add_argument(
+        "--trajectories",
+        action="store_true",
+        help="Save per-step trajectory data to results/trajectories/",
+    )
     args = parser.parse_args()
 
     if args.json and args.output is None:
@@ -167,6 +229,7 @@ def main() -> None:
                 output_dir=output_dir,
                 dump_json=args.json,
                 confirm_overwrite=args.confirm_overwrite,
+                dump_trajectories=args.trajectories,
             )
     else:
         _benchmark_config(
@@ -175,6 +238,7 @@ def main() -> None:
             output_dir=output_dir,
             dump_json=args.json,
             confirm_overwrite=args.confirm_overwrite,
+            dump_trajectories=args.trajectories,
         )
 
 

@@ -5,6 +5,7 @@ table_transition transition model.  Run once, commit output:
 
     uv run python docs/experimental_phases/pearl_random/generate_tables.py
 """
+
 from __future__ import annotations
 
 import itertools
@@ -33,9 +34,7 @@ def _generate_tables(config):  # noqa: ANN001
 
     rng = np.random.default_rng(config.seed)
 
-    stochastic = [
-        n for n, c in config.state.variables.items() if c.advanced is None
-    ]
+    stochastic = [n for n, c in config.state.variables.items() if c.advanced is None]
     actions = list(config.actions.keys())
 
     # day_boundary: one Dirichlet draw per (factor, factor_value)
@@ -71,7 +70,10 @@ def _generate_tables(config):  # noqa: ANN001
 
 
 def _save_per_factor_tables(
-    day_boundary, within_day, output_dir, config  # noqa: ANN001
+    day_boundary,
+    within_day,
+    output_dir,
+    config,  # noqa: ANN001
 ) -> None:
     """Save tables in per-factor format with _format marker."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -100,9 +102,7 @@ def main() -> None:
     logger.info("Loading config from %s", _CONFIG_PATH)
     config = load_config(_CONFIG_PATH)
 
-    stochastic = [
-        n for n, c in config.state.variables.items() if c.advanced is None
-    ]
+    stochastic = [n for n, c in config.state.variables.items() if c.advanced is None]
     actions = list(config.actions.keys())
     logger.info(
         "Config loaded: %d stochastic factors, %d actions, %d steps_per_day",
@@ -114,9 +114,7 @@ def main() -> None:
     logger.info("Generating tables with seed=%d", config.seed)
     day_boundary_tables, within_day_tables = _generate_tables(config)
 
-    _save_per_factor_tables(
-        day_boundary_tables, within_day_tables, _OUTPUT_DIR, config
-    )
+    _save_per_factor_tables(day_boundary_tables, within_day_tables, _OUTPUT_DIR, config)
     logger.info("Done. Tables saved to %s", _OUTPUT_DIR)
 
 
