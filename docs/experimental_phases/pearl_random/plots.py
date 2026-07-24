@@ -20,12 +20,11 @@ from pathlib import Path
 from typing import Any
 
 import matplotlib
+matplotlib.use("Agg")
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
-
-matplotlib.use("Agg")
 
 logger = logging.getLogger(__name__)
 

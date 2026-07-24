@@ -8,16 +8,15 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-
 import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+
 from _shared import agent_label, resolve_config, run_agent_detailed
 
 from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.config.schemas import AgentConfig
-
-matplotlib.use("Agg")
 
 _HIGH = 2
 
@@ -241,27 +240,22 @@ def main() -> None:  # noqa: C901, PLR0915
         markersize=6,
         label="Total Reward (RL EG)",
     )
-    ax1.axhline(
-        y=baselines[0]["reward"],
-        color=ARM_COLORS["Control"],
-        linestyle="--",
-        alpha=0.5,
-        label=f"Control ({baselines[0]['reward']:.1f})",
-    )
-    ax1.axhline(
-        y=baselines[1]["reward"],
-        color=ARM_COLORS["Random"],
-        linestyle=":",
-        alpha=0.5,
-        label=f"Random ({baselines[1]['reward']:.1f})",
-    )
-    ax1.axhline(
-        y=baselines[2]["reward"],
-        color=ARM_COLORS["Fixed COM-B"],
-        linestyle="-.",
-        alpha=0.5,
-        label=f"Fixed COM-B ({baselines[2]['reward']:.1f})",
-    )
+    baseline_map = {b["arm"]: b for b in baselines}
+    for arm_name, ls, label_fn in [
+        ("Control", "--", lambda r: f"Control ({r:.1f})"),
+        ("Random", ":", lambda r: f"Random ({r:.1f})"),
+        ("Fixed COM-B", "-.", lambda r: f"Fixed COM-B ({r:.1f})"),
+    ]:
+        b = baseline_map.get(arm_name)
+        if b is None:
+            continue
+        ax1.axhline(
+            y=b["reward"],
+            color=ARM_COLORS[arm_name],
+            linestyle=ls,
+            alpha=0.5,
+            label=label_fn(b["reward"]),
+        )
     ax1.set_xlabel("Epsilon (exploration rate)")
     ax1.set_ylabel("Total Reward (60 days)", color=color)
     ax1.tick_params(axis="y", labelcolor=color)
