@@ -26,6 +26,7 @@ def _pearl_config(seed: int = 42, *, episode_days: int = 50) -> MDPConfig:
                     "names": ["low", "medium", "high"],
                     "advanced": {
                         "type": "rolling_window_count",
+                        "mechanism": "posterior",
                         "window_size": 2,
                         "conditions": [
                             {

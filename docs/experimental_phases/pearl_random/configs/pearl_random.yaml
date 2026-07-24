@@ -32,6 +32,7 @@ state:
       names: [low, medium, high]
       advanced:
         type: rolling_window_count
+        mechanism: posterior
         window_size: 7
         conditions:
           - factor: action

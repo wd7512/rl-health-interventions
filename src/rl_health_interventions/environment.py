@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from collections import deque
-from typing import cast
 
 import numpy as np
 
@@ -58,6 +57,9 @@ class Environment:
         max_window = max(window_sizes) if window_sizes else 3
         self._action_history: deque[tuple[str, str, bool]] = deque(maxlen=max_window)
         self._prime_action_history()
+        self._use_posterior_burden = any(
+            adv.mechanism == "posterior" for _, adv in self._rolling_vars
+        )
         self._p_success: dict[str, float] = {}
         self._precompute_p_success()
 
@@ -118,15 +120,13 @@ class Environment:
         return prob_idle / total
 
     def _precompute_p_success(self) -> None:  # noqa: C901, PLR0911, PLR0912, PLR0915
-        """Precompute P-success for each (state_key, action) pair.
+        """Precompute P-success for per-factor transition tables.
 
-        Flat format: P(success | s, a) = 1 - Σ P(ns | s, a) * P(ns | s, idle)
+        Combines per-factor overlaps across all stochastic factors so no
+        single factor's distribution is privileged.
 
-        Per-factor format: combines per-factor overlaps across all stochastic
-        factors so no single factor's distribution is privileged.
-
-        Requires the transition model to expose ``within_day`` tables
-        (``TableTransition``).
+        Only populates ``_p_success`` for per-factor format. Flat-format
+        tables (sprint1) use naive action-counting burden instead.
         """
         if not hasattr(self._transition, "within_day"):
             return
@@ -189,39 +189,9 @@ class Environment:
                         self._p_success[key] = max(0.0, min(1.0, p_success))
             return
 
-        # Flat format (sprint1): single combined distribution per key
-        within_day = cast("list", tm.within_day)
-        if not within_day:
-            return
-        wd_first: dict[str, tuple] = within_day[0]
-
-        for combo in product(*(values for _, values in factor_value_lists)):
-            state_key = "|".join(combo)
-
-            idle_key = state_key + "|idle"
-            if idle_key not in wd_first:
-                continue
-            idle_targets, idle_probs = wd_first[idle_key]
-
-            for action in actions:
-                if action == "idle":
-                    continue
-                action_key = state_key + "|" + action
-                if action_key not in wd_first:
-                    continue
-                action_targets, action_probs = wd_first[action_key]
-
-                # Align probability vectors over same target set
-                all_targets = sorted(set(idle_targets) | set(action_targets))
-                idle_map = dict(zip(idle_targets, idle_probs, strict=True))
-                action_map = dict(zip(action_targets, action_probs, strict=True))
-
-                p_idle = np.array([idle_map.get(t, 0.0) for t in all_targets])
-                p_action = np.array([action_map.get(t, 0.0) for t in all_targets])
-
-                # P(success) = 1 - Σ_t P(t|s,a) * P(t|s,idle)
-                p_success = 1.0 - float(np.sum(p_action * p_idle))
-                self._p_success[f"{state_key}|{action}"] = max(0.0, min(1.0, p_success))
+        # Flat format (sprint1): naive action-counting, not posterior.
+        # Only per-factor tables use the posterior burden mechanism.
+        return
 
     def _build_state_key(self, state: StateView) -> str:
         return "|".join(
@@ -235,7 +205,7 @@ class Environment:
     ) -> StateView:
         post_state_key = self._build_state_key(state)
         burden_failure = False
-        if self._p_success and pre_state_key is not None:
+        if self._use_posterior_burden and pre_state_key is not None:
             p_idle = self._compute_burden_chance(pre_state_key, action, post_state_key)
             burden_failure = bool(self._rng.random() < p_idle)
         self._action_history.append((post_state_key, action, burden_failure))
@@ -244,7 +214,7 @@ class Environment:
             count = 0
             for cond in adv.conditions:
                 if cond.factor == "action":
-                    if self._p_success and name == "burden":
+                    if adv.mechanism == "posterior":
                         for _, a, bf in window:
                             if a == "idle":
                                 continue

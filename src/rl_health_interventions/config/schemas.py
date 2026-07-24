@@ -54,6 +54,7 @@ class RollingWindowCountAdvance(BaseModel):
     window_size: Annotated[int, Field(gt=0)] = 3
     conditions: list[Condition]
     mapping: dict[int, str]
+    mechanism: Literal["action_count", "posterior"] = "action_count"
 
 
 class FactorConfig(BaseModel):
