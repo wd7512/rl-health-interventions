@@ -24,7 +24,7 @@ has 5+ structural mismatches against the actual PEARL study.
 | Baseline period | 7 days | 30-day pre-study window |
 | State variables | 4 categorical (step_bin, sleep, day_of_week, burden) | 20+ features (Table 7) |
 | Fixed arm | `FixedAgent(action="movement_suggestion")` | COM-B barrier-score weighted multinomial |
-| Burden model | Count of non-idle actions in last 3 steps | Bayesian P success (7-day failure window) |
+| Burden model | Count of non-idle actions in last 3 steps | P-success (7-day failure window) |
 
 ### Scope — Implementation Status
 
@@ -36,7 +36,7 @@ has 5+ structural mismatches against the actual PEARL study.
 | Experiment runner + shared utils | ✅ Done | `run_experiments.py`, `_shared.py` |
 | Schema + registry updates | ✅ Done | `comb_weighted_fixed` in known types |
 | Regression tests + golden fixtures | ✅ Done | `test_pearl_random.py`, `pearl_random.json` |
-| **Bayesian P-success burden** | ✅ Done | `environment.py` — precomputed P(s\|s,a) via transition tables; fixes #252 |
+| **P-success burden** | ✅ Done | `environment.py` — precomputed P(s\|s,a) via transition tables; fixes #252 |
 | **12-action transition tables** | ✅ Done | `tables/pearl_12action/` — per-factor format with `day_boundary.json` + `within_day_0.json` |
 | **D15 decision catalogue entry** | ✅ Done | `docs/research/decision-catalogue.md:302` — feature selection entry |
 | **Constitution corrections** | ✅ Done | `docs/research/pearl-constitution.md` — T1.1, T2.1, T2.3, Arm Mapping |
@@ -52,7 +52,7 @@ has 5+ structural mismatches against the actual PEARL study.
 | 1 | Feature selection | weight >= 0.5 boundary, 8 features | Natural break (next is 0.32, 47% drop). See §3. |
 | 2 | State space size | 108 states (5 dynamic vars) | 3 × 2 × 3 × 2 × 3 = 108. Tractable for bootstrap. |
 | 3 | Static features | Persona context (not in state) | Static attrs don't change; transitions depend only on dynamic vars. |
-| 4 | Burden mechanism | Bayesian P success from transition tables | P(action \| observed transition) via lookup. See §6. |
+| 4 | Burden mechanism | P-success from transition tables | Probability action & idle distributions differ via lookup. See §6. |
 | 5 | Burden window | 7 days (1 week) | Carries across days; naturally decays as old failures fall out of window. |
 | 6 | Burden mapping | 0-2→low, 3-5→medium, 6+→high | Derived from observed PEARL effect sizes (200-300 steps). |
 | 7 | RL algorithm | ε-greedy C-MAB | PEARL uses ε-greedy with ε=0.7-0.8. |
@@ -124,7 +124,7 @@ full 105,000-state combinatorial explosion.
 | recent_walk_pattern | low, high | 2 | Classification from recent steps |
 | morning_steps_ratio | morning, balanced, evening | 3 | Time-of-day step split |
 | day_of_week | weekday, weekend | 2 | Cyclic (7-day pattern) |
-| burden | low, medium, high | 3 | Bayesian P success (7-day window) |
+| burden | low, medium, high | 3 | P-success (7-day window) |
 
 **Total:** 3 × 2 × 3 × 2 × 3 = **108 states**
 
@@ -190,22 +190,22 @@ A notification "fails" when it does not cause deviation from baseline behavior.
 The baseline is defined by the idle action's transition distribution:
 `P(next_state | state, idle)`.
 
-### Bayesian P Success Formula
+### P-Success Formula
 
 For a given state `s` and action `a`:
 
-```
+```text
 P_success(s, a) = 1 - Σ P(ns | s, a) * P(ns | s, idle)
 ```
 
-This answers: "How distinguishable is the action's effect from idle?" A value of 0
-means the action and idle produce identical distributions; 1 means they never produce
-the same outcome.
+This is the probability that independent samples from the action and idle transition
+distributions differ. A value of 0 means the two distributions are identical; 1 means
+they never produce the same outcome.
 
 When multiple stochastic factors exist (PEARL format), P_success is computed per factor
 and combined:
 
-```
+```text
 P_success(s, a) = 1 - ∏_f [ Σ P_f(ns | s_f, a) * P_f(ns | s_f, idle) ]
 ```
 
@@ -423,7 +423,7 @@ class ComBWeightedFixedAgent(FixedAgent):
 ### Step 3: Burden Calculation in Environment
 
 **Files to modify:**
-- `src/rl_health_interventions/environment.py` — add Bayesian P success calculation
+- `src/rl_health_interventions/environment.py` — add P-success calculation
 
 **Implementation:**
 - New method `_precompute_success_probs(transition_table)` called at `__init__`
@@ -502,7 +502,7 @@ Contains:
 ```yaml
 # PEARL-matched config with RANDOM transitions (for testing).
 # 1 decision point/day, 12 actions, ε-greedy C-MAB.
-# Burden: Bayesian P success (7-day window).
+# Burden: P-success (7-day window).
 # Feature selection: weight >= 0.5 boundary (Figure 12, Lee 2025).
 # Epsilon convention: PEARL ε=0.7 maps to our ε=0.3 (inverted convention).
 
@@ -615,7 +615,7 @@ When transition tables are regenerated for the 12-action space, this config will
 |-------|--------|----------|
 | Config validation | `uv run python -c "from rl_health_interventions.config.loader import load_config; ..."` | No validation errors |
 | Fixed agent COM-B weighted | Unit test | Barrier-weighted theme selection matches expected distribution |
-| Burden Bayesian P | Unit test | Given known transition table, burden computed correctly |
+| Burden P-success | Unit test | Given known transition table, burden computed correctly |
 | Environment runs | `uv run pytest` | All existing tests pass |
 | End-to-end episode | Run 1 episode per agent | No crashes, valid states |
 | 4-arm comparison | Run 50 seeds, compare arm means | RL > others |
@@ -676,7 +676,7 @@ When transition tables are regenerated for the 12-action space, this config will
 |------|--------|
 | `src/rl_health_interventions/agents/fixed.py` | Add `ComBWeightedFixedAgent` |
 | `src/rl_health_interventions/agents/__init__.py` | Register `comb_weighted_fixed` type |
-| `src/rl_health_interventions/environment.py` | Add Bayesian P success burden calculation |
+| `src/rl_health_interventions/environment.py` | Add P-success burden calculation |
 | `docs/research/decision-catalogue.md` | Add D15 (feature selection) |
 | `docs/research/pearl-constitution.md` | Fix arm mappings, baseline period, T2.3 |
 
@@ -705,7 +705,7 @@ skipped or substituted several design-critical items. This section defines the f
 
 | # | Flaw | Category | Effort |
 |---|------|----------|--------|
-| 1 | Bayesian P-success burden replaced with naive rolling_window_count action counter | Core design | Large |
+| 1 | P-success burden replaced with naive rolling_window_count action counter | Core design | Large |
 | 2 | No 12-action transition tables exist (blocks #1) | Infrastructure | Medium |
 | 3 | `BootstrapTransition._build_state_key` hardcodes sprint1 factor names (`step_bin`, `burden`, `day_of_week`, `sleep`) — can't load PEARL tables with different stochastic factors | Design bug | Small |
 | 4 | No D15 decision catalogue entry (feature selection ADR from Figure 12) | Documentation | Small |
@@ -774,7 +774,7 @@ def _build_state_key(self, state, action, *, for_within_day):
 This makes `BootstrapTransition` config-agnostic — works with both sprint1 (4-action) and
 PEARL (12-action) configs.
 
-### 15.3 Part B: Bayesian P-Success Burden
+### 15.3 Part B: P-Success Burden
 
 #### B1. Add `_precompute_p_success()` to Environment
 
@@ -790,7 +790,7 @@ P_success(s, a) = Σ_ns P(ns | s, a)² / (P(ns | s, a) + P(ns | s, idle))
 For each (state_key, action) pair, where `P(ns | s, a)` is looked up from the action's
 table row and `P(ns | s, idle)` from idle's table row for the same state.
 
-#### B2. Modify `_apply_rolling_advances` for Bayesian burden
+#### B2. Modify `_apply_rolling_advances` for P-success burden
 
 When `_p_success` is populated and the factor being computed is `burden`:
 1. Look up `p_success` for current state + action from precomputed table
@@ -813,8 +813,8 @@ draw. The seed is already passed as a parameter.
 - Change `transition_model.type` from `random` to `random_sa`
 - Add `table_dir: tables/pearl_12action` (for table serialization target)
 - Add header comments explaining:
-  - `random_sa` generates per-(state,action) tables enabling Bayesian P-success
-  - Bayesian burden makes non-idle actions non-trivially different from idle
+  - `random_sa` generates per-(state,action) tables enabling P-success
+  - P-success burden makes non-idle actions non-trivially different from idle
   - Under random transitions, Control winning is expected (degenerate reward)
   - Relative-change reward formula deferred to bootstrap phase
 
@@ -860,7 +860,7 @@ Contents:
 - Known limitations:
   - Random transitions → no causal link between actions and outcomes
   - Optimal policy is "always idle" — Control winning is expected
-  - Bayesian P-success burden makes actions non-trivially different from idle
+  - P-success burden makes actions non-trivially different from idle
   - Relative-change reward formula deferred to bootstrap phase
 
 ### 15.6 Part E: Tests
@@ -874,7 +874,7 @@ Contents:
 - Test round-trip: save → load via `BootstrapTransition` → same samples
 - Test key format matches expected `{factor1}|{factor2}|...|{action}` pattern
 
-#### E2. Bayesian burden tests
+#### E2. P-success burden tests
 
 - Test that with `_p_success` populated, non-idle actions can produce `burden=medium` or
   `burden=high`
@@ -883,7 +883,7 @@ Contents:
 
 #### E3. Update regression test
 
-- Add regression for pearl_random with `random_sa` transitions + Bayesian burden
+- Add regression for pearl_random with `random_sa` transitions + P-success burden
 - Regenerate golden fixtures (results will differ from current)
 
 ### 15.7 Execution Order
@@ -891,7 +891,7 @@ Contents:
 ```
 A1 (RandomTransitionSA)  ──┐
 A3 (Generalize Bootstrap) ──┤
-                            ├── A2 (Generate tables) ── B1-B3 (Bayesian burden) ── C1-C2 (Configs)
+                            ├── A2 (Generate tables) ── B1-B3 (P-success burden) ── C1-C2 (Configs)
                             │                                                          │
 D1-D3 (Docs) ──────────────┤                                                          │
 E1-E3 (Tests) ─────────────┴──────────────────────────────────────────────────────────┘
@@ -906,7 +906,7 @@ tables. Parts D (docs) can be done in parallel with Part A since they're indepen
 |-------|--------|----------|
 | RandomTransitionSA tables valid | Unit test | All keys present, probs sum to 1.0 |
 | BootstrapTransition loads PEARL tables | Unit test | No hardcoded factor name errors |
-| Bayesian P-success precomputed | Unit test | 0 < P_success < 1 for all (s, a) |
+| P-success precomputed | Unit test | 0 < P_success < 1 for all (s, a) |
 | Burden varies across arms | End-to-end | Control=always low, others=low/medium/high mix |
 | D15 in catalogue | Read check | Entry exists with evidence citations |
 | Constitution corrected | Read check | Arms, baseline, T2.3 match PEARL paper |

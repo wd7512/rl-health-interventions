@@ -71,7 +71,7 @@ class Environment:
             self._action_history.append(("", "idle"))
 
     def _precompute_p_success(self) -> None:  # noqa: C901, PLR0911, PLR0912, PLR0915
-        """Precompute Bayesian P-success for each (state_key, action) pair.
+        """Precompute P-success for each (state_key, action) pair.
 
         Flat format: P(success | s, a) = 1 - Σ P(ns | s, a) * P(ns | s, idle)
 
@@ -189,7 +189,7 @@ class Environment:
             for cond in adv.conditions:
                 if cond.factor == "action":
                     if self._p_success and name == "burden":
-                        # Bayesian P-success burden: idle never counts as failure
+                        # P-success burden: idle never counts as failure
                         for hk_state_key, a in window:
                             if a == "idle":
                                 continue

@@ -59,7 +59,7 @@ class TableTransition(TransitionModel):
         return self._within_day
 
     def _flatten_pf_db(self) -> dict[str, tuple[list[str], np.ndarray]]:
-        """Flatten per-factor day_boundary for Bayesian P-success compatibility."""
+        """Flatten per-factor day_boundary for P-success compatibility."""
         result: dict[str, tuple[list[str], np.ndarray]] = {}
         stochastic = self._stochastic_factors
         factor_value_lists = []
