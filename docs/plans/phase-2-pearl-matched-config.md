@@ -36,11 +36,11 @@ has 5+ structural mismatches against the actual PEARL study.
 | Experiment runner + shared utils | ✅ Done | `run_experiments.py`, `_shared.py` |
 | Schema + registry updates | ✅ Done | `comb_weighted_fixed` in known types |
 | Regression tests + golden fixtures | ✅ Done | `test_pearl_random.py`, `pearl_random.json` |
-| **Bayesian P-success burden** | ❌ Not done | Replaced with naive action counter (rolling_window_count) |
-| **12-action transition tables** | ❌ Not done | No per-(state,action) tables exist for 12-action space |
-| **D15 decision catalogue entry** | ❌ Not done | Plan §10 Step 7 not implemented |
-| **Constitution corrections** | ❌ Not done | Plan §10 Step 8 not implemented |
-| **README for pearl_random** | ❌ Not done | Plan §10 Step 6 not implemented |
+| **Bayesian P-success burden** | ✅ Done | `environment.py` — precomputed P(s|s,a) via transition tables; fixes #252 |
+| **12-action transition tables** | ✅ Done | `tables/pearl_12action/` — per-factor format with `day_boundary.json` + `within_day_0.json` |
+| **D15 decision catalogue entry** | ✅ Done | `docs/research/decision-catalogue.md:302` — feature selection entry |
+| **Constitution corrections** | ✅ Done | `docs/research/pearl-constitution.md` — T1.1, T2.1, T2.3, Arm Mapping |
+| **README for pearl_random** | ✅ Done | `docs/experimental_phases/pearl_random/README.md` |
 | **Bootstrap config variant** | ❌ Not done | Plan §10 Step 4b not implemented |
 
 ---

@@ -56,19 +56,19 @@ class Environment:
         ]
         window_sizes = [adv.window_size for _, adv in self._rolling_vars]
         max_window = max(window_sizes) if window_sizes else 3
-        self._action_history: deque[str] = deque(maxlen=max_window)
+        self._action_history: deque[tuple[str, str]] = deque(maxlen=max_window)
         self._prime_action_history()
         self._p_success: dict[str, float] = {}
         self._precompute_p_success()
 
     @property
     def action_history(self) -> tuple[str, ...]:
-        return tuple(self._action_history)
+        return tuple(action for _, action in self._action_history)
 
     def _prime_action_history(self) -> None:
         self._action_history.clear()
         for _ in range(self._action_history.maxlen or 0):
-            self._action_history.append("idle")
+            self._action_history.append(("", "idle"))
 
     def _precompute_p_success(self) -> None:  # noqa: C901, PLR0912, PLR0915
         """Precompute Bayesian P-success for each (state_key, action) pair.
@@ -130,7 +130,12 @@ class Environment:
                 self._p_success[f"{state_key}|{action}"] = max(0.0, min(1.0, p_success))
 
     def _apply_rolling_advances(self, action: str, state: StateView) -> StateView:  # noqa: C901, PLR0912
-        self._action_history.append(action)
+        state_key = "|".join(
+            getattr(state, n)
+            for n, c in self._config.state.variables.items()
+            if c.advanced is None
+        )
+        self._action_history.append((state_key, action))
         for name, adv in self._rolling_vars:
             window = list(self._action_history)[-adv.window_size :]
             count = 0
@@ -138,23 +143,15 @@ class Environment:
                 if cond.factor == "action":
                     if self._p_success and name == "burden":
                         # Bayesian P-success burden: idle never counts as failure
-                        for a in window:
+                        for hk_state_key, a in window:
                             if a == "idle":
                                 continue
-                            state_key = "|".join(
-                                getattr(state, n)
-                                for n in sorted(
-                                    n
-                                    for n, c in self._config.state.variables.items()
-                                    if c.advanced is None
-                                )
-                            )
-                            p_key = f"{state_key}|{a}"
+                            p_key = f"{hk_state_key}|{a}"
                             p_success = self._p_success.get(p_key, 0.5)
                             if self._rng.random() >= p_success:
                                 count += 1
                     else:
-                        count += sum(1 for a in window if a in cond.values)
+                        count += sum(1 for _, a in window if a in cond.values)
                 else:
                     fv = getattr(state, cond.factor, None)
                     if fv in cond.values:
