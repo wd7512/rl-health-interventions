@@ -1,0 +1,1640 @@
+{
+  "low|low|morning|idle": {
+    "_": {
+      "low": 0.4939648567536194,
+      "moderate": 0.3297862345608553,
+      "high": 0.17624890868552529
+    }
+  },
+  "low|low|morning|ability_morning": {
+    "_": {
+      "low": 0.4402046975278818,
+      "moderate": 0.4784459770381389,
+      "high": 0.08134932543397941
+    }
+  },
+  "low|low|morning|ability_afternoon": {
+    "_": {
+      "low": 0.14328935395404616,
+      "moderate": 0.5466675520149726,
+      "high": 0.310043094030981
+    }
+  },
+  "low|low|morning|perceived_benefit_morning": {
+    "_": {
+      "low": 0.5718769409545046,
+      "moderate": 0.3204930034013878,
+      "high": 0.1076300556441075
+    }
+  },
+  "low|low|morning|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.3187661323785177,
+      "moderate": 0.4435301085157033,
+      "high": 0.23770375910577893
+    }
+  },
+  "low|low|morning|planning_morning": {
+    "_": {
+      "low": 0.21492655885010092,
+      "moderate": 0.5868143012680257,
+      "high": 0.19825913988187327
+    }
+  },
+  "low|low|morning|planning_afternoon": {
+    "_": {
+      "low": 0.3501772692197947,
+      "moderate": 0.36518562418307554,
+      "high": 0.2846371065971298
+    }
+  },
+  "low|low|morning|prioritization_morning": {
+    "_": {
+      "low": 0.028510729775383756,
+      "moderate": 0.44274713837596325,
+      "high": 0.5287421318486529
+    }
+  },
+  "low|low|morning|prioritization_afternoon": {
+    "_": {
+      "low": 0.6512033636934189,
+      "moderate": 0.16253340856578535,
+      "high": 0.1862632277407958
+    }
+  },
+  "low|low|morning|social_opportunity_morning": {
+    "_": {
+      "low": 0.30621565202116835,
+      "moderate": 0.6547262802493564,
+      "high": 0.03905806772947521
+    }
+  },
+  "low|low|morning|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.03054969287711335,
+      "moderate": 0.24005406216493774,
+      "high": 0.729396244957949
+    }
+  },
+  "low|low|morning|physical_opportunity_morning": {
+    "_": {
+      "low": 0.45251962181586547,
+      "moderate": 0.22808314129092958,
+      "high": 0.3193972368932049
+    }
+  },
+  "low|low|morning|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.22952550489359616,
+      "moderate": 0.08234359657557293,
+      "high": 0.6881308985308309
+    }
+  },
+  "low|low|balanced|idle": {
+    "_": {
+      "low": 0.4939648567536194,
+      "moderate": 0.3297862345608553,
+      "high": 0.17624890868552529
+    }
+  },
+  "low|low|balanced|ability_morning": {
+    "_": {
+      "low": 0.4402046975278818,
+      "moderate": 0.4784459770381389,
+      "high": 0.08134932543397941
+    }
+  },
+  "low|low|balanced|ability_afternoon": {
+    "_": {
+      "low": 0.14328935395404616,
+      "moderate": 0.5466675520149726,
+      "high": 0.310043094030981
+    }
+  },
+  "low|low|balanced|perceived_benefit_morning": {
+    "_": {
+      "low": 0.5718769409545046,
+      "moderate": 0.3204930034013878,
+      "high": 0.1076300556441075
+    }
+  },
+  "low|low|balanced|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.3187661323785177,
+      "moderate": 0.4435301085157033,
+      "high": 0.23770375910577893
+    }
+  },
+  "low|low|balanced|planning_morning": {
+    "_": {
+      "low": 0.21492655885010092,
+      "moderate": 0.5868143012680257,
+      "high": 0.19825913988187327
+    }
+  },
+  "low|low|balanced|planning_afternoon": {
+    "_": {
+      "low": 0.3501772692197947,
+      "moderate": 0.36518562418307554,
+      "high": 0.2846371065971298
+    }
+  },
+  "low|low|balanced|prioritization_morning": {
+    "_": {
+      "low": 0.028510729775383756,
+      "moderate": 0.44274713837596325,
+      "high": 0.5287421318486529
+    }
+  },
+  "low|low|balanced|prioritization_afternoon": {
+    "_": {
+      "low": 0.6512033636934189,
+      "moderate": 0.16253340856578535,
+      "high": 0.1862632277407958
+    }
+  },
+  "low|low|balanced|social_opportunity_morning": {
+    "_": {
+      "low": 0.30621565202116835,
+      "moderate": 0.6547262802493564,
+      "high": 0.03905806772947521
+    }
+  },
+  "low|low|balanced|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.03054969287711335,
+      "moderate": 0.24005406216493774,
+      "high": 0.729396244957949
+    }
+  },
+  "low|low|balanced|physical_opportunity_morning": {
+    "_": {
+      "low": 0.45251962181586547,
+      "moderate": 0.22808314129092958,
+      "high": 0.3193972368932049
+    }
+  },
+  "low|low|balanced|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.22952550489359616,
+      "moderate": 0.08234359657557293,
+      "high": 0.6881308985308309
+    }
+  },
+  "low|low|evening|idle": {
+    "_": {
+      "low": 0.4939648567536194,
+      "moderate": 0.3297862345608553,
+      "high": 0.17624890868552529
+    }
+  },
+  "low|low|evening|ability_morning": {
+    "_": {
+      "low": 0.4402046975278818,
+      "moderate": 0.4784459770381389,
+      "high": 0.08134932543397941
+    }
+  },
+  "low|low|evening|ability_afternoon": {
+    "_": {
+      "low": 0.14328935395404616,
+      "moderate": 0.5466675520149726,
+      "high": 0.310043094030981
+    }
+  },
+  "low|low|evening|perceived_benefit_morning": {
+    "_": {
+      "low": 0.5718769409545046,
+      "moderate": 0.3204930034013878,
+      "high": 0.1076300556441075
+    }
+  },
+  "low|low|evening|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.3187661323785177,
+      "moderate": 0.4435301085157033,
+      "high": 0.23770375910577893
+    }
+  },
+  "low|low|evening|planning_morning": {
+    "_": {
+      "low": 0.21492655885010092,
+      "moderate": 0.5868143012680257,
+      "high": 0.19825913988187327
+    }
+  },
+  "low|low|evening|planning_afternoon": {
+    "_": {
+      "low": 0.3501772692197947,
+      "moderate": 0.36518562418307554,
+      "high": 0.2846371065971298
+    }
+  },
+  "low|low|evening|prioritization_morning": {
+    "_": {
+      "low": 0.028510729775383756,
+      "moderate": 0.44274713837596325,
+      "high": 0.5287421318486529
+    }
+  },
+  "low|low|evening|prioritization_afternoon": {
+    "_": {
+      "low": 0.6512033636934189,
+      "moderate": 0.16253340856578535,
+      "high": 0.1862632277407958
+    }
+  },
+  "low|low|evening|social_opportunity_morning": {
+    "_": {
+      "low": 0.30621565202116835,
+      "moderate": 0.6547262802493564,
+      "high": 0.03905806772947521
+    }
+  },
+  "low|low|evening|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.03054969287711335,
+      "moderate": 0.24005406216493774,
+      "high": 0.729396244957949
+    }
+  },
+  "low|low|evening|physical_opportunity_morning": {
+    "_": {
+      "low": 0.45251962181586547,
+      "moderate": 0.22808314129092958,
+      "high": 0.3193972368932049
+    }
+  },
+  "low|low|evening|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.22952550489359616,
+      "moderate": 0.08234359657557293,
+      "high": 0.6881308985308309
+    }
+  },
+  "low|high|morning|idle": {
+    "_": {
+      "low": 0.4939648567536194,
+      "moderate": 0.3297862345608553,
+      "high": 0.17624890868552529
+    }
+  },
+  "low|high|morning|ability_morning": {
+    "_": {
+      "low": 0.4402046975278818,
+      "moderate": 0.4784459770381389,
+      "high": 0.08134932543397941
+    }
+  },
+  "low|high|morning|ability_afternoon": {
+    "_": {
+      "low": 0.14328935395404616,
+      "moderate": 0.5466675520149726,
+      "high": 0.310043094030981
+    }
+  },
+  "low|high|morning|perceived_benefit_morning": {
+    "_": {
+      "low": 0.5718769409545046,
+      "moderate": 0.3204930034013878,
+      "high": 0.1076300556441075
+    }
+  },
+  "low|high|morning|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.3187661323785177,
+      "moderate": 0.4435301085157033,
+      "high": 0.23770375910577893
+    }
+  },
+  "low|high|morning|planning_morning": {
+    "_": {
+      "low": 0.21492655885010092,
+      "moderate": 0.5868143012680257,
+      "high": 0.19825913988187327
+    }
+  },
+  "low|high|morning|planning_afternoon": {
+    "_": {
+      "low": 0.3501772692197947,
+      "moderate": 0.36518562418307554,
+      "high": 0.2846371065971298
+    }
+  },
+  "low|high|morning|prioritization_morning": {
+    "_": {
+      "low": 0.028510729775383756,
+      "moderate": 0.44274713837596325,
+      "high": 0.5287421318486529
+    }
+  },
+  "low|high|morning|prioritization_afternoon": {
+    "_": {
+      "low": 0.6512033636934189,
+      "moderate": 0.16253340856578535,
+      "high": 0.1862632277407958
+    }
+  },
+  "low|high|morning|social_opportunity_morning": {
+    "_": {
+      "low": 0.30621565202116835,
+      "moderate": 0.6547262802493564,
+      "high": 0.03905806772947521
+    }
+  },
+  "low|high|morning|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.03054969287711335,
+      "moderate": 0.24005406216493774,
+      "high": 0.729396244957949
+    }
+  },
+  "low|high|morning|physical_opportunity_morning": {
+    "_": {
+      "low": 0.45251962181586547,
+      "moderate": 0.22808314129092958,
+      "high": 0.3193972368932049
+    }
+  },
+  "low|high|morning|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.22952550489359616,
+      "moderate": 0.08234359657557293,
+      "high": 0.6881308985308309
+    }
+  },
+  "low|high|balanced|idle": {
+    "_": {
+      "low": 0.4939648567536194,
+      "moderate": 0.3297862345608553,
+      "high": 0.17624890868552529
+    }
+  },
+  "low|high|balanced|ability_morning": {
+    "_": {
+      "low": 0.4402046975278818,
+      "moderate": 0.4784459770381389,
+      "high": 0.08134932543397941
+    }
+  },
+  "low|high|balanced|ability_afternoon": {
+    "_": {
+      "low": 0.14328935395404616,
+      "moderate": 0.5466675520149726,
+      "high": 0.310043094030981
+    }
+  },
+  "low|high|balanced|perceived_benefit_morning": {
+    "_": {
+      "low": 0.5718769409545046,
+      "moderate": 0.3204930034013878,
+      "high": 0.1076300556441075
+    }
+  },
+  "low|high|balanced|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.3187661323785177,
+      "moderate": 0.4435301085157033,
+      "high": 0.23770375910577893
+    }
+  },
+  "low|high|balanced|planning_morning": {
+    "_": {
+      "low": 0.21492655885010092,
+      "moderate": 0.5868143012680257,
+      "high": 0.19825913988187327
+    }
+  },
+  "low|high|balanced|planning_afternoon": {
+    "_": {
+      "low": 0.3501772692197947,
+      "moderate": 0.36518562418307554,
+      "high": 0.2846371065971298
+    }
+  },
+  "low|high|balanced|prioritization_morning": {
+    "_": {
+      "low": 0.028510729775383756,
+      "moderate": 0.44274713837596325,
+      "high": 0.5287421318486529
+    }
+  },
+  "low|high|balanced|prioritization_afternoon": {
+    "_": {
+      "low": 0.6512033636934189,
+      "moderate": 0.16253340856578535,
+      "high": 0.1862632277407958
+    }
+  },
+  "low|high|balanced|social_opportunity_morning": {
+    "_": {
+      "low": 0.30621565202116835,
+      "moderate": 0.6547262802493564,
+      "high": 0.03905806772947521
+    }
+  },
+  "low|high|balanced|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.03054969287711335,
+      "moderate": 0.24005406216493774,
+      "high": 0.729396244957949
+    }
+  },
+  "low|high|balanced|physical_opportunity_morning": {
+    "_": {
+      "low": 0.45251962181586547,
+      "moderate": 0.22808314129092958,
+      "high": 0.3193972368932049
+    }
+  },
+  "low|high|balanced|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.22952550489359616,
+      "moderate": 0.08234359657557293,
+      "high": 0.6881308985308309
+    }
+  },
+  "low|high|evening|idle": {
+    "_": {
+      "low": 0.4939648567536194,
+      "moderate": 0.3297862345608553,
+      "high": 0.17624890868552529
+    }
+  },
+  "low|high|evening|ability_morning": {
+    "_": {
+      "low": 0.4402046975278818,
+      "moderate": 0.4784459770381389,
+      "high": 0.08134932543397941
+    }
+  },
+  "low|high|evening|ability_afternoon": {
+    "_": {
+      "low": 0.14328935395404616,
+      "moderate": 0.5466675520149726,
+      "high": 0.310043094030981
+    }
+  },
+  "low|high|evening|perceived_benefit_morning": {
+    "_": {
+      "low": 0.5718769409545046,
+      "moderate": 0.3204930034013878,
+      "high": 0.1076300556441075
+    }
+  },
+  "low|high|evening|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.3187661323785177,
+      "moderate": 0.4435301085157033,
+      "high": 0.23770375910577893
+    }
+  },
+  "low|high|evening|planning_morning": {
+    "_": {
+      "low": 0.21492655885010092,
+      "moderate": 0.5868143012680257,
+      "high": 0.19825913988187327
+    }
+  },
+  "low|high|evening|planning_afternoon": {
+    "_": {
+      "low": 0.3501772692197947,
+      "moderate": 0.36518562418307554,
+      "high": 0.2846371065971298
+    }
+  },
+  "low|high|evening|prioritization_morning": {
+    "_": {
+      "low": 0.028510729775383756,
+      "moderate": 0.44274713837596325,
+      "high": 0.5287421318486529
+    }
+  },
+  "low|high|evening|prioritization_afternoon": {
+    "_": {
+      "low": 0.6512033636934189,
+      "moderate": 0.16253340856578535,
+      "high": 0.1862632277407958
+    }
+  },
+  "low|high|evening|social_opportunity_morning": {
+    "_": {
+      "low": 0.30621565202116835,
+      "moderate": 0.6547262802493564,
+      "high": 0.03905806772947521
+    }
+  },
+  "low|high|evening|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.03054969287711335,
+      "moderate": 0.24005406216493774,
+      "high": 0.729396244957949
+    }
+  },
+  "low|high|evening|physical_opportunity_morning": {
+    "_": {
+      "low": 0.45251962181586547,
+      "moderate": 0.22808314129092958,
+      "high": 0.3193972368932049
+    }
+  },
+  "low|high|evening|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.22952550489359616,
+      "moderate": 0.08234359657557293,
+      "high": 0.6881308985308309
+    }
+  },
+  "moderate|low|morning|idle": {
+    "_": {
+      "low": 0.16791871676397177,
+      "moderate": 0.1840241198698866,
+      "high": 0.6480571633661417
+    }
+  },
+  "moderate|low|morning|ability_morning": {
+    "_": {
+      "low": 0.43934359147277446,
+      "moderate": 0.34303645833557544,
+      "high": 0.21761995019164998
+    }
+  },
+  "moderate|low|morning|ability_afternoon": {
+    "_": {
+      "low": 0.3718194238224738,
+      "moderate": 0.02789539348578047,
+      "high": 0.6002851826917458
+    }
+  },
+  "moderate|low|morning|perceived_benefit_morning": {
+    "_": {
+      "low": 0.14946628953964394,
+      "moderate": 0.3627221210929553,
+      "high": 0.4878115893674008
+    }
+  },
+  "moderate|low|morning|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.2541391390213173,
+      "moderate": 0.03807525697326041,
+      "high": 0.7077856040054222
+    }
+  },
+  "moderate|low|morning|planning_morning": {
+    "_": {
+      "low": 0.463799848369434,
+      "moderate": 0.14913839929240233,
+      "high": 0.38706175233816353
+    }
+  },
+  "moderate|low|morning|planning_afternoon": {
+    "_": {
+      "low": 0.31964401492603367,
+      "moderate": 0.5577717243614665,
+      "high": 0.1225842607125001
+    }
+  },
+  "moderate|low|morning|prioritization_morning": {
+    "_": {
+      "low": 0.3406587105573812,
+      "moderate": 0.36109455042119976,
+      "high": 0.2982467390214192
+    }
+  },
+  "moderate|low|morning|prioritization_afternoon": {
+    "_": {
+      "low": 0.02462884780711535,
+      "moderate": 0.7732815193315389,
+      "high": 0.20208963286134587
+    }
+  },
+  "moderate|low|morning|social_opportunity_morning": {
+    "_": {
+      "low": 0.25599443180457715,
+      "moderate": 0.6198523837907598,
+      "high": 0.12415318440466301
+    }
+  },
+  "moderate|low|morning|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.5419684968117681,
+      "moderate": 0.36501184979207496,
+      "high": 0.09301965339615709
+    }
+  },
+  "moderate|low|morning|physical_opportunity_morning": {
+    "_": {
+      "low": 0.1935388160446088,
+      "moderate": 0.5123484564703533,
+      "high": 0.29411272748503786
+    }
+  },
+  "moderate|low|morning|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.026751664495908652,
+      "moderate": 0.17786234750301438,
+      "high": 0.795385988001077
+    }
+  },
+  "moderate|low|balanced|idle": {
+    "_": {
+      "low": 0.16791871676397177,
+      "moderate": 0.1840241198698866,
+      "high": 0.6480571633661417
+    }
+  },
+  "moderate|low|balanced|ability_morning": {
+    "_": {
+      "low": 0.43934359147277446,
+      "moderate": 0.34303645833557544,
+      "high": 0.21761995019164998
+    }
+  },
+  "moderate|low|balanced|ability_afternoon": {
+    "_": {
+      "low": 0.3718194238224738,
+      "moderate": 0.02789539348578047,
+      "high": 0.6002851826917458
+    }
+  },
+  "moderate|low|balanced|perceived_benefit_morning": {
+    "_": {
+      "low": 0.14946628953964394,
+      "moderate": 0.3627221210929553,
+      "high": 0.4878115893674008
+    }
+  },
+  "moderate|low|balanced|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.2541391390213173,
+      "moderate": 0.03807525697326041,
+      "high": 0.7077856040054222
+    }
+  },
+  "moderate|low|balanced|planning_morning": {
+    "_": {
+      "low": 0.463799848369434,
+      "moderate": 0.14913839929240233,
+      "high": 0.38706175233816353
+    }
+  },
+  "moderate|low|balanced|planning_afternoon": {
+    "_": {
+      "low": 0.31964401492603367,
+      "moderate": 0.5577717243614665,
+      "high": 0.1225842607125001
+    }
+  },
+  "moderate|low|balanced|prioritization_morning": {
+    "_": {
+      "low": 0.3406587105573812,
+      "moderate": 0.36109455042119976,
+      "high": 0.2982467390214192
+    }
+  },
+  "moderate|low|balanced|prioritization_afternoon": {
+    "_": {
+      "low": 0.02462884780711535,
+      "moderate": 0.7732815193315389,
+      "high": 0.20208963286134587
+    }
+  },
+  "moderate|low|balanced|social_opportunity_morning": {
+    "_": {
+      "low": 0.25599443180457715,
+      "moderate": 0.6198523837907598,
+      "high": 0.12415318440466301
+    }
+  },
+  "moderate|low|balanced|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.5419684968117681,
+      "moderate": 0.36501184979207496,
+      "high": 0.09301965339615709
+    }
+  },
+  "moderate|low|balanced|physical_opportunity_morning": {
+    "_": {
+      "low": 0.1935388160446088,
+      "moderate": 0.5123484564703533,
+      "high": 0.29411272748503786
+    }
+  },
+  "moderate|low|balanced|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.026751664495908652,
+      "moderate": 0.17786234750301438,
+      "high": 0.795385988001077
+    }
+  },
+  "moderate|low|evening|idle": {
+    "_": {
+      "low": 0.16791871676397177,
+      "moderate": 0.1840241198698866,
+      "high": 0.6480571633661417
+    }
+  },
+  "moderate|low|evening|ability_morning": {
+    "_": {
+      "low": 0.43934359147277446,
+      "moderate": 0.34303645833557544,
+      "high": 0.21761995019164998
+    }
+  },
+  "moderate|low|evening|ability_afternoon": {
+    "_": {
+      "low": 0.3718194238224738,
+      "moderate": 0.02789539348578047,
+      "high": 0.6002851826917458
+    }
+  },
+  "moderate|low|evening|perceived_benefit_morning": {
+    "_": {
+      "low": 0.14946628953964394,
+      "moderate": 0.3627221210929553,
+      "high": 0.4878115893674008
+    }
+  },
+  "moderate|low|evening|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.2541391390213173,
+      "moderate": 0.03807525697326041,
+      "high": 0.7077856040054222
+    }
+  },
+  "moderate|low|evening|planning_morning": {
+    "_": {
+      "low": 0.463799848369434,
+      "moderate": 0.14913839929240233,
+      "high": 0.38706175233816353
+    }
+  },
+  "moderate|low|evening|planning_afternoon": {
+    "_": {
+      "low": 0.31964401492603367,
+      "moderate": 0.5577717243614665,
+      "high": 0.1225842607125001
+    }
+  },
+  "moderate|low|evening|prioritization_morning": {
+    "_": {
+      "low": 0.3406587105573812,
+      "moderate": 0.36109455042119976,
+      "high": 0.2982467390214192
+    }
+  },
+  "moderate|low|evening|prioritization_afternoon": {
+    "_": {
+      "low": 0.02462884780711535,
+      "moderate": 0.7732815193315389,
+      "high": 0.20208963286134587
+    }
+  },
+  "moderate|low|evening|social_opportunity_morning": {
+    "_": {
+      "low": 0.25599443180457715,
+      "moderate": 0.6198523837907598,
+      "high": 0.12415318440466301
+    }
+  },
+  "moderate|low|evening|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.5419684968117681,
+      "moderate": 0.36501184979207496,
+      "high": 0.09301965339615709
+    }
+  },
+  "moderate|low|evening|physical_opportunity_morning": {
+    "_": {
+      "low": 0.1935388160446088,
+      "moderate": 0.5123484564703533,
+      "high": 0.29411272748503786
+    }
+  },
+  "moderate|low|evening|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.026751664495908652,
+      "moderate": 0.17786234750301438,
+      "high": 0.795385988001077
+    }
+  },
+  "moderate|high|morning|idle": {
+    "_": {
+      "low": 0.16791871676397177,
+      "moderate": 0.1840241198698866,
+      "high": 0.6480571633661417
+    }
+  },
+  "moderate|high|morning|ability_morning": {
+    "_": {
+      "low": 0.43934359147277446,
+      "moderate": 0.34303645833557544,
+      "high": 0.21761995019164998
+    }
+  },
+  "moderate|high|morning|ability_afternoon": {
+    "_": {
+      "low": 0.3718194238224738,
+      "moderate": 0.02789539348578047,
+      "high": 0.6002851826917458
+    }
+  },
+  "moderate|high|morning|perceived_benefit_morning": {
+    "_": {
+      "low": 0.14946628953964394,
+      "moderate": 0.3627221210929553,
+      "high": 0.4878115893674008
+    }
+  },
+  "moderate|high|morning|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.2541391390213173,
+      "moderate": 0.03807525697326041,
+      "high": 0.7077856040054222
+    }
+  },
+  "moderate|high|morning|planning_morning": {
+    "_": {
+      "low": 0.463799848369434,
+      "moderate": 0.14913839929240233,
+      "high": 0.38706175233816353
+    }
+  },
+  "moderate|high|morning|planning_afternoon": {
+    "_": {
+      "low": 0.31964401492603367,
+      "moderate": 0.5577717243614665,
+      "high": 0.1225842607125001
+    }
+  },
+  "moderate|high|morning|prioritization_morning": {
+    "_": {
+      "low": 0.3406587105573812,
+      "moderate": 0.36109455042119976,
+      "high": 0.2982467390214192
+    }
+  },
+  "moderate|high|morning|prioritization_afternoon": {
+    "_": {
+      "low": 0.02462884780711535,
+      "moderate": 0.7732815193315389,
+      "high": 0.20208963286134587
+    }
+  },
+  "moderate|high|morning|social_opportunity_morning": {
+    "_": {
+      "low": 0.25599443180457715,
+      "moderate": 0.6198523837907598,
+      "high": 0.12415318440466301
+    }
+  },
+  "moderate|high|morning|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.5419684968117681,
+      "moderate": 0.36501184979207496,
+      "high": 0.09301965339615709
+    }
+  },
+  "moderate|high|morning|physical_opportunity_morning": {
+    "_": {
+      "low": 0.1935388160446088,
+      "moderate": 0.5123484564703533,
+      "high": 0.29411272748503786
+    }
+  },
+  "moderate|high|morning|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.026751664495908652,
+      "moderate": 0.17786234750301438,
+      "high": 0.795385988001077
+    }
+  },
+  "moderate|high|balanced|idle": {
+    "_": {
+      "low": 0.16791871676397177,
+      "moderate": 0.1840241198698866,
+      "high": 0.6480571633661417
+    }
+  },
+  "moderate|high|balanced|ability_morning": {
+    "_": {
+      "low": 0.43934359147277446,
+      "moderate": 0.34303645833557544,
+      "high": 0.21761995019164998
+    }
+  },
+  "moderate|high|balanced|ability_afternoon": {
+    "_": {
+      "low": 0.3718194238224738,
+      "moderate": 0.02789539348578047,
+      "high": 0.6002851826917458
+    }
+  },
+  "moderate|high|balanced|perceived_benefit_morning": {
+    "_": {
+      "low": 0.14946628953964394,
+      "moderate": 0.3627221210929553,
+      "high": 0.4878115893674008
+    }
+  },
+  "moderate|high|balanced|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.2541391390213173,
+      "moderate": 0.03807525697326041,
+      "high": 0.7077856040054222
+    }
+  },
+  "moderate|high|balanced|planning_morning": {
+    "_": {
+      "low": 0.463799848369434,
+      "moderate": 0.14913839929240233,
+      "high": 0.38706175233816353
+    }
+  },
+  "moderate|high|balanced|planning_afternoon": {
+    "_": {
+      "low": 0.31964401492603367,
+      "moderate": 0.5577717243614665,
+      "high": 0.1225842607125001
+    }
+  },
+  "moderate|high|balanced|prioritization_morning": {
+    "_": {
+      "low": 0.3406587105573812,
+      "moderate": 0.36109455042119976,
+      "high": 0.2982467390214192
+    }
+  },
+  "moderate|high|balanced|prioritization_afternoon": {
+    "_": {
+      "low": 0.02462884780711535,
+      "moderate": 0.7732815193315389,
+      "high": 0.20208963286134587
+    }
+  },
+  "moderate|high|balanced|social_opportunity_morning": {
+    "_": {
+      "low": 0.25599443180457715,
+      "moderate": 0.6198523837907598,
+      "high": 0.12415318440466301
+    }
+  },
+  "moderate|high|balanced|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.5419684968117681,
+      "moderate": 0.36501184979207496,
+      "high": 0.09301965339615709
+    }
+  },
+  "moderate|high|balanced|physical_opportunity_morning": {
+    "_": {
+      "low": 0.1935388160446088,
+      "moderate": 0.5123484564703533,
+      "high": 0.29411272748503786
+    }
+  },
+  "moderate|high|balanced|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.026751664495908652,
+      "moderate": 0.17786234750301438,
+      "high": 0.795385988001077
+    }
+  },
+  "moderate|high|evening|idle": {
+    "_": {
+      "low": 0.16791871676397177,
+      "moderate": 0.1840241198698866,
+      "high": 0.6480571633661417
+    }
+  },
+  "moderate|high|evening|ability_morning": {
+    "_": {
+      "low": 0.43934359147277446,
+      "moderate": 0.34303645833557544,
+      "high": 0.21761995019164998
+    }
+  },
+  "moderate|high|evening|ability_afternoon": {
+    "_": {
+      "low": 0.3718194238224738,
+      "moderate": 0.02789539348578047,
+      "high": 0.6002851826917458
+    }
+  },
+  "moderate|high|evening|perceived_benefit_morning": {
+    "_": {
+      "low": 0.14946628953964394,
+      "moderate": 0.3627221210929553,
+      "high": 0.4878115893674008
+    }
+  },
+  "moderate|high|evening|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.2541391390213173,
+      "moderate": 0.03807525697326041,
+      "high": 0.7077856040054222
+    }
+  },
+  "moderate|high|evening|planning_morning": {
+    "_": {
+      "low": 0.463799848369434,
+      "moderate": 0.14913839929240233,
+      "high": 0.38706175233816353
+    }
+  },
+  "moderate|high|evening|planning_afternoon": {
+    "_": {
+      "low": 0.31964401492603367,
+      "moderate": 0.5577717243614665,
+      "high": 0.1225842607125001
+    }
+  },
+  "moderate|high|evening|prioritization_morning": {
+    "_": {
+      "low": 0.3406587105573812,
+      "moderate": 0.36109455042119976,
+      "high": 0.2982467390214192
+    }
+  },
+  "moderate|high|evening|prioritization_afternoon": {
+    "_": {
+      "low": 0.02462884780711535,
+      "moderate": 0.7732815193315389,
+      "high": 0.20208963286134587
+    }
+  },
+  "moderate|high|evening|social_opportunity_morning": {
+    "_": {
+      "low": 0.25599443180457715,
+      "moderate": 0.6198523837907598,
+      "high": 0.12415318440466301
+    }
+  },
+  "moderate|high|evening|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.5419684968117681,
+      "moderate": 0.36501184979207496,
+      "high": 0.09301965339615709
+    }
+  },
+  "moderate|high|evening|physical_opportunity_morning": {
+    "_": {
+      "low": 0.1935388160446088,
+      "moderate": 0.5123484564703533,
+      "high": 0.29411272748503786
+    }
+  },
+  "moderate|high|evening|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.026751664495908652,
+      "moderate": 0.17786234750301438,
+      "high": 0.795385988001077
+    }
+  },
+  "high|low|morning|idle": {
+    "_": {
+      "low": 0.16436955336974937,
+      "moderate": 0.5022100291560058,
+      "high": 0.3334204174742448
+    }
+  },
+  "high|low|morning|ability_morning": {
+    "_": {
+      "low": 0.3025071947498437,
+      "moderate": 0.5007817254498104,
+      "high": 0.19671107980034586
+    }
+  },
+  "high|low|morning|ability_afternoon": {
+    "_": {
+      "low": 0.6405344543216854,
+      "moderate": 0.22806898576500745,
+      "high": 0.13139655991330693
+    }
+  },
+  "high|low|morning|perceived_benefit_morning": {
+    "_": {
+      "low": 0.8672923091286047,
+      "moderate": 0.05673117332016028,
+      "high": 0.075976517551235
+    }
+  },
+  "high|low|morning|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.18340350562054827,
+      "moderate": 0.5719500522275293,
+      "high": 0.2446464421519224
+    }
+  },
+  "high|low|morning|planning_morning": {
+    "_": {
+      "low": 0.15606149866455882,
+      "moderate": 0.49242766279821404,
+      "high": 0.35151083853722725
+    }
+  },
+  "high|low|morning|planning_afternoon": {
+    "_": {
+      "low": 0.4626476254698792,
+      "moderate": 0.06752596168869981,
+      "high": 0.46982641284142096
+    }
+  },
+  "high|low|morning|prioritization_morning": {
+    "_": {
+      "low": 0.46485974370057315,
+      "moderate": 0.12659066435351585,
+      "high": 0.408549591945911
+    }
+  },
+  "high|low|morning|prioritization_afternoon": {
+    "_": {
+      "low": 0.036047991097112514,
+      "moderate": 0.46751955747388757,
+      "high": 0.49643245142899983
+    }
+  },
+  "high|low|morning|social_opportunity_morning": {
+    "_": {
+      "low": 0.0958803434173025,
+      "moderate": 0.014934723665509379,
+      "high": 0.889184932917188
+    }
+  },
+  "high|low|morning|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.3049833028173339,
+      "moderate": 0.5618195425269739,
+      "high": 0.13319715465569226
+    }
+  },
+  "high|low|morning|physical_opportunity_morning": {
+    "_": {
+      "low": 0.4914972074050445,
+      "moderate": 0.48119774457348663,
+      "high": 0.02730504802146876
+    }
+  },
+  "high|low|morning|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.723927764100786,
+      "moderate": 0.0897775797833629,
+      "high": 0.18629465611585105
+    }
+  },
+  "high|low|balanced|idle": {
+    "_": {
+      "low": 0.16436955336974937,
+      "moderate": 0.5022100291560058,
+      "high": 0.3334204174742448
+    }
+  },
+  "high|low|balanced|ability_morning": {
+    "_": {
+      "low": 0.3025071947498437,
+      "moderate": 0.5007817254498104,
+      "high": 0.19671107980034586
+    }
+  },
+  "high|low|balanced|ability_afternoon": {
+    "_": {
+      "low": 0.6405344543216854,
+      "moderate": 0.22806898576500745,
+      "high": 0.13139655991330693
+    }
+  },
+  "high|low|balanced|perceived_benefit_morning": {
+    "_": {
+      "low": 0.8672923091286047,
+      "moderate": 0.05673117332016028,
+      "high": 0.075976517551235
+    }
+  },
+  "high|low|balanced|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.18340350562054827,
+      "moderate": 0.5719500522275293,
+      "high": 0.2446464421519224
+    }
+  },
+  "high|low|balanced|planning_morning": {
+    "_": {
+      "low": 0.15606149866455882,
+      "moderate": 0.49242766279821404,
+      "high": 0.35151083853722725
+    }
+  },
+  "high|low|balanced|planning_afternoon": {
+    "_": {
+      "low": 0.4626476254698792,
+      "moderate": 0.06752596168869981,
+      "high": 0.46982641284142096
+    }
+  },
+  "high|low|balanced|prioritization_morning": {
+    "_": {
+      "low": 0.46485974370057315,
+      "moderate": 0.12659066435351585,
+      "high": 0.408549591945911
+    }
+  },
+  "high|low|balanced|prioritization_afternoon": {
+    "_": {
+      "low": 0.036047991097112514,
+      "moderate": 0.46751955747388757,
+      "high": 0.49643245142899983
+    }
+  },
+  "high|low|balanced|social_opportunity_morning": {
+    "_": {
+      "low": 0.0958803434173025,
+      "moderate": 0.014934723665509379,
+      "high": 0.889184932917188
+    }
+  },
+  "high|low|balanced|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.3049833028173339,
+      "moderate": 0.5618195425269739,
+      "high": 0.13319715465569226
+    }
+  },
+  "high|low|balanced|physical_opportunity_morning": {
+    "_": {
+      "low": 0.4914972074050445,
+      "moderate": 0.48119774457348663,
+      "high": 0.02730504802146876
+    }
+  },
+  "high|low|balanced|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.723927764100786,
+      "moderate": 0.0897775797833629,
+      "high": 0.18629465611585105
+    }
+  },
+  "high|low|evening|idle": {
+    "_": {
+      "low": 0.16436955336974937,
+      "moderate": 0.5022100291560058,
+      "high": 0.3334204174742448
+    }
+  },
+  "high|low|evening|ability_morning": {
+    "_": {
+      "low": 0.3025071947498437,
+      "moderate": 0.5007817254498104,
+      "high": 0.19671107980034586
+    }
+  },
+  "high|low|evening|ability_afternoon": {
+    "_": {
+      "low": 0.6405344543216854,
+      "moderate": 0.22806898576500745,
+      "high": 0.13139655991330693
+    }
+  },
+  "high|low|evening|perceived_benefit_morning": {
+    "_": {
+      "low": 0.8672923091286047,
+      "moderate": 0.05673117332016028,
+      "high": 0.075976517551235
+    }
+  },
+  "high|low|evening|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.18340350562054827,
+      "moderate": 0.5719500522275293,
+      "high": 0.2446464421519224
+    }
+  },
+  "high|low|evening|planning_morning": {
+    "_": {
+      "low": 0.15606149866455882,
+      "moderate": 0.49242766279821404,
+      "high": 0.35151083853722725
+    }
+  },
+  "high|low|evening|planning_afternoon": {
+    "_": {
+      "low": 0.4626476254698792,
+      "moderate": 0.06752596168869981,
+      "high": 0.46982641284142096
+    }
+  },
+  "high|low|evening|prioritization_morning": {
+    "_": {
+      "low": 0.46485974370057315,
+      "moderate": 0.12659066435351585,
+      "high": 0.408549591945911
+    }
+  },
+  "high|low|evening|prioritization_afternoon": {
+    "_": {
+      "low": 0.036047991097112514,
+      "moderate": 0.46751955747388757,
+      "high": 0.49643245142899983
+    }
+  },
+  "high|low|evening|social_opportunity_morning": {
+    "_": {
+      "low": 0.0958803434173025,
+      "moderate": 0.014934723665509379,
+      "high": 0.889184932917188
+    }
+  },
+  "high|low|evening|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.3049833028173339,
+      "moderate": 0.5618195425269739,
+      "high": 0.13319715465569226
+    }
+  },
+  "high|low|evening|physical_opportunity_morning": {
+    "_": {
+      "low": 0.4914972074050445,
+      "moderate": 0.48119774457348663,
+      "high": 0.02730504802146876
+    }
+  },
+  "high|low|evening|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.723927764100786,
+      "moderate": 0.0897775797833629,
+      "high": 0.18629465611585105
+    }
+  },
+  "high|high|morning|idle": {
+    "_": {
+      "low": 0.16436955336974937,
+      "moderate": 0.5022100291560058,
+      "high": 0.3334204174742448
+    }
+  },
+  "high|high|morning|ability_morning": {
+    "_": {
+      "low": 0.3025071947498437,
+      "moderate": 0.5007817254498104,
+      "high": 0.19671107980034586
+    }
+  },
+  "high|high|morning|ability_afternoon": {
+    "_": {
+      "low": 0.6405344543216854,
+      "moderate": 0.22806898576500745,
+      "high": 0.13139655991330693
+    }
+  },
+  "high|high|morning|perceived_benefit_morning": {
+    "_": {
+      "low": 0.8672923091286047,
+      "moderate": 0.05673117332016028,
+      "high": 0.075976517551235
+    }
+  },
+  "high|high|morning|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.18340350562054827,
+      "moderate": 0.5719500522275293,
+      "high": 0.2446464421519224
+    }
+  },
+  "high|high|morning|planning_morning": {
+    "_": {
+      "low": 0.15606149866455882,
+      "moderate": 0.49242766279821404,
+      "high": 0.35151083853722725
+    }
+  },
+  "high|high|morning|planning_afternoon": {
+    "_": {
+      "low": 0.4626476254698792,
+      "moderate": 0.06752596168869981,
+      "high": 0.46982641284142096
+    }
+  },
+  "high|high|morning|prioritization_morning": {
+    "_": {
+      "low": 0.46485974370057315,
+      "moderate": 0.12659066435351585,
+      "high": 0.408549591945911
+    }
+  },
+  "high|high|morning|prioritization_afternoon": {
+    "_": {
+      "low": 0.036047991097112514,
+      "moderate": 0.46751955747388757,
+      "high": 0.49643245142899983
+    }
+  },
+  "high|high|morning|social_opportunity_morning": {
+    "_": {
+      "low": 0.0958803434173025,
+      "moderate": 0.014934723665509379,
+      "high": 0.889184932917188
+    }
+  },
+  "high|high|morning|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.3049833028173339,
+      "moderate": 0.5618195425269739,
+      "high": 0.13319715465569226
+    }
+  },
+  "high|high|morning|physical_opportunity_morning": {
+    "_": {
+      "low": 0.4914972074050445,
+      "moderate": 0.48119774457348663,
+      "high": 0.02730504802146876
+    }
+  },
+  "high|high|morning|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.723927764100786,
+      "moderate": 0.0897775797833629,
+      "high": 0.18629465611585105
+    }
+  },
+  "high|high|balanced|idle": {
+    "_": {
+      "low": 0.16436955336974937,
+      "moderate": 0.5022100291560058,
+      "high": 0.3334204174742448
+    }
+  },
+  "high|high|balanced|ability_morning": {
+    "_": {
+      "low": 0.3025071947498437,
+      "moderate": 0.5007817254498104,
+      "high": 0.19671107980034586
+    }
+  },
+  "high|high|balanced|ability_afternoon": {
+    "_": {
+      "low": 0.6405344543216854,
+      "moderate": 0.22806898576500745,
+      "high": 0.13139655991330693
+    }
+  },
+  "high|high|balanced|perceived_benefit_morning": {
+    "_": {
+      "low": 0.8672923091286047,
+      "moderate": 0.05673117332016028,
+      "high": 0.075976517551235
+    }
+  },
+  "high|high|balanced|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.18340350562054827,
+      "moderate": 0.5719500522275293,
+      "high": 0.2446464421519224
+    }
+  },
+  "high|high|balanced|planning_morning": {
+    "_": {
+      "low": 0.15606149866455882,
+      "moderate": 0.49242766279821404,
+      "high": 0.35151083853722725
+    }
+  },
+  "high|high|balanced|planning_afternoon": {
+    "_": {
+      "low": 0.4626476254698792,
+      "moderate": 0.06752596168869981,
+      "high": 0.46982641284142096
+    }
+  },
+  "high|high|balanced|prioritization_morning": {
+    "_": {
+      "low": 0.46485974370057315,
+      "moderate": 0.12659066435351585,
+      "high": 0.408549591945911
+    }
+  },
+  "high|high|balanced|prioritization_afternoon": {
+    "_": {
+      "low": 0.036047991097112514,
+      "moderate": 0.46751955747388757,
+      "high": 0.49643245142899983
+    }
+  },
+  "high|high|balanced|social_opportunity_morning": {
+    "_": {
+      "low": 0.0958803434173025,
+      "moderate": 0.014934723665509379,
+      "high": 0.889184932917188
+    }
+  },
+  "high|high|balanced|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.3049833028173339,
+      "moderate": 0.5618195425269739,
+      "high": 0.13319715465569226
+    }
+  },
+  "high|high|balanced|physical_opportunity_morning": {
+    "_": {
+      "low": 0.4914972074050445,
+      "moderate": 0.48119774457348663,
+      "high": 0.02730504802146876
+    }
+  },
+  "high|high|balanced|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.723927764100786,
+      "moderate": 0.0897775797833629,
+      "high": 0.18629465611585105
+    }
+  },
+  "high|high|evening|idle": {
+    "_": {
+      "low": 0.16436955336974937,
+      "moderate": 0.5022100291560058,
+      "high": 0.3334204174742448
+    }
+  },
+  "high|high|evening|ability_morning": {
+    "_": {
+      "low": 0.3025071947498437,
+      "moderate": 0.5007817254498104,
+      "high": 0.19671107980034586
+    }
+  },
+  "high|high|evening|ability_afternoon": {
+    "_": {
+      "low": 0.6405344543216854,
+      "moderate": 0.22806898576500745,
+      "high": 0.13139655991330693
+    }
+  },
+  "high|high|evening|perceived_benefit_morning": {
+    "_": {
+      "low": 0.8672923091286047,
+      "moderate": 0.05673117332016028,
+      "high": 0.075976517551235
+    }
+  },
+  "high|high|evening|perceived_benefit_afternoon": {
+    "_": {
+      "low": 0.18340350562054827,
+      "moderate": 0.5719500522275293,
+      "high": 0.2446464421519224
+    }
+  },
+  "high|high|evening|planning_morning": {
+    "_": {
+      "low": 0.15606149866455882,
+      "moderate": 0.49242766279821404,
+      "high": 0.35151083853722725
+    }
+  },
+  "high|high|evening|planning_afternoon": {
+    "_": {
+      "low": 0.4626476254698792,
+      "moderate": 0.06752596168869981,
+      "high": 0.46982641284142096
+    }
+  },
+  "high|high|evening|prioritization_morning": {
+    "_": {
+      "low": 0.46485974370057315,
+      "moderate": 0.12659066435351585,
+      "high": 0.408549591945911
+    }
+  },
+  "high|high|evening|prioritization_afternoon": {
+    "_": {
+      "low": 0.036047991097112514,
+      "moderate": 0.46751955747388757,
+      "high": 0.49643245142899983
+    }
+  },
+  "high|high|evening|social_opportunity_morning": {
+    "_": {
+      "low": 0.0958803434173025,
+      "moderate": 0.014934723665509379,
+      "high": 0.889184932917188
+    }
+  },
+  "high|high|evening|social_opportunity_afternoon": {
+    "_": {
+      "low": 0.3049833028173339,
+      "moderate": 0.5618195425269739,
+      "high": 0.13319715465569226
+    }
+  },
+  "high|high|evening|physical_opportunity_morning": {
+    "_": {
+      "low": 0.4914972074050445,
+      "moderate": 0.48119774457348663,
+      "high": 0.02730504802146876
+    }
+  },
+  "high|high|evening|physical_opportunity_afternoon": {
+    "_": {
+      "low": 0.723927764100786,
+      "moderate": 0.0897775797833629,
+      "high": 0.18629465611585105
+    }
+  }
+}

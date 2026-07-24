@@ -2,7 +2,7 @@
 
 **Branch:** `feature/252-pearl-matched-config`
 **Date:** 2026-07-24
-**Status:** Planning complete — implementation pending
+**Status:** Partial implementation — fix plan below
 **Source:** Conversation anchored summary + Phase 1 deep analysis + Figure 12 feature importance
 
 ---
@@ -26,15 +26,22 @@ has 5+ structural mismatches against the actual PEARL study.
 | Fixed arm | `FixedAgent(action="movement_suggestion")` | COM-B barrier-score weighted multinomial |
 | Burden model | Count of non-idle actions in last 3 steps | Bayesian P success (7-day failure window) |
 
-### Scope
+### Scope — Implementation Status
 
-- [x] New experiment folder: `docs/experimental_phases/pearl/`
-- [x] Two config variants: `pearl_random` (random transitions for testing) and `pearl_bootstrap` (bootstrap transitions)
-- [x] Extended `FixedAgent` → `ComBWeightedFixedAgent` for PEARL Fixed arm
-- [x] Bayesian P success burden calculation in environment
-- [x] Feature importance ADR (D15) in decision catalogue
-- [x] Constitution corrections (arm mappings, baseline period, T2.3 ordering)
-- [ ] New transition tables for 12-action PEARL config (deferred — use random for now)
+| Item | Status | Notes |
+|------|--------|-------|
+| `ComBWeightedFixedAgent` | ✅ Done | `agents/fixed.py`, registered, 3 unit tests |
+| `config/pearl/comb_scores.json` | ✅ Done | 5 personas, matches plan §9 exactly |
+| `pearl_random.yaml` config | ✅ Done | 12 actions, 4 agents, reward formula |
+| Experiment runner + shared utils | ✅ Done | `run_experiments.py`, `_shared.py` |
+| Schema + registry updates | ✅ Done | `comb_weighted_fixed` in known types |
+| Regression tests + golden fixtures | ✅ Done | `test_pearl_random.py`, `pearl_random.json` |
+| **Bayesian P-success burden** | ❌ Not done | Replaced with naive action counter (rolling_window_count) |
+| **12-action transition tables** | ❌ Not done | No per-(state,action) tables exist for 12-action space |
+| **D15 decision catalogue entry** | ❌ Not done | Plan §10 Step 7 not implemented |
+| **Constitution corrections** | ❌ Not done | Plan §10 Step 8 not implemented |
+| **README for pearl_random** | ❌ Not done | Plan §10 Step 6 not implemented |
+| **Bootstrap config variant** | ❌ Not done | Plan §10 Step 4b not implemented |
 
 ---
 
@@ -681,3 +688,225 @@ When transition tables are regenerated for the 12-action space, this config will
 - Constitution: `docs/research/pearl-constitution.md`
 - Existing config: `config/pearl_constitution.yaml`
 - Issue #252: [PEARL-matched config](https://github.com/wd7512/rl-health-interventions/issues/252)
+
+---
+
+## 15. Fix Plan — Addressing Implementation Gaps
+
+**Date:** 2026-07-24
+**Author:** opencode (post-implementation review)
+
+The copilot implementation shipped the skeleton (agent, config, tests, runner) correctly but
+skipped or substituted several design-critical items. This section defines the fix plan.
+
+### 15.1 Flaw Inventory
+
+| # | Flaw | Category | Effort |
+|---|------|----------|--------|
+| 1 | Bayesian P-success burden replaced with naive rolling_window_count action counter | Core design | Large |
+| 2 | No 12-action transition tables exist (blocks #1) | Infrastructure | Medium |
+| 3 | `BootstrapTransition._build_state_key` hardcodes sprint1 factor names (`step_bin`, `burden`, `day_of_week`, `sleep`) — can't load PEARL tables with different stochastic factors | Design bug | Small |
+| 4 | No D15 decision catalogue entry (feature selection ADR from Figure 12) | Documentation | Small |
+| 5 | Constitution corrections not applied (arm mappings, baseline period, T2.3 ordering) | Documentation | Small |
+| 6 | No README for pearl_random experiment | Documentation | Small |
+| 7 | No bootstrap config variant (`pearl_bootstrap.yaml`) | Config | Small |
+| 8 | Degenerate reward results not explained anywhere (Control wins because actions carry penalty with no upside under random transitions) | Documentation | Small |
+
+### 15.2 Part A: Transition Infrastructure (unblocks #1, #2)
+
+#### A1. New `RandomTransitionSA` transition model
+
+**New file:** `src/rl_health_interventions/transitions/random_sa.py`
+
+- Extends `TransitionModel`
+- At `__init__`, for each stochastic factor AND each (state_value, action) pair, draw a
+  **separate** Dirichlet(1.0) sample — unlike `RandomTransition` which uses one shared
+  Dirichlet draw per factor regardless of (state, action)
+- Internal storage: `self._tables[step_idx][factor_name]["{state_val}|{action}"] = (targets, probs)`
+- `transition(state, action)` looks up the appropriate table entry for the current
+  (state_value, action) pair
+- `day_boundary.json` key: `{factor1_val}|{factor2_val}|...` (stochastic factors only, no action)
+- `within_day_N.json` key: `{factor1_val}|{factor2_val}|...|{action}` (stochastic factors + action)
+- `save_tables(output_dir)` serializes to bootstrap-compatible JSON format
+
+State space math for PEARL 12-action:
+- 3 stochastic factors (`recent_steps_mean`, `recent_walk_pattern`, `morning_steps_ratio`)
+  with 3×2×3 = 18 unique factor combos
+- 18 combos × 13 actions = 234 within_day entries per step
+- 18 day_boundary entries
+- Trivial
+
+**Register** in `transitions/__init__.py` and add `"random_sa"` to `_KNOWN_TRANSITION_TYPES`
+in `config/schemas.py`.
+
+#### A2. Table generation script
+
+**New file:** `scripts/generate_pearl_tables.py`
+
+- Loads `pearl_random.yaml` config
+- Instantiates `RandomTransitionSA` with a seed
+- Calls `save_tables("tables/pearl_12action/")`
+- Produces `day_boundary.json` + `within_day_0.json`
+- Run once, commit output
+
+#### A3. Generalize `BootstrapTransition._build_state_key`
+
+**Modify:** `src/rl_health_interventions/transitions/bootstrap.py`
+
+Currently hardcodes factor names from sprint1. Change to derive from config's stochastic
+factors and advanced factors that influence transitions:
+
+```python
+def _build_state_key(self, state, action, *, for_within_day):
+    factors = state.factor_values
+    parts = [factors[name] for name in self._stochastic_factors]
+    if for_within_day:
+        parts.append(action)
+    # Include advanced factors that affect transitions (e.g., day_of_week)
+    for name in self._config.state.variables:
+        if name not in self._stochastic_factors and name in factors:
+            parts.append(factors[name])
+    return "|".join(parts)
+```
+
+This makes `BootstrapTransition` config-agnostic — works with both sprint1 (4-action) and
+PEARL (12-action) configs.
+
+### 15.3 Part B: Bayesian P-Success Burden
+
+#### B1. Add `_precompute_p_success()` to Environment
+
+**Modify:** `src/rl_health_interventions/environment.py`
+
+After creating the transition model, check if it exposes `day_boundary` / `within_day`
+tables (both `BootstrapTransition` and `RandomTransitionSA` will). If so, precompute:
+
+```python
+P_success(s, a) = Σ_ns P(ns | s, a)² / (P(ns | s, a) + P(ns | s, idle))
+```
+
+For each (state_key, action) pair, where `P(ns | s, a)` is looked up from the action's
+table row and `P(ns | s, idle)` from idle's table row for the same state.
+
+#### B2. Modify `_apply_rolling_advances` for Bayesian burden
+
+When `_p_success` is populated and the factor being computed is `burden`:
+1. Look up `p_success` for current state + action from precomputed table
+2. Draw Bernoulli: `success = rng.random() < p_success`
+3. If not success → count as failure in the rolling window
+4. Map failure count to burden level via existing mapping (0-2→low, 3-5→medium, 6+→high)
+
+When `_p_success` is empty (no tables available), fall back to current naive counting
+(action count in window).
+
+#### B3. Add RNG to Environment
+
+`Environment.__init__` needs `self._rng = np.random.default_rng(seed)` for the Bernoulli
+draw. The seed is already passed as a parameter.
+
+### 15.4 Part C: Config Changes
+
+#### C1. Update `pearl_random.yaml`
+
+- Change `transition_model.type` from `random` to `random_sa`
+- Add `table_dir: tables/pearl_12action` (for table serialization target)
+- Add header comments explaining:
+  - `random_sa` generates per-(state,action) tables enabling Bayesian P-success
+  - Bayesian burden makes non-idle actions non-trivially different from idle
+  - Under random transitions, Control winning is expected (degenerate reward)
+  - Relative-change reward formula deferred to bootstrap phase
+
+#### C2. Create `pearl_bootstrap/configs/pearl_bootstrap.yaml`
+
+Copy of pearl_random.yaml with:
+- `transition_model.type: bootstrap`
+- `transition_model.table_dir: tables/pearl_12action` (same generated tables)
+- Comments noting this is the "real" experiment config once tables are committed
+
+### 15.5 Part D: Documentation
+
+#### D1. D15 entry in `decision-catalogue.md`
+
+Feature selection ADR from Figure 12 (Lee 2025):
+- Status: closed
+- Boundary: weight >= 0.5 (natural break, next is 0.32 = 47% drop)
+- 8 features: 5 static (baseline_steps_mean, weight, age, baseline_walk_pattern,
+  baseline_steps_std) + 3 dynamic (recent_steps_mean, recent_walk_pattern,
+  morning_steps_ratio)
+- Evidence: XGBoost model weights, 7,711 participants, 60 days
+- Sub-questions: sensitivity analysis on threshold (0.4 vs 0.5 vs 0.6)
+
+#### D2. Constitution corrections in `pearl-constitution.md`
+
+| Section | Current (wrong) | Corrected |
+|---------|-----------------|-----------|
+| Arm table: Fixed | `FixedAgent(action="movement_suggestion")` | `ComBWeightedFixedAgent` — COM-B barrier-weighted multinomial |
+| Arm table: RL | `ThompsonSampling` | `EpsilonGreedyAgent(epsilon=0.3)` — ε-greedy C-MAB |
+| T1.1 | "7-day baseline period" | "30-day pre-study window" |
+| T2.1 | "7-day baseline" | "30-day pre-study window" |
+| T2.3 | `RL ≥ Fixed ≥ Random > Control` | `RL > (Fixed ≈ Random ≈ Control)` |
+
+#### D3. README for pearl_random experiment
+
+**New file:** `docs/experimental_phases/pearl_random/README.md`
+
+Contents:
+- Experiment overview (PEARL 4-arm comparison, random transitions)
+- Agent descriptions (Control, Random, Fixed COM-B, RL ε-greedy)
+- State space (108 states, 13 actions)
+- How to run
+- Known limitations:
+  - Random transitions → no causal link between actions and outcomes
+  - Optimal policy is "always idle" — Control winning is expected
+  - Bayesian P-success burden makes actions non-trivially different from idle
+  - Relative-change reward formula deferred to bootstrap phase
+
+### 15.6 Part E: Tests
+
+#### E1. `RandomTransitionSA` unit tests
+
+**New file:** `tests/unit/transitions/test_random_sa.py`
+
+- Test that different (state, action) pairs produce different probability vectors
+- Test `save_tables` produces valid bootstrap-compatible JSON
+- Test round-trip: save → load via `BootstrapTransition` → same samples
+- Test key format matches expected `{factor1}|{factor2}|...|{action}` pattern
+
+#### E2. Bayesian burden tests
+
+- Test that with `_p_success` populated, non-idle actions can produce `burden=medium` or
+  `burden=high`
+- Test that idle actions never increment failure count
+- Test that `_precompute_p_success` produces valid probabilities (0 < p < 1)
+
+#### E3. Update regression test
+
+- Add regression for pearl_random with `random_sa` transitions + Bayesian burden
+- Regenerate golden fixtures (results will differ from current)
+
+### 15.7 Execution Order
+
+```
+A1 (RandomTransitionSA)  ──┐
+A3 (Generalize Bootstrap) ──┤
+                            ├── A2 (Generate tables) ── B1-B3 (Bayesian burden) ── C1-C2 (Configs)
+                            │                                                          │
+D1-D3 (Docs) ──────────────┤                                                          │
+E1-E3 (Tests) ─────────────┴──────────────────────────────────────────────────────────┘
+```
+
+Part A is the foundation — everything else depends on having per-(state,action) transition
+tables. Parts D (docs) can be done in parallel with Part A since they're independent.
+
+### 15.8 Verification After Fix
+
+| Check | Method | Expected |
+|-------|--------|----------|
+| RandomTransitionSA tables valid | Unit test | All keys present, probs sum to 1.0 |
+| BootstrapTransition loads PEARL tables | Unit test | No hardcoded factor name errors |
+| Bayesian P-success precomputed | Unit test | 0 < P_success < 1 for all (s, a) |
+| Burden varies across arms | End-to-end | Control=always low, others=low/medium/high mix |
+| D15 in catalogue | Read check | Entry exists with evidence citations |
+| Constitution corrected | Read check | Arms, baseline, T2.3 match PEARL paper |
+| All tests pass | `uv run pytest` | No regressions |
+| Lint clean | `uv run ruff check` | No new warnings |

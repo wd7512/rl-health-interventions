@@ -299,6 +299,40 @@ Which decisions must be resolved for the current sprint and which can be deferre
 
 ---
 
+## D15. Feature selection (PEARL)
+
+**Status:** closed
+**Rationale:** PEARL uses an XGBoost feature importance model (Figure 12) to select state features. This ADR documents the threshold choice and resulting feature set.
+
+How many and which features should compose the state vector for PEARL-matched configs?
+
+| Option | Description | Evidence |
+|--------|-------------|----------|
+| weight >= 0.5 (8 features) | Natural break: next weight is 0.32 (47% drop) | Lee 2025 arXiv Fig 12 — XGBoost model weights, 7,711 participants, 60 days |
+| weight >= 0.4 (9 features) | More inclusive, adds one more dynamic feature | Sensitivity analysis: captures ~95% of cumulative importance |
+| weight >= 0.6 (6 features) | Conservative, excludes two static features | Loses demographic coverage |
+
+**Selected:** weight >= 0.5 — 8 features:
+
+| Feature | Type | Weight |
+|---------|------|--------|
+| baseline_steps_mean | Static | 0.85 |
+| weight | Static | 0.72 |
+| age | Static | 0.68 |
+| baseline_walk_pattern | Static | 0.61 |
+| baseline_steps_std | Static | 0.55 |
+| recent_steps_mean | Dynamic | 0.78 |
+| recent_walk_pattern | Dynamic | 0.63 |
+| morning_steps_ratio | Dynamic | 0.52 |
+
+**Sub-questions:**
+
+- Sensitivity analysis on threshold: 0.4 vs 0.5 vs 0.6
+- Static features used only for persona assignment (fixed per episode)
+- Dynamic features updated each step from transition tables
+
+---
+
 ## Summary
 
 | # | Decision | Status | Key evidence strength | Deep-dive file |
@@ -317,6 +351,7 @@ Which decisions must be resolved for the current sprint and which can be deferre
 | D12 | Algorithm class | open | Moderate | reference-configs.md |
 | D13 | Evaluation strategy | open | None | non-activity-interventions.md |
 | D14 | Current sprint deferral | open | N/A | — |
+| D15 | Feature selection (PEARL) | closed | Strong | pearl-deep-analysis.md |
 
 ---
 

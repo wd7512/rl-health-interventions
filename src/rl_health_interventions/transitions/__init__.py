@@ -5,6 +5,7 @@ from rl_health_interventions.transitions import (
     bootstrap as bootstrap_module,
 )
 from rl_health_interventions.transitions import random as random_module
+from rl_health_interventions.transitions import random_sa as random_sa_module
 from rl_health_interventions.transitions import (
     rule_based,
 )
@@ -29,6 +30,6 @@ def make(name_or_config=None, **kwargs) -> TransitionModel:
 # NOTE: Import new transition model module above and append it here
 # so register() runs on import. Each module must have a register()
 # function that adds to REGISTRY.
-_TRANSITION_MODULES = [rule_based, random_module, bootstrap_module]
+_TRANSITION_MODULES = [rule_based, random_module, random_sa_module, bootstrap_module]
 
 REGISTRY.load_modules(_TRANSITION_MODULES, logger_name=__name__)

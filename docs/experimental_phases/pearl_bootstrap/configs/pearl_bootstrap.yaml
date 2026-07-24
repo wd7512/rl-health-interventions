@@ -1,10 +1,9 @@
-# PEARL-matched config with per-(state,action) random transitions.
+# PEARL-matched config with bootstrap transitions.
 # 1 decision/day, 12 non-idle COM-B actions + idle control.
 #
-# random_sa generates per-(factor_value, action) Dirichlet tables,
-# enabling Bayesian P-success burden computation.  Under random transitions,
-# the optimal policy is "always idle" — Control winning is expected.
-# Relative-change reward formula deferred to bootstrap phase.
+# Uses the same generated tables as pearl_random, but loads them via
+# BootstrapTransition.  This is the "real" experiment config once
+# tables are committed.  Bayesian P-success burden is active.
 
 initial_state:
   recent_steps_mean: moderate
@@ -97,7 +96,8 @@ reward:
   formula: "step_reward - action_penalty"
 
 transition_model:
-  type: random_sa
+  type: bootstrap
+  table_dir: tables/pearl_12action
 
 episode_days: 60
 steps_per_day: 1

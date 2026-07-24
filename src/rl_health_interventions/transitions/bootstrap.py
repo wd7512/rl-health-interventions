@@ -20,6 +20,8 @@ class BootstrapTransition(TransitionModel):
         self._rng = np.random.default_rng(seed)
         self._day_boundary: dict[str, tuple[list[str], np.ndarray]] = {}
         self._within_day: list[dict[str, tuple[list[str], np.ndarray]]] = []
+        self._db_factor_names: list[str] = []
+        self._wd_factor_names: list[str] = []
         self._load_tables()
 
     @property
@@ -30,7 +32,7 @@ class BootstrapTransition(TransitionModel):
     def within_day(self) -> list[dict[str, tuple[list[str], np.ndarray]]]:
         return self._within_day
 
-    def _load_tables(self) -> None:
+    def _load_tables(self) -> None:  # noqa: C901
         table_dir_str = self._config.transition_model.table_dir
         if table_dir_str is None:
             msg = "table_dir is required for bootstrap transition"
@@ -46,6 +48,48 @@ class BootstrapTransition(TransitionModel):
             with wd_path.open(encoding="utf-8") as f:
                 wd_data = json.load(f)
             self._within_day.append(self._parse_table(wd_data))
+        # Infer factor name order from table keys
+        self._db_factor_names: list[str] = []
+        self._wd_factor_names: list[str] = []
+        self._wd_action_idx: int = -1
+        first_db_key = ""
+        if self._day_boundary:
+            first_db_key = next(iter(self._day_boundary))
+            self._db_factor_names = self._infer_factor_order(first_db_key)
+        if self._within_day and first_db_key:
+            first_wd_key = next(iter(self._within_day[0]))
+            db_parts = first_db_key.split("|")
+            wd_parts = first_wd_key.split("|")
+            # Find action position: the part in wd that differs from db at same position
+            self._wd_action_idx = len(wd_parts)  # default: action at end
+            for i, (dp, wp) in enumerate(zip(db_parts, wd_parts, strict=False)):
+                if dp != wp:
+                    self._wd_action_idx = i
+                    break
+            # Infer factor names from within_day key, skipping action position
+            factor_parts = [
+                wp for j, wp in enumerate(wd_parts) if j != self._wd_action_idx
+            ]
+            self._wd_factor_names = self._infer_factor_order(
+                "|".join(factor_parts)
+            )
+
+    def _infer_factor_order(self, table_key: str) -> list[str]:
+        """Infer factor name order from a table key.
+
+        Matches values to config variables by checking which variable
+        each value belongs to.
+        """
+        parts = table_key.split("|")
+        factor_names: list[str] = []
+        used: set[str] = set()
+        for val in parts:
+            for var_name, var_cfg in self._config.state.variables.items():
+                if var_name not in used and val in var_cfg.names:
+                    factor_names.append(var_name)
+                    used.add(var_name)
+                    break
+        return factor_names
 
     def _parse_table(self, data: dict) -> dict[str, tuple[list[str], np.ndarray]]:
         result: dict[str, tuple[list[str], np.ndarray]] = {}
@@ -71,10 +115,13 @@ class BootstrapTransition(TransitionModel):
         self, state: StateView, action: str, *, for_within_day: bool
     ) -> str:
         factors = state.factor_values
-        parts = [factors["step_bin"], factors["burden"]]
         if for_within_day:
-            parts.append(action)
-        parts.extend([factors["day_of_week"], factors["sleep"]])
+            factor_names = self._wd_factor_names
+        else:
+            factor_names = self._db_factor_names
+        parts = [factors[name] for name in factor_names if name in factors]
+        if for_within_day:
+            parts.insert(self._wd_action_idx, action)
         return "|".join(parts)
 
     def _sample(
@@ -87,13 +134,22 @@ class BootstrapTransition(TransitionModel):
         return str(targets[idx])
 
     @override
-    def transition(self, state: StateView, action: str) -> dict[str, str]:
+    def transition(self, state: StateView, action: str) -> dict[str, str]:  # noqa: C901, PLR0912
         updates: dict[str, str] = {}
         if state.step_of_day == 0:
             db_key = self._build_state_key(state, action, for_within_day=False)
             if db_key in self._day_boundary:
-                updates["sleep"] = self._sample(self._day_boundary, db_key)
-                state = state.with_factors(sleep=updates["sleep"])
+                sampled = self._sample(self._day_boundary, db_key)
+                if len(self._db_factor_names) == len(self._wd_factor_names):
+                    # Sprint1: day_boundary updates only the last factor
+                    name = self._db_factor_names[-1]
+                    updates[name] = sampled
+                else:
+                    # PEARL: day_boundary updates all factors in the key
+                    for name in self._db_factor_names:
+                        if name in state.factor_values:
+                            updates[name] = sampled
+                state = state.with_factors(**updates)
             else:
                 logger.warning("Missing day_boundary key: %s", db_key)
         if state.step_of_day >= len(self._within_day):
@@ -105,7 +161,16 @@ class BootstrapTransition(TransitionModel):
         wd_key = self._build_state_key(state, action, for_within_day=True)
         wd_table = self._within_day[state.step_of_day]
         if wd_key in wd_table:
-            updates["step_bin"] = self._sample(wd_table, wd_key)
+            sampled = self._sample(wd_table, wd_key)
+            if len(self._db_factor_names) == len(self._wd_factor_names):
+                # Sprint1: within_day updates only the first factor
+                name = self._wd_factor_names[0]
+                updates[name] = sampled
+            else:
+                # PEARL: within_day updates all factors in the key
+                for name in self._wd_factor_names:
+                    if name in state.factor_values and name not in updates:
+                        updates[name] = sampled
         else:
             logger.warning("Missing within_day_%d key: %s", state.step_of_day, wd_key)
         return updates

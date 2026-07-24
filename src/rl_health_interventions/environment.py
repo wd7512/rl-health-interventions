@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import logging
 from collections import deque
+from typing import cast
+
+import numpy as np
 
 from rl_health_interventions import make_reward, make_transition
 from rl_health_interventions.config.schemas import (
@@ -36,6 +39,7 @@ class Environment:
         self._config = config
         self._transition = make_transition(config, seed=seed)
         self._reward = make_reward(config)
+        self._rng = np.random.default_rng(seed)
         self._step_count = 0
         self._done = False
         self._current_state: StateView | None = None
@@ -54,6 +58,8 @@ class Environment:
         max_window = max(window_sizes) if window_sizes else 3
         self._action_history: deque[str] = deque(maxlen=max_window)
         self._prime_action_history()
+        self._p_success: dict[str, float] = {}
+        self._precompute_p_success()
 
     @property
     def action_history(self) -> tuple[str, ...]:
@@ -64,14 +70,93 @@ class Environment:
         for _ in range(self._action_history.maxlen or 0):
             self._action_history.append("idle")
 
-    def _apply_rolling_advances(self, action: str, state: StateView) -> StateView:
+    def _precompute_p_success(self) -> None:  # noqa: C901, PLR0912
+        """Precompute Bayesian P-success for each (state_key, action) pair.
+
+        P(success | s, a) = 1 - Σ_ns P(ns | s, a) * P(ns | s, idle)
+
+        Requires the transition model to expose ``day_boundary`` / ``within_day``
+        tables (``BootstrapTransition`` or ``RandomTransitionSA``).
+        """
+        if not hasattr(self._transition, "within_day"):
+            return
+        tm = self._transition
+        within_day = cast("list", tm.within_day)
+        if not within_day:
+            return
+        wd_first: dict[str, tuple] = within_day[0]
+        actions = list(self._config.actions.keys())
+        if "idle" not in actions:
+            return
+
+        stochastic = [
+            n
+            for n, c in self._config.state.variables.items()
+            if c.advanced is None
+        ]
+        factor_value_lists = []
+        for name in stochastic:
+            var_cfg = self._config.state.variables.get(name)
+            if var_cfg is None:
+                continue
+            factor_value_lists.append((name, var_cfg.names))
+
+        from itertools import product  # noqa: PLC0415
+
+        for combo in product(*(values for _, values in factor_value_lists)):
+            state_key = "|".join(combo)
+
+            idle_key = state_key + "|idle"
+            if idle_key not in wd_first:
+                continue
+            idle_targets, idle_probs = wd_first[idle_key]
+
+            for action in actions:
+                if action == "idle":
+                    continue
+                action_key = state_key + "|" + action
+                if action_key not in wd_first:
+                    continue
+                action_targets, action_probs = wd_first[action_key]
+
+                # Align probability vectors over same target set
+                all_targets = sorted(set(idle_targets) | set(action_targets))
+                idle_map = dict(zip(idle_targets, idle_probs, strict=True))
+                action_map = dict(zip(action_targets, action_probs, strict=True))
+
+                p_idle = np.array([idle_map.get(t, 0.0) for t in all_targets])
+                p_action = np.array([action_map.get(t, 0.0) for t in all_targets])
+
+                # P(success) = 1 - Σ_t P(t|s,a) * P(t|s,idle)
+                p_success = 1.0 - float(np.sum(p_action * p_idle))
+                self._p_success[f"{state_key}|{action}"] = max(0.0, min(1.0, p_success))
+
+    def _apply_rolling_advances(self, action: str, state: StateView) -> StateView:  # noqa: C901, PLR0912
         self._action_history.append(action)
         for name, adv in self._rolling_vars:
             window = list(self._action_history)[-adv.window_size :]
             count = 0
             for cond in adv.conditions:
                 if cond.factor == "action":
-                    count += sum(1 for a in window if a in cond.values)
+                    if self._p_success and name == "burden":
+                        # Bayesian P-success burden: idle never counts as failure
+                        for a in window:
+                            if a == "idle":
+                                continue
+                            state_key = "|".join(
+                                getattr(state, n)
+                                for n in sorted(
+                                    n
+                                    for n, c in self._config.state.variables.items()
+                                    if c.advanced is None
+                                )
+                            )
+                            p_key = f"{state_key}|{a}"
+                            p_success = self._p_success.get(p_key, 0.5)
+                            if self._rng.random() >= p_success:
+                                count += 1
+                    else:
+                        count += sum(1 for a in window if a in cond.values)
                 else:
                     fv = getattr(state, cond.factor, None)
                     if fv in cond.values:
