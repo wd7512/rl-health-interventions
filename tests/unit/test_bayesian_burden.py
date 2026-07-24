@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 import collections
+from pathlib import Path
 
 from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.environment import Environment
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+_TABLES_DIR = str(_REPO_ROOT / "tables" / "pearl_12action")
 
 
 def _pearl_config(seed: int = 42) -> MDPConfig:
@@ -54,7 +58,7 @@ def _pearl_config(seed: int = 42) -> MDPConfig:
             },
             "formula": "v",
         },
-        transition_model={"type": "random_sa"},
+        transition_model={"type": "table_transition", "table_dir": _TABLES_DIR},
         agents=[],
     )
 

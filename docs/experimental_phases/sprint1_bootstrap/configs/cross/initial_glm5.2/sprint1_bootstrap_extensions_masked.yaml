@@ -55,7 +55,7 @@ reward:
 reward_multiplier_by_step: [1, 1, 1, 1, 0]
 
 transition_model:
-  type: bootstrap
+  type: table_transition
   table_dir: ../../../../../../tables/initial/glm5.2
 
 episode_days: 90

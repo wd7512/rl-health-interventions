@@ -53,7 +53,7 @@ reward:
   formula: "alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty"
 
 transition_model:
-  type: bootstrap
+  type: table_transition
   table_dir: ../../../../../../tables/persona/resistant_deepseek-v4-flash
 
 episode_days: 90

@@ -10,7 +10,7 @@ import pytest
 
 from rl_health_interventions.config.schemas import MDPConfig
 from rl_health_interventions.state import StateView
-from rl_health_interventions.transitions.bootstrap import BootstrapTransition
+from rl_health_interventions.transitions.table_transition import TableTransition
 
 _TABLES_DIR = (
     Path(__file__).resolve().parent.parent.parent.parent
@@ -20,9 +20,7 @@ _TABLES_DIR = (
 )
 
 
-def _sprint1_bootstrap_config(
-    table_dir: str | None = None, seed: int = 42
-) -> MDPConfig:
+def _sprint1_config(table_dir: str | None = None, seed: int = 42) -> MDPConfig:
     return MDPConfig(
         episode_days=1,
         steps_per_day=5,
@@ -101,7 +99,7 @@ def _sprint1_bootstrap_config(
             ),
         },
         transition_model={
-            "type": "bootstrap",
+            "type": "table_transition",
             "table_dir": table_dir or str(_TABLES_DIR),
         },
         agents=[],
@@ -110,7 +108,7 @@ def _sprint1_bootstrap_config(
 
 class TestTableLoading:
     def test_loads_all_tables(self) -> None:
-        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        t = TableTransition(_sprint1_config(), seed=42)
         assert len(t.day_boundary) > 0
         assert len(t.within_day) == 5
         for i, wd in enumerate(t.within_day):
@@ -118,7 +116,7 @@ class TestTableLoading:
         assert "active|high|weekend|poor" in t.day_boundary
 
     def test_table_structure(self) -> None:
-        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        t = TableTransition(_sprint1_config(), seed=42)
         for key, (targets, probs) in t.day_boundary.items():
             assert len(targets) == len(probs)
             assert abs(float(probs.sum()) - 1.0) < 1e-6
@@ -132,7 +130,7 @@ class TestTableLoading:
 
 class TestKeyFormat:
     def test_day_boundary_key_format(self) -> None:
-        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        t = TableTransition(_sprint1_config(), seed=42)
         state = StateView(
             factors={
                 "step_bin": "inactive",
@@ -147,7 +145,7 @@ class TestKeyFormat:
         assert key == "inactive|low|weekday|good"
 
     def test_within_day_key_format(self) -> None:
-        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        t = TableTransition(_sprint1_config(), seed=42)
         state = StateView(
             factors={
                 "step_bin": "moderate",
@@ -164,7 +162,7 @@ class TestKeyFormat:
 
 class TestRouting:
     def test_step_zero_samples_sleep_and_step_bin(self) -> None:
-        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        t = TableTransition(_sprint1_config(), seed=42)
         state = StateView(
             factors={
                 "step_bin": "inactive",
@@ -182,7 +180,7 @@ class TestRouting:
         assert updates["step_bin"] in ("inactive", "moderate", "active")
 
     def test_step_nonzero_samples_only_step_bin(self) -> None:
-        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        t = TableTransition(_sprint1_config(), seed=42)
         state = StateView(
             factors={
                 "step_bin": "inactive",
@@ -210,10 +208,10 @@ class TestSeedReproducibility:
             day=0,
             step_of_day=0,
         )
-        t1 = BootstrapTransition(_sprint1_bootstrap_config(seed=99), seed=99)
+        t1 = TableTransition(_sprint1_config(seed=99), seed=99)
         r1 = t1.transition(state, "idle")
 
-        t2 = BootstrapTransition(_sprint1_bootstrap_config(seed=99), seed=99)
+        t2 = TableTransition(_sprint1_config(seed=99), seed=99)
         r2 = t2.transition(state, "idle")
         assert r1 == r2
 
@@ -221,7 +219,7 @@ class TestSeedReproducibility:
 class TestValidTransitionValues:
     def test_valid_transition_values(self) -> None:
         """All transition outputs must be valid factor values."""
-        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        t = TableTransition(_sprint1_config(), seed=42)
         state = StateView(
             factors={
                 "step_bin": "inactive",
@@ -241,7 +239,7 @@ class TestValidTransitionValues:
 
 class TestMinimalConfigRejected:
     def test_missing_table_dir_raises(self) -> None:
-        """Bootstrap transition requires table_dir."""
+        """table_transition requires table_dir."""
         with pytest.raises(ValueError, match="table_dir"):
             MDPConfig.model_validate(
                 {
@@ -257,13 +255,13 @@ class TestMinimalConfigRejected:
                         },
                         "formula": "v",
                     },
-                    "transition_model": {"type": "bootstrap"},
+                    "transition_model": {"type": "table_transition"},
                     "agents": [],
                 }
             )
 
     def test_transition_probabilities_rejected(self) -> None:
-        """Bootstrap transition rejects transition_probabilities."""
+        """table_transition rejects transition_probabilities."""
         base = {
             "episode_days": 1,
             "steps_per_day": 5,
@@ -290,7 +288,7 @@ class TestMinimalConfigRejected:
                 "formula": "v",
             },
             "transition_model": {
-                "type": "bootstrap",
+                "type": "table_transition",
                 "table_dir": str(_TABLES_DIR),
                 "transition_probabilities": {
                     "inactive": {"idle": {"moderate": 0.5, "inactive": 0.5}},
@@ -306,7 +304,7 @@ class TestMinimalConfigRejected:
             MDPConfig.model_validate(base)
 
 
-def _check_all_within_day_keys(t: BootstrapTransition) -> None:
+def _check_all_within_day_keys(t: TableTransition) -> None:
     step_bins = ("inactive", "moderate", "active")
     burdens = ("low", "medium", "high")
     actions = ("idle", "movement_suggestion", "goal_reminder", "journal")
@@ -334,7 +332,7 @@ class TestWithRealTables:
             assert wd_path.exists()
 
     def test_day_boundary_has_all_states(self) -> None:
-        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        t = TableTransition(_sprint1_config(), seed=42)
         for step_bin in ("inactive", "moderate", "active"):
             for burden in ("low", "medium", "high"):
                 for dow in ("weekday", "weekend"):
@@ -343,13 +341,13 @@ class TestWithRealTables:
                         assert key in t.day_boundary, f"Missing day_boundary key: {key}"
 
     def test_within_day_has_all_state_action_combos(self) -> None:
-        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        t = TableTransition(_sprint1_config(), seed=42)
         _check_all_within_day_keys(t)
 
 
 class TestMissingKeyWarning:
     def test_missing_day_boundary_key_logs_warning(self) -> None:
-        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        t = TableTransition(_sprint1_config(), seed=42)
         state = StateView(
             factors={
                 "step_bin": "nonexistent",
@@ -367,7 +365,7 @@ class TestMissingKeyWarning:
             )
 
     def test_missing_within_day_key_logs_warning(self) -> None:
-        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        t = TableTransition(_sprint1_config(), seed=42)
         state = StateView(
             factors={
                 "step_bin": "nonexistent",
@@ -387,7 +385,7 @@ class TestMissingKeyWarning:
 
 class TestStepThroughDayRange:
     def test_step_of_day_exceeds_range_raises(self) -> None:
-        t = BootstrapTransition(_sprint1_bootstrap_config(), seed=42)
+        t = TableTransition(_sprint1_config(), seed=42)
         state = StateView(
             factors={
                 "step_bin": "inactive",
@@ -415,7 +413,7 @@ class TestStepThroughDayRange:
     ],
 )
 def test_valid_transition_parametrized(seed: int, action: str) -> None:
-    t = BootstrapTransition(_sprint1_bootstrap_config(), seed=seed)
+    t = TableTransition(_sprint1_config(), seed=seed)
     state = StateView(
         factors={
             "step_bin": "inactive",

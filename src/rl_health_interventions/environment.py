@@ -70,13 +70,13 @@ class Environment:
         for _ in range(self._action_history.maxlen or 0):
             self._action_history.append("idle")
 
-    def _precompute_p_success(self) -> None:  # noqa: C901, PLR0912
+    def _precompute_p_success(self) -> None:  # noqa: C901, PLR0912, PLR0915
         """Precompute Bayesian P-success for each (state_key, action) pair.
 
         P(success | s, a) = 1 - Σ_ns P(ns | s, a) * P(ns | s, idle)
 
         Requires the transition model to expose ``day_boundary`` / ``within_day``
-        tables (``BootstrapTransition`` or ``RandomTransitionSA``).
+        tables (``TableTransition``).
         """
         if not hasattr(self._transition, "within_day"):
             return
@@ -90,9 +90,7 @@ class Environment:
             return
 
         stochastic = [
-            n
-            for n, c in self._config.state.variables.items()
-            if c.advanced is None
+            n for n, c in self._config.state.variables.items() if c.advanced is None
         ]
         factor_value_lists = []
         for name in stochastic:

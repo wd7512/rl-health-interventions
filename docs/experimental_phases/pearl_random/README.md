@@ -2,7 +2,7 @@
 
 ## Overview
 
-PEARL 4-arm comparison using per-(state,action) random transitions. This is the
+PEARL 4-arm comparison using table-loaded random transitions. This is the
 **testing/validation** config — random transitions mean there is no causal link
 between actions and state outcomes. The optimal policy under random transitions
 is "always idle" (no action penalty, same expected outcome).
@@ -28,9 +28,15 @@ is "always idle" (no action penalty, same expected outcome).
 
 ## Transition Model
 
-`random_sa`: Per-(factor_value, action) Dirichlet tables. Enables Bayesian
-P-success burden computation — non-idle actions have P(success) < 1.0,
-so failures accumulate and burden increases over time.
+`table_transition`: Loads per-(factor_value, action) Dirichlet tables from
+`tables/pearl_12action/`. Enables Bayesian P-success burden computation —
+non-idle actions have P(success) < 1.0, so failures accumulate and burden
+increases over time.
+
+Generate tables:
+```bash
+uv run python docs/experimental_phases/pearl_random/generate_tables.py
+```
 
 ## Burden Mechanism
 
@@ -47,7 +53,7 @@ Bayesian P-success: `P(success | s, a) = 1 - Σ_t P(t|s,a) * P(t|s,idle)`
 - Random transitions → no causal link between actions and outcomes
 - Optimal policy is "always idle" — Control winning is expected
 - Bayesian P-success burden makes actions non-trivially different from idle
-- Relative-change reward formula deferred to bootstrap phase
+- Relative-change reward formula deferred to table_transition phase
 - Reward formula: `step_reward - action_penalty` (action penalty penalizes all non-idle actions)
 
 ## Running

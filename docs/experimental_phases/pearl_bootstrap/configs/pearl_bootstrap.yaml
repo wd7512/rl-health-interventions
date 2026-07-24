@@ -1,8 +1,8 @@
-# PEARL-matched config with bootstrap transitions.
+# PEARL-matched config with table_transition transitions.
 # 1 decision/day, 12 non-idle COM-B actions + idle control.
 #
 # Uses the same generated tables as pearl_random, but loads them via
-# BootstrapTransition.  This is the "real" experiment config once
+# TableTransition.  This is the "real" experiment config once
 # tables are committed.  Bayesian P-success burden is active.
 
 initial_state:
@@ -96,7 +96,7 @@ reward:
   formula: "step_reward - action_penalty"
 
 transition_model:
-  type: bootstrap
+  type: table_transition
   table_dir: tables/pearl_12action
 
 episode_days: 60

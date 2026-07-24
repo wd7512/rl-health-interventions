@@ -14,7 +14,7 @@ from rl_health_interventions.transitions._base import TransitionModel
 logger = logging.getLogger(__name__)
 
 
-class BootstrapTransition(TransitionModel):
+class TableTransition(TransitionModel):
     def __init__(self, config: MDPConfig, seed: int = 42) -> None:
         super().__init__(config, seed=seed)
         self._rng = np.random.default_rng(seed)
@@ -32,10 +32,10 @@ class BootstrapTransition(TransitionModel):
     def within_day(self) -> list[dict[str, tuple[list[str], np.ndarray]]]:
         return self._within_day
 
-    def _load_tables(self) -> None:  # noqa: C901
+    def _load_tables(self) -> None:  # noqa: C901, PLR0915
         table_dir_str = self._config.transition_model.table_dir
         if table_dir_str is None:
-            msg = "table_dir is required for bootstrap transition"
+            msg = "table_dir is required for table_transition"
             raise ValueError(msg)
         table_dir = Path(table_dir_str)
         db_path = table_dir / "day_boundary.json"
@@ -70,9 +70,7 @@ class BootstrapTransition(TransitionModel):
             factor_parts = [
                 wp for j, wp in enumerate(wd_parts) if j != self._wd_action_idx
             ]
-            self._wd_factor_names = self._infer_factor_order(
-                "|".join(factor_parts)
-            )
+            self._wd_factor_names = self._infer_factor_order("|".join(factor_parts))
 
     def _infer_factor_order(self, table_key: str) -> list[str]:
         """Infer factor name order from a table key.
@@ -179,4 +177,4 @@ class BootstrapTransition(TransitionModel):
 def register() -> None:
     from rl_health_interventions.transitions import REGISTRY
 
-    REGISTRY.register("bootstrap", BootstrapTransition)
+    REGISTRY.register("table_transition", TableTransition)

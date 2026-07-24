@@ -910,3 +910,26 @@ tables. Parts D (docs) can be done in parallel with Part A since they're indepen
 | Constitution corrected | Read check | Arms, baseline, T2.3 match PEARL paper |
 | All tests pass | `uv run pytest` | No regressions |
 | Lint clean | `uv run ruff check` | No new warnings |
+
+### 15.9 Post-Implementation: Consolidation
+
+**Decision:** `RandomTransitionSA` was removed and consolidated into `table_transition`.
+
+Rationale:
+- `RandomTransitionSA` generated tables in-memory at init; `TableTransition` loads
+  pre-generated tables from disk. At runtime they produce identical behavior.
+- Table generation is a one-time setup step, not a runtime concern.
+- `scripts/generate_pearl_tables.py` moved to
+  `docs/experimental_phases/pearl_random/generate_tables.py`.
+
+Also renamed `bootstrap` → `table_transition` for clarity: the type reads
+pre-computed transition tables from disk — "bootstrap" was a misleading name
+(from the LLM bootstrapping pipeline that originally generated sprint1 tables).
+
+Files changed:
+- Deleted: `transitions/random_sa.py`, `tests/unit/transitions/test_random_sa_transition.py`,
+  `scripts/generate_pearl_tables.py`
+- Renamed: `transitions/bootstrap.py` → `transitions/table_transition.py`
+- Renamed class: `BootstrapTransition` → `TableTransition`
+- Renamed registry key: `"bootstrap"` → `"table_transition"`
+- All 35 YAML configs updated: `type: bootstrap` → `type: table_transition`
