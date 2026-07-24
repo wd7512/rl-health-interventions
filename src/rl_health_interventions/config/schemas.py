@@ -95,6 +95,7 @@ _KNOWN_AGENT_TYPES = frozenset(
         "ucb",
         "decaying_epsilon_greedy",
         "fixed",
+        "comb_weighted_fixed",
         "heartsteps",
         "q_learning",
         "dqn",
@@ -185,6 +186,9 @@ class AgentConfig(BaseModel):
     prior_cov: float | None = None
     f_features: str | list[str] | None = None
     g_features: str | list[str] | None = None
+    persona_comb_file: str | None = None
+    persona_name: str | None = None
+    time_preference: str | None = None
 
     @model_validator(mode="after")
     def _validate_agent(self) -> AgentConfig:
@@ -206,6 +210,42 @@ class AgentConfig(BaseModel):
             ):
                 raise ValueError(
                     "fixed agent does not accept learning hyperparameters or contextual"
+                )
+            if (
+                self.persona_comb_file is not None
+                or self.persona_name is not None
+                or self.time_preference is not None
+            ):
+                raise ValueError(
+                    "fixed agent does not accept persona_comb_file, persona_name, or time_preference"
+                )
+            return self
+        if self.type == "comb_weighted_fixed":
+            if self.persona_comb_file is None or not self.persona_comb_file.strip():
+                raise ValueError(
+                    "persona_comb_file must be provided for comb_weighted_fixed"
+                )
+            if self.persona_name is None or not self.persona_name.strip():
+                raise ValueError("persona_name must be provided for comb_weighted_fixed")
+            if (
+                self.time_preference is not None
+                and self.time_preference not in {"morning", "afternoon", "no_preference"}
+            ):
+                raise ValueError(
+                    "time_preference must be one of morning, afternoon, no_preference"
+                )
+            if (
+                self.action is not None
+                or self.alpha_prior is not None
+                or self.beta_prior is not None
+                or self.epsilon is not None
+                or self.epsilon_start is not None
+                or self.c is not None
+                or self.decay_steps is not None
+                or self.contextual
+            ):
+                raise ValueError(
+                    "comb_weighted_fixed does not accept action, learning hyperparameters, or contextual"
                 )
             return self
         if self.contextual:

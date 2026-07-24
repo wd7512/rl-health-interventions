@@ -1,0 +1,31 @@
+{
+  "config": "pearl_random/configs/pearl_random.yaml",
+  "seed": 42,
+  "seeds": 50,
+  "agents": {
+    "Control": {
+      "total_reward": 0.7,
+      "total_std": 22.23083444227859,
+      "per_step": 0.011666666666666667,
+      "last50": 0.0144
+    },
+    "Random": {
+      "total_reward": -2.0479999999999987,
+      "total_std": 22.21433987315401,
+      "per_step": -0.034133333333333314,
+      "last50": -0.03141999999999998
+    },
+    "Fixed COM-B": {
+      "total_reward": -2.2999999999999976,
+      "total_std": 22.23083444227859,
+      "per_step": -0.038333333333333316,
+      "last50": -0.035599999999999986
+    },
+    "RL (EG)": {
+      "total_reward": -2.042999999999999,
+      "total_std": 22.236364383594726,
+      "per_step": -0.03404999999999998,
+      "last50": -0.03152
+    }
+  }
+}
