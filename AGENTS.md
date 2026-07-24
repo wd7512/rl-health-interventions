@@ -9,7 +9,8 @@ This is a generic Python project template using `uv`, `ruff`, `ty`, and `pytest`
 - Format check (CI): `uv run ruff format --check .`
 - Lint: `uv run ruff check`
 - Type check: `uv run ty check --exclude tests/`
-- Test: `uv run pytest`
+- Test: `uv run pytest` (unit + fast regression)
+- Slow regression (50-seed benchmarks): `uv run pytest -c regression-suite/pytest.ini`
 - Build: `uv build`
 
 ## Rules
