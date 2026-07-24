@@ -2,7 +2,7 @@
 
 **Branch:** `feature/252-pearl-matched-config`
 **Date:** 2026-07-24
-**Status:** Partial implementation — fix plan below
+**Status:** Implemented — see §6 for posterior burden formula, §15.3 for superseded plan
 **Source:** Conversation anchored summary + Phase 1 deep analysis + Figure 12 feature importance
 
 ---
@@ -190,43 +190,44 @@ A notification "fails" when it does not cause deviation from baseline behavior.
 The baseline is defined by the idle action's transition distribution:
 `P(next_state | state, idle)`.
 
-### P-Success Formula
+### Per-Step Posterior Formula
 
-For a given state `s` and action `a`:
-
-```text
-P_success(s, a) = 1 - Σ P(ns | s, a) * P(ns | s, idle)
-```
-
-This is the probability that independent samples from the action and idle transition
-distributions differ. A value of 0 means the two distributions are identical; 1 means
-they never produce the same outcome.
-
-When multiple stochastic factors exist (PEARL format), P_success is computed per factor
-and combined:
+A notification "fails" when the observed next state `s'` is more likely under
+idle behavior than under the action taken.  The probability that a given
+notification was caused by idle is the posterior (equal prior odds):
 
 ```text
-P_success(s, a) = 1 - ∏_f [ Σ P_f(ns | s_f, a) * P_f(ns | s_f, idle) ]
+burden_chance(s, s', a) = P(s' | s, idle) / (P(s' | s, idle) + P(s' | s, action))
 ```
+
+When `action == "idle"` the chance is 0 (never a failure).
+
+For per-factor tables (PEARL format) each factor transitions independently so
+the joint probability factorises:
+
+```text
+P(s' | s, a) = ∏_f P(s'_f | s_f, a)
+```
+
+After each non-idle step a Bernoulli(burden_chance) draw determines whether
+the step counts as a failure.
 
 ### Implementation
 
-1. **Precompute** at environment reset: for each (state, action) pair, compute
-   `P_success(s, a)` from the transition table.
-2. **After each non-idle step:** draw Bernoulli(P_success(s, a)).
-   - Success → action "worked" → no burden
-   - Failure → action "didn't work" → increment failure counter
+1. **Per-step** (not precomputed): after the transition, compute
+   `burden_chance` using the actual observed `s'`.
+2. **Bernoulli draw:** `failure = rng.random() < burden_chance`.
 3. **Rolling 7-day window** of failure counts.
 4. **Map to burden level:** 0-2→low, 3-5→medium, 6+→high.
 
 ### Expected Burden Profiles
 
-| Arm | Typical Success Rate | Burden Profile |
-|-----|---------------------|----------------|
-| RL | 50-70% | Low → Medium (if effective) |
-| Random | 30-50% | Medium |
-| Fixed | 40-60% | Medium |
-| Control | N/A (always idle) | Always Low |
+| Arm | Typical Burden Profile |
+|-----|-----------------------|
+| Control (always idle) | Always Low |
+| RL (learns to avoid high-burden actions) | ~54% Low, ~43% Medium, ~3% High |
+| Random | ~45% Low, ~53% Medium, ~3% High |
+| Fixed COM-B | ~35% Low, ~61% Medium, ~4% High |
 
 ### Why 7-day window?
 
@@ -776,27 +777,15 @@ PEARL (12-action) configs.
 
 ### 15.3 Part B: P-Success Burden
 
-#### B1. Add `_precompute_p_success()` to Environment
+**Superseded by per-step posterior formula (§6).** The original B1–B3 plan
+(precomputed expected posterior) was replaced with the per-step posterior
+`P(idle | s')` which conditions on the actual observed next state `s'`.
 
-**Modify:** `src/rl_health_interventions/environment.py`
-
-After creating the transition model, check if it exposes `day_boundary` / `within_day`
-tables (both `BootstrapTransition` and `RandomTransitionSA` will). If so, precompute:
-
-```python
-P_success(s, a) = Σ_ns P(ns | s, a)² / (P(ns | s, a) + P(ns | s, idle))
-```
-
-For each (state_key, action) pair, where `P(ns | s, a)` is looked up from the action's
-table row and `P(ns | s, idle)` from idle's table row for the same state.
-
-#### B2. Modify `_apply_rolling_advances` for P-success burden
-
-When `_p_success` is populated and the factor being computed is `burden`:
-1. Look up `p_success` for current state + action from precomputed table
-2. Draw Bernoulli: `success = rng.random() < p_success`
-3. If not success → count as failure in the rolling window
-4. Map failure count to burden level via existing mapping (0-2→low, 3-5→medium, 6+→high)
+- `_compute_burden_chance()` evaluates `P(s'|idle) / (P(s'|idle) + P(s'|a))`
+  per step using the transition model's per-factor tables.
+- `_action_history` stores 3-tuples `(state_key, action, burden_failure)`.
+- `_p_success` is still computed as a flag gate but no longer drives burden
+  sampling — it only enables the posterior burden path vs naive counting.
 
 When `_p_success` is empty (no tables available), fall back to current naive counting
 (action count in window).

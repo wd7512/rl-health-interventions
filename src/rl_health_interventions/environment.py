@@ -56,19 +56,66 @@ class Environment:
         ]
         window_sizes = [adv.window_size for _, adv in self._rolling_vars]
         max_window = max(window_sizes) if window_sizes else 3
-        self._action_history: deque[tuple[str, str]] = deque(maxlen=max_window)
+        self._action_history: deque[tuple[str, str, bool]] = deque(maxlen=max_window)
         self._prime_action_history()
         self._p_success: dict[str, float] = {}
         self._precompute_p_success()
 
     @property
     def action_history(self) -> tuple[str, ...]:
-        return tuple(action for _, action in self._action_history)
+        return tuple(action for _, action, _ in self._action_history)
 
     def _prime_action_history(self) -> None:
         self._action_history.clear()
         for _ in range(self._action_history.maxlen or 0):
-            self._action_history.append(("", "idle"))
+            self._action_history.append(("", "idle", False))
+
+    def _compute_burden_chance(  # noqa: C901
+        self, pre_state_key: str, action: str, post_state_key: str
+    ) -> float:
+        """P(idle | s') = P(s'|s,idle) / (P(s'|s,idle) + P(s'|s,action)).
+
+        Per-step posterior that the observed transition was caused by
+        idle behavior rather than the action.
+        """
+        if action == "idle":
+            return 0.0
+        tm = self._transition
+        if not (
+            hasattr(tm, "_per_factor")
+            and tm._per_factor
+            and hasattr(tm, "_pf_wd")
+            and tm._pf_wd
+        ):
+            return 0.5
+        stochastic = [
+            n for n, c in self._config.state.variables.items() if c.advanced is None
+        ]
+        pf_wd: list = getattr(tm, "_pf_wd")  # noqa: B009
+        wd = pf_wd[0]
+        pre_fvs = pre_state_key.split("|")
+        post_fvs = post_state_key.split("|")
+        prob_idle = 1.0
+        prob_action = 1.0
+        for i, name in enumerate(stochastic):
+            if name not in wd:
+                continue
+            pre_fv = pre_fvs[i]
+            post_fv = post_fvs[i]
+            action_key = f"{pre_fv}|{action}"
+            idle_key = f"{pre_fv}|idle"
+            if action_key not in wd[name] or idle_key not in wd[name]:
+                continue
+            a_targets, a_probs = wd[name][action_key]
+            i_targets, i_probs = wd[name][idle_key]
+            p_a = dict(zip(a_targets, a_probs, strict=True)).get(post_fv, 0.0)
+            p_i = dict(zip(i_targets, i_probs, strict=True)).get(post_fv, 0.0)
+            prob_action *= p_a
+            prob_idle *= p_i
+        total = prob_idle + prob_action
+        if total <= 0:
+            return 0.5
+        return prob_idle / total
 
     def _precompute_p_success(self) -> None:  # noqa: C901, PLR0911, PLR0912, PLR0915
         """Precompute P-success for each (state_key, action) pair.
@@ -176,29 +223,35 @@ class Environment:
                 p_success = 1.0 - float(np.sum(p_action * p_idle))
                 self._p_success[f"{state_key}|{action}"] = max(0.0, min(1.0, p_success))
 
-    def _apply_rolling_advances(self, action: str, state: StateView) -> StateView:  # noqa: C901, PLR0912
-        state_key = "|".join(
+    def _build_state_key(self, state: StateView) -> str:
+        return "|".join(
             getattr(state, n)
             for n, c in self._config.state.variables.items()
             if c.advanced is None
         )
-        self._action_history.append((state_key, action))
+
+    def _apply_rolling_advances(  # noqa: C901, PLR0912
+        self, action: str, state: StateView, pre_state_key: str | None = None
+    ) -> StateView:
+        post_state_key = self._build_state_key(state)
+        burden_failure = False
+        if self._p_success and pre_state_key is not None:
+            p_idle = self._compute_burden_chance(pre_state_key, action, post_state_key)
+            burden_failure = bool(self._rng.random() < p_idle)
+        self._action_history.append((post_state_key, action, burden_failure))
         for name, adv in self._rolling_vars:
             window = list(self._action_history)[-adv.window_size :]
             count = 0
             for cond in adv.conditions:
                 if cond.factor == "action":
                     if self._p_success and name == "burden":
-                        # P-success burden: idle never counts as failure
-                        for hk_state_key, a in window:
+                        for _, a, bf in window:
                             if a == "idle":
                                 continue
-                            p_key = f"{hk_state_key}|{a}"
-                            p_success = self._p_success.get(p_key, 0.5)
-                            if self._rng.random() >= p_success:
+                            if bf:
                                 count += 1
                     else:
-                        count += sum(1 for _, a in window if a in cond.values)
+                        count += sum(1 for _, a, _ in window if a in cond.values)
                 else:
                     fv = getattr(state, cond.factor, None)
                     if fv in cond.values:
@@ -240,6 +293,8 @@ class Environment:
             state = state.with_factors(step_bin_daily=_bin_daily(self._daily_total))
             self._daily_total = 0
 
+        pre_state_key = self._build_state_key(state)
+
         updates = self._transition.transition(state, action)
         state = state.with_factors(**updates)
 
@@ -247,7 +302,7 @@ class Environment:
             self._daily_total += _MIDPOINT.get(state.step_bin, 0)
 
         state = self._apply_cyclic_advances(state)
-        state = self._apply_rolling_advances(action, state)
+        state = self._apply_rolling_advances(action, state, pre_state_key)
 
         self._current_state = state
         reward, _ = self._reward.reward(self._current_state, action, step_idx)

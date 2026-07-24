@@ -223,7 +223,7 @@ class TestPSuccessKeyConsistency:
 
 class TestHistoricalStateContext:
     def test_action_history_preserves_state_context(self) -> None:
-        """Action history should store (state_key, action) tuples internally.
+        """Action history should store 3-tuples internally.
 
         Regression test for Bug 2: historical P-success lookups used the
         current state instead of the state at the time each action was taken.
@@ -241,9 +241,12 @@ class TestHistoricalStateContext:
             assert isinstance(entry, tuple), (
                 f"Expected tuple, got {type(entry)}: {entry}"
             )
-            assert len(entry) == 2, f"Expected (state_key, action), got: {entry}"
+            assert len(entry) == 3, (
+                f"Expected (state_key, action, burden_failure), got: {entry}"
+            )
             assert isinstance(entry[0], str), f"state_key should be str: {entry}"
             assert isinstance(entry[1], str), f"action should be str: {entry}"
+            assert isinstance(entry[2], bool), f"burden_failure should be bool: {entry}"
 
     def test_action_history_property_returns_actions_only(self) -> None:
         """Public action_history property should return action strings only."""
