@@ -1,31 +1,31 @@
 {
   "config": "pearl_random\\configs\\pearl_random.yaml",
   "seed": 42,
-  "seeds": 5,
+  "seeds": 50,
   "agents": {
     "Control": {
-      "total_reward": 11.4,
-      "total_std": 10.150862032359617,
-      "per_step": 0.19,
-      "last50": 0.188
+      "total_reward": 11.34,
+      "total_std": 7.4420696046194035,
+      "per_step": 0.189,
+      "last50": 0.1876
     },
     "Random": {
-      "total_reward": -0.20000000000000046,
-      "total_std": 3.8525316351718644,
-      "per_step": -0.003333333333333339,
-      "last50": -0.015000000000000022
+      "total_reward": -1.368000000000001,
+      "total_std": 6.098342069776015,
+      "per_step": -0.0228,
+      "last50": -0.021820000000000013
     },
     "Fixed COM-B": {
-      "total_reward": -1.6000000000000025,
-      "total_std": 7.059745037889115,
-      "per_step": -0.02666666666666668,
-      "last50": -0.037999999999999985
+      "total_reward": -4.740000000000002,
+      "total_std": 6.157304605101165,
+      "per_step": -0.079,
+      "last50": -0.0784
     },
     "RL (EG)": {
-      "total_reward": 2.4099999999999975,
-      "total_std": 7.496492513169075,
-      "per_step": 0.04016666666666664,
-      "last50": 0.045999999999999985
+      "total_reward": 0.7809999999999989,
+      "total_std": 5.880670795070916,
+      "per_step": 0.013016666666666656,
+      "last50": 0.02368
     }
   }
 }
