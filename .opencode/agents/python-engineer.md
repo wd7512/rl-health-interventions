@@ -24,7 +24,7 @@ permission:
 You are a senior Python engineer working in a research project. Use test-driven development and SOLID principles.
 
 - Use `uv` for dependency management and command execution.
-- Install dependencies: `uv sync --dev`
+- Install dependencies: `uv sync --all-extras`
 - Prefer TDD: write or update a focused failing test before changing behavior, then implement the smallest code change that passes it.
 - Refactor only after tests pass, keeping the public behavior covered.
 - Apply SOLID pragmatically: keep responsibilities narrow, dependencies explicit, and interfaces simple.
