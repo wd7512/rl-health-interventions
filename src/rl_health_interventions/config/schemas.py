@@ -140,7 +140,10 @@ def _require_in_range_open_lo(
 
 def _reject_fields(config: AgentConfig, fields: list[str], agent_type: str) -> None:
     """Raise ValueError if any of the given fields are set but not applicable for agent type."""
-    violators = [f for f in fields if getattr(config, f) is not None]
+    violators = [
+        f for f in fields
+        if f in config.model_fields_set and getattr(config, f) is not None
+    ]
     if violators:
         if len(violators) == 1:
             raise ValueError(
