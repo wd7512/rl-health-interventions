@@ -10,7 +10,10 @@ from pathlib import Path
 from _shared import agent_label, resolve_config, run_agent
 
 from rl_health_interventions.config.loader import load_config
-from rl_health_interventions.evaluation.metrics import compute_metrics, format_comparison_table
+from rl_health_interventions.evaluation.metrics import (
+    compute_metrics,
+    format_comparison_table,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +24,8 @@ _PEARL_CONFIGS = [_CONFIGS_DIR / "pearl_random.yaml"]
 def _positive_int(value: str) -> int:
     n = int(value)
     if n <= 0:
-        raise argparse.ArgumentTypeError(f"must be a positive integer, got {n}")
+        msg = f"must be a positive integer, got {n}"
+        raise argparse.ArgumentTypeError(msg)
     return n
 
 
@@ -31,7 +35,7 @@ def _benchmark_config(
     output_dir: Path | None = None,
     dump_json: bool = False,
     confirm_overwrite: bool = False,
-) -> dict:
+) -> dict[str, dict[str, float]]:
     config = load_config(config_path)
     config_name = Path(config_path).stem
 
@@ -46,7 +50,7 @@ def _benchmark_config(
     )
     logger.info("Seeds: %d\n", n_seeds)
 
-    results: dict[str, dict] = {}
+    results: dict[str, dict[str, float]] = {}
     for i, agent_cfg in enumerate(config.agents):
         label = agent_label(agent_cfg)
         logger.info("Running %s...", label)
@@ -70,22 +74,24 @@ def _benchmark_config(
 
 
 def _write_json_fixture(
+    *,
     output_dir: Path,
     config_name: str,
     config_path: str,
     config_seed: int,
     n_seeds: int,
-    results: dict[str, dict],
+    results: dict[str, dict[str, float]],
     confirm_overwrite: bool,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     out_path = output_dir / f"{config_name}.json"
 
     if out_path.exists() and not confirm_overwrite:
-        raise FileExistsError(
+        msg = (
             f"Refusing to overwrite existing fixture: {out_path}\n"
             "Re-run with --confirm-overwrite to intentionally re-baseline."
         )
+        raise FileExistsError(msg)
 
     resolved = Path(config_path).resolve()
     try:

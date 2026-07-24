@@ -35,6 +35,7 @@ class ComBWeightedFixedAgent(Agent):
 
     def __init__(
         self,
+        *,
         comb_scores: dict[str, int] | None = None,
         persona_comb_file: str | None = None,
         persona_name: str | None = None,
@@ -44,7 +45,9 @@ class ComBWeightedFixedAgent(Agent):
     ) -> None:
         self._rng = random.Random(seed)
         self._actions = set(actions or [])
-        self._comb_scores = self._resolve_scores(comb_scores, persona_comb_file, persona_name)
+        self._comb_scores = self._resolve_scores(
+            comb_scores, persona_comb_file, persona_name
+        )
         self._time_preference = time_preference
 
     def _resolve_scores(
@@ -57,7 +60,7 @@ class ComBWeightedFixedAgent(Agent):
             return {theme: int(comb_scores.get(theme, 3)) for theme in self._THEMES}
 
         if persona_comb_file is None:
-            return {theme: 3 for theme in self._THEMES}
+            return dict.fromkeys(self._THEMES, 3)
 
         if persona_name is None or not persona_name.strip():
             raise ValueError("persona_name must be provided with persona_comb_file")
@@ -65,12 +68,16 @@ class ComBWeightedFixedAgent(Agent):
         with Path(persona_comb_file).open(encoding="utf-8") as f:
             data = json.load(f)
         if persona_name not in data:
-            raise ValueError(f"persona '{persona_name}' not found in {persona_comb_file}")
+            raise ValueError(
+                f"persona '{persona_name}' not found in {persona_comb_file}"
+            )
         persona_data = data[persona_name]
         return {theme: int(persona_data.get(theme, 3)) for theme in self._THEMES}
 
     def _sample_theme(self) -> str:
-        barriers = [max(0, 5 - self._comb_scores.get(theme, 3)) for theme in self._THEMES]
+        barriers = [
+            max(0, 5 - self._comb_scores.get(theme, 3)) for theme in self._THEMES
+        ]
         if sum(barriers) == 0:
             barriers = [1] * len(self._THEMES)
         return self._rng.choices(list(self._THEMES), weights=barriers, k=1)[0]
@@ -91,7 +98,7 @@ class ComBWeightedFixedAgent(Agent):
         return "idle"
 
     @override
-    def select_action(self, state) -> str:  # noqa: ARG002
+    def select_action(self, state) -> str:
         action = f"{self._sample_theme()}_{self._sample_timing()}"
         if self._actions and action not in self._actions:
             return self._fallback_action()

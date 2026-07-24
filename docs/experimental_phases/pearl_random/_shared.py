@@ -6,7 +6,8 @@ from pathlib import Path
 
 import numpy as np
 
-from rl_health_interventions.agents import derive_agent_seed, make as make_agent
+from rl_health_interventions.agents import derive_agent_seed
+from rl_health_interventions.agents import make as make_agent
 from rl_health_interventions.episode import run_episode
 
 _CONFIG_DIR = Path(__file__).resolve().parent / "configs"
@@ -19,8 +20,10 @@ _SHORT_NAMES: dict[str, str] = {
 }
 
 
-def resolve_config(name: str | None = None, *, default: str = "pearl_random.yaml") -> str:
-    """Resolve a config name/path. Absolute paths pass through; bare names look in configs/."""
+def resolve_config(
+    name: str | None = None, *, default: str = "pearl_random.yaml"
+) -> str:
+    """Resolve a config name/path for this experiment."""
     name = name or default
     p = Path(name)
     return str(p) if p.is_absolute() else str(_CONFIG_DIR / p)
@@ -34,7 +37,7 @@ def agent_label(cfg) -> str:
 
 
 def run_agent(config, agent_cfg, n_seeds: int, agent_index: int) -> np.ndarray:
-    """Run one agent variant over n_seeds. Returns per-step rewards (n_seeds, n_steps)."""
+    """Run one agent variant over n_seeds."""
     exclude = {"type"}
     if not agent_cfg.contextual:
         exclude |= {"contextual", "context_features"}

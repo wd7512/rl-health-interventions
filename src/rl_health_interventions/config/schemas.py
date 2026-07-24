@@ -226,11 +226,14 @@ class AgentConfig(BaseModel):
                     "persona_comb_file must be provided for comb_weighted_fixed"
                 )
             if self.persona_name is None or not self.persona_name.strip():
-                raise ValueError("persona_name must be provided for comb_weighted_fixed")
-            if (
-                self.time_preference is not None
-                and self.time_preference not in {"morning", "afternoon", "no_preference"}
-            ):
+                raise ValueError(
+                    "persona_name must be provided for comb_weighted_fixed"
+                )
+            if self.time_preference is not None and self.time_preference not in {
+                "morning",
+                "afternoon",
+                "no_preference",
+            }:
                 raise ValueError(
                     "time_preference must be one of morning, afternoon, no_preference"
                 )
