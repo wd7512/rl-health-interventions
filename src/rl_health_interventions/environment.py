@@ -70,21 +70,20 @@ class Environment:
         for _ in range(self._action_history.maxlen or 0):
             self._action_history.append(("", "idle"))
 
-    def _precompute_p_success(self) -> None:  # noqa: C901, PLR0912, PLR0915
+    def _precompute_p_success(self) -> None:  # noqa: C901, PLR0911, PLR0912, PLR0915
         """Precompute Bayesian P-success for each (state_key, action) pair.
 
-        P(success | s, a) = 1 - Σ_ns P(ns | s, a) * P(ns | s, idle)
+        Flat format: P(success | s, a) = 1 - Σ P(ns | s, a) * P(ns | s, idle)
 
-        Requires the transition model to expose ``day_boundary`` / ``within_day``
-        tables (``TableTransition``).
+        Per-factor format: combines per-factor overlaps across all stochastic
+        factors so no single factor's distribution is privileged.
+
+        Requires the transition model to expose ``within_day`` tables
+        (``TableTransition``).
         """
         if not hasattr(self._transition, "within_day"):
             return
         tm = self._transition
-        within_day = cast("list", tm.within_day)
-        if not within_day:
-            return
-        wd_first: dict[str, tuple] = within_day[0]
         actions = list(self._config.actions.keys())
         if "idle" not in actions:
             return
@@ -100,6 +99,54 @@ class Environment:
             factor_value_lists.append((name, var_cfg.names))
 
         from itertools import product  # noqa: PLC0415
+
+        # Per-factor format: use _pf_wd directly, combine across all factors
+        if hasattr(tm, "_per_factor") and tm._per_factor:
+            pf_wd = getattr(tm, "_pf_wd", None)
+            if not pf_wd:
+                return
+            wd_first = pf_wd[0]
+            for combo in product(*(values for _, values in factor_value_lists)):
+                state_key = "|".join(combo)
+                for action in actions:
+                    if action == "idle":
+                        continue
+                    factor_overlaps = []
+                    for i, name in enumerate(stochastic):
+                        if name not in wd_first:
+                            continue
+                        fv = combo[i]
+                        idle_key = f"{fv}|idle"
+                        action_key = f"{fv}|{action}"
+                        if (
+                            idle_key not in wd_first[name]
+                            or action_key not in wd_first[name]
+                        ):
+                            continue
+                        idle_targets, idle_probs = wd_first[name][idle_key]
+                        action_targets, action_probs = wd_first[name][action_key]
+                        all_targets = sorted(set(idle_targets) | set(action_targets))
+                        idle_map = dict(zip(idle_targets, idle_probs, strict=True))
+                        action_map = dict(
+                            zip(action_targets, action_probs, strict=True)
+                        )
+                        p_idle = np.array([idle_map.get(t, 0.0) for t in all_targets])
+                        p_action = np.array(
+                            [action_map.get(t, 0.0) for t in all_targets]
+                        )
+                        overlap = float(np.sum(p_action * p_idle))
+                        factor_overlaps.append(overlap)
+                    if factor_overlaps:
+                        p_success = 1.0 - float(np.prod(factor_overlaps))
+                        key = f"{state_key}|{action}"
+                        self._p_success[key] = max(0.0, min(1.0, p_success))
+            return
+
+        # Flat format (sprint1): single combined distribution per key
+        within_day = cast("list", tm.within_day)
+        if not within_day:
+            return
+        wd_first: dict[str, tuple] = within_day[0]
 
         for combo in product(*(values for _, values in factor_value_lists)):
             state_key = "|".join(combo)

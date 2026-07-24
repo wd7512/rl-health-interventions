@@ -26,7 +26,7 @@ def _pearl_config(seed: int = 42, *, episode_days: int = 50) -> MDPConfig:
                     "names": ["low", "medium", "high"],
                     "advanced": {
                         "type": "rolling_window_count",
-                        "window_size": 3,
+                        "window_size": 2,
                         "conditions": [
                             {
                                 "factor": "action",
@@ -37,7 +37,7 @@ def _pearl_config(seed: int = 42, *, episode_days: int = 50) -> MDPConfig:
                                 ],
                             }
                         ],
-                        "mapping": {0: "low", 1: "low", 2: "low", 3: "medium"},
+                        "mapping": {0: "low", 1: "medium", 2: "high"},
                     },
                 },
             }
@@ -235,8 +235,8 @@ class TestHistoricalStateContext:
         _state, _, _ = env.step("ability_morning")
         _state, _, _ = env.step("planning_afternoon")
         _state, _, _ = env.step("idle")
-        # Internal history should be tuples (maxlen=3, primed entries evicted)
-        assert len(env._action_history) == 3
+        # Internal history should be tuples (maxlen=2, old entries evicted)
+        assert len(env._action_history) == 2
         for entry in env._action_history:
             assert isinstance(entry, tuple), (
                 f"Expected tuple, got {type(entry)}: {entry}"

@@ -56,7 +56,7 @@ def pearl_results() -> dict[str, dict]:
         return results
 
 
-@pytest.mark.timeout(30, func_only=True)
+@pytest.mark.timeout(30)
 @pytest.mark.parametrize("config_name", _CONFIGS)
 def test_pearl_random_regression(
     config_name: str, pearl_results: dict[str, dict]

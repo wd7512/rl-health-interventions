@@ -1,5 +1,5 @@
 {
-  "config": "pearl_random\\configs\\pearl_random.yaml",
+  "config": "pearl_random/configs/pearl_random.yaml",
   "seed": 42,
   "seeds": 50,
   "agents": {

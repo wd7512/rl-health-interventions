@@ -237,20 +237,58 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "time_preference must be one of morning, afternoon, no_preference"
                 )
-            if (
-                self.action is not None
-                or self.alpha_prior is not None
-                or self.beta_prior is not None
-                or self.epsilon is not None
-                or self.epsilon_start is not None
-                or self.c is not None
-                or self.decay_steps is not None
-                or self.contextual
-            ):
-                raise ValueError(
-                    "comb_weighted_fixed does not accept action, learning hyperparameters, or contextual"
-                )
+            _reject_fields(
+                self,
+                [
+                    "action",
+                    "alpha_prior",
+                    "beta_prior",
+                    "epsilon",
+                    "epsilon_start",
+                    "epsilon_min",
+                    "c",
+                    "decay_steps",
+                    "contextual",
+                    "lr",
+                    "gamma",
+                    "hidden_dim",
+                    "policy_hidden_dim",
+                    "value_hidden_dim",
+                    "state_dim",
+                    "grad_clip",
+                    "batch_size",
+                    "buffer_size",
+                    "target_update_freq",
+                    "clip_eps",
+                    "gae_lambda",
+                    "ppo_epochs",
+                    "sigma_sq",
+                    "w",
+                    "lambda_dosage",
+                    "epsilon_0",
+                    "epsilon_1",
+                    "reference_action",
+                    "prior_mean",
+                    "prior_cov",
+                    "f_features",
+                    "g_features",
+                ],
+                "comb_weighted_fixed",
+            )
             return self
+        # Reject persona fields for all non-COM-B agent types
+        if self.persona_comb_file is not None:
+            raise ValueError(
+                f"persona_comb_file is not applicable for agent type {self.type}"
+            )
+        if self.persona_name is not None:
+            raise ValueError(
+                f"persona_name is not applicable for agent type {self.type}"
+            )
+        if self.time_preference is not None:
+            raise ValueError(
+                f"time_preference is not applicable for agent type {self.type}"
+            )
         if self.contextual:
             if self.type not in (
                 "thompson_sampling",

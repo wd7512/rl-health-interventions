@@ -316,14 +316,14 @@ How many and which features should compose the state vector for PEARL-matched co
 
 | Feature | Type | Weight |
 |---------|------|--------|
-| baseline_steps_mean | Static | 0.85 |
-| weight | Static | 0.72 |
-| age | Static | 0.68 |
-| baseline_walk_pattern | Static | 0.61 |
-| baseline_steps_std | Static | 0.55 |
-| recent_steps_mean | Dynamic | 0.78 |
-| recent_walk_pattern | Dynamic | 0.63 |
-| morning_steps_ratio | Dynamic | 0.52 |
+| baseline_steps_mean | Static | 1.23 |
+| weight | Static | 1.19 |
+| age | Static | 1.17 |
+| baseline_walk_pattern | Static | 1.13 |
+| baseline_steps_std | Static | 1.02 |
+| recent_steps_mean | Dynamic | 0.88 |
+| recent_walk_pattern | Dynamic | 0.70 |
+| morning_steps_ratio | Dynamic | 0.63 |
 
 **Sub-questions:**
 

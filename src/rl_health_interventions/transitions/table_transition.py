@@ -141,6 +141,10 @@ class TableTransition(TransitionModel):
             wd_path = table_dir / f"within_day_{i}.json"
             with wd_path.open(encoding="utf-8") as f:
                 wd_data = json.load(f)
+            if wd_data.get("_format") != "per_factor":
+                logger.warning(
+                    "within_day_%d.json missing _format: per_factor marker", i
+                )
             step_tables: dict[str, dict[str, tuple[list[str], np.ndarray]]] = {}
             for factor_name, fv_table in wd_data.items():
                 if factor_name.startswith("_"):
@@ -275,6 +279,7 @@ class TableTransition(TransitionModel):
                         name,
                         current_val,
                     )
+            state = state.with_factors(**updates)
 
         if state.step_of_day >= len(self._pf_wd):
             msg = (

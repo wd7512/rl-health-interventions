@@ -36,7 +36,7 @@ has 5+ structural mismatches against the actual PEARL study.
 | Experiment runner + shared utils | ✅ Done | `run_experiments.py`, `_shared.py` |
 | Schema + registry updates | ✅ Done | `comb_weighted_fixed` in known types |
 | Regression tests + golden fixtures | ✅ Done | `test_pearl_random.py`, `pearl_random.json` |
-| **Bayesian P-success burden** | ✅ Done | `environment.py` — precomputed P(s|s,a) via transition tables; fixes #252 |
+| **Bayesian P-success burden** | ✅ Done | `environment.py` — precomputed P(s\|s,a) via transition tables; fixes #252 |
 | **12-action transition tables** | ✅ Done | `tables/pearl_12action/` — per-factor format with `day_boundary.json` + `within_day_0.json` |
 | **D15 decision catalogue entry** | ✅ Done | `docs/research/decision-catalogue.md:302` — feature selection entry |
 | **Constitution corrections** | ✅ Done | `docs/research/pearl-constitution.md` — T1.1, T2.1, T2.3, Arm Mapping |
@@ -52,7 +52,7 @@ has 5+ structural mismatches against the actual PEARL study.
 | 1 | Feature selection | weight >= 0.5 boundary, 8 features | Natural break (next is 0.32, 47% drop). See §3. |
 | 2 | State space size | 108 states (5 dynamic vars) | 3 × 2 × 3 × 2 × 3 = 108. Tractable for bootstrap. |
 | 3 | Static features | Persona context (not in state) | Static attrs don't change; transitions depend only on dynamic vars. |
-| 4 | Burden mechanism | Bayesian P success from transition tables | P(action | observed transition) via lookup. See §6. |
+| 4 | Burden mechanism | Bayesian P success from transition tables | P(action \| observed transition) via lookup. See §6. |
 | 5 | Burden window | 7 days (1 week) | Carries across days; naturally decays as old failures fall out of window. |
 | 6 | Burden mapping | 0-2→low, 3-5→medium, 6+→high | Derived from observed PEARL effect sizes (200-300 steps). |
 | 7 | RL algorithm | ε-greedy C-MAB | PEARL uses ε-greedy with ε=0.7-0.8. |
@@ -195,16 +195,18 @@ The baseline is defined by the idle action's transition distribution:
 For a given state `s` and action `a`:
 
 ```
-P(success | s, a) = P(ns | s, a) / (P(ns | s, a) + P(ns | s, idle))
+P_success(s, a) = 1 - Σ P(ns | s, a) * P(ns | s, idle)
 ```
 
-This answers: "Given the observed transition to next_state `ns`, what is the probability
-the action caused it?"
+This answers: "How distinguishable is the action's effect from idle?" A value of 0
+means the action and idle produce identical distributions; 1 means they never produce
+the same outcome.
 
-Aggregated over all possible next states, weighted by P(ns | s, a):
+When multiple stochastic factors exist (PEARL format), P_success is computed per factor
+and combined:
 
 ```
-P_success(s, a) = Σ P(ns | s, a) * P(ns | s, a) / (P(ns | s, a) + P(ns | s, idle))
+P_success(s, a) = 1 - ∏_f [ Σ P_f(ns | s_f, a) * P_f(ns | s_f, idle) ]
 ```
 
 ### Implementation
