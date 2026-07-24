@@ -19,6 +19,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from typing import Any
+
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -133,7 +135,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     logger.info("Running EG variants (ε=0.3)...")
     for eps in [0.3]:
         for ctx_flag in [False, True]:
-            kwargs = {"type": "epsilon_greedy", "epsilon": eps}
+            kwargs: dict[str, Any] = {"type": "epsilon_greedy", "epsilon": eps}
             if ctx_flag:
                 kwargs["contextual"] = True
                 kwargs["context_features"] = ["burden"]
@@ -221,7 +223,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
         if label_key not in records:
             continue
         # Re-run to get trajectories (or store from above — simplest is to re-run)
-        kwargs = {"type": "epsilon_greedy", "epsilon": 0.3}
+        kwargs: dict[str, Any] = {"type": "epsilon_greedy", "epsilon": 0.3}
         if "ctx" in label_key:
             kwargs["contextual"] = True
             kwargs["context_features"] = ["burden"]

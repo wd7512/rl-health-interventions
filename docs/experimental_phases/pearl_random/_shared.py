@@ -38,7 +38,7 @@ def agent_label(cfg) -> str:
 
 def run_agent(config, agent_cfg, n_seeds: int, agent_index: int) -> np.ndarray:
     """Run one agent variant over n_seeds, return rewards array only."""
-    _, rewards = run_agent_detailed(config, agent_cfg, n_seeds, agent_index)
+    rewards, _ = run_agent_detailed(config, agent_cfg, n_seeds, agent_index)
     return rewards
 
 

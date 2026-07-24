@@ -17,8 +17,10 @@ import json
 import logging
 from collections import Counter
 from pathlib import Path
+from typing import Any
 
 import matplotlib
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
@@ -85,7 +87,7 @@ def setup_style() -> None:
     )
 
 
-def load_trajectories() -> dict[str, list[list[dict]]]:
+def load_trajectories() -> tuple[dict[str, list[list[dict]]], int]:
     with open(TRAJECTORY_PATH) as f:
         data = json.load(f)
     trajectories: dict[str, list[list[dict]]] = {}
@@ -265,7 +267,8 @@ def fig12_feature_importance() -> None:
     weights = list(FEATURE_IMPORTANCE.values())
 
     fig, ax = plt.subplots(figsize=(8, 4.5))
-    colors_positive = plt.cm.Blues(np.linspace(0.4, 0.9, len(features)))
+    blues_cm = cm.get_cmap("Blues")
+    colors_positive = blues_cm(np.linspace(0.4, 0.9, len(features)))
     bars = ax.barh(
         range(len(features)),
         weights,
