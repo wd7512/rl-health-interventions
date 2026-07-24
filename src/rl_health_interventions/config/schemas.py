@@ -4,7 +4,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, RootModel, model_validator
 
-_KNOWN_TRANSITION_TYPES = frozenset({"rule_based", "random", "bootstrap"})
+_KNOWN_TRANSITION_TYPES = frozenset({"rule_based", "random", "table_transition"})
 
 
 class TransitionProbabilities(RootModel):
@@ -95,6 +95,7 @@ _KNOWN_AGENT_TYPES = frozenset(
         "ucb",
         "decaying_epsilon_greedy",
         "fixed",
+        "comb_weighted_fixed",
         "heartsteps",
         "q_learning",
         "dqn",
@@ -139,7 +140,10 @@ def _require_in_range_open_lo(
 
 def _reject_fields(config: AgentConfig, fields: list[str], agent_type: str) -> None:
     """Raise ValueError if any of the given fields are set but not applicable for agent type."""
-    violators = [f for f in fields if getattr(config, f) is not None]
+    violators = [
+        f for f in fields
+        if f in config.model_fields_set and getattr(config, f) is not None
+    ]
     if violators:
         if len(violators) == 1:
             raise ValueError(
@@ -185,6 +189,9 @@ class AgentConfig(BaseModel):
     prior_cov: float | None = None
     f_features: str | list[str] | None = None
     g_features: str | list[str] | None = None
+    persona_comb_file: str | None = None
+    persona_name: str | None = None
+    time_preference: str | None = None
 
     @model_validator(mode="after")
     def _validate_agent(self) -> AgentConfig:
@@ -207,7 +214,84 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "fixed agent does not accept learning hyperparameters or contextual"
                 )
+            if (
+                self.persona_comb_file is not None
+                or self.persona_name is not None
+                or self.time_preference is not None
+            ):
+                raise ValueError(
+                    "fixed agent does not accept persona_comb_file, persona_name, or time_preference"
+                )
             return self
+        if self.type == "comb_weighted_fixed":
+            if self.persona_comb_file is None or not self.persona_comb_file.strip():
+                raise ValueError(
+                    "persona_comb_file must be provided for comb_weighted_fixed"
+                )
+            if self.persona_name is None or not self.persona_name.strip():
+                raise ValueError(
+                    "persona_name must be provided for comb_weighted_fixed"
+                )
+            if self.time_preference is not None and self.time_preference not in {
+                "morning",
+                "afternoon",
+                "no_preference",
+            }:
+                raise ValueError(
+                    "time_preference must be one of morning, afternoon, no_preference"
+                )
+            _reject_fields(
+                self,
+                [
+                    "action",
+                    "alpha_prior",
+                    "beta_prior",
+                    "epsilon",
+                    "epsilon_start",
+                    "epsilon_min",
+                    "c",
+                    "decay_steps",
+                    "contextual",
+                    "lr",
+                    "gamma",
+                    "hidden_dim",
+                    "policy_hidden_dim",
+                    "value_hidden_dim",
+                    "state_dim",
+                    "grad_clip",
+                    "batch_size",
+                    "buffer_size",
+                    "target_update_freq",
+                    "clip_eps",
+                    "gae_lambda",
+                    "ppo_epochs",
+                    "sigma_sq",
+                    "w",
+                    "lambda_dosage",
+                    "epsilon_0",
+                    "epsilon_1",
+                    "reference_action",
+                    "prior_mean",
+                    "prior_cov",
+                    "f_features",
+                    "g_features",
+                ],
+                "comb_weighted_fixed",
+            )
+            return self
+        # Reject persona fields for all non-COM-B agent types
+        if self.persona_comb_file is not None:
+            raise ValueError(
+                f"persona_comb_file is not applicable for agent type {self.type}"
+            )
+        if self.persona_name is not None:
+            raise ValueError(
+                f"persona_name is not applicable for agent type {self.type}"
+            )
+        if self.time_preference is not None:
+            raise ValueError(
+                f"time_preference is not applicable for agent type {self.type}"
+            )
         if self.contextual:
             if self.type not in (
                 "thompson_sampling",
@@ -554,12 +638,12 @@ class MDPConfig(BaseModel):
             raise ValueError(
                 "random transition does not accept transition_probabilities"
             )
-        if tm.type == "bootstrap":
+        if tm.type == "table_transition":
             if tm.table_dir is None:
-                raise ValueError("bootstrap transition requires table_dir")
+                raise ValueError("table_transition requires table_dir")
             if tm.transition_probabilities is not None:
                 raise ValueError(
-                    "bootstrap transition does not accept transition_probabilities"
+                    "table_transition does not accept transition_probabilities"
                 )
         tprobs = tm.transition_probabilities
         if tprobs is not None:

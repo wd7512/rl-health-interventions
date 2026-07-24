@@ -1,0 +1,122 @@
+# PEARL-matched config with table_transition transitions.
+# 1 decision/day, 12 non-idle COM-B actions + idle control.
+#
+# Uses the same generated tables as pearl_random, but loads them via
+# TableTransition.  This is the "real" experiment config once
+# tables are committed.  Bayesian P-success burden is active.
+
+initial_state:
+  recent_steps_mean: moderate
+  recent_walk_pattern: low
+  morning_steps_ratio: balanced
+  day_of_week: weekday
+  burden: low
+
+state:
+  variables:
+    recent_steps_mean:
+      names: [low, moderate, high]
+    recent_walk_pattern:
+      names: [low, high]
+    morning_steps_ratio:
+      names: [morning, balanced, evening]
+    day_of_week:
+      names: [weekday, weekend]
+      advanced:
+        type: cyclic
+        granularity: daily
+        pattern: [weekday, weekday, weekday, weekday, weekday, weekend, weekend]
+    burden:
+      names: [low, medium, high]
+      advanced:
+        type: rolling_window_count
+        window_size: 7
+        conditions:
+          - factor: action
+            type: in
+            values:
+              - ability_morning
+              - ability_afternoon
+              - perceived_benefit_morning
+              - perceived_benefit_afternoon
+              - planning_morning
+              - planning_afternoon
+              - prioritization_morning
+              - prioritization_afternoon
+              - social_opportunity_morning
+              - social_opportunity_afternoon
+              - physical_opportunity_morning
+              - physical_opportunity_afternoon
+        mapping:
+          0: low
+          1: low
+          2: low
+          3: medium
+          4: medium
+          5: medium
+          6: high
+          7: high
+
+actions:
+  idle: {}
+  ability_morning: {}
+  ability_afternoon: {}
+  perceived_benefit_morning: {}
+  perceived_benefit_afternoon: {}
+  planning_morning: {}
+  planning_afternoon: {}
+  prioritization_morning: {}
+  prioritization_afternoon: {}
+  social_opportunity_morning: {}
+  social_opportunity_afternoon: {}
+  physical_opportunity_morning: {}
+  physical_opportunity_afternoon: {}
+
+reward:
+  variables:
+    step_reward:
+      source: state.recent_steps_mean
+      mapping: {low: -1.0, moderate: 0.0, high: 1.0}
+    action_penalty:
+      source: action
+      mapping:
+        idle: 0.0
+        ability_morning: 0.05
+        ability_afternoon: 0.05
+        perceived_benefit_morning: 0.05
+        perceived_benefit_afternoon: 0.05
+        planning_morning: 0.05
+        planning_afternoon: 0.05
+        prioritization_morning: 0.05
+        prioritization_afternoon: 0.05
+        social_opportunity_morning: 0.05
+        social_opportunity_afternoon: 0.05
+        physical_opportunity_morning: 0.05
+        physical_opportunity_afternoon: 0.05
+  formula: "step_reward - action_penalty"
+
+transition_model:
+  type: table_transition
+  table_dir: ../../../../tables/pearl_12action
+
+episode_days: 60
+steps_per_day: 1
+seed: 42
+
+agents:
+  # Control arm: always idle
+  - type: fixed
+    action: idle
+
+  # Random arm: uniform over all configured actions
+  - type: random
+
+  # Fixed arm: COM-B barrier-score weighted multinomial
+  - type: comb_weighted_fixed
+    persona_comb_file: config/pearl/comb_scores.json
+    persona_name: base
+    time_preference: morning
+
+  # RL arm: epsilon-greedy contextual bandit approximation
+  - type: epsilon_greedy
+    epsilon: 0.3

@@ -20,6 +20,8 @@ _SHORT_NAMES: dict[str, str] = {
     "reinforce": "REINFORCE",
     "ppo": "PPO",
     "random": "Random",
+    "fixed": "Fixed",
+    "comb_weighted_fixed": "COMB-Fixed",
 }
 
 

@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import logging
 from collections import deque
+from typing import cast
+
+import numpy as np
 
 from rl_health_interventions import make_reward, make_transition
 from rl_health_interventions.config.schemas import (
@@ -36,6 +39,7 @@ class Environment:
         self._config = config
         self._transition = make_transition(config, seed=seed)
         self._reward = make_reward(config)
+        self._rng = np.random.default_rng(seed)
         self._step_count = 0
         self._done = False
         self._current_state: StateView | None = None
@@ -52,26 +56,149 @@ class Environment:
         ]
         window_sizes = [adv.window_size for _, adv in self._rolling_vars]
         max_window = max(window_sizes) if window_sizes else 3
-        self._action_history: deque[str] = deque(maxlen=max_window)
+        self._action_history: deque[tuple[str, str]] = deque(maxlen=max_window)
         self._prime_action_history()
+        self._p_success: dict[str, float] = {}
+        self._precompute_p_success()
 
     @property
     def action_history(self) -> tuple[str, ...]:
-        return tuple(self._action_history)
+        return tuple(action for _, action in self._action_history)
 
     def _prime_action_history(self) -> None:
         self._action_history.clear()
         for _ in range(self._action_history.maxlen or 0):
-            self._action_history.append("idle")
+            self._action_history.append(("", "idle"))
 
-    def _apply_rolling_advances(self, action: str, state: StateView) -> StateView:
-        self._action_history.append(action)
+    def _precompute_p_success(self) -> None:  # noqa: C901, PLR0911, PLR0912, PLR0915
+        """Precompute P-success for each (state_key, action) pair.
+
+        Flat format: P(success | s, a) = 1 - Σ P(ns | s, a) * P(ns | s, idle)
+
+        Per-factor format: combines per-factor overlaps across all stochastic
+        factors so no single factor's distribution is privileged.
+
+        Requires the transition model to expose ``within_day`` tables
+        (``TableTransition``).
+        """
+        if not hasattr(self._transition, "within_day"):
+            return
+        tm = self._transition
+        actions = list(self._config.actions.keys())
+        if "idle" not in actions:
+            return
+
+        stochastic = [
+            n for n, c in self._config.state.variables.items() if c.advanced is None
+        ]
+        factor_value_lists = []
+        for name in stochastic:
+            var_cfg = self._config.state.variables.get(name)
+            if var_cfg is None:
+                continue
+            factor_value_lists.append((name, var_cfg.names))
+
+        from itertools import product  # noqa: PLC0415
+
+        # Per-factor format: use _pf_wd directly, combine across all factors
+        if hasattr(tm, "_per_factor") and tm._per_factor:
+            pf_wd = getattr(tm, "_pf_wd", None)
+            if not pf_wd:
+                return
+            wd_first = pf_wd[0]
+            for combo in product(*(values for _, values in factor_value_lists)):
+                state_key = "|".join(combo)
+                for action in actions:
+                    if action == "idle":
+                        continue
+                    factor_overlaps = []
+                    for i, name in enumerate(stochastic):
+                        if name not in wd_first:
+                            continue
+                        fv = combo[i]
+                        idle_key = f"{fv}|idle"
+                        action_key = f"{fv}|{action}"
+                        if (
+                            idle_key not in wd_first[name]
+                            or action_key not in wd_first[name]
+                        ):
+                            continue
+                        idle_targets, idle_probs = wd_first[name][idle_key]
+                        action_targets, action_probs = wd_first[name][action_key]
+                        all_targets = sorted(set(idle_targets) | set(action_targets))
+                        idle_map = dict(zip(idle_targets, idle_probs, strict=True))
+                        action_map = dict(
+                            zip(action_targets, action_probs, strict=True)
+                        )
+                        p_idle = np.array([idle_map.get(t, 0.0) for t in all_targets])
+                        p_action = np.array(
+                            [action_map.get(t, 0.0) for t in all_targets]
+                        )
+                        overlap = float(np.sum(p_action * p_idle))
+                        factor_overlaps.append(overlap)
+                    if factor_overlaps:
+                        p_success = 1.0 - float(np.prod(factor_overlaps))
+                        key = f"{state_key}|{action}"
+                        self._p_success[key] = max(0.0, min(1.0, p_success))
+            return
+
+        # Flat format (sprint1): single combined distribution per key
+        within_day = cast("list", tm.within_day)
+        if not within_day:
+            return
+        wd_first: dict[str, tuple] = within_day[0]
+
+        for combo in product(*(values for _, values in factor_value_lists)):
+            state_key = "|".join(combo)
+
+            idle_key = state_key + "|idle"
+            if idle_key not in wd_first:
+                continue
+            idle_targets, idle_probs = wd_first[idle_key]
+
+            for action in actions:
+                if action == "idle":
+                    continue
+                action_key = state_key + "|" + action
+                if action_key not in wd_first:
+                    continue
+                action_targets, action_probs = wd_first[action_key]
+
+                # Align probability vectors over same target set
+                all_targets = sorted(set(idle_targets) | set(action_targets))
+                idle_map = dict(zip(idle_targets, idle_probs, strict=True))
+                action_map = dict(zip(action_targets, action_probs, strict=True))
+
+                p_idle = np.array([idle_map.get(t, 0.0) for t in all_targets])
+                p_action = np.array([action_map.get(t, 0.0) for t in all_targets])
+
+                # P(success) = 1 - Σ_t P(t|s,a) * P(t|s,idle)
+                p_success = 1.0 - float(np.sum(p_action * p_idle))
+                self._p_success[f"{state_key}|{action}"] = max(0.0, min(1.0, p_success))
+
+    def _apply_rolling_advances(self, action: str, state: StateView) -> StateView:  # noqa: C901, PLR0912
+        state_key = "|".join(
+            getattr(state, n)
+            for n, c in self._config.state.variables.items()
+            if c.advanced is None
+        )
+        self._action_history.append((state_key, action))
         for name, adv in self._rolling_vars:
             window = list(self._action_history)[-adv.window_size :]
             count = 0
             for cond in adv.conditions:
                 if cond.factor == "action":
-                    count += sum(1 for a in window if a in cond.values)
+                    if self._p_success and name == "burden":
+                        # P-success burden: idle never counts as failure
+                        for hk_state_key, a in window:
+                            if a == "idle":
+                                continue
+                            p_key = f"{hk_state_key}|{a}"
+                            p_success = self._p_success.get(p_key, 0.5)
+                            if self._rng.random() >= p_success:
+                                count += 1
+                    else:
+                        count += sum(1 for _, a in window if a in cond.values)
                 else:
                     fv = getattr(state, cond.factor, None)
                     if fv in cond.values:

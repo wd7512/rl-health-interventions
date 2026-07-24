@@ -6,7 +6,7 @@ import logging
 import numpy as np
 
 from rl_health_interventions.config.loader import load_config
-from rl_health_interventions.transitions.bootstrap import BootstrapTransition
+from rl_health_interventions.transitions.table_transition import TableTransition
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class OptimalBound:
             if alpha is not None
             else self._config.reward.constants.get("alpha", 0.9)
         )
-        self._tm = BootstrapTransition(self._config, seed=42)
+        self._tm = TableTransition(self._config, seed=42)
         self._sb_names = self._config.state.variables["step_bin"].names
         self._sleep_names = self._config.state.variables["sleep"].names
         self._action_names = list(self._config.actions.keys())

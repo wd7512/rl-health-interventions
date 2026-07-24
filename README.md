@@ -5,7 +5,7 @@ A config-driven RL simulation framework for testing health interventions. Define
 ## Quickstart
 
 ```bash
-uv sync --dev
+uv sync --all-extras
 
 # Run with default config
 uv run rl-health-interventions --config config/rule_based.yaml --output results.csv

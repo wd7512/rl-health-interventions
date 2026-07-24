@@ -14,7 +14,7 @@ from rl_health_interventions.agents.deep_rl.dqn import DQNAgent
 from rl_health_interventions.agents.deep_rl.ppo import PPOAgent
 from rl_health_interventions.agents.deep_rl.q_learning import QLearningAgent
 from rl_health_interventions.agents.deep_rl.reinforce import ReinforceAgent
-from rl_health_interventions.agents.fixed import FixedAgent
+from rl_health_interventions.agents.fixed import ComBWeightedFixedAgent, FixedAgent
 from rl_health_interventions.agents.random import RandomAgent
 
 
@@ -24,6 +24,7 @@ def test_all_agents_registered():
     assert "random" in REGISTRY
     assert "ucb" in REGISTRY
     assert "fixed" in REGISTRY
+    assert "comb_weighted_fixed" in REGISTRY
     assert "q_learning" in REGISTRY
     assert "dqn" in REGISTRY
     assert "reinforce" in REGISTRY
@@ -38,6 +39,7 @@ def test_all_agents_registered():
         ("random", RandomAgent),
         ("ucb", UCBAgent),
         ("fixed", FixedAgent),
+        ("comb_weighted_fixed", ComBWeightedFixedAgent),
         ("q_learning", QLearningAgent),
         ("dqn", DQNAgent),
         ("reinforce", ReinforceAgent),
@@ -60,6 +62,16 @@ def test_make_agent(agent_type, expected_cls):
         ),
         ("ucb", {"c": 1.5}, "c", 1.5),
         ("fixed", {"action": "nudge"}, "_action", "nudge"),
+        (
+            "comb_weighted_fixed",
+            {
+                "comb_scores": {"ability": 1},
+                "actions": ["idle", "ability_morning"],
+                "seed": 42,
+            },
+            "_time_preference",
+            "no_preference",
+        ),
     ],
 )
 def test_make_with_kwargs(agent_type, kwargs, check_attr, expected_val):

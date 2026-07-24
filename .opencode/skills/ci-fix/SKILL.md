@@ -39,7 +39,7 @@ Look up the failing check name. Run the fix commands. Re-run the check.
 **Fails with:** import errors, missing dependencies, build system issues
 
 **Fix:**
-1. Sync dependencies: `uv sync --dev`
+1. Sync dependencies: `uv sync --all-extras`
 2. Check pyproject.toml for missing deps
 3. Verify: `uv build`
 

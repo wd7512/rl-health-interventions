@@ -4,7 +4,7 @@ This is a generic Python project template using `uv`, `ruff`, `ty`, and `pytest`
 
 ## Commands
 
-- Install dependencies: `uv sync --dev`
+- Install dependencies: `uv sync --all-extras`
 - Format: `uv run ruff format`
 - Format check (CI): `uv run ruff format --check .`
 - Lint: `uv run ruff check`

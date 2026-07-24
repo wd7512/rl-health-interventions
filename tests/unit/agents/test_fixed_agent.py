@@ -1,6 +1,6 @@
 import pytest
 
-from rl_health_interventions.agents.fixed import FixedAgent
+from rl_health_interventions.agents.fixed import ComBWeightedFixedAgent, FixedAgent
 from rl_health_interventions.config.schemas import AgentConfig
 
 
@@ -51,3 +51,49 @@ def test_fixed_agent_rejects_invalid_action(action):
 def test_fixed_agent_rejects_learning_params(field):
     with pytest.raises(ValueError, match="does not accept"):
         AgentConfig.model_validate({"type": "fixed", "action": "nudge", **field})
+
+
+def test_comb_weighted_fixed_returns_composite_action():
+    agent = ComBWeightedFixedAgent(
+        comb_scores={
+            "ability": 5,
+            "perceived_benefit": 1,
+            "planning": 5,
+            "prioritization": 5,
+            "social_opportunity": 5,
+            "physical_opportunity": 5,
+        },
+        time_preference="morning",
+        seed=1,
+        actions=[
+            "idle",
+            "ability_morning",
+            "ability_afternoon",
+            "perceived_benefit_morning",
+            "perceived_benefit_afternoon",
+        ],
+    )
+    action = agent.select_action(None)
+    assert action in {
+        "ability_morning",
+        "ability_afternoon",
+        "perceived_benefit_morning",
+        "perceived_benefit_afternoon",
+    }
+
+
+def test_comb_weighted_fixed_config_requires_persona_fields():
+    with pytest.raises(ValueError, match="persona_comb_file"):
+        AgentConfig.model_validate({"type": "comb_weighted_fixed"})
+
+
+def test_comb_weighted_fixed_config_rejects_invalid_preference():
+    with pytest.raises(ValueError, match="time_preference"):
+        AgentConfig.model_validate(
+            {
+                "type": "comb_weighted_fixed",
+                "persona_comb_file": "config/pearl/comb_scores.json",
+                "persona_name": "base",
+                "time_preference": "night",
+            }
+        )

@@ -13,7 +13,7 @@
 
 | ID | Name | Criterion | Rationale |
 |----|------|-----------|-----------|
-| T1.1 | Baseline stability | Mean steps during 7-day baseline period within ±15% of PEARL reference (μ=5,618) | Ensure simulation starts from realistic baseline |
+| T1.1 | Baseline stability | Mean steps during 30-day pre-study window within ±15% of PEARL reference (μ=5,618) | Ensure simulation starts from realistic baseline |
 | T1.2 | Action differentiation | One-way ANOVA across 4 arms on mean daily steps at 1 month, p < 0.01 | Arms must diverge from each other |
 | T1.3 | Direction correctness | RL arm mean daily steps > Control arm mean in ≥90% of seeds | RL must be at least non-inferior |
 | T1.4 | No degenerate trajectories | No single-day step total == 0 or > 30,000 across any seed or arm | Physiological plausibility |
@@ -24,9 +24,9 @@
 
 | ID | Name | Criterion | Rationale |
 |----|------|-----------|-----------|
-| T2.1 | Baseline mean | One-sample t-test vs μ=5,618 on 7-day baseline, p > 0.05 | Cannot reject PEARL baseline distribution |
+| T2.1 | Baseline mean | One-sample t-test vs μ=5,618 on 30-day pre-study window, p > 0.05 | Cannot reject PEARL baseline distribution |
 | T2.2 | Effect size magnitude | RL vs Control Δ at 1 month: 150 ≤ Δ ≤ 450 steps | Effect must be within plausible range |
-| T2.3 | Effect size ordering | Mean daily steps: RL ≥ Fixed ≥ Random > Control | Must match PEARL ordinal pattern |
+| T2.3 | Effect size ordering | Mean daily steps: RL > (Fixed ≈ Random ≈ Control) | PEARL observed RL superiority; other arms indistinguishable under random transitions |
 | T2.4 | Attenuation pattern | 1-month to 2-month decay: 15% ≤ (Δ₁ - Δ₂)/Δ₁ ≤ 45% | Within PEARL-observed attenuation range (29%) |
 | T2.5 | Between-person variance | ICC for daily steps across seeds: 0.4 ≤ ICC ≤ 0.9 | Participants should differ from each other |
 
@@ -60,8 +60,8 @@
 |-----------|-----------------|-------------|
 | Control | FixedAgent(action="idle") | No nudges, pure observation |
 | Random | RandomAgent (uniform) | Random action selection |
-| Fixed | FixedAgent(action="movement_suggestion") | Always sends activity suggestion |
-| RL | ThompsonSampling | Contextual bandit learning |
+| Fixed | ComBWeightedFixedAgent | COM-B barrier-score weighted multinomial |
+| RL | EpsilonGreedyAgent(epsilon=0.3) | ε-greedy contextual bandit approximation |
 
 ## Persona Weights (Demographic Matching)
 
