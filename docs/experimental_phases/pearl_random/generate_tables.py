@@ -1,6 +1,6 @@
 """Generate PEARL 12-action transition tables.
 
-Produces JSON tables at tables/pearl_12action/ for use with the
+Produces per-factor JSON tables at tables/pearl_12action/ for use with the
 table_transition transition model.  Run once, commit output:
 
     uv run python docs/experimental_phases/pearl_random/generate_tables.py
@@ -15,7 +15,7 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
-_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 _CONFIG_PATH = (
     _REPO_ROOT
     / "docs"
@@ -70,58 +70,28 @@ def _generate_tables(config):  # noqa: ANN001
     return day_boundary, within_day
 
 
-def _flatten_to_bootstrap_format(
-    tables,  # noqa: ANN001
-    stochastic,  # noqa: ANN001
-    actions,  # noqa: ANN001
-    config,  # noqa: ANN001
-):
-    """Convert per-factor tables to flat bootstrap-compatible JSON format."""
-    factor_value_lists = []
-    for name in stochastic:
-        var_cfg = config.state.variables.get(name)
-        if var_cfg is None:
-            continue
-        factor_value_lists.append(var_cfg.names)
+def _save_per_factor_tables(
+    day_boundary, within_day, output_dir, config  # noqa: ANN001
+) -> None:
+    """Save tables in per-factor format with _format marker."""
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    # day_boundary: key = "{fv1}|{fv2}|..."
-    flat_db: dict[str, dict] = {}
-    for combo in itertools.product(*factor_value_lists):
-        key = "|".join(combo)
-        first_name = stochastic[0]
-        first_val = combo[0]
-        if first_name in tables and first_val in tables[first_name]:
-            flat_db[key] = tables[first_name][first_val]
-    return flat_db
+    # day_boundary.json
+    db_path = output_dir / "day_boundary.json"
+    db_data = {"_format": "per_factor"}
+    db_data.update(day_boundary)
+    with db_path.open("w", encoding="utf-8") as f:
+        json.dump(db_data, f, indent=2)
+    logger.info("Saved day_boundary.json (per_factor format)")
 
-
-def _flatten_within_day(
-    within_day_tables,  # noqa: ANN001
-    stochastic,  # noqa: ANN001
-    actions,  # noqa: ANN001
-    config,  # noqa: ANN001
-):
-    """Convert per-factor within_day tables to flat bootstrap-compatible format."""
-    factor_value_lists = []
-    for name in stochastic:
-        var_cfg = config.state.variables.get(name)
-        if var_cfg is None:
-            continue
-        factor_value_lists.append(var_cfg.names)
-
-    result = []
-    for step_tables in within_day_tables:
-        flat: dict[str, dict] = {}
-        for combo in itertools.product(*factor_value_lists):
-            for action in actions:
-                full_key = "|".join(combo) + "|" + action
-                for name, fv in zip(stochastic, combo, strict=True):
-                    sa_key = f"{fv}|{action}"
-                    if name in step_tables and sa_key in step_tables[name]:
-                        flat[full_key] = step_tables[name][sa_key]
-                        break
-        result.append(flat)
-    return result
+    # within_day_N.json
+    for step_idx, step_tables in enumerate(within_day):
+        wd_path = output_dir / f"within_day_{step_idx}.json"
+        wd_data = {"_format": "per_factor"}
+        wd_data.update(step_tables)
+        with wd_path.open("w", encoding="utf-8") as f:
+            json.dump(wd_data, f, indent=2)
+        logger.info("Saved within_day_%d.json (per_factor format)", step_idx)
 
 
 def main() -> None:
@@ -144,30 +114,9 @@ def main() -> None:
     logger.info("Generating tables with seed=%d", config.seed)
     day_boundary_tables, within_day_tables = _generate_tables(config)
 
-    # Flatten to bootstrap-compatible format
-    flat_db = _flatten_to_bootstrap_format(
-        day_boundary_tables, stochastic, actions, config
+    _save_per_factor_tables(
+        day_boundary_tables, within_day_tables, _OUTPUT_DIR, config
     )
-    flat_wd = _flatten_within_day(
-        within_day_tables, stochastic, actions, config
-    )
-
-    # Save
-    _OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    db_path = _OUTPUT_DIR / "day_boundary.json"
-    with db_path.open("w", encoding="utf-8") as f:
-        json.dump(flat_db, f, indent=2)
-    logger.info("Saved day_boundary.json with %d entries", len(flat_db))
-
-    for step_idx, flat_table in enumerate(flat_wd):
-        wd_path = _OUTPUT_DIR / f"within_day_{step_idx}.json"
-        with wd_path.open("w", encoding="utf-8") as f:
-            json.dump(flat_table, f, indent=2)
-        logger.info(
-            "Saved within_day_%d.json with %d entries", step_idx, len(flat_table)
-        )
-
     logger.info("Done. Tables saved to %s", _OUTPUT_DIR)
 
 

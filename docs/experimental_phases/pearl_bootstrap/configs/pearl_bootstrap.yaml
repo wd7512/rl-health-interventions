@@ -97,7 +97,7 @@ reward:
 
 transition_model:
   type: table_transition
-  table_dir: tables/pearl_12action
+  table_dir: ../../../../tables/pearl_12action
 
 episode_days: 60
 steps_per_day: 1
