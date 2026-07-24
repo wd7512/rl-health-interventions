@@ -8,7 +8,6 @@ table_transition transition model.  Run once, commit output:
 
 from __future__ import annotations
 
-import itertools
 import json
 import logging
 from pathlib import Path
@@ -28,7 +27,7 @@ _CONFIG_PATH = (
 _OUTPUT_DIR = _REPO_ROOT / "tables" / "pearl_12action"
 
 
-def _generate_tables(config):  # noqa: ANN001
+def _generate_tables(config):  # noqa: C901
     """Generate per-(factor_value, action) Dirichlet tables."""
     import numpy as np  # noqa: PLC0415
 
@@ -73,7 +72,6 @@ def _save_per_factor_tables(
     day_boundary,
     within_day,
     output_dir,
-    config,  # noqa: ANN001
 ) -> None:
     """Save tables in per-factor format with _format marker."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -114,7 +112,7 @@ def main() -> None:
     logger.info("Generating tables with seed=%d", config.seed)
     day_boundary_tables, within_day_tables = _generate_tables(config)
 
-    _save_per_factor_tables(day_boundary_tables, within_day_tables, _OUTPUT_DIR, config)
+    _save_per_factor_tables(day_boundary_tables, within_day_tables, _OUTPUT_DIR)
     logger.info("Done. Tables saved to %s", _OUTPUT_DIR)
 
 
