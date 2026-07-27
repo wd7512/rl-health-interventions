@@ -262,7 +262,7 @@ class TestComBWeightedFixedAgent:
         agent.on_day_end()
         action = agent.select_action(None)
         assert "_" in action
-        theme, timing = action.split("_")
+        theme, timing = action.rsplit("_", 1)
         assert theme in ComBWeightedFixedAgent.THEMES
         assert timing in ComBWeightedFixedAgent.TIMINGS
 
@@ -386,6 +386,27 @@ class TestScoreLoading:
         )
         action = agent.select_action(None)
         assert "_" in action
+
+    def test_file_based_invalid_time_preference(self, tmp_path):
+        """Invalid time_preference in JSON file → ValueError."""
+        data = {
+            "test_persona": {
+                "ability": 3,
+                "perceived_benefit": 2,
+                "physical_opportunity": 4,
+                "planning": 2,
+                "prioritization": 3,
+                "social_opportunity": 3,
+                "time_preference": "night",
+            }
+        }
+        fpath = tmp_path / "scores.json"
+        fpath.write_text(json.dumps(data), encoding="utf-8")
+        with pytest.raises(ValueError, match="invalid time_preference"):
+            ComBWeightedFixedAgent(
+                persona_comb_file=str(fpath),
+                persona_name="test_persona",
+            )
 
     def test_file_based_missing_file(self):
         """Missing file → FileNotFoundError."""
@@ -623,8 +644,8 @@ class TestComBWeightedFixedConfig:
             )
 
     def test_persona_name_without_file_raises(self):
-        """persona_name alone → rejected (neither side complete)."""
-        with pytest.raises(ValueError, match="requires either"):
+        """persona_name alone → rejected (incomplete pair)."""
+        with pytest.raises(ValueError, match="must be provided together"):
             AgentConfig.model_validate(
                 {
                     "type": "comb_weighted_fixed",
@@ -633,8 +654,8 @@ class TestComBWeightedFixedConfig:
             )
 
     def test_persona_file_without_name_raises(self):
-        """persona_comb_file without persona_name → rejected (neither side complete)."""
-        with pytest.raises(ValueError, match="requires either"):
+        """persona_comb_file without persona_name → rejected (incomplete pair)."""
+        with pytest.raises(ValueError, match="must be provided together"):
             AgentConfig.model_validate(
                 {
                     "type": "comb_weighted_fixed",

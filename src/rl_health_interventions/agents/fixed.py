@@ -21,6 +21,7 @@ _THEMES = frozenset(
 )
 _TIMINGS = frozenset({"morning", "afternoon"})
 _MAX_LIKERT = 5
+_VALID_TIME_PREFERENCES = frozenset({"morning", "afternoon", "no_preference"})
 
 _ALL_ACTIONS = sorted(
     f"{theme}_{timing}" for theme in sorted(_THEMES) for timing in sorted(_TIMINGS)
@@ -39,6 +40,15 @@ class FixedAgent(Agent):
     @override
     def select_action(self, state) -> str:
         return self._action
+
+
+def _validate_time_preference(time_pref: str, persona_name: str, path: str) -> None:
+    """Raise ValueError if time_pref is not a valid value."""
+    if time_pref not in _VALID_TIME_PREFERENCES:
+        raise ValueError(
+            f"invalid time_preference '{time_pref}' for persona '{persona_name}' "
+            f"in {path}; expected one of {sorted(_VALID_TIME_PREFERENCES)}"
+        )
 
 
 def _load_scores_from_file(
@@ -68,6 +78,7 @@ def _load_scores_from_file(
             )
         scores[theme] = entry[theme]
     time_pref = time_preference or entry.get("time_preference", "no_preference")
+    _validate_time_preference(time_pref, persona_name, path)
     return scores, time_pref
 
 

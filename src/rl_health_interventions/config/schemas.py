@@ -215,10 +215,17 @@ class AgentConfig(BaseModel):
             return self
         # ── COM-B Weighted Fixed (early return to avoid contextual checks) ──
         if self.type == "comb_weighted_fixed":
+            has_any_persona = (
+                self.persona_comb_file is not None or self.persona_name is not None
+            )
             has_file = (
                 self.persona_comb_file is not None and self.persona_name is not None
             )
             has_inline = self.inline_comb_scores is not None
+            if has_any_persona and not has_file:
+                raise ValueError(
+                    "persona_comb_file and persona_name must be provided together"
+                )
             if has_file and has_inline:
                 raise ValueError(
                     "comb_weighted_fixed accepts (persona_comb_file + persona_name) "
