@@ -100,6 +100,7 @@ _KNOWN_AGENT_TYPES = frozenset(
         "dqn",
         "reinforce",
         "ppo",
+        "comb_weighted_fixed",
     }
 )
 
@@ -185,6 +186,10 @@ class AgentConfig(BaseModel):
     prior_cov: float | None = None
     f_features: str | list[str] | None = None
     g_features: str | list[str] | None = None
+    persona_comb_file: str | None = None
+    persona_name: str | None = None
+    inline_comb_scores: dict[str, int] | None = None
+    time_preference: str | None = None
 
     @model_validator(mode="after")
     def _validate_agent(self) -> AgentConfig:
@@ -207,6 +212,59 @@ class AgentConfig(BaseModel):
                 raise ValueError(
                     "fixed agent does not accept learning hyperparameters or contextual"
                 )
+            return self
+        # ── COM-B Weighted Fixed (early return to avoid contextual checks) ──
+        if self.type == "comb_weighted_fixed":
+            has_any_persona = (
+                self.persona_comb_file is not None or self.persona_name is not None
+            )
+            has_file = (
+                self.persona_comb_file is not None and self.persona_name is not None
+            )
+            has_inline = self.inline_comb_scores is not None
+            if has_any_persona and not has_file:
+                raise ValueError(
+                    "persona_comb_file and persona_name must be provided together"
+                )
+            if has_file and has_inline:
+                raise ValueError(
+                    "comb_weighted_fixed accepts (persona_comb_file + persona_name) "
+                    "OR inline_comb_scores, not both"
+                )
+            if not has_file and not has_inline:
+                raise ValueError(
+                    "comb_weighted_fixed requires either (persona_comb_file + persona_name) "
+                    "or inline_comb_scores"
+                )
+            if has_file:
+                if not self.persona_comb_file.strip():
+                    raise ValueError("persona_comb_file must be a non-empty string")
+                if not self.persona_name.strip():
+                    raise ValueError("persona_name must be a non-empty string")
+            if self.time_preference is not None:
+                valid_prefs = {"morning", "afternoon", "no_preference"}
+                if self.time_preference not in valid_prefs:
+                    raise ValueError(
+                        f"time_preference must be one of {sorted(valid_prefs)}, "
+                        f"got '{self.time_preference}'"
+                    )
+            if self.contextual:
+                raise ValueError(
+                    "contextual=True is not applicable for agent type comb_weighted_fixed"
+                )
+            _reject_fields(
+                self,
+                [
+                    "alpha_prior",
+                    "beta_prior",
+                    "epsilon",
+                    "epsilon_start",
+                    "c",
+                    "decay_steps",
+                    "action",
+                ],
+                "comb_weighted_fixed",
+            )
             return self
         if self.contextual:
             if self.type not in (

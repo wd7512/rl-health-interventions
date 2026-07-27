@@ -17,6 +17,15 @@ from rl_health_interventions.agents.deep_rl.reinforce import ReinforceAgent
 from rl_health_interventions.agents.fixed import FixedAgent
 from rl_health_interventions.agents.random import RandomAgent
 
+_INLINE_SCORES = {
+    "ability": 3,
+    "perceived_benefit": 2,
+    "physical_opportunity": 4,
+    "planning": 2,
+    "prioritization": 3,
+    "social_opportunity": 3,
+}
+
 
 def test_all_agents_registered():
     assert "thompson_sampling" in REGISTRY
@@ -28,6 +37,7 @@ def test_all_agents_registered():
     assert "dqn" in REGISTRY
     assert "reinforce" in REGISTRY
     assert "ppo" in REGISTRY
+    assert "comb_weighted_fixed" in REGISTRY
 
 
 @pytest.mark.parametrize(
@@ -60,11 +70,20 @@ def test_make_agent(agent_type, expected_cls):
         ),
         ("ucb", {"c": 1.5}, "c", 1.5),
         ("fixed", {"action": "nudge"}, "_action", "nudge"),
+        (
+            "comb_weighted_fixed",
+            {"comb_scores": _INLINE_SCORES},
+            "_rng",
+            None,
+        ),
     ],
 )
 def test_make_with_kwargs(agent_type, kwargs, check_attr, expected_val):
     agent = make(agent_type, **kwargs)
-    assert getattr(agent, check_attr) == expected_val
+    if expected_val is None:
+        assert hasattr(agent, check_attr)
+    else:
+        assert getattr(agent, check_attr) == expected_val
 
 
 def test_make_unknown_raises_keyerror():
