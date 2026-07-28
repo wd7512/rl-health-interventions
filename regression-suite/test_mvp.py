@@ -1,7 +1,7 @@
-"""Regression tests for sprint1_bootstrap experiments.
+"""Regression tests for MVP experiments.
 
-Re-runs all sprint1_bootstrap configs at fixed seeds and compares against
-golden JSON fixtures stored in docs/experimental_phases/sprint1_bootstrap/results/.
+Re-runs all MVP configs at fixed seeds and compares against golden JSON fixtures
+stored in docs/experimental_phases/mvp/results/.
 
 Tolerance: ±0.1% relative per metric.
 """
@@ -17,33 +17,17 @@ from pathlib import Path
 import pytest
 import yaml
 
-_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-_RUNNER = (
-    _REPO_ROOT
-    / "docs"
-    / "experimental_phases"
-    / "sprint1_bootstrap"
-    / "run_experiments.py"
-)
-_RESULTS_DIR = (
-    _REPO_ROOT / "docs" / "experimental_phases" / "sprint1_bootstrap" / "results"
-)
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+_RUNNER = _REPO_ROOT / "docs" / "experimental_phases" / "mvp" / "run_experiments.py"
+_RESULTS_DIR = _REPO_ROOT / "docs" / "experimental_phases" / "mvp" / "results"
 _REL_TOLERANCE = 0.001  # 0.1% relative tolerance
 
 _METRICS = ["total_reward", "total_std", "per_step", "last50"]
 
-_CONFIGS = [
-    "sprint1_bootstrap",
-    "sprint1_bootstrap_masked",
-    "sprint1_bootstrap_extensions",
-    "sprint1_bootstrap_extensions_masked",
-    "sprint1_bootstrap_context_burden",
-]
-
 
 @pytest.fixture(scope="module")
-def sprint1_bootstrap_results() -> dict[str, dict]:
-    """Run the sprint1_bootstrap benchmark once and return all config results."""
+def mvp_results() -> dict[str, dict]:
+    """Run the MVP benchmark once and return all config results as structured data."""
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
         result = subprocess.run(
@@ -75,37 +59,49 @@ def sprint1_bootstrap_results() -> dict[str, dict]:
         return results
 
 
-@pytest.mark.timeout(30, func_only=True)
-@pytest.mark.parametrize("config_name", _CONFIGS)
-def test_sprint1_bootstrap_regression(
-    config_name: str, sprint1_bootstrap_results: dict[str, dict]
-) -> None:
+@pytest.mark.timeout(30)
+@pytest.mark.parametrize(
+    "config_name",
+    ["mvp", "mvp_masked", "mvp_extensions", "mvp_extensions_masked"],
+)
+def test_mvp_regression(config_name: str, mvp_results: dict[str, dict]) -> None:
     """Compare live results against golden fixtures."""
     fixture_path = _RESULTS_DIR / f"{config_name}.json"
-
-    # Skip if fixture doesn't exist yet (will be generated on first run)
-    if not fixture_path.exists():
-        pytest.skip(f"Golden fixture missing: {fixture_path}")
+    assert fixture_path.exists(), (
+        f"Golden fixture missing: {fixture_path}\n"
+        f"Generate with: python {_RUNNER} --config {config_name} "
+        f"--output {_RESULTS_DIR} --json --confirm-overwrite"
+    )
 
     with fixture_path.open(encoding="utf-8") as f:
         fixture = json.load(f)
 
+    # Guard against seed drift: fixture seed must match config seed
     config_path = (
         _REPO_ROOT
         / "docs"
         / "experimental_phases"
-        / "sprint1_bootstrap"
+        / "mvp"
         / "configs"
         / f"{config_name}.yaml"
     )
     with config_path.open(encoding="utf-8") as f:
         config_seed = (yaml.safe_load(f) or {}).get("seed", 42)
-    assert fixture["seed"] == config_seed
+    assert fixture["seed"] == config_seed, (
+        f"Fixture seed ({fixture['seed']}) != config seed ({config_seed}). "
+        f"Re-baseline with: python {_RUNNER} --config {config_name}"
+        f" --output {_RESULTS_DIR} --json --confirm-overwrite"
+    )
 
-    assert fixture["seeds"] == 50
+    # Guard against seed count drift
+    assert fixture["seeds"] == 50, (
+        f"Fixture seeds ({fixture['seeds']}) != 50. "
+        f"Re-baseline with: python {_RUNNER} --config {config_name}"
+        f" --seeds 50 --output {_RESULTS_DIR} --json --confirm-overwrite"
+    )
 
     golden_agents = fixture["agents"]
-    live_agents = sprint1_bootstrap_results.get(config_name, {})
+    live_agents = mvp_results.get(config_name, {})
 
     missing_from_live = set(golden_agents) - set(live_agents)
     extra_from_live = set(live_agents) - set(golden_agents)

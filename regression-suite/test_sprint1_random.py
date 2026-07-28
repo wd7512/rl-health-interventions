@@ -1,7 +1,7 @@
-"""Regression tests for MVP experiments.
+"""Regression tests for sprint1_random experiments.
 
-Re-runs all MVP configs at fixed seeds and compares against golden JSON fixtures
-stored in docs/experimental_phases/mvp/results/.
+Re-runs all sprint1_random configs at fixed seeds and compares against golden
+JSON fixtures stored in docs/experimental_phases/sprint1_random/results/.
 
 Tolerance: ±0.1% relative per metric.
 """
@@ -17,17 +17,32 @@ from pathlib import Path
 import pytest
 import yaml
 
-_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-_RUNNER = _REPO_ROOT / "docs" / "experimental_phases" / "mvp" / "run_experiments.py"
-_RESULTS_DIR = _REPO_ROOT / "docs" / "experimental_phases" / "mvp" / "results"
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+_RUNNER = (
+    _REPO_ROOT
+    / "docs"
+    / "experimental_phases"
+    / "sprint1_random"
+    / "run_experiments.py"
+)
+_RESULTS_DIR = (
+    _REPO_ROOT / "docs" / "experimental_phases" / "sprint1_random" / "results"
+)
 _REL_TOLERANCE = 0.001  # 0.1% relative tolerance
 
 _METRICS = ["total_reward", "total_std", "per_step", "last50"]
 
+_CONFIGS = [
+    "sprint1_random",
+    "sprint1_random_masked",
+    "sprint1_random_extensions",
+    "sprint1_random_extensions_masked",
+]
+
 
 @pytest.fixture(scope="module")
-def mvp_results() -> dict[str, dict]:
-    """Run the MVP benchmark once and return all config results as structured data."""
+def sprint1_results() -> dict[str, dict]:
+    """Run the sprint1_random benchmark once and return all config results."""
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
         result = subprocess.run(
@@ -59,12 +74,11 @@ def mvp_results() -> dict[str, dict]:
         return results
 
 
-@pytest.mark.timeout(30)
-@pytest.mark.parametrize(
-    "config_name",
-    ["mvp", "mvp_masked", "mvp_extensions", "mvp_extensions_masked"],
-)
-def test_mvp_regression(config_name: str, mvp_results: dict[str, dict]) -> None:
+@pytest.mark.timeout(30, func_only=True)
+@pytest.mark.parametrize("config_name", _CONFIGS)
+def test_sprint1_random_regression(
+    config_name: str, sprint1_results: dict[str, dict]
+) -> None:
     """Compare live results against golden fixtures."""
     fixture_path = _RESULTS_DIR / f"{config_name}.json"
     assert fixture_path.exists(), (
@@ -76,12 +90,11 @@ def test_mvp_regression(config_name: str, mvp_results: dict[str, dict]) -> None:
     with fixture_path.open(encoding="utf-8") as f:
         fixture = json.load(f)
 
-    # Guard against seed drift: fixture seed must match config seed
     config_path = (
         _REPO_ROOT
         / "docs"
         / "experimental_phases"
-        / "mvp"
+        / "sprint1_random"
         / "configs"
         / f"{config_name}.yaml"
     )
@@ -93,7 +106,6 @@ def test_mvp_regression(config_name: str, mvp_results: dict[str, dict]) -> None:
         f" --output {_RESULTS_DIR} --json --confirm-overwrite"
     )
 
-    # Guard against seed count drift
     assert fixture["seeds"] == 50, (
         f"Fixture seeds ({fixture['seeds']}) != 50. "
         f"Re-baseline with: python {_RUNNER} --config {config_name}"
@@ -101,7 +113,7 @@ def test_mvp_regression(config_name: str, mvp_results: dict[str, dict]) -> None:
     )
 
     golden_agents = fixture["agents"]
-    live_agents = mvp_results.get(config_name, {})
+    live_agents = sprint1_results.get(config_name, {})
 
     missing_from_live = set(golden_agents) - set(live_agents)
     extra_from_live = set(live_agents) - set(golden_agents)
