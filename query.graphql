@@ -1,0 +1,18 @@
+﻿query {
+  repository(owner: "wd7512", name: "rl-health-interventions") {
+    pullRequest(number: 275) {
+      reviewThreads(first: 20) {
+        nodes {
+          id
+          isResolved
+          comments(first: 1) {
+            nodes {
+              databaseId
+              body
+            }
+          }
+        }
+      }
+    }
+  }
+}
