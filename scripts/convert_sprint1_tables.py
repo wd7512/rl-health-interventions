@@ -213,39 +213,56 @@ def _write_step_file(
 # ── Conversion ────────────────────────────────────────────────────────────────
 
 
-def _convert_persona(persona_dir: Path) -> list[Path]:
-    """Convert one persona directory from old format to new format.
+def _already_converted(persona_dir: Path) -> bool:
+    """Check if persona already has new-format step files (skip flag)."""
+    if not all((persona_dir / f"step_{i}.json").exists() for i in range(_STEP_COUNT)):
+        return False
+    old_exist = any(
+        (persona_dir / "day_boundary.json").exists()
+        or (persona_dir / f"within_day_{i}.json").exists()
+        for i in range(_STEP_COUNT)
+    )
+    return not old_exist
 
-    Returns the list of newly created step file paths.
-    """
-    persona_name = persona_dir.name
-    logger.info("Converting persona: %s", persona_name)
 
-    # Load old-format files
+_OldFormatData = tuple[
+    dict[tuple[str, str, str, str], dict[str, float]],
+    list[dict[tuple[str, str, str, str, str], dict[str, float]]],
+]
+
+
+def _load_old_format(persona_dir: Path) -> _OldFormatData | None:
+    """Load old-format files, returning (boundary, within) or None."""
     boundary_path = persona_dir / "day_boundary.json"
     within_paths = [persona_dir / f"within_day_{i}.json" for i in range(_STEP_COUNT)]
 
     if not boundary_path.exists():
-        logger.warning("Skipping %s: missing day_boundary.json", persona_name)
-        return []
+        logger.warning("Skipping %s: missing day_boundary.json", persona_dir.name)
+        return None
 
     boundary_data = _load_boundary(boundary_path)
     within_data: list[dict[tuple[str, str, str, str, str], dict[str, float]]] = []
     for p in within_paths:
         if not p.exists():
-            logger.warning("Skipping %s: missing %s", persona_name, p.name)
-            return []
+            logger.warning("Skipping %s: missing %s", persona_dir.name, p.name)
+            return None
         within_data.append(_load_within_day(p))
+    return (boundary_data, within_data)
 
+
+def _generate_step_files(
+    persona_dir: Path,
+    boundary_data: dict[tuple[str, str, str, str], dict[str, float]],
+    within_data: list[dict[tuple[str, str, str, str, str], dict[str, float]]],
+) -> list[Path]:
+    """Generate new-format step files from old-format data."""
     created_files: list[Path] = []
 
-    # Step 0: merge boundary (sleep) + within_day_0 (step_bin)
     step_0 = _build_step_entries(boundary_data, within_data[0])
     step_0_path = persona_dir / "step_0.json"
     _write_step_file(step_0_path, step_of_day=0, entries=step_0)
     created_files.append(step_0_path)
 
-    # Steps 1..4: within_day_N (step_bin) + sleep identity
     for step_idx in range(1, _STEP_COUNT):
         entries = _build_step_entries_identity(within_data[step_idx])
         step_path = persona_dir / f"step_{step_idx}.json"
@@ -253,6 +270,28 @@ def _convert_persona(persona_dir: Path) -> list[Path]:
         created_files.append(step_path)
 
     return created_files
+
+
+def _convert_persona(persona_dir: Path) -> tuple[str, list[Path]]:
+    """Convert one persona directory from old format to new format.
+
+    Returns a tuple of (status, created_files) where status is
+    ``"converted"``, ``"skipped"``, or ``"failed"``.
+    """
+    persona_name = persona_dir.name
+    logger.info("Converting persona: %s", persona_name)
+
+    if _already_converted(persona_dir):
+        logger.info("Skipping %s: already converted", persona_name)
+        return ("skipped", [])
+
+    old_data = _load_old_format(persona_dir)
+    if old_data is None:
+        return ("failed", [])
+    boundary_data, within_data = old_data
+
+    created_files = _generate_step_files(persona_dir, boundary_data, within_data)
+    return ("converted", created_files)
 
 
 # ── Validation ────────────────────────────────────────────────────────────────
@@ -386,12 +425,12 @@ def _remove_old_files(persona_dir: Path) -> None:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 
-def _process_persona(persona_dir: Path) -> bool:
-    """Convert and validate one persona directory. Returns True on success."""
-    created = _convert_persona(persona_dir)
-    if not created:
-        logger.warning("No files created for %s, skipping", persona_dir.name)
-        return False
+def _process_persona(persona_dir: Path) -> str:
+    """Process one persona. Returns ``"converted"``, ``"skipped"``, or ``"failed"``."""
+    status, created = _convert_persona(persona_dir)
+
+    if status != "converted":
+        return status
 
     validation_errors = _validate_persona(persona_dir)
     if validation_errors:
@@ -400,11 +439,11 @@ def _process_persona(persona_dir: Path) -> bool:
             persona_dir.name,
             "\n  ".join(validation_errors),
         )
-        return False
+        return "failed"
 
     _remove_old_files(persona_dir)
     logger.info("Converted %s: %d step files", persona_dir.name, len(created))
-    return True
+    return "converted"
 
 
 def _ensure_tables_root() -> list[Path]:
@@ -419,23 +458,30 @@ def _ensure_tables_root() -> list[Path]:
     return persona_dirs
 
 
-def _convert_all(persona_dirs: list[Path]) -> tuple[int, int]:
-    """Convert all persona directories. Returns (success_count, error_count)."""
-    success_count = 0
-    error_count = 0
+def _convert_all(persona_dirs: list[Path]) -> tuple[int, int, int]:
+    """Convert all persona directories.
+
+    Returns (converted_count, skipped_count, failed_count).
+    """
+    converted_count = 0
+    skipped_count = 0
+    failed_count = 0
 
     for persona_dir in persona_dirs:
         logger.info("─" * 50)
         try:
-            if _process_persona(persona_dir):
-                success_count += 1
+            status = _process_persona(persona_dir)
+            if status == "converted":
+                converted_count += 1
+            elif status == "skipped":
+                skipped_count += 1
             else:
-                error_count += 1
+                failed_count += 1
         except Exception:
             logger.exception("Error converting %s", persona_dir.name)
-            error_count += 1
+            failed_count += 1
 
-    return success_count, error_count
+    return converted_count, skipped_count, failed_count
 
 
 def main() -> None:
@@ -444,15 +490,16 @@ def main() -> None:
     if not persona_dirs:
         return
 
-    success_count, error_count = _convert_all(persona_dirs)
+    converted_count, skipped_count, failed_count = _convert_all(persona_dirs)
 
     logger.info("=" * 50)
     logger.info(
-        "Conversion complete: %d succeeded, %d failed",
-        success_count,
-        error_count,
+        "Conversion complete: %d converted, %d skipped, %d failed",
+        converted_count,
+        skipped_count,
+        failed_count,
     )
-    if error_count:
+    if failed_count:
         raise SystemExit(1)
 
 

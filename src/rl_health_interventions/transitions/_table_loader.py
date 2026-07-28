@@ -22,6 +22,9 @@ class TableLoader:
 
         Files are read in sorted (by path) order. Files that are not valid
         JSON are skipped with a warning.
+
+        Raises ``ValueError`` if every discovered ``.json`` file is unusable
+        (malformed or not a dict).
         """
         json_files = sorted(table_dir.glob("*.json"))
         tables: list[dict] = []
@@ -29,6 +32,12 @@ class TableLoader:
             data = self._read_json(json_path)
             if data is not _SENTINEL and isinstance(data, dict):
                 tables.append(data)
+        if json_files and not tables:
+            msg = (
+                f"All {len(json_files)} JSON file(s) in {table_dir} are "
+                f"unusable (malformed or not a dict)"
+            )
+            raise ValueError(msg)
         return tables
 
     @staticmethod

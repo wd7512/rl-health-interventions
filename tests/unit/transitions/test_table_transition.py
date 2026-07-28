@@ -24,6 +24,7 @@ _SPRINT1_DIR = _FIXTURES_DIR / "sprint1"
 _PEARL_DIR = _FIXTURES_DIR / "pearl"
 _INVALID_DIR = _FIXTURES_DIR / "invalid"
 _EDGE_DIR = _FIXTURES_DIR / "edge_cases"
+_NO_GLOBAL_STATE_DIR = _FIXTURES_DIR / "no_global_state"
 _EMPTY_ONLY_DIR = _FIXTURES_DIR / "empty_only"
 
 
@@ -250,17 +251,17 @@ class TestFormatParsing:
     def test_parse_without_global_state_key(self) -> None:
         """A file that has no ``global_state`` key at all is treated as
         having an empty global_state ``{}`` and loads without error."""
-        cfg = _simple_config(table_dir=str(_BASIC_DIR))
+        cfg = _simple_config(table_dir=str(_NO_GLOBAL_STATE_DIR))
         t = TableTransition(cfg, seed=42)
         # The file no_global_state.json has 2 entries
-        assert len(t._lookup) >= 2  # type: ignore[attr-defined]
+        assert len(t._lookup) == 2  # type: ignore[attr-defined]
 
     def test_parse_empty_transitions_array(self) -> None:
         """An empty ``transitions`` array results in an empty lookup index
         — no transitions to sample from."""
-        cfg = _simple_config(table_dir=str(_BASIC_DIR))
-        TableTransition(cfg, seed=42)
-        # Loading is ok; behaviour when no entry matches is tested elsewhere
+        cfg = _simple_config(table_dir=str(_EMPTY_ONLY_DIR))
+        t = TableTransition(cfg, seed=42)
+        assert len(t._lookup) == 0  # type: ignore[attr-defined]
 
     def test_reject_missing_transitions_key(self) -> None:
         """A JSON file that lacks the ``transitions`` key raises a
@@ -331,12 +332,16 @@ class TestMultiFileLoading:
         # that keys include step_of_day merged into state keys
         lookup = t._lookup  # type: ignore[attr-defined]
         # step_0.json has step_of_day=0, step_1.json has step_of_day=1
-        # Expect keys containing "0|sedentary" and "1|sedentary" if
-        # global_state is merged into state keys
+        # Keys include step_of_day merged between state value and action
         state_keys = list(lookup.keys())
-        has_step_0 = any("0" in k for k in state_keys)
-        has_step_1 = any("1" in k for k in state_keys)
-        assert has_step_0 or has_step_1  # at least one global_state merged
+        has_step_0 = any(k.startswith("sedentary|0|") for k in state_keys)
+        has_step_1 = any(k.startswith("sedentary|1|") for k in state_keys)
+        assert has_step_0, (
+            f"Expected keys with step_of_day=0, got keys like: {state_keys[:5]}"
+        )
+        assert has_step_1, (
+            f"Expected keys with step_of_day=1, got keys like: {state_keys[:5]}"
+        )
 
     def test_duplicate_entries_overwrite(self) -> None:
         """If two files define the same (state, action) pair, the later
@@ -371,10 +376,10 @@ class TestGlobalStateMerging:
         for key in lookup:
             # Key format: factor1|factor2|...|action
             parts = key.split("|")
-            # Step_of_day should NOT appear as a separate part if it's
-            # not in the config state variables (it's used for routing)
-            # But it could be merged. Let's check for a valid key structure.
-            assert len(parts) >= 5  # step_bin|sleep|burden|day_of_week|action
+            # Key format: step_bin|sleep|day_of_week|burden|step_of_day|action
+            assert len(parts) == 6, (
+                f"Expected 6 parts in key {key!r}, got {len(parts)}: {parts}"
+            )
 
     def test_composite_key_contains_all_factors(self) -> None:
         """The composite state key includes all deterministic and
@@ -579,9 +584,6 @@ class TestValidation:
 # ══════════════════════════════════════════════════════════════════════════════
 
 
-_EMPTY_ONLY_DIR = _FIXTURES_DIR / "empty_only"
-
-
 class TestEdgeCases:
     """Behavior in unusual or degenerate situations."""
 
@@ -609,10 +611,11 @@ class TestEdgeCases:
         )
         t = TableTransition(cfg, seed=42)
         state = StateView(factors={"activity": "active"}, day=0, step_of_day=0)
-        with patch.object(logging.Logger, "warning") as _mock_warn:
+        with patch.object(logging.Logger, "warning") as mock_warn:
             updates = t.transition(state, "idle")
             assert isinstance(updates, dict)
-            assert len(updates) >= 0
+            assert updates == {}
+            mock_warn.assert_called()
 
     def test_unknown_state_in_lookup(self) -> None:
         """When the state itself is not present in any loaded table, a
@@ -641,8 +644,9 @@ class TestEdgeCases:
         with patch.object(logging.Logger, "warning") as mock_warn:
             updates = t.transition(state, "nudge")
             assert isinstance(updates, dict)
+            assert updates == {}
             # A warning about the missing key should be issued
-            assert mock_warn.call_count >= 0
+            mock_warn.assert_called()
 
     def test_reproducibility_same_seed(self) -> None:
         """Two instances with the same seed produce identical results
@@ -929,24 +933,21 @@ class TestParametrizedTransitions:
 class TestMalformedFiles:
     """Behaviour when individual files have structural issues."""
 
-    def test_directory_not_found_raises(self) -> None:
+    def test_directory_not_found_raises(self, tmp_path: Path) -> None:
         """A non-existent ``table_dir`` raises a ``FileNotFoundError``
         or similar."""
-        cfg = _simple_config(table_dir=r"C:\nonexistent\path")
+        cfg = _simple_config(table_dir=str(tmp_path / "nonexistent"))
         with pytest.raises((FileNotFoundError, ValueError)):
             TableTransition(cfg, seed=42)
 
-    def test_invalid_json_file_skipped_with_warning(self) -> None:
-        """If a file in ``table_dir`` is not valid JSON, a warning is
-        logged and the file is skipped."""
+    def test_invalid_json_file_rejected(self) -> None:
+        """If all JSON files in ``table_dir`` are malformed, a
+        ``ValueError`` is raised."""
         import tempfile
 
         with tempfile.TemporaryDirectory() as tmp:
             bad_file = Path(tmp) / "bad.json"
             bad_file.write_text("not json", encoding="utf-8")
             cfg = _simple_config(table_dir=str(tmp))
-            with patch.object(logging.Logger, "warning") as mock_warn:
-                t = TableTransition(cfg, seed=42)
-                # Should still construct successfully (no valid entries)
-                assert hasattr(t, "_lookup")
-                mock_warn.assert_called()
+            with pytest.raises(ValueError, match="unusable"):
+                TableTransition(cfg, seed=42)

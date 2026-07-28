@@ -1,7 +1,5 @@
 {
-  "global_state": {
-    "step_of_day": 0
-  },
+  "global_state": {},
   "transitions": [
     {
       "state": {

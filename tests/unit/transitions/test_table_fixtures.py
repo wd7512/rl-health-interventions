@@ -5,6 +5,7 @@ from pathlib import Path
 
 _FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 _BASIC_DIR = _FIXTURES_DIR / "basic"
+_NO_GLOBAL_STATE_DIR = _FIXTURES_DIR / "no_global_state"
 _SPRINT1_DIR = _FIXTURES_DIR / "sprint1"
 _PEARL_DIR = _FIXTURES_DIR / "pearl"
 _INVALID_DIR = _FIXTURES_DIR / "invalid"
@@ -30,7 +31,7 @@ class TestFixturesValidity:
 
     def test_basic_no_global_state_missing_key_is_ok(self) -> None:
         data = json.loads(
-            (_BASIC_DIR / "no_global_state.json").read_text(encoding="utf-8")
+            (_NO_GLOBAL_STATE_DIR / "no_global_state.json").read_text(encoding="utf-8")
         )
         assert "transitions" in data
         assert "global_state" not in data
@@ -142,8 +143,8 @@ class TestFixturesValidity:
         data = json.loads(
             (_INVALID_DIR / "probability_over_one.json").read_text(encoding="utf-8")
         )
-        total = sum(data["transitions"][0]["next_state_probs"]["activity"].values())
-        assert total > 1.0
+        dist = data["transitions"][0]["next_state_probs"]["activity"]
+        assert any(v > 1.0 for v in dist.values())
 
     def test_invalid_missing_next_state_probs(self) -> None:
         data = json.loads(
