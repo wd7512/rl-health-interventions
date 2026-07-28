@@ -1,0 +1,41 @@
+{
+  "global_state": {},
+  "transitions": [
+    {
+      "state": {"engagement": "low", "mood": "positive", "social": "alone"},
+      "action": "suggest",
+      "next_state_probs": {
+        "engagement": {"low": 0.2, "medium": 0.5, "high": 0.3},
+        "mood": {"positive": 0.6, "negative": 0.4},
+        "social": {"alone": 0.3, "with_others": 0.7}
+      }
+    },
+    {
+      "state": {"engagement": "low", "mood": "positive", "social": "alone"},
+      "action": "remind",
+      "next_state_probs": {
+        "engagement": {"low": 0.45, "medium": 0.35, "high": 0.2},
+        "mood": {"positive": 0.9, "negative": 0.1},
+        "social": {"alone": 0.4, "with_others": 0.6}
+      }
+    },
+    {
+      "state": {"engagement": "low", "mood": "negative", "social": "with_others"},
+      "action": "suggest",
+      "next_state_probs": {
+        "engagement": {"low": 0.5, "medium": 0.3, "high": 0.2},
+        "mood": {"positive": 0.4, "negative": 0.6},
+        "social": {"alone": 0.7, "with_others": 0.3}
+      }
+    },
+    {
+      "state": {"engagement": "high", "mood": "positive", "social": "with_others"},
+      "action": "idle",
+      "next_state_probs": {
+        "engagement": {"low": 0.1, "medium": 0.3, "high": 0.6},
+        "mood": {"positive": 0.8, "negative": 0.2},
+        "social": {"alone": 0.1, "with_others": 0.9}
+      }
+    }
+  ]
+}

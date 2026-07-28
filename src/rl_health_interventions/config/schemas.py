@@ -4,7 +4,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, RootModel, model_validator
 
-_KNOWN_TRANSITION_TYPES = frozenset({"rule_based", "random", "bootstrap"})
+_KNOWN_TRANSITION_TYPES = frozenset({"rule_based", "random", "table"})
 
 
 class TransitionProbabilities(RootModel):
@@ -618,6 +618,13 @@ class MDPConfig(BaseModel):
             if tm.transition_probabilities is not None:
                 raise ValueError(
                     "bootstrap transition does not accept transition_probabilities"
+                )
+        if tm.type == "table":
+            if tm.table_dir is None:
+                raise ValueError("table transition requires table_dir")
+            if tm.transition_probabilities is not None:
+                raise ValueError(
+                    "table transition does not accept transition_probabilities"
                 )
         tprobs = tm.transition_probabilities
         if tprobs is not None:

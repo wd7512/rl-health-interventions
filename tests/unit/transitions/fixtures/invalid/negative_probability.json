@@ -1,0 +1,10 @@
+{
+  "global_state": {},
+  "transitions": [
+    {
+      "state": {"activity": "sedentary"},
+      "action": "nudge",
+      "next_state_probs": {"activity": {"sedentary": 1.2, "active": -0.2}}
+    }
+  ]
+}

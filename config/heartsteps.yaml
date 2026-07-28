@@ -53,9 +53,9 @@ reward:
       mapping: {idle: 0.0, movement_suggestion: 0.05, goal_reminder: 0.05, journal: 0.05}
   formula: "alpha * step_bin_value + (1 - alpha) * sleep_value - action_penalty"
 
-transition_model:
-  type: bootstrap
-  table_dir: ../../../../tables/persona/base_deepseek-v4-flash
+  transition_model:
+    type: table
+    table_dir: ../tables/persona/base_deepseek-v4-flash
 
 episode_days: 90
 steps_per_day: 5

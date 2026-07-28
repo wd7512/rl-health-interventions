@@ -1,0 +1,29 @@
+{
+  "global_state": {},
+  "transitions": [
+    {
+      "state": {"step_bin": "inactive", "sleep": "good"},
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {"inactive": 0.2, "moderate": 0.5, "active": 0.3},
+        "sleep": {"good": 0.7, "poor": 0.3}
+      }
+    },
+    {
+      "state": {"step_bin": "inactive", "sleep": "poor"},
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {"inactive": 0.4, "moderate": 0.4, "active": 0.2},
+        "sleep": {"good": 0.1, "poor": 0.9}
+      }
+    },
+    {
+      "state": {"step_bin": "inactive", "sleep": "good"},
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {"inactive": 0.1, "moderate": 0.3, "active": 0.6},
+        "sleep": {"good": 0.8, "poor": 0.2}
+      }
+    }
+  ]
+}

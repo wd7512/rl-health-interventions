@@ -1,0 +1,2745 @@
+{
+  "global_state": {
+    "step_of_day": 0
+  },
+  "transitions": [
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.4666666666666667,
+          "active": 0.5333333333333333
+        },
+        "sleep": {
+          "poor": 0.9,
+          "good": 0.1
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.4666666666666667,
+          "inactive": 0.4,
+          "active": 0.13333333333333333
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.7333333333333333,
+          "moderate": 0.26666666666666666
+        },
+        "sleep": {
+          "poor": 0.75,
+          "good": 0.25
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6666666666666666,
+          "inactive": 0.3333333333333333
+        },
+        "sleep": {
+          "good": 0.1,
+          "poor": 0.9
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7666666666666667,
+          "active": 0.23333333333333334
+        },
+        "sleep": {
+          "poor": 0.9,
+          "good": 0.1
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.3333333333333333,
+          "moderate": 0.6666666666666666
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6,
+          "active": 0.4
+        },
+        "sleep": {
+          "poor": 0.75,
+          "good": 0.25
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8333333333333334,
+          "inactive": 0.16666666666666666
+        },
+        "sleep": {
+          "good": 0.1,
+          "poor": 0.9
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7241379310344828,
+          "active": 0.27586206896551724
+        },
+        "sleep": {
+          "poor": 0.9,
+          "good": 0.1
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.23333333333333334,
+          "moderate": 0.7,
+          "active": 0.06666666666666667
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.4,
+          "moderate": 0.5333333333333333,
+          "inactive": 0.06666666666666667
+        },
+        "sleep": {
+          "poor": 0.75,
+          "good": 0.25
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7333333333333333,
+          "inactive": 0.23333333333333334,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "good": 0.1,
+          "poor": 0.9
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8,
+          "active": 0.1,
+          "inactive": 0.1
+        },
+        "sleep": {
+          "poor": 0.9,
+          "good": 0.1
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.5714285714285714,
+          "moderate": 0.35714285714285715,
+          "active": 0.07142857142857142
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.06666666666666667,
+          "moderate": 0.8333333333333334,
+          "inactive": 0.1
+        },
+        "sleep": {
+          "poor": 0.75,
+          "good": 0.25
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7,
+          "inactive": 0.3
+        },
+        "sleep": {
+          "good": 0.1,
+          "poor": 0.9
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6333333333333333,
+          "active": 0.3333333333333333,
+          "inactive": 0.03333333333333333
+        },
+        "sleep": {
+          "poor": 0.8,
+          "good": 0.2
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7,
+          "inactive": 0.3
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6666666666666666,
+          "active": 0.3333333333333333
+        },
+        "sleep": {
+          "poor": 0.7,
+          "good": 0.3
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.4,
+          "moderate": 0.6
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8666666666666667,
+          "inactive": 0.03333333333333333,
+          "active": 0.1
+        },
+        "sleep": {
+          "poor": 0.8,
+          "good": 0.2
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7333333333333333,
+          "inactive": 0.26666666666666666
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.3,
+          "inactive": 0.03333333333333333,
+          "moderate": 0.6666666666666666
+        },
+        "sleep": {
+          "poor": 0.7,
+          "good": 0.3
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6,
+          "inactive": 0.4
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.9333333333333333,
+          "active": 0.06666666666666667
+        },
+        "sleep": {
+          "poor": 0.8,
+          "good": 0.2
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8,
+          "inactive": 0.2
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8333333333333334,
+          "active": 0.16666666666666666
+        },
+        "sleep": {
+          "poor": 0.7,
+          "good": 0.3
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8666666666666667,
+          "inactive": 0.13333333333333333
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.16666666666666666,
+          "moderate": 0.7666666666666667,
+          "active": 0.06666666666666667
+        },
+        "sleep": {
+          "poor": 0.8,
+          "good": 0.2
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.5517241379310345,
+          "moderate": 0.4482758620689655
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8,
+          "inactive": 0.16666666666666666,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "poor": 0.7,
+          "good": 0.3
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6666666666666666,
+          "inactive": 0.3333333333333333
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7333333333333333,
+          "active": 0.16666666666666666,
+          "inactive": 0.1
+        },
+        "sleep": {
+          "good": 0.25,
+          "poor": 0.75
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6333333333333333,
+          "inactive": 0.36666666666666664
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.13333333333333333,
+          "inactive": 0.3,
+          "moderate": 0.5666666666666667
+        },
+        "sleep": {
+          "poor": 0.85,
+          "good": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7,
+          "inactive": 0.3
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.3448275862068966,
+          "moderate": 0.6551724137931034
+        },
+        "sleep": {
+          "good": 0.25,
+          "poor": 0.75
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.16666666666666666,
+          "inactive": 0.8333333333333334
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6206896551724138,
+          "inactive": 0.3448275862068966,
+          "active": 0.034482758620689655
+        },
+        "sleep": {
+          "poor": 0.85,
+          "good": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.26666666666666666,
+          "inactive": 0.7333333333333333
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7666666666666667,
+          "inactive": 0.1,
+          "active": 0.13333333333333333
+        },
+        "sleep": {
+          "good": 0.25,
+          "poor": 0.75
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.6333333333333333,
+          "moderate": 0.36666666666666664
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8076923076923077,
+          "active": 0.038461538461538464,
+          "inactive": 0.15384615384615385
+        },
+        "sleep": {
+          "poor": 0.85,
+          "good": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.35714285714285715,
+          "inactive": 0.6428571428571429
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8,
+          "inactive": 0.16666666666666666,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "good": 0.25,
+          "poor": 0.75
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.2,
+          "inactive": 0.8
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.5333333333333333,
+          "moderate": 0.4666666666666667
+        },
+        "sleep": {
+          "poor": 0.85,
+          "good": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "inactive",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.7333333333333333,
+          "moderate": 0.26666666666666666
+        },
+        "sleep": {
+          "poor": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8333333333333334,
+          "active": 0.16666666666666666
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6333333333333333,
+          "active": 0.06666666666666667,
+          "inactive": 0.3
+        },
+        "sleep": {
+          "good": 0.75,
+          "poor": 0.25
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.4666666666666667,
+          "active": 0.5333333333333333
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6333333333333333,
+          "inactive": 0.36666666666666664
+        },
+        "sleep": {
+          "poor": 0.35,
+          "good": 0.65
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6,
+          "active": 0.4
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7666666666666667,
+          "inactive": 0.23333333333333334
+        },
+        "sleep": {
+          "good": 0.75,
+          "poor": 0.25
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.36666666666666664,
+          "moderate": 0.6333333333333333
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.2,
+          "moderate": 0.8
+        },
+        "sleep": {
+          "poor": 0.35,
+          "good": 0.65
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6666666666666666,
+          "active": 0.3333333333333333
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.9,
+          "inactive": 0.1
+        },
+        "sleep": {
+          "good": 0.75,
+          "poor": 0.25
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.5333333333333333,
+          "active": 0.4666666666666667
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7586206896551724,
+          "inactive": 0.20689655172413793,
+          "active": 0.034482758620689655
+        },
+        "sleep": {
+          "poor": 0.35,
+          "good": 0.65
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7666666666666667,
+          "active": 0.2,
+          "inactive": 0.03333333333333333
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.3333333333333333,
+          "moderate": 0.6666666666666666
+        },
+        "sleep": {
+          "good": 0.75,
+          "poor": 0.25
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.23333333333333334,
+          "moderate": 0.6666666666666666,
+          "inactive": 0.1
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.4666666666666667,
+          "moderate": 0.5333333333333333
+        },
+        "sleep": {
+          "poor": 0.35,
+          "good": 0.65
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8275862068965517,
+          "active": 0.1724137931034483
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6785714285714286,
+          "inactive": 0.2857142857142857,
+          "active": 0.03571428571428571
+        },
+        "sleep": {
+          "poor": 0.3,
+          "good": 0.7
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6896551724137931,
+          "active": 0.27586206896551724,
+          "inactive": 0.034482758620689655
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.36666666666666664,
+          "moderate": 0.6333333333333333
+        },
+        "sleep": {
+          "good": 0.85,
+          "poor": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.9333333333333333,
+          "active": 0.06666666666666667
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8666666666666667,
+          "inactive": 0.13333333333333333
+        },
+        "sleep": {
+          "poor": 0.3,
+          "good": 0.7
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.13333333333333333,
+          "moderate": 0.8666666666666667
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8666666666666667,
+          "inactive": 0.13333333333333333
+        },
+        "sleep": {
+          "good": 0.85,
+          "poor": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8666666666666667,
+          "active": 0.13333333333333333
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.9333333333333333,
+          "inactive": 0.06666666666666667
+        },
+        "sleep": {
+          "poor": 0.3,
+          "good": 0.7
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7,
+          "active": 0.3
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7931034482758621,
+          "inactive": 0.1724137931034483,
+          "active": 0.034482758620689655
+        },
+        "sleep": {
+          "good": 0.85,
+          "poor": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7666666666666667,
+          "inactive": 0.2,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6,
+          "inactive": 0.4
+        },
+        "sleep": {
+          "poor": 0.3,
+          "good": 0.7
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6666666666666666,
+          "active": 0.13333333333333333,
+          "inactive": 0.2
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.5333333333333333,
+          "inactive": 0.43333333333333335,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "good": 0.85,
+          "poor": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.06666666666666667,
+          "moderate": 0.9,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "poor": 0.6,
+          "good": 0.4
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.7333333333333333,
+          "moderate": 0.26666666666666666
+        },
+        "sleep": {
+          "poor": 0.8,
+          "good": 0.2
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8,
+          "active": 0.16666666666666666,
+          "inactive": 0.03333333333333333
+        },
+        "sleep": {
+          "good": 0.5,
+          "poor": 0.5
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.4666666666666667,
+          "moderate": 0.5,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "poor": 0.9411764705882353,
+          "good": 0.058823529411764705
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7666666666666667,
+          "inactive": 0.2,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "poor": 0.6,
+          "good": 0.4
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.41379310344827586,
+          "inactive": 0.5862068965517241
+        },
+        "sleep": {
+          "poor": 0.8,
+          "good": 0.2
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7666666666666667,
+          "inactive": 0.2,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "good": 0.5,
+          "poor": 0.5
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.5333333333333333,
+          "inactive": 0.4666666666666667
+        },
+        "sleep": {
+          "poor": 0.9411764705882353,
+          "good": 0.058823529411764705
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.9,
+          "inactive": 0.06666666666666667,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "poor": 0.6,
+          "good": 0.4
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.5666666666666667,
+          "moderate": 0.43333333333333335
+        },
+        "sleep": {
+          "poor": 0.8,
+          "good": 0.2
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6666666666666666,
+          "active": 0.13333333333333333,
+          "inactive": 0.2
+        },
+        "sleep": {
+          "good": 0.5,
+          "poor": 0.5
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.5333333333333333,
+          "inactive": 0.4666666666666667
+        },
+        "sleep": {
+          "poor": 0.9411764705882353,
+          "good": 0.058823529411764705
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.16666666666666666,
+          "moderate": 0.7,
+          "inactive": 0.13333333333333333
+        },
+        "sleep": {
+          "poor": 0.6,
+          "good": 0.4
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.6333333333333333,
+          "moderate": 0.36666666666666664
+        },
+        "sleep": {
+          "poor": 0.8,
+          "good": 0.2
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.16666666666666666,
+          "moderate": 0.6,
+          "inactive": 0.23333333333333334
+        },
+        "sleep": {
+          "good": 0.5,
+          "poor": 0.5
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "moderate",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.6333333333333333,
+          "moderate": 0.36666666666666664
+        },
+        "sleep": {
+          "poor": 0.9411764705882353,
+          "good": 0.058823529411764705
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.6333333333333333,
+          "moderate": 0.36666666666666664
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.23333333333333334,
+          "moderate": 0.7333333333333333,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "good": 0.8,
+          "poor": 0.2
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.6666666666666666,
+          "moderate": 0.3333333333333333
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6666666666666666,
+          "inactive": 0.3333333333333333
+        },
+        "sleep": {
+          "good": 0.85,
+          "poor": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6,
+          "active": 0.4
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7333333333333333,
+          "inactive": 0.26666666666666666
+        },
+        "sleep": {
+          "good": 0.8,
+          "poor": 0.2
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.5,
+          "active": 0.5
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8666666666666667,
+          "inactive": 0.13333333333333333
+        },
+        "sleep": {
+          "good": 0.85,
+          "poor": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.5,
+          "active": 0.5
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.9,
+          "inactive": 0.06666666666666667,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "good": 0.8,
+          "poor": 0.2
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.5666666666666667,
+          "active": 0.43333333333333335
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.9333333333333333,
+          "inactive": 0.06666666666666667
+        },
+        "sleep": {
+          "good": 0.85,
+          "poor": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.3,
+          "moderate": 0.6,
+          "inactive": 0.1
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "low"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.36666666666666664,
+          "moderate": 0.6333333333333333
+        },
+        "sleep": {
+          "good": 0.8,
+          "poor": 0.2
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.2,
+          "inactive": 0.23333333333333334,
+          "moderate": 0.5666666666666667
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "low"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.5,
+          "inactive": 0.43333333333333335,
+          "active": 0.06666666666666667
+        },
+        "sleep": {
+          "good": 0.85,
+          "poor": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6666666666666666,
+          "active": 0.3333333333333333
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.23333333333333334,
+          "moderate": 0.7666666666666667
+        },
+        "sleep": {
+          "poor": 0.15,
+          "good": 0.85
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7666666666666667,
+          "active": 0.23333333333333334
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6,
+          "inactive": 0.4
+        },
+        "sleep": {
+          "poor": 0.10526315789473684,
+          "good": 0.8947368421052632
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8,
+          "active": 0.2
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8666666666666667,
+          "inactive": 0.13333333333333333
+        },
+        "sleep": {
+          "poor": 0.15,
+          "good": 0.85
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.26666666666666666,
+          "moderate": 0.7333333333333333
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8571428571428571,
+          "inactive": 0.14285714285714285
+        },
+        "sleep": {
+          "poor": 0.10526315789473684,
+          "good": 0.8947368421052632
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.5666666666666667,
+          "active": 0.43333333333333335
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.9333333333333333,
+          "inactive": 0.06666666666666667
+        },
+        "sleep": {
+          "poor": 0.15,
+          "good": 0.85
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.8928571428571429,
+          "active": 0.10714285714285714
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.9,
+          "inactive": 0.1
+        },
+        "sleep": {
+          "poor": 0.10526315789473684,
+          "good": 0.8947368421052632
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6666666666666666,
+          "active": 0.2,
+          "inactive": 0.13333333333333333
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "medium"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.3333333333333333,
+          "moderate": 0.6333333333333333,
+          "active": 0.03333333333333333
+        },
+        "sleep": {
+          "poor": 0.15,
+          "good": 0.85
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.23333333333333334,
+          "moderate": 0.6,
+          "inactive": 0.16666666666666666
+        },
+        "sleep": {
+          "good": 1.0
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "medium"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.4482758620689655,
+          "moderate": 0.5517241379310345
+        },
+        "sleep": {
+          "poor": 0.10526315789473684,
+          "good": 0.8947368421052632
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6551724137931034,
+          "active": 0.27586206896551724,
+          "inactive": 0.06896551724137931
+        },
+        "sleep": {
+          "good": 0.95,
+          "poor": 0.05
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7142857142857143,
+          "inactive": 0.2857142857142857
+        },
+        "sleep": {
+          "good": 0.5,
+          "poor": 0.5
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.3333333333333333,
+          "moderate": 0.6,
+          "inactive": 0.06666666666666667
+        },
+        "sleep": {
+          "good": 0.85,
+          "poor": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6206896551724138,
+          "inactive": 0.3793103448275862
+        },
+        "sleep": {
+          "good": 0.75,
+          "poor": 0.25
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.6666666666666666,
+          "inactive": 0.26666666666666666,
+          "active": 0.06666666666666667
+        },
+        "sleep": {
+          "good": 0.95,
+          "poor": 0.05
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.6666666666666666,
+          "moderate": 0.3333333333333333
+        },
+        "sleep": {
+          "good": 0.5,
+          "poor": 0.5
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.5185185185185185,
+          "inactive": 0.2962962962962963,
+          "active": 0.18518518518518517
+        },
+        "sleep": {
+          "good": 0.85,
+          "poor": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.5333333333333333,
+          "moderate": 0.4666666666666667
+        },
+        "sleep": {
+          "good": 0.75,
+          "poor": 0.25
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.1,
+          "moderate": 0.8666666666666667,
+          "inactive": 0.03333333333333333
+        },
+        "sleep": {
+          "good": 0.95,
+          "poor": 0.05
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.43333333333333335,
+          "active": 0.03333333333333333,
+          "moderate": 0.5333333333333333
+        },
+        "sleep": {
+          "good": 0.5,
+          "poor": 0.5
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7333333333333333,
+          "inactive": 0.06666666666666667,
+          "active": 0.2
+        },
+        "sleep": {
+          "good": 0.85,
+          "poor": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "goal_reminder",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.5,
+          "moderate": 0.5
+        },
+        "sleep": {
+          "good": 0.75,
+          "poor": 0.25
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.7241379310344828,
+          "inactive": 0.1724137931034483,
+          "active": 0.10344827586206896
+        },
+        "sleep": {
+          "good": 0.95,
+          "poor": 0.05
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekday",
+        "burden": "high"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "moderate": 0.4482758620689655,
+          "inactive": 0.5517241379310345
+        },
+        "sleep": {
+          "good": 0.5,
+          "poor": 0.5
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "good",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "active": 0.23333333333333334,
+          "inactive": 0.3333333333333333,
+          "moderate": 0.43333333333333335
+        },
+        "sleep": {
+          "good": 0.85,
+          "poor": 0.15
+        }
+      }
+    },
+    {
+      "state": {
+        "step_bin": "active",
+        "sleep": "poor",
+        "day_of_week": "weekend",
+        "burden": "high"
+      },
+      "action": "journal",
+      "next_state_probs": {
+        "step_bin": {
+          "inactive": 0.8,
+          "moderate": 0.2
+        },
+        "sleep": {
+          "good": 0.75,
+          "poor": 0.25
+        }
+      }
+    }
+  ]
+}
