@@ -110,6 +110,14 @@ polars = "pl"
     "PLR2004",  # Allow magic values in test assertions
     "SIM202",   # NaN check pattern accepted
 ]
+"regression-suite/**" = [
+    "ARG001",   # pytest hook params must match hookspec names
+    "C901",     # Allow complexity in test functions
+    "PLC0415",  # Allow non-top-level imports in test functions
+    "PLR0124",  # NaN self-comparison accepted
+    "PLR2004",  # Allow magic values in test assertions
+    "SIM202",   # NaN check pattern accepted
+]
 "src/rl_health_interventions/data/loaders.py" = [
     "BLE001",   # Blind except is pragmatic for heterogeneous data sources
     "C901",     # Complex loader functions accepted
