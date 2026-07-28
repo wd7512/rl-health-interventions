@@ -82,7 +82,10 @@ def test_pearl_random_regression(pearl_random_results: dict[str, dict]) -> None:
         / f"{_CONFIG_NAME}.yaml"
     )
     with config_path.open(encoding="utf-8") as f:
-        config_seed = (yaml.safe_load(f) or {}).get("seed", 42)
+        raw = yaml.safe_load(f)
+    assert raw is not None, f"Config file is empty: {config_path}"
+    assert "seed" in raw, f"Config file missing 'seed' key: {config_path}"
+    config_seed = raw["seed"]
     assert fixture["seed"] == config_seed, (
         f"Fixture seed ({fixture['seed']}) != config seed ({config_seed}). "
         f"Re-baseline with: python {_RUNNER}"
