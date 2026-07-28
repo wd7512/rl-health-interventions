@@ -1,0 +1,15 @@
+{
+  "global_state": {"step_of_day": 0},
+  "transitions": [
+    {
+      "state": {"activity": "sedentary"},
+      "action": "nudge",
+      "next_state_probs": {"activity": {"sedentary": 0.2, "active": 0.8}}
+    },
+    {
+      "state": {"activity": "sedentary"},
+      "action": "idle",
+      "next_state_probs": {"activity": {"sedentary": 0.7, "active": 0.3}}
+    }
+  ]
+}

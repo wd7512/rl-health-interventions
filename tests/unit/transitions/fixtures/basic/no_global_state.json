@@ -1,0 +1,14 @@
+{
+  "transitions": [
+    {
+      "state": {"activity": "sedentary"},
+      "action": "nudge",
+      "next_state_probs": {"activity": {"sedentary": 0.5, "active": 0.5}}
+    },
+    {
+      "state": {"activity": "sedentary"},
+      "action": "idle",
+      "next_state_probs": {"activity": {"sedentary": 0.9, "active": 0.1}}
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "global_state": {"step_of_day": 1},
+  "transitions": [
+    {
+      "state": {"step_bin": "moderate", "sleep": "good", "burden": "medium", "day_of_week": "weekday"},
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {"inactive": 0.15, "moderate": 0.35, "active": 0.5},
+        "sleep": {"good": 0.6, "poor": 0.4}
+      }
+    },
+    {
+      "state": {"step_bin": "moderate", "sleep": "good", "burden": "medium", "day_of_week": "weekday"},
+      "action": "movement_suggestion",
+      "next_state_probs": {
+        "step_bin": {"inactive": 0.05, "moderate": 0.25, "active": 0.7},
+        "sleep": {"good": 0.9, "poor": 0.1}
+      }
+    },
+    {
+      "state": {"step_bin": "moderate", "sleep": "poor", "burden": "medium", "day_of_week": "weekday"},
+      "action": "idle",
+      "next_state_probs": {
+        "step_bin": {"inactive": 0.3, "moderate": 0.4, "active": 0.3},
+        "sleep": {"good": 0.3, "poor": 0.7}
+      }
+    }
+  ]
+}

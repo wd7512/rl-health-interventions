@@ -1,0 +1,25 @@
+{
+  "global_state": {},
+  "transitions": [
+    {
+      "state": {"activity": "sedentary"},
+      "action": "nudge",
+      "next_state_probs": {"activity": {"sedentary": 0.3, "active": 0.7}}
+    },
+    {
+      "state": {"activity": "sedentary"},
+      "action": "idle",
+      "next_state_probs": {"activity": {"sedentary": 0.8, "active": 0.2}}
+    },
+    {
+      "state": {"activity": "active"},
+      "action": "nudge",
+      "next_state_probs": {"activity": {"sedentary": 0.1, "active": 0.9}}
+    },
+    {
+      "state": {"activity": "active"},
+      "action": "idle",
+      "next_state_probs": {"activity": {"sedentary": 0.4, "active": 0.6}}
+    }
+  ]
+}
