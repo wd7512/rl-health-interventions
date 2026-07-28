@@ -10,6 +10,8 @@ _PEARL_DIR = _FIXTURES_DIR / "pearl"
 _INVALID_DIR = _FIXTURES_DIR / "invalid"
 _EDGE_DIR = _FIXTURES_DIR / "edge_cases"
 _BASIC_MULTI_DIR = _FIXTURES_DIR / "basic_multi"
+_THREE_FACTORS_DIR = _FIXTURES_DIR / "three_factors"
+_TWO_FACTORS_DIR = _FIXTURES_DIR / "two_factors"
 
 
 class TestFixturesValidity:
@@ -40,7 +42,9 @@ class TestFixturesValidity:
         assert data["transitions"] == []
 
     def test_basic_two_factors_each_distribution_sums_to_one(self) -> None:
-        data = json.loads((_BASIC_DIR / "two_factors.json").read_text(encoding="utf-8"))
+        data = json.loads(
+            (_TWO_FACTORS_DIR / "two_factors.json").read_text(encoding="utf-8")
+        )
         for entry in data["transitions"]:
             nsp = entry.get("next_state_probs", {})
             for factor, dist in nsp.items():
@@ -52,7 +56,7 @@ class TestFixturesValidity:
 
     def test_basic_three_factors_each_distribution_sums_to_one(self) -> None:
         data = json.loads(
-            (_BASIC_DIR / "three_factors.json").read_text(encoding="utf-8")
+            (_THREE_FACTORS_DIR / "three_factors.json").read_text(encoding="utf-8")
         )
         for entry in data["transitions"]:
             nsp = entry.get("next_state_probs", {})

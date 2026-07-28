@@ -6,6 +6,8 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+_SENTINEL = object()
+
 
 class TableLoader:
     """Reads JSON transition-table files from a directory.
@@ -25,15 +27,16 @@ class TableLoader:
         tables: list[dict] = []
         for json_path in json_files:
             data = self._read_json(json_path)
-            if data is not None:
+            if data is not _SENTINEL and isinstance(data, dict):
                 tables.append(data)
         return tables
 
     @staticmethod
-    def _read_json(json_path: Path) -> dict | None:
+    def _read_json(json_path: Path) -> dict | object:
         try:
             with json_path.open(encoding="utf-8") as f:
-                return json.load(f)
+                result = json.load(f)
+                return result if isinstance(result, dict) else _SENTINEL
         except json.JSONDecodeError:
             logger.warning("Invalid JSON in %s, skipping", json_path)
-            return None
+            return _SENTINEL

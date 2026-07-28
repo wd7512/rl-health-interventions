@@ -54,7 +54,9 @@ class TableValidator:
 
         config_vars = set(config.state.variables)
         if not set(state.keys()).issubset(config_vars):
-            return []
+            unknown = set(state.keys()) - config_vars
+            errs.append(f"Unknown state keys in transition entry: {sorted(unknown)}")
+            return errs
 
         errs.extend(self._check_stochastic_factors(next_state_probs, config))
         errs.extend(self._check_probabilities(next_state_probs))
@@ -112,12 +114,37 @@ class TableValidator:
     @staticmethod
     def _check_single_distribution(factor: str, probs: dict) -> list[str]:
         errs: list[str] = []
+        numeric: dict[str, float] = {}
         for val, p in probs.items():
-            if p < 0:
-                errs.append(f"Negative probability for {factor}={val}: {p}")
-            if p > 1.0:
-                errs.append(f"Probability > 1.0 for {factor}={val}: {p}")
-        total = sum(probs.values())
+            if not TableValidator._is_valid_probability(p):
+                errs.append(
+                    f"Probability for {factor}={val} must be a number, "
+                    f"got {type(p).__name__}"
+                )
+                continue
+            numeric[val] = p
+            errs.extend(TableValidator._check_probability_range(factor, val, p))
+        if errs:
+            return errs
+        return TableValidator._check_probability_sum(factor, numeric)
+
+    @staticmethod
+    def _is_valid_probability(p: object) -> bool:
+        return isinstance(p, (int, float)) and not isinstance(p, bool)
+
+    @staticmethod
+    def _check_probability_range(factor: str, val: str, p: float) -> list[str]:
+        errs: list[str] = []
+        if p < 0:
+            errs.append(f"Negative probability for {factor}={val}: {p}")
+        if p > 1.0:
+            errs.append(f"Probability > 1.0 for {factor}={val}: {p}")
+        return errs
+
+    @staticmethod
+    def _check_probability_sum(factor: str, numeric: dict[str, float]) -> list[str]:
+        errs: list[str] = []
+        total = sum(numeric.values())
         if abs(total - 1.0) > _PROBABILITY_EPSILON:
             errs.append(
                 f"Probabilities for factor '{factor}' sum to {total}, expected 1.0"

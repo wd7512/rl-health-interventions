@@ -18,10 +18,13 @@ from rl_health_interventions.transitions.table_transition import TableTransition
 _FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 _BASIC_DIR = _FIXTURES_DIR / "basic"
 _BASIC_MULTI_DIR = _FIXTURES_DIR / "basic_multi"
+_THREE_FACTORS_DIR = _FIXTURES_DIR / "three_factors"
+_TWO_FACTORS_DIR = _FIXTURES_DIR / "two_factors"
 _SPRINT1_DIR = _FIXTURES_DIR / "sprint1"
 _PEARL_DIR = _FIXTURES_DIR / "pearl"
 _INVALID_DIR = _FIXTURES_DIR / "invalid"
 _EDGE_DIR = _FIXTURES_DIR / "edge_cases"
+_EMPTY_ONLY_DIR = _FIXTURES_DIR / "empty_only"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -183,7 +186,7 @@ def _three_factor_config(
         },
         transition_model={
             "type": "table",
-            "table_dir": table_dir or str(_FIXTURES_DIR / "basic"),
+            "table_dir": table_dir or str(_THREE_FACTORS_DIR),
         },
         agents=[],
     )
@@ -458,7 +461,7 @@ class TestPerFactorSampling:
         """With three stochastic factors, all three are sampled and
         returned."""
         cfg = _three_factor_config(
-            table_dir=str(_FIXTURES_DIR / "basic"),
+            table_dir=str(_THREE_FACTORS_DIR),
         )
         t = TableTransition(cfg, seed=42)
         state = StateView(
