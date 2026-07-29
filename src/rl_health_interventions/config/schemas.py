@@ -51,6 +51,9 @@ class Condition(BaseModel):
 
 class RollingWindowCountAdvance(BaseModel):
     type: Literal["rolling_window_count"] = "rolling_window_count"
+    mechanism: Literal["rolling_window_count", "bayesian_p_success"] = (
+        "rolling_window_count"
+    )
     window_size: Annotated[int, Field(gt=0)] = 3
     conditions: list[Condition]
     mapping: dict[int, str]
