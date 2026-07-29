@@ -2,7 +2,7 @@
 
 **Branch:** `feature/252-pearl-matched-config`
 **Date:** 2026-07-24
-**Status:** Planning complete — implementation pending
+**Status:** Implementation in progress — PRs A-D complete
 **Source:** Conversation anchored summary + Phase 1 deep analysis + Figure 12 feature importance
 
 ---
@@ -12,6 +12,18 @@
 Phase 2 aligns the simulation config and code to match the PEARL RCT design (Lee 2025) as
 determined by the Phase 1 deep paper analysis. The current config (`pearl_constitution.yaml`)
 has 5+ structural mismatches against the actual PEARL study.
+
+### Implementation Progress
+
+| PR | Description | Status | PR |
+|----|-------------|--------|-----|
+| PR-A | ComBWeightedFixedAgent | ✅ Complete | #271 |
+| PR-B | TableTransition rename + per-factor format | ✅ Complete | #275 |
+| PR-C | PEARL configs + runner | ✅ Complete | #276 |
+| PR-D | Bayesian P-success burden | ✅ Complete | #277 |
+| PR-E | Docs + D15 + constitution corrections | ✅ Complete | — |
+| PR-F | Experiment infrastructure + visualizations | ❌ Pending | — |
+| PR-G | CI standardization + test split | ✅ Complete | #273 |
 
 ### Gap Summary
 

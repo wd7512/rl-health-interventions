@@ -297,6 +297,36 @@ Which decisions must be resolved for the current sprint and which can be deferre
 
 > This mapping is a proposed starting point, not a resolution. D14 is open.
 
+## D15. Feature selection for PEARL-matched config
+
+**Status:** closed
+**Rationale:** PEARL's XGBoost feature importance (Figure 12, Lee 2025) identifies which state variables matter most for predicting intervention response. Selecting features above a natural break threshold reduces state space while preserving predictive power.
+
+How should we select features from PEARL's 20+ variables for the simulator state space?
+
+| Option | Description | Evidence |
+|--------|-------------|----------|
+| Weight >= 0.5 boundary | 8 features (5 static + 3 dynamic) | Natural break — next weight is 0.32 (47% drop). Captures ~95% of model importance. |
+| Weight >= 0.3 boundary | 12 features | Includes gender, walk pattern irregular, etc. More state variables, higher complexity. |
+| All 20+ features | Full feature set | Overfits to simulation; most features negligible (< 0.1 weight). |
+
+**Resolution:** Weight >= 0.5 boundary (8 features). See `docs/plans/phase-2-pearl-matched-config.v1.md` §3 for full analysis.
+
+**Selected features:**
+
+| # | Feature | Weight | Type |
+|---|---------|--------|------|
+| 1 | Pre-study steps mean | 1.23 | Static (Persona) |
+| 2 | Weight | 1.19 | Static (Persona) |
+| 3 | Age | 1.17 | Static (Persona) |
+| 4 | Pre-study walk pattern: Low vs High | 1.13 | Static (Persona) |
+| 5 | Pre-study steps StdDev | 1.02 | Static (Persona) |
+| 6 | Recent steps mean | 0.88 | Dynamic (State) |
+| 7 | Recent walk pattern: Low vs High | 0.70 | Dynamic (State) |
+| 8 | Avg steps Morning: High | 0.63 | Dynamic (State) |
+
+**Source:** Figure 12, Lee 2025 PEARL RCT — XGBoost model weights across 7,711 participants, 60 days, 12 actions.
+
 ---
 
 ## Summary
@@ -317,6 +347,7 @@ Which decisions must be resolved for the current sprint and which can be deferre
 | D12 | Algorithm class | open | Moderate | reference-configs.md |
 | D13 | Evaluation strategy | open | None | non-activity-interventions.md |
 | D14 | Current sprint deferral | open | N/A | — |
+| D15 | Feature selection (PEARL) | closed | Strong | phase-2-pearl-matched-config.v1.md §3 |
 
 ---
 
@@ -335,3 +366,4 @@ Which decisions must be resolved for the current sprint and which can be deferre
 | Date | Change |
 |------|--------|
 | 2026-07-01 | D3, D9, D11 closed with resolutions and key evidence; dependency diagram restructured into STATE/REWARD/ALGO bands with cross-band arrows restored |
+| 2026-07-29 | D15 closed: Feature selection for PEARL-matched config (weight >= 0.5 boundary, 8 features) |
