@@ -1,5 +1,8 @@
-"""Prompt templates and generation for Sprint 1 bootstrap."""
+"""Prompt templates and generation for Sprint 1 and PEARL bootstrap."""
 
+from rl_health_interventions.llm_bootstrapping.prompts.pearl import (
+    BURDENS as PEARL_BURDENS,
+)
 from rl_health_interventions.llm_bootstrapping.prompts.prompts import (
     ACTION_SENTENCES,
     ACTIONS,
@@ -27,6 +30,7 @@ __all__ = [
     "BIN_MIDPOINTS",
     "BURDENS",
     "DAY_TYPES",
+    "PEARL_BURDENS",
     "PERSONA_PROMPTS",
     "SLEEP_TYPES",
     "STEP_BINS",

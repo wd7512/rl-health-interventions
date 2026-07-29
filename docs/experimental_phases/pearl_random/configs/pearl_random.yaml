@@ -9,7 +9,7 @@ initial_state:
   recent_walk_pattern: low
   morning_steps_ratio: balanced
   day_of_week: weekday
-  burden: low
+  burden: none
 
 state:
   variables:
@@ -26,7 +26,7 @@ state:
         granularity: daily
         pattern: [weekday, weekday, weekday, weekday, weekday, weekend, weekend]
     burden:
-      names: [low, medium, high]
+      names: [none, minor, major]
       advanced:
         type: rolling_window_count
         mechanism: bayesian_p_success
@@ -47,7 +47,7 @@ state:
               - social_opportunity_afternoon
               - physical_opportunity_morning
               - physical_opportunity_afternoon
-        mapping: {0: low, 1: low, 2: low, 3: medium, 4: medium, 5: medium, 6: high, 7: high}
+        mapping: {0: none, 1: none, 2: none, 3: minor, 4: minor, 5: minor, 6: major, 7: major}
 
 actions:
   idle: {}
