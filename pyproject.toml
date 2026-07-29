@@ -157,11 +157,7 @@ polars = "pl"
     "PLR0915",  # Many statements accepted
 ]
 "src/rl_health_interventions/environment.py" = [
-    "B905",     # zip strict=False not required for known-equal-length arrays
-    "C901",     # Complexity in burden methods accepted for algorithm clarity
     "EM101",    # Exception string literals
-    "PLR0912",  # Many branches in precomputation logic accepted
-    "PLR0915",  # Many statements in precomputation logic accepted
 ]
 "src/rl_health_interventions/agents/**" = [
     "EM101",    # Exception string literals

@@ -51,19 +51,12 @@ class Condition(BaseModel):
 
 class RollingWindowCountAdvance(BaseModel):
     type: Literal["rolling_window_count"] = "rolling_window_count"
-    mechanism: str = "rolling_window_count"
+    mechanism: Literal["rolling_window_count", "bayesian_p_success"] = (
+        "rolling_window_count"
+    )
     window_size: Annotated[int, Field(gt=0)] = 3
     conditions: list[Condition]
     mapping: dict[int, str]
-
-    @model_validator(mode="after")
-    def _validate_mechanism(self) -> RollingWindowCountAdvance:
-        if self.mechanism not in {"rolling_window_count", "bayesian_p_success"}:
-            raise ValueError(
-                f"mechanism must be one of 'rolling_window_count', "
-                f"'bayesian_p_success', got '{self.mechanism}'"
-            )
-        return self
 
 
 class FactorConfig(BaseModel):

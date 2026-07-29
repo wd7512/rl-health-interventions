@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from collections import deque
 from unittest import mock
 
@@ -53,39 +54,25 @@ _FACTORED_CONFIG = {
 }
 
 
+_BAYESIAN_MAPPING = {
+    0: "low",
+    1: "low",
+    2: "low",
+    3: "medium",
+    4: "medium",
+    5: "medium",
+    6: "high",
+    7: "high",
+}
+
+
 def _bayesian_config(window_size: int = 7) -> MDPConfig:
     """Return a copy of the factored config with bayesian_p_success mechanism."""
-    cfg = {**_FACTORED_CONFIG}
-    cfg = {
-        **cfg,
-        "state": {
-            "variables": {
-                k: (
-                    {**v}
-                    if k != "burden"
-                    else {
-                        **v,
-                        "advanced": {
-                            **v["advanced"],
-                            "mechanism": "bayesian_p_success",
-                            "window_size": window_size,
-                            "mapping": {
-                                0: "low",
-                                1: "low",
-                                2: "low",
-                                3: "medium",
-                                4: "medium",
-                                5: "medium",
-                                6: "high",
-                                7: "high",
-                            },
-                        },
-                    }
-                )
-                for k, v in cfg["state"]["variables"].items()
-            }
-        },
-    }
+    cfg = copy.deepcopy(_FACTORED_CONFIG)
+    burden_adv = cfg["state"]["variables"]["burden"]["advanced"]
+    burden_adv["mechanism"] = "bayesian_p_success"
+    burden_adv["window_size"] = window_size
+    burden_adv["mapping"] = dict(_BAYESIAN_MAPPING)
     return MDPConfig(**cfg)
 
 
@@ -107,16 +94,7 @@ class TestMechanismValidation:
             mechanism="bayesian_p_success",
             window_size=7,
             conditions=[{"factor": "action", "type": "in", "values": ["go"]}],
-            mapping={
-                0: "low",
-                1: "low",
-                2: "low",
-                3: "medium",
-                4: "medium",
-                5: "medium",
-                6: "high",
-                7: "high",
-            },
+            mapping=_BAYESIAN_MAPPING,
         )
         assert adv.mechanism == "bayesian_p_success"
 
@@ -497,45 +475,26 @@ class TestStepIntegration:
     def test_bayesian_does_not_affect_other_rolling_vars(self) -> None:
         """Non-burden rolling window variables should still use rolling_window_count."""
         # Use a config with both burden (bayesian) and another rolling var
-        extra_var_config = {
-            **_FACTORED_CONFIG,
-            "state": {
-                "variables": {
-                    **_FACTORED_CONFIG["state"]["variables"],
-                    "other_rolling": {
-                        "names": ["a", "b", "c"],
-                        "advanced": {
-                            "type": "rolling_window_count",
-                            "mechanism": "rolling_window_count",
-                            "window_size": 3,
-                            "conditions": [
-                                {"factor": "action", "type": "in", "values": ["go"]}
-                            ],
-                            "mapping": {0: "a", 1: "b", 2: "c", 3: "c"},
-                        },
-                    },
-                }
-            },
-            "initial_state": {
-                **_FACTORED_CONFIG["initial_state"],
-                "other_rolling": "a",
+        extra_var_config = copy.deepcopy(_FACTORED_CONFIG)
+        extra_var_config["state"]["variables"]["other_rolling"] = {
+            "names": ["a", "b", "c"],
+            "advanced": {
+                "type": "rolling_window_count",
+                "mechanism": "rolling_window_count",
+                "window_size": 3,
+                "conditions": [{"factor": "action", "type": "in", "values": ["go"]}],
+                "mapping": {0: "a", 1: "b", 2: "c", 3: "c"},
             },
         }
+        extra_var_config["initial_state"]["other_rolling"] = "a"
         # Override burden to use bayesian
         extra_var_config["state"]["variables"]["burden"]["advanced"]["mechanism"] = (
             "bayesian_p_success"
         )
         extra_var_config["state"]["variables"]["burden"]["advanced"]["window_size"] = 7
-        extra_var_config["state"]["variables"]["burden"]["advanced"]["mapping"] = {
-            0: "low",
-            1: "low",
-            2: "low",
-            3: "medium",
-            4: "medium",
-            5: "medium",
-            6: "high",
-            7: "high",
-        }
+        extra_var_config["state"]["variables"]["burden"]["advanced"]["mapping"] = dict(
+            _BAYESIAN_MAPPING
+        )
 
         config = MDPConfig(**extra_var_config)
         env = Environment(config, seed=42)

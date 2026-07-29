@@ -42,7 +42,7 @@ class Environment:
         self._done = False
         self._current_state: StateView | None = None
         self._daily_total = 0
-        self._rng = np.random.default_rng(seed)
+        self._rng = np.random.default_rng(np.random.SeedSequence(seed).spawn(2)[1])
         self._cyclic_vars: list[tuple[str, CyclicAdvance]] = [
             (n, c.advanced)
             for n, c in config.state.variables.items()
@@ -75,7 +75,7 @@ class Environment:
         for _ in range(self._action_history.maxlen or 0):
             self._action_history.append("idle")
 
-    def _apply_rolling_advances(self, action: str, state: StateView) -> StateView:
+    def _apply_rolling_advances(self, action: str, state: StateView) -> StateView:  # noqa: C901
         self._action_history.append(action)
         for name, adv in self._rolling_vars:
             if adv.mechanism == "bayesian_p_success":
@@ -95,21 +95,31 @@ class Environment:
 
     def _init_bayesian_burden(self) -> None:
         """Set up Bayesian P-success burden if any rolling var uses it."""
-        for _name, adv in self._rolling_vars:
+        for name, adv in self._rolling_vars:
             if adv.mechanism == "bayesian_p_success":
+                if self._has_bayesian_burden:
+                    logger.warning(
+                        "Multiple Bayesian P-success variables found; "
+                        "using '%s', ignoring '%s'",
+                        self._bayesian_var,
+                        name,
+                    )
+                    continue
                 self._failure_history = deque(maxlen=adv.window_size)
                 self._burden_mapping = adv.mapping
                 self._bayesian_window_size = adv.window_size
                 self._has_bayesian_burden = True
+                self._bayesian_var = name
                 self._success_probs = self._precompute_success_probs()
                 logger.debug(
                     "Bayesian P-success burden enabled: window=%d, mapping=%s",
                     adv.window_size,
                     adv.mapping,
                 )
-                break
 
-    def _precompute_success_probs(self) -> dict[str, float]:
+    def _precompute_success_probs(  # noqa: C901, PLR0912, PLR0915
+        self,
+    ) -> dict[str, float]:
         """Compute P(success | state, action) for all state-action pairs.
 
         Uses Formula 3:
@@ -125,7 +135,7 @@ class Environment:
         if not lookup:
             # Try rule_based cache next (tuple keys = (state_val, action))
             cache = getattr(self._transition, "_cache", None)
-            if cache and cache and self._is_rule_based_cache(cache):
+            if cache and self._is_rule_based_cache(cache):
                 return self._precompute_from_cache(cache)
             return result
 
@@ -168,23 +178,7 @@ class Environment:
 
                     all_targets = set(targets_a) | set(targets_i)
 
-                    p_sum = 0.0
-                    for target in all_targets:
-                        p_a = prob_a_map.get(target, 0.0)
-                        p_i = prob_i_map.get(target, 0.0)
-
-                        # P(success | s, a, target) per edge cases
-                        if p_a == 0.0 and p_i == 0.0:
-                            p_success = 0.5
-                        elif p_a == 0.0:
-                            p_success = 0.0
-                        elif p_i == 0.0:
-                            p_success = 1.0
-                        else:
-                            p_success = p_a / (p_a + p_i)
-
-                        p_sum += p_a * p_success
-
+                    p_sum = self._formula3_sum(prob_a_map, prob_i_map, all_targets)
                     factor_successes.append(p_sum)
 
                 if factor_successes:
@@ -205,7 +199,38 @@ class Environment:
         first_key = next(iter(cache))
         return isinstance(first_key, tuple)
 
-    def _precompute_from_cache(
+    @staticmethod
+    def _formula3_sum(
+        action_probs: dict[str, float],
+        idle_probs: dict[str, float],
+        targets: set[str],
+    ) -> float:
+        """Compute Formula 3: Σ P_a(t) * P_a(t) / (P_a(t) + P_i(t)).
+
+        Edge cases:
+        - Both zero → contribution = 0.5
+        - Action zero, idle positive → contribution = 0
+        - Action positive, idle zero → contribution = 1.0 * P_a(t) = P_a(t)
+        """
+        p_sum = 0.0
+        for tgt in targets:
+            p_a = action_probs.get(tgt, 0.0)
+            p_i = idle_probs.get(tgt, 0.0)
+
+            if p_a == 0.0 and p_i == 0.0:
+                p_success = 0.5
+            elif p_a == 0.0:
+                p_success = 0.0
+            elif p_i == 0.0:
+                p_success = 1.0
+            else:
+                p_success = p_a / (p_a + p_i)
+
+            p_sum += p_a * p_success
+
+        return p_sum
+
+    def _precompute_from_cache(  # noqa: C901
         self,
         cache: dict[tuple[str, str], tuple[list[str], np.ndarray]],
     ) -> dict[str, float]:
@@ -234,23 +259,7 @@ class Environment:
                 p_a_map = dict(zip(targets, probs, strict=False))
                 all_tgts = set(targets) | set(idle_targets)
 
-                p_sum = 0.0
-                for tgt in all_tgts:
-                    p_a = p_a_map.get(tgt, 0.0)
-                    p_i = idle_map.get(tgt, 0.0)
-
-                    # P(success | s, a, target) per edge cases
-                    if p_a == 0.0 and p_i == 0.0:
-                        p_success = 0.5
-                    elif p_a == 0.0:
-                        p_success = 0.0
-                    elif p_i == 0.0:
-                        p_success = 1.0
-                    else:
-                        p_success = p_a / (p_a + p_i)
-
-                    p_sum += p_a * p_success
-
+                p_sum = self._formula3_sum(p_a_map, idle_map, all_tgts)
                 result[f"{state_key_val}|{action}"] = p_sum
 
         return result
@@ -263,6 +272,8 @@ class Environment:
         config_var_order = list(self._config.state.variables.keys())
         factor_values = state.factor_values
         parts = [str(factor_values.get(f, "")) for f in config_var_order]
+        if getattr(self._transition, "_include_step_of_day", False):
+            parts.append(str(state.step_of_day))
         key = "|".join(parts) + f"|{action}"
         return self._success_probs.get(key, 0.5)
 
@@ -281,7 +292,7 @@ class Environment:
         self._failure_history.append(not draw)  # True = failure
 
         burden = self._get_burden_from_failures()
-        return state.with_factors(burden=burden)
+        return state.with_factors(**{self._bayesian_var: burden})
 
     def _get_burden_from_failures(self) -> str:
         """Map the current failure count to a burden level."""
@@ -289,6 +300,8 @@ class Environment:
             return "low"
         count = sum(1 for f in self._failure_history if f)
         capped = min(count, max(self._burden_mapping.keys()))
+        while capped >= 0 and capped not in self._burden_mapping:
+            capped -= 1
         return self._burden_mapping[capped]
 
     def _apply_cyclic_advances(self, state: StateView) -> StateView:
@@ -315,7 +328,7 @@ class Environment:
         logger.debug("Environment reset: %s", self._current_state)
         return self._current_state
 
-    def step(self, action: str) -> tuple[StateView, float, bool]:
+    def step(self, action: str) -> tuple[StateView, float, bool]:  # noqa: C901
         if self._done:
             raise RuntimeError("Episode is done. Call reset() to start a new episode.")
         if self._current_state is None:
