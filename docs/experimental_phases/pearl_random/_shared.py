@@ -7,6 +7,7 @@ from pathlib import Path
 from rl_health_interventions.evaluation._shared import (
     agent_label,
     run_agent,
+    run_agent_detailed,
 )
 from rl_health_interventions.evaluation._shared import (
     resolve_config as _resolve_config,
@@ -22,4 +23,4 @@ def resolve_config(
     return _resolve_config(_CONFIG_DIR, name, default=default)
 
 
-__all__ = ["agent_label", "resolve_config", "run_agent"]
+__all__ = ["agent_label", "resolve_config", "run_agent", "run_agent_detailed"]
