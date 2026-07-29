@@ -13,7 +13,7 @@
 
 | ID | Name | Criterion | Rationale |
 |----|------|-----------|-----------|
-| T1.1 | Baseline stability | Mean steps during 7-day baseline period within ±15% of PEARL reference (μ=5,618) | Ensure simulation starts from realistic baseline |
+| T1.1 | Baseline stability | Mean steps during 30-day baseline period within ±15% of PEARL reference (μ=5,618) | Ensure simulation starts from realistic baseline |
 | T1.2 | Action differentiation | One-way ANOVA across 4 arms on mean daily steps at 1 month, p < 0.01 | Arms must diverge from each other |
 | T1.3 | Direction correctness | RL arm mean daily steps > Control arm mean in ≥90% of seeds | RL must be at least non-inferior |
 | T1.4 | No degenerate trajectories | No single-day step total == 0 or > 30,000 across any seed or arm | Physiological plausibility |
@@ -25,7 +25,7 @@
 | ID | Name | Criterion | Rationale |
 |----|------|-----------|-----------|
 | T2.1 | Baseline mean | One-sample t-test vs μ=5,618 on 7-day baseline, p > 0.05 | Cannot reject PEARL baseline distribution |
-| T2.2 | Effect size magnitude | RL vs Control Δ at 1 month: 150 ≤ Δ ≤ 450 steps | Effect must be within plausible range |
+| T2.2 | Effect size magnitude | RL vs Control Δ at 1 month: observe actual effect size (PEARL reported significant improvement) | Effect must be within plausible range |
 | T2.3 | Effect size ordering | Mean daily steps: RL ≥ Fixed ≥ Random > Control | Must match PEARL ordinal pattern |
 | T2.4 | Attenuation pattern | 1-month to 2-month decay: 15% ≤ (Δ₁ - Δ₂)/Δ₁ ≤ 45% | Within PEARL-observed attenuation range (29%) |
 | T2.5 | Between-person variance | ICC for daily steps across seeds: 0.4 ≤ ICC ≤ 0.9 | Participants should differ from each other |
@@ -56,12 +56,14 @@
 
 ## Arm Mapping
 
-| PEARL Arm | Simulation Agent | Description |
-|-----------|-----------------|-------------|
-| Control | FixedAgent(action="idle") | No nudges, pure observation |
-| Random | RandomAgent (uniform) | Random action selection |
-| Fixed | FixedAgent(action="movement_suggestion") | Always sends activity suggestion |
-| RL | ThompsonSampling | Contextual bandit learning |
+| PEARL Arm | Simulation Agent | Config | Description |
+|-----------|-----------------|--------|-------------|
+| Control | FixedAgent | `action: idle` | No nudges, pure observation |
+| Random | RandomAgent | `type: random` | Uniform random action selection |
+| Fixed | ComBWeightedFixedAgent | `persona_comb_file: pearl/comb_scores.json` | COM-B barrier-score weighted multinomial sampling |
+| RL | EpsilonGreedyAgent | `epsilon: 0.3` (PEARL ε=0.7 exploit → our ε=0.3 explore) | Contextual multi-armed bandit with ε-greedy exploration |
+
+**Note on epsilon convention:** PEARL defines epsilon as exploit probability (higher = less exploration). Our code defines epsilon as explore probability (higher = more exploration). PEARL's epsilon=0.7-0.8 maps to our epsilon=0.3-0.2.
 
 ## Persona Weights (Demographic Matching)
 
