@@ -49,16 +49,31 @@ def run_agent(config, agent_cfg, n_seeds: int) -> np.ndarray:
 
     Returns per-step rewards shaped ``(n_seeds, n_steps)``.
     """
+    rewards, _ = run_agent_detailed(config, agent_cfg, n_seeds, agent_index=0)
+    return rewards
+
+
+def run_agent_detailed(
+    config, agent_cfg, n_seeds: int, *, agent_index: int = 0
+) -> tuple[np.ndarray, list[list[dict]]]:
+    """Run one agent variant over *n_seeds*.
+
+    Returns ``(rewards, trajectories)`` where:
+      - *rewards*: ndarray shaped ``(n_seeds, n_steps)``
+      - *trajectories*: list of per-step record dicts, one list per seed
+    """
     exclude = {"type"}
     if not agent_cfg.contextual:
         exclude |= {"contextual", "context_features"}
     base_kwargs = agent_cfg.model_dump(exclude=exclude, exclude_none=True)
     base_kwargs["actions"] = config.action_names
     rewards = []
+    trajectories: list[list[dict]] = []
     for seed in range(1, n_seeds + 1):
         kwargs = base_kwargs.copy()
-        kwargs["seed"] = derive_agent_seed(seed, agent_index=0)
+        kwargs["seed"] = derive_agent_seed(seed, agent_index=agent_index)
         agent = make_agent(agent_cfg.type, **kwargs)
         records = run_episode(config, agent, seed=seed)
         rewards.append([r["reward"] for r in records])
-    return np.array(rewards)
+        trajectories.append(records)
+    return np.array(rewards), trajectories
