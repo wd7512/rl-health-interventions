@@ -1,0 +1,70 @@
+"""E2E benchmark: compare agents across bayesian burden window sizes on sprint1 bootstrap MDP."""
+
+from __future__ import annotations
+
+import argparse
+import logging
+from pathlib import Path
+
+from _shared import resolve_config
+
+from rl_health_interventions.evaluation.runner import _positive_int, run_benchmark
+
+logger = logging.getLogger(__name__)
+
+_CONFIGS_DIR = Path(__file__).resolve().parent / "configs"
+_CONFIG_REF_BASE = _CONFIGS_DIR.parent.parent
+
+_CONFIGS = [
+    _CONFIGS_DIR / "sprint1_bootstrap_new_burden_w1d.yaml",
+    _CONFIGS_DIR / "sprint1_bootstrap_new_burden_w3d.yaml",
+    _CONFIGS_DIR / "sprint1_bootstrap_new_burden_w7d.yaml",
+    _CONFIGS_DIR / "sprint1_bootstrap_new_burden_w7d_rebalanced.yaml",
+    _CONFIGS_DIR / "sprint1_bootstrap_new_burden_w14d.yaml",
+    _CONFIGS_DIR / "sprint1_bootstrap_new_burden_w30d.yaml",
+]
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Benchmark agents on sprint1 bootstrap MDP with bayesian burden"
+    )
+    parser.add_argument("--seeds", type=_positive_int, default=50)
+    parser.add_argument("--config", type=str, default=None)
+    parser.add_argument("--all", action="store_true")
+    parser.add_argument("--output", type=str, default=None)
+    parser.add_argument("--json", action="store_true")
+    parser.add_argument("--confirm-overwrite", action="store_true")
+    args = parser.parse_args()
+
+    if args.json and args.output is None:
+        parser.error("--json requires --output <dir>")
+
+    n_seeds = args.seeds
+    output_dir = Path(args.output) if args.output else None
+
+    if args.all:
+        for config_path in _CONFIGS:
+            logger.info("\n=== Config: %s ===\n", config_path.name)
+            run_benchmark(
+                str(config_path),
+                n_seeds,
+                output_dir=output_dir,
+                dump_json=args.json,
+                confirm_overwrite=args.confirm_overwrite,
+                config_ref_base=_CONFIG_REF_BASE,
+            )
+    else:
+        run_benchmark(
+            resolve_config(args.config),
+            n_seeds,
+            output_dir=output_dir,
+            dump_json=args.json,
+            confirm_overwrite=args.confirm_overwrite,
+            config_ref_base=_CONFIG_REF_BASE,
+        )
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    main()
