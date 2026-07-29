@@ -1,0 +1,85 @@
+{
+  "config": "sprint1_bootstrap_new_burden/configs/sprint1_bootstrap_new_burden_w1d.yaml",
+  "seed": 42,
+  "seeds": 50,
+  "agents": {
+    "Random": {
+      "total_reward": 265.355,
+      "total_std": 14.295419721015547,
+      "per_step": 0.5896777777777777,
+      "last50": 0.58028
+    },
+    "Std TS": {
+      "total_reward": 274.56499999999994,
+      "total_std": 21.001255319623162,
+      "per_step": 0.6101444444444445,
+      "last50": 0.6433399999999999
+    },
+    "Ctx TS": {
+      "total_reward": 264.10499999999996,
+      "total_std": 30.4203702311461,
+      "per_step": 0.5869,
+      "last50": 0.59926
+    },
+    "Std EG": {
+      "total_reward": 290.16,
+      "total_std": 34.36536337651619,
+      "per_step": 0.6448,
+      "last50": 0.6472
+    },
+    "Ctx EG": {
+      "total_reward": 295.666,
+      "total_std": 46.66037659513691,
+      "per_step": 0.6570355555555555,
+      "last50": 0.6746
+    },
+    "Std D-EG": {
+      "total_reward": 291.93,
+      "total_std": 33.1905754695516,
+      "per_step": 0.6487333333333334,
+      "last50": 0.6647799999999999
+    },
+    "Ctx D-EG": {
+      "total_reward": 279.29699999999997,
+      "total_std": 58.549752698025976,
+      "per_step": 0.62066,
+      "last50": 0.6418
+    },
+    "Std UCB": {
+      "total_reward": 315.05600000000004,
+      "total_std": 29.9623274129364,
+      "per_step": 0.7001244444444444,
+      "last50": 0.75076
+    },
+    "Ctx UCB": {
+      "total_reward": 276.25199999999995,
+      "total_std": 21.542476552151577,
+      "per_step": 0.6138933333333334,
+      "last50": 0.65084
+    },
+    "Std Q-Learning": {
+      "total_reward": 262.44599999999997,
+      "total_std": 13.102586920146727,
+      "per_step": 0.5832133333333334,
+      "last50": 0.5605
+    },
+    "Std DQN": {
+      "total_reward": 268.75300000000004,
+      "total_std": 28.276179745503104,
+      "per_step": 0.5972288888888889,
+      "last50": 0.5978
+    },
+    "Std REINFORCE": {
+      "total_reward": 268.275,
+      "total_std": 19.129159024902272,
+      "per_step": 0.5961666666666666,
+      "last50": 0.60006
+    },
+    "Std PPO": {
+      "total_reward": 270.617,
+      "total_std": 19.111757140566645,
+      "per_step": 0.6013711111111111,
+      "last50": 0.6070800000000001
+    }
+  }
+}
