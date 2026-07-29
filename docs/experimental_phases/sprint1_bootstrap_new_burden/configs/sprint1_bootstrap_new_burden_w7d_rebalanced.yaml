@@ -1,6 +1,7 @@
 # Sprint1 bootstrap + bayesian P-success burden (7-day window, 35 steps).
-# Rebalanced mapping to target ~25/55/20 low/medium/high distribution.
-# Original w7d had ~18/81/0.5 — this shifts high threshold from 25 to 20.
+# Rebalanced mapping: shifts high threshold from 25 to 20.
+# Count-space proportions: 14/6/16 values (39/17/44%).
+# Observed burden distribution: ~18/65/17 (Random agent).
 
 initial_state:
   step_bin: inactive

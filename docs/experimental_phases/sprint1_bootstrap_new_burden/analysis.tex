@@ -169,8 +169,9 @@ Config & Low & Medium & High \\
 \end{center}
 
 \noindent w7d\_rebal denotes the rebalanced mapping.  The rebalanced mapping
-shifts the distribution from 18/81/0.5 to approximately 25/55/20 for
-the Random agent, bringing it closer to the 37/37/25 target.
+shifts the observed distribution from 18/81/0.5 to approximately 18/65/17
+for the Random agent, increasing the high-burden fraction from 0.5\% to
+17\%.
 
 \noindent The deterministic mechanism pushes burden toward \texttt{high}
 (68--84\% of steps).  The Bayesian mechanism redistributes this primarily
@@ -267,9 +268,9 @@ The Bernoulli draw introduces two key properties:
   \item \textbf{Default window: w7d (35 steps) with rebalanced mapping.}
     The rebalanced mapping (\texttt{w7d\_rebalanced};
     \{0--13: low, 14--19: medium, 20--35: high\})
-    produces a~25/55/20 burden distribution, closer to PEARL's 37/37/25
-    target.  This trades $\sim$10\% total reward for a meaningful burden
-    signal where high burden is reachable 20\% of the time.
+    produces an observed burden distribution of approximately 18/65/17
+    (Random agent), increasing the high-burden fraction from 0.5\% to
+    17\% compared to the original proportional mapping.
   \item \textbf{Contextual agents benefit less with Bayesian burden.}
     The smoothed signal reduces the information content of burden as a
     context feature.  Standard agents perform nearly as well as
