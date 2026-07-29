@@ -19,6 +19,7 @@ _CONFIGS = [
     _CONFIGS_DIR / "sprint1_bootstrap_new_burden_w1d.yaml",
     _CONFIGS_DIR / "sprint1_bootstrap_new_burden_w3d.yaml",
     _CONFIGS_DIR / "sprint1_bootstrap_new_burden_w7d.yaml",
+    _CONFIGS_DIR / "sprint1_bootstrap_new_burden_w7d_rebalanced.yaml",
     _CONFIGS_DIR / "sprint1_bootstrap_new_burden_w14d.yaml",
     _CONFIGS_DIR / "sprint1_bootstrap_new_burden_w30d.yaml",
 ]

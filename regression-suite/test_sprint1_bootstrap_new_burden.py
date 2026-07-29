@@ -41,6 +41,7 @@ _CONFIGS = [
     "sprint1_bootstrap_new_burden_w1d",
     "sprint1_bootstrap_new_burden_w3d",
     "sprint1_bootstrap_new_burden_w7d",
+    "sprint1_bootstrap_new_burden_w7d_rebalanced",
     "sprint1_bootstrap_new_burden_w14d",
     "sprint1_bootstrap_new_burden_w30d",
 ]

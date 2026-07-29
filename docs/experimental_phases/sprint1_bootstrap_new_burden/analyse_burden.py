@@ -9,10 +9,13 @@ Runs selected agents on each config, extracts burden at every step, and outputs:
 from __future__ import annotations
 
 import json
+import logging
 import sys
 from pathlib import Path
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 _EXPERIMENT_DIR = Path(__file__).resolve().parent
@@ -37,6 +40,8 @@ _CONFIGS = {
     "bayes_w1d": _EXPERIMENT_DIR / "configs/sprint1_bootstrap_new_burden_w1d.yaml",
     "bayes_w3d": _EXPERIMENT_DIR / "configs/sprint1_bootstrap_new_burden_w3d.yaml",
     "bayes_w7d": _EXPERIMENT_DIR / "configs/sprint1_bootstrap_new_burden_w7d.yaml",
+    "bayes_w7d_rebalanced": _EXPERIMENT_DIR
+    / "configs/sprint1_bootstrap_new_burden_w7d_rebalanced.yaml",
     "bayes_w14d": _EXPERIMENT_DIR / "configs/sprint1_bootstrap_new_burden_w14d.yaml",
     "bayes_w30d": _EXPERIMENT_DIR / "configs/sprint1_bootstrap_new_burden_w30d.yaml",
 }
@@ -57,14 +62,14 @@ def analyse_burden() -> None:
     results: dict[str, dict] = {}
 
     for config_label, config_path in _CONFIGS.items():
-        print(f"\n=== {config_label} ===")
+        logger.info("\n=== %s ===", config_label)
         config = load_config(str(config_path))
 
         config_results: dict[str, dict] = {}
         for agent_name, agent_idx in _AGENT_INDICES.items():
             # Build agent config from the YAML's agents list
             agent_cfg = config.agents[agent_idx]
-            print(f"  Running {agent_name}...")
+            logger.info("  Running %s...", agent_name)
             _, trajs = run_agent_detailed(
                 config, agent_cfg, N_SEEDS, agent_index=agent_idx
             )
@@ -126,9 +131,13 @@ def analyse_burden() -> None:
                 "n_steps": n_steps,
             }
 
-            print(
-                f"    burden: low={low_frac:.3f} med={med_frac:.3f}"
-                f" high={high_frac:.3f}  idle={idle_frac:.3f}"
+            logger.info(
+                "    burden: low=%.3f med=%.3f"
+                " high=%.3f  idle=%.3f",
+                low_frac,
+                med_frac,
+                high_frac,
+                idle_frac,
             )
 
         results[config_label] = config_results
@@ -137,11 +146,9 @@ def analyse_burden() -> None:
     out_path = _EXPERIMENT_DIR / "results" / "burden_evolution.json"
     with out_path.open("w") as f:
         json.dump(results, f, indent=2)
-    print(f"\nWrote {out_path}")
+    logger.info("Wrote %s", out_path)
 
 
 if __name__ == "__main__":
-    import logging
-
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     analyse_burden()

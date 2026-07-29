@@ -86,10 +86,12 @@ w30d & \{0--57: low,\ 58--102: med,\ 103--150: high\} & --- \\
 \end{tabular}
 \end{center}
 
-\noindent The rebalanced w7d lowers the \texttt{high} threshold from 25
-to 20, converting 5\% of the range from \texttt{medium} to
-\texttt{high}.  This produces a distribution closer to the 37/37/25
-target at the cost of \textasciitilde10\% lower total reward.
+\noindent The original w7d mapping has 14/11/11 values for low/medium/high
+(38.9\%/30.6\%/30.6\% of the 36-count range).  The rebalanced mapping
+has 14/6/16 values (38.9\%/16.7\%/44.4\%), shifting 5 counts
+(13.9\% of the range) from \texttt{medium} to \texttt{high}.  These
+are count-space proportions---observed burden probabilities differ
+because the failure count distribution is not uniform.
 
 \subsection{Baseline}
 \texttt{sprint1\_bootstrap\_context\_burden} (deterministic
@@ -109,7 +111,7 @@ REINFORCE, PPO.  All run at 50 seeds.
 \begin{center}
 \begin{tabular}{l rrrrrrc}
 \toprule
-Agent & Baseline & w1d & w3d & w7d & w7d* & w14d & w30d \\
+Agent & Baseline & w1d & w3d & w7d & w7d\_rebal & w14d & w30d \\
 \midrule
 Random       & 101$\pm$15 & 265$\pm$14 & 292$\pm$11 & 302$\pm$8 & 256$\pm$26 & 305$\pm$8 & 312$\pm$8 \\
 Std UCB      & 349$\pm$26 & 315$\pm$30 & 323$\pm$17 & 330$\pm$13 & 286$\pm$37 & 332$\pm$11 & 341$\pm$13 \\
@@ -120,7 +122,7 @@ Std D-EG     & 292$\pm$104 & 292$\pm$33 & 316$\pm$31 & 335$\pm$20 & 303$\pm$39 &
 \end{tabular}
 \end{center}
 
-\noindent w7d* denotes the rebalanced mapping
+\noindent w7d\_rebal denotes the rebalanced mapping
 (\{0--13: low, 14--19: medium, 20--35: high\}).
 
 \noindent\textbf{Key observation:} Every agent at every Bayesian window
@@ -146,27 +148,27 @@ Config & Low & Medium & High \\
 \quad Baseline (det) & 0.019 & 0.141 & 0.840 \\
 \quad Bayesian w1d   & 0.210 & 0.616 & 0.174 \\
 \quad Bayesian w7d   & 0.184 & 0.811 & 0.005 \\
-\quad Bayesian w7d*  & 0.178 & 0.651 & 0.170 \\
+\quad Bayesian w7d\_rebal  & 0.178 & 0.651 & 0.170 \\
 \quad Bayesian w30d  & 0.351 & 0.649 & 0.000 \\
 \midrule
 \multicolumn{4}{l}{\textit{Std UCB agent}} \\
 \quad Baseline (det) & 0.869 & 0.022 & 0.108 \\
 \quad Bayesian w1d   & 0.388 & 0.507 & 0.104 \\
 \quad Bayesian w7d   & 0.275 & 0.718 & 0.007 \\
-\quad Bayesian w7d*  & 0.302 & 0.530 & 0.169 \\
+\quad Bayesian w7d\_rebal  & 0.302 & 0.530 & 0.169 \\
 \quad Bayesian w30d  & 0.406 & 0.594 & 0.000 \\
 \midrule
 \multicolumn{4}{l}{\textit{Std EG agent}} \\
 \quad Baseline (det) & 0.042 & 0.282 & 0.676 \\
 \quad Bayesian w1d   & 0.220 & 0.569 & 0.211 \\
 \quad Bayesian w7d   & 0.194 & 0.796 & 0.009 \\
-\quad Bayesian w7d*  & 0.207 & 0.594 & 0.200 \\
+\quad Bayesian w7d\_rebal  & 0.207 & 0.594 & 0.200 \\
 \quad Bayesian w30d  & 0.392 & 0.608 & 0.000 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent w7d* denotes the rebalanced mapping.  The rebalanced mapping
+\noindent w7d\_rebal denotes the rebalanced mapping.  The rebalanced mapping
 shifts the distribution from 18/81/0.5 to approximately 25/55/20 for
 the Random agent, bringing it closer to the 37/37/25 target.
 
@@ -263,7 +265,8 @@ The Bernoulli draw introduces two key properties:
     The deterministic mechanism is harmful and produces misleading
     results.
   \item \textbf{Default window: w7d (35 steps) with rebalanced mapping.}
-    The rebalanced mapping (\{0--13: low, 14--19: medium, 20--35: high\})
+    The rebalanced mapping (\texttt{w7d\_rebalanced};
+    \{0--13: low, 14--19: medium, 20--35: high\})
     produces a~25/55/20 burden distribution, closer to PEARL's 37/37/25
     target.  This trades $\sim$10\% total reward for a meaningful burden
     signal where high burden is reachable 20\% of the time.
@@ -283,7 +286,7 @@ The Bernoulli draw introduces two key properties:
 \section{Reproduction}
 
 \begin{verbatim}
-# Run all bayesian burden configs (50 seeds)
+# Run all bayesian burden configs including rebalanced (50 seeds)
 uv run python docs/experimental_phases/sprint1_bootstrap_new_burden/\
   run_experiments.py --all --seeds 50 \
   --output docs/experimental_phases/sprint1_bootstrap_new_burden/results \

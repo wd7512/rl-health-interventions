@@ -1,5 +1,5 @@
 # Sprint1 bootstrap + bayesian P-success burden (7-day window, 35 steps).
-# Matches pearl's 7-day temporal coverage at 5 steps/day.
+# Proportional mapping: 14/11/11 values for low/medium/high.
 # Identical to sprint1_bootstrap_context_burden except burden uses
 # bayesian_p_success mechanism with window_size=35.
 
@@ -31,7 +31,7 @@ state:
           - factor: action
             type: in
             values: [movement_suggestion, goal_reminder, journal]
-        mapping: {0: low, 1: low, 2: low, 3: low, 4: low, 5: low, 6: low, 7: low, 8: low, 9: low, 10: low, 11: low, 12: low, 13: low, 14: medium, 15: medium, 16: medium, 17: medium, 18: medium, 19: medium, 20: high, 21: high, 22: high, 23: high, 24: high, 25: high, 26: high, 27: high, 28: high, 29: high, 30: high, 31: high, 32: high, 33: high, 34: high, 35: high}
+        mapping: {0: low, 1: low, 2: low, 3: low, 4: low, 5: low, 6: low, 7: low, 8: low, 9: low, 10: low, 11: low, 12: low, 13: low, 14: medium, 15: medium, 16: medium, 17: medium, 18: medium, 19: medium, 20: medium, 21: medium, 22: medium, 23: medium, 24: medium, 25: high, 26: high, 27: high, 28: high, 29: high, 30: high, 31: high, 32: high, 33: high, 34: high, 35: high}
 
 actions:
   idle: {}
