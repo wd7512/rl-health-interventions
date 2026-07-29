@@ -120,6 +120,11 @@ class TableTransition(TransitionModel):
             converted[factor] = (targets, prob_values)
         return converted
 
+    @property
+    def lookup(self) -> dict[str, dict[str, tuple[list[str], np.ndarray]]]:
+        """Per-state-action probability distributions keyed by values|action."""
+        return self._lookup
+
     # ── State key building ────────────────────────────────────────────────
 
     def _build_state_key(self, state: StateView, action: str) -> str:

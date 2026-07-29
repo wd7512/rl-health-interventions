@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from collections import deque
 
+import numpy as np
+
 from rl_health_interventions import make_reward, make_transition
 from rl_health_interventions.config.schemas import (
     CyclicAdvance,
@@ -40,6 +42,7 @@ class Environment:
         self._done = False
         self._current_state: StateView | None = None
         self._daily_total = 0
+        self._rng = np.random.default_rng(seed)
         self._cyclic_vars: list[tuple[str, CyclicAdvance]] = [
             (n, c.advanced)
             for n, c in config.state.variables.items()
@@ -55,6 +58,14 @@ class Environment:
         self._action_history: deque[str] = deque(maxlen=max_window)
         self._prime_action_history()
 
+        # Bayesian P-success burden state
+        self._failure_history: deque[bool] | None = None
+        self._burden_mapping: dict[int, str] | None = None
+        self._success_probs: dict[str, float] = {}
+        self._has_bayesian_burden = False
+        self._bayesian_window_size = 0
+        self._init_bayesian_burden()
+
     @property
     def action_history(self) -> tuple[str, ...]:
         return tuple(self._action_history)
@@ -67,6 +78,8 @@ class Environment:
     def _apply_rolling_advances(self, action: str, state: StateView) -> StateView:
         self._action_history.append(action)
         for name, adv in self._rolling_vars:
+            if adv.mechanism == "bayesian_p_success":
+                continue  # Already handled by _update_burden
             window = list(self._action_history)[-adv.window_size :]
             count = 0
             for cond in adv.conditions:
@@ -80,6 +93,204 @@ class Environment:
             state = state.with_factors(**{name: adv.mapping[capped]})
         return state
 
+    def _init_bayesian_burden(self) -> None:
+        """Set up Bayesian P-success burden if any rolling var uses it."""
+        for _name, adv in self._rolling_vars:
+            if adv.mechanism == "bayesian_p_success":
+                self._failure_history = deque(maxlen=adv.window_size)
+                self._burden_mapping = adv.mapping
+                self._bayesian_window_size = adv.window_size
+                self._has_bayesian_burden = True
+                self._success_probs = self._precompute_success_probs()
+                logger.debug(
+                    "Bayesian P-success burden enabled: window=%d, mapping=%s",
+                    adv.window_size,
+                    adv.mapping,
+                )
+                break
+
+    def _precompute_success_probs(self) -> dict[str, float]:
+        """Compute P(success | state, action) for all state-action pairs.
+
+        Uses Formula 3:
+        P_success_f(s, a) = Σ P_f(v|s,a) * P_f(v|s,a) / (P_f(v|s,a) + P_f(v|s,idle))
+
+        Falls back to empty dict (P_success = 0.5) for transition models
+        without per-state-action probability tables.
+        """
+        result: dict[str, float] = {}
+
+        # Try table transition lookup first
+        lookup = getattr(self._transition, "lookup", None)
+        if not lookup:
+            # Try rule_based cache next (tuple keys = (state_val, action))
+            cache = getattr(self._transition, "_cache", None)
+            if cache and cache and self._is_rule_based_cache(cache):
+                return self._precompute_from_cache(cache)
+            return result
+
+        # Group entries by state (without trailing action)
+        state_actions: dict[
+            str, dict[str, dict[str, tuple[list[str], np.ndarray]]]
+        ] = {}
+        for key, factor_dists in lookup.items():
+            parts = key.split("|")
+            action = parts[-1]
+            state_key = "|".join(parts[:-1])
+            if state_key not in state_actions:
+                state_actions[state_key] = {}
+            state_actions[state_key][action] = factor_dists
+
+        # Stochastic factors — those without advanced configs
+        stochastic = [
+            n for n, c in self._config.state.variables.items() if c.advanced is None
+        ]
+
+        for state_key, action_dists in state_actions.items():
+            idle_dists = action_dists.get("idle")
+            if idle_dists is None:
+                continue
+
+            for action, factor_dists in action_dists.items():
+                if action == "idle":
+                    continue
+
+                factor_successes: list[float] = []
+                for factor in stochastic:
+                    if factor not in factor_dists or factor not in idle_dists:
+                        continue
+
+                    targets_a, probs_a = factor_dists[factor]
+                    targets_i, probs_i = idle_dists[factor]
+
+                    prob_a_map = dict(zip(targets_a, probs_a, strict=False))
+                    prob_i_map = dict(zip(targets_i, probs_i, strict=False))
+
+                    all_targets = set(targets_a) | set(targets_i)
+
+                    p_sum = 0.0
+                    for target in all_targets:
+                        p_a = prob_a_map.get(target, 0.0)
+                        p_i = prob_i_map.get(target, 0.0)
+
+                        # P(success | s, a, target) per edge cases
+                        if p_a == 0.0 and p_i == 0.0:
+                            p_success = 0.5
+                        elif p_a == 0.0:
+                            p_success = 0.0
+                        elif p_i == 0.0:
+                            p_success = 1.0
+                        else:
+                            p_success = p_a / (p_a + p_i)
+
+                        p_sum += p_a * p_success
+
+                    factor_successes.append(p_sum)
+
+                if factor_successes:
+                    combined = sum(factor_successes) / len(factor_successes)
+                else:
+                    combined = 0.5
+
+                combined_key = f"{state_key}|{action}"
+                result[combined_key] = combined
+
+        return result
+
+    @staticmethod
+    def _is_rule_based_cache(cache: dict) -> bool:
+        """Check if cache has tuple keys (RuleBasedTransition)."""
+        if not cache:
+            return False
+        first_key = next(iter(cache))
+        return isinstance(first_key, tuple)
+
+    def _precompute_from_cache(
+        self,
+        cache: dict[tuple[str, str], tuple[list[str], np.ndarray]],
+    ) -> dict[str, float]:
+        """Precompute P(success) from RuleBasedTransition cache."""
+        result: dict[str, float] = {}
+        # Rule-based cache keys are (state_val, action)
+        # Group by state_val
+        state_actions: dict[str, dict[str, tuple[list[str], np.ndarray]]] = {}
+        for (state_val, action), (targets, probs) in cache.items():
+            if state_val not in state_actions:
+                state_actions[state_val] = {}
+            state_actions[state_val][action] = (targets, probs)
+
+        for state_key_val, action_dists in state_actions.items():
+            idle_data = action_dists.get("idle")
+            if idle_data is None:
+                continue
+
+            idle_targets, idle_probs = idle_data
+            idle_map = dict(zip(idle_targets, idle_probs, strict=False))
+
+            for action, (targets, probs) in action_dists.items():
+                if action == "idle":
+                    continue
+
+                p_a_map = dict(zip(targets, probs, strict=False))
+                all_tgts = set(targets) | set(idle_targets)
+
+                p_sum = 0.0
+                for tgt in all_tgts:
+                    p_a = p_a_map.get(tgt, 0.0)
+                    p_i = idle_map.get(tgt, 0.0)
+
+                    # P(success | s, a, target) per edge cases
+                    if p_a == 0.0 and p_i == 0.0:
+                        p_success = 0.5
+                    elif p_a == 0.0:
+                        p_success = 0.0
+                    elif p_i == 0.0:
+                        p_success = 1.0
+                    else:
+                        p_success = p_a / (p_a + p_i)
+
+                    p_sum += p_a * p_success
+
+                result[f"{state_key_val}|{action}"] = p_sum
+
+        return result
+
+    def _get_success_prob(self, state: StateView, action: str) -> float:
+        """Look up the precomputed P(success) for a given (state, action)."""
+        if not self._success_probs:
+            return 0.5
+
+        config_var_order = list(self._config.state.variables.keys())
+        factor_values = state.factor_values
+        parts = [str(factor_values.get(f, "")) for f in config_var_order]
+        key = "|".join(parts) + f"|{action}"
+        return self._success_probs.get(key, 0.5)
+
+    def _update_burden(self, state: StateView, action: str) -> StateView:
+        """Perform Bayesian Bernoulli draw and update burden factor.
+
+        Skips idle actions. Draws from Bernoulli(P_success). A failure
+        (draw == 0) is appended to the failure history. Maps the current
+        failure count to a burden level using the configured mapping.
+        """
+        if action == "idle" or self._failure_history is None:
+            return state
+
+        p_success = self._get_success_prob(state, action)
+        draw = self._rng.random() < p_success
+        self._failure_history.append(not draw)  # True = failure
+
+        burden = self._get_burden_from_failures()
+        return state.with_factors(burden=burden)
+
+    def _get_burden_from_failures(self) -> str:
+        """Map the current failure count to a burden level."""
+        if self._failure_history is None or self._burden_mapping is None:
+            return "low"
+        count = sum(1 for f in self._failure_history if f)
+        capped = min(count, max(self._burden_mapping.keys()))
+        return self._burden_mapping[capped]
+
     def _apply_cyclic_advances(self, state: StateView) -> StateView:
         for name, adv in self._cyclic_vars:
             val = adv.pattern[state.day % len(adv.pattern)]
@@ -91,6 +302,10 @@ class Environment:
         self._done = False
         self._daily_total = 0
         self._prime_action_history()
+        if self._failure_history is not None:
+            self._failure_history.clear()
+            for _ in range(self._bayesian_window_size):
+                self._failure_history.append(False)
         self._current_state = StateView(
             factors=dict(self._config.initial_state),
             day=0,
@@ -115,6 +330,9 @@ class Environment:
 
         updates = self._transition.transition(state, action)
         state = state.with_factors(**updates)
+
+        if self._has_bayesian_burden:
+            state = self._update_burden(state, action)
 
         if hasattr(state, "step_bin"):
             self._daily_total += _MIDPOINT.get(state.step_bin, 0)
