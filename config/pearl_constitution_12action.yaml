@@ -1,0 +1,119 @@
+# PEARL Constitution 12-action config (matching pearl_bootstrap structure).
+# For constitution validation — scores the 12-action COM-B simulator config.
+# See docs/experimental_phases/pearl_random/configs/pearl_bootstrap.yaml for source.
+#
+# 108-state × 13-action MDP. 60 days × 1 step/day = 60 steps/episode.
+# 5 state factors: 3 stochastic (recent_steps_mean, recent_walk_pattern,
+# morning_steps_ratio) + 2 deterministic (day_of_week cyclic, burden rolling window).
+# Reward: step_reward - action_penalty
+#
+# Arms: control (idle), random, fixed (COM-B weighted), RL (ε-greedy)
+
+initial_state:
+  recent_steps_mean: moderate
+  recent_walk_pattern: low
+  morning_steps_ratio: balanced
+  day_of_week: weekday
+  burden: low
+
+state:
+  variables:
+    recent_steps_mean:
+      names: [low, moderate, high]
+    recent_walk_pattern:
+      names: [low, high]
+    morning_steps_ratio:
+      names: [morning, balanced, evening]
+    day_of_week:
+      names: [weekday, weekend]
+      advanced:
+        type: cyclic
+        granularity: daily
+        pattern: [weekday, weekday, weekday, weekday, weekday, weekend, weekend]
+    burden:
+      names: [low, medium, high]
+      advanced:
+        type: rolling_window_count
+        mechanism: bayesian_p_success
+        window_size: 7
+        conditions:
+          - factor: action
+            type: in
+            values:
+              - ability_morning
+              - ability_afternoon
+              - perceived_benefit_morning
+              - perceived_benefit_afternoon
+              - planning_morning
+              - planning_afternoon
+              - prioritization_morning
+              - prioritization_afternoon
+              - social_opportunity_morning
+              - social_opportunity_afternoon
+              - physical_opportunity_morning
+              - physical_opportunity_afternoon
+        mapping: {0: low, 1: low, 2: low, 3: medium, 4: medium, 5: medium, 6: high, 7: high}
+
+actions:
+  idle: {}
+  ability_morning: {}
+  ability_afternoon: {}
+  perceived_benefit_morning: {}
+  perceived_benefit_afternoon: {}
+  planning_morning: {}
+  planning_afternoon: {}
+  prioritization_morning: {}
+  prioritization_afternoon: {}
+  social_opportunity_morning: {}
+  social_opportunity_afternoon: {}
+  physical_opportunity_morning: {}
+  physical_opportunity_afternoon: {}
+
+reward:
+  variables:
+    step_reward:
+      source: state.recent_steps_mean
+      mapping: {low: -1.0, moderate: 0.0, high: 1.0}
+    action_penalty:
+      source: action
+      mapping:
+        idle: 0.0
+        ability_morning: 0.05
+        ability_afternoon: 0.05
+        perceived_benefit_morning: 0.05
+        perceived_benefit_afternoon: 0.05
+        planning_morning: 0.05
+        planning_afternoon: 0.05
+        prioritization_morning: 0.05
+        prioritization_afternoon: 0.05
+        social_opportunity_morning: 0.05
+        social_opportunity_afternoon: 0.05
+        physical_opportunity_morning: 0.05
+        physical_opportunity_afternoon: 0.05
+  formula: "step_reward - action_penalty"
+
+transition_model:
+  type: table
+  table_dir: ../tables/pearl_12action
+
+episode_days: 60
+steps_per_day: 1
+seed: 42
+
+agents:
+  # Arm 0 — Control: always idle
+  - type: fixed
+    action: idle
+
+  # Arm 1 — Random: uniform random over all 13 actions
+  - type: random
+
+  # Arm 2 — Fixed: COM-B weighted fixed policy (base persona, morning preference)
+  - type: comb_weighted_fixed
+    persona_comb_file: config/pearl/comb_scores.json
+    persona_name: base
+    time_preference: morning
+
+  # Arm 3 — RL: epsilon-greedy (ε=0.3 explore, matching PEARL ε=0.7 exploit)
+  - type: epsilon_greedy
+    epsilon: 0.3
