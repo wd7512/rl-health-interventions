@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import itertools
 
-from rl_health_interventions.llm_bootstrapping.prompts.prompts import (
+from rl_health_interventions.llm_bootstrapping.prompts.sprint1_prompts import (
     ACTION_SENTENCES,
     ACTIONS,
     BIN_MIDPOINTS,

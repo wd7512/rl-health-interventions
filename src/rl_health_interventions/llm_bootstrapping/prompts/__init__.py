@@ -3,7 +3,10 @@
 from rl_health_interventions.llm_bootstrapping.prompts.pearl import (
     BURDENS as PEARL_BURDENS,
 )
-from rl_health_interventions.llm_bootstrapping.prompts.prompts import (
+from rl_health_interventions.llm_bootstrapping.prompts.sprint1 import (
+    generate_prompts,
+)
+from rl_health_interventions.llm_bootstrapping.prompts.sprint1_prompts import (
     ACTION_SENTENCES,
     ACTIONS,
     BIN_MIDPOINTS,
@@ -19,9 +22,6 @@ from rl_health_interventions.llm_bootstrapping.prompts.prompts import (
     SYSTEM_PROMPT_SOCIAL_RESPONDER,
     SYSTEM_PROMPT_STABLE_MAINTAINER,
     TIMESTEP_NAMES,
-)
-from rl_health_interventions.llm_bootstrapping.prompts.sprint1 import (
-    generate_prompts,
 )
 
 __all__ = [
