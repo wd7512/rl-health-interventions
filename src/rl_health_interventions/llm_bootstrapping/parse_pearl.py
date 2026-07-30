@@ -110,7 +110,8 @@ def bin_morning_ratio(  # noqa: PLR0911
     """Bin morning_steps_ratio into morning/balanced/evening.
 
     Ratio = mean(morning) / mean(total).
-    Thresholds: <0.4=morning, 0.4-0.6=balanced, >0.6=evening.
+    A low ratio means most steps occur in the afternoon/evening.
+    Thresholds: <0.4=evening, 0.4-0.6=balanced, >0.6=morning.
     """
     if not morning_steps or not total_steps:
         return "balanced"
@@ -123,9 +124,9 @@ def bin_morning_ratio(  # noqa: PLR0911
 
     ratio = total_morning / total_all
     if ratio < MORNING_RATIO_LOW:
-        return "morning"
-    if ratio > MORNING_RATIO_HIGH:
         return "evening"
+    if ratio > MORNING_RATIO_HIGH:
+        return "morning"
     return "balanced"
 
 

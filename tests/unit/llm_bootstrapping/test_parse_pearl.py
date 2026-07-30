@@ -126,16 +126,17 @@ class TestBinWalkPattern:
 
 
 class TestBinMorningRatio:
-    def test_morning_bias(self) -> None:
-        # 4000 morning / 8000 total = 0.5 -> balanced
-        # Need < 0.4 for morning
-        assert bin_morning_ratio([2000], [6000]) == "morning"
+    def test_evening_bias(self) -> None:
+        # 2000 morning / 6000 total = 0.33 → < 0.4 → evening
+        assert bin_morning_ratio([2000], [6000]) == "evening"
 
     def test_balanced(self) -> None:
+        # 3000 morning / 6000 total = 0.5 → balanced
         assert bin_morning_ratio([3000], [6000]) == "balanced"
 
-    def test_evening_bias(self) -> None:
-        assert bin_morning_ratio([5000], [8000]) == "evening"
+    def test_morning_bias(self) -> None:
+        # 5000 morning / 8000 total = 0.625 → > 0.6 → morning
+        assert bin_morning_ratio([5000], [8000]) == "morning"
 
     def test_zero_total(self) -> None:
         assert bin_morning_ratio([0], [0]) == "balanced"
@@ -172,14 +173,14 @@ class TestHistoryToFactors:
         assert factors["recent_steps_mean"] == "high"
         assert factors["recent_walk_pattern"] == "high"
 
-    def test_morning_ratio_morning(self) -> None:
-        # 1000 morning, 4000 total -> 0.25 -> morning
+    def test_morning_ratio_evening(self) -> None:
+        # 1000 morning, 4000 total -> 0.25 -> < 0.4 -> evening
         history = [
             {"day": i, "morning_steps": 1000, "afternoon_steps": 3000}
             for i in range(1, 8)
         ]
         factors = history_to_factors(history)
-        assert factors["morning_steps_ratio"] == "morning"
+        assert factors["morning_steps_ratio"] == "evening"
 
     def test_morning_ratio_balanced(self) -> None:
         # 2500 morning, 5000 total -> 0.5 -> balanced
@@ -190,14 +191,14 @@ class TestHistoryToFactors:
         factors = history_to_factors(history)
         assert factors["morning_steps_ratio"] == "balanced"
 
-    def test_morning_ratio_evening(self) -> None:
-        # 4000 morning, 5000 total -> 0.8 -> evening
+    def test_morning_ratio_morning(self) -> None:
+        # 4000 morning, 5000 total -> 0.8 -> > 0.6 -> morning
         history = [
             {"day": i, "morning_steps": 4000, "afternoon_steps": 1000}
             for i in range(1, 8)
         ]
         factors = history_to_factors(history)
-        assert factors["morning_steps_ratio"] == "evening"
+        assert factors["morning_steps_ratio"] == "morning"
 
     def test_returns_all_three_factors(self) -> None:
         history = [
