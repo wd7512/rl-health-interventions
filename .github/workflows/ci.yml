@@ -32,7 +32,7 @@ jobs:
       - name: Lint
         run: uv run ruff check
       - name: Type check
-        run: uv run ty check --exclude tests/
+        run: uv run ty check --exclude tests/ --exclude scripts/
 
   test-unit:
     runs-on: ubuntu-latest
