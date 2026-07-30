@@ -1,8 +1,13 @@
-# PEARL 4-arm experiment with random transitions.
+# PEARL Constitution 12-action config (matching pearl_bootstrap structure).
+# For constitution validation — scores the 12-action COM-B simulator config.
+# See docs/experimental_phases/pearl_random/configs/pearl_bootstrap.yaml for source.
+#
 # 108-state × 13-action MDP. 60 days × 1 step/day = 60 steps/episode.
 # 5 state factors: 3 stochastic (recent_steps_mean, recent_walk_pattern,
 # morning_steps_ratio) + 2 deterministic (day_of_week cyclic, burden rolling window).
 # Reward: step_reward - action_penalty
+#
+# Arms: control (idle), random, fixed (COM-B weighted), RL (ε-greedy)
 
 initial_state:
   recent_steps_mean: moderate
@@ -88,7 +93,8 @@ reward:
   formula: "step_reward - action_penalty"
 
 transition_model:
-  type: random
+  type: table
+  table_dir: ../tables/pearl_12action
 
 episode_days: 60
 steps_per_day: 1

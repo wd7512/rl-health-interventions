@@ -102,7 +102,7 @@ def run_tier_4(
     config,
     n_seeds: int,
     persona: str = "base",
-    config_path: str = "config/pearl_constitution.yaml",
+    config_path: str = "config/pearl_constitution_12action.yaml",
 ) -> list[dict]:
     """Run all Tier 4 checks."""
     logger.info("=== Tier 4: Stress Tests ===")
@@ -181,7 +181,7 @@ def check_t3_2_across_personas(
 
 def run_all_personas(
     n_seeds: int,
-    config_path: str = "config/pearl_constitution.yaml",
+    config_path: str = "config/pearl_constitution_12action.yaml",
 ) -> dict[str, dict[str, np.ndarray]]:
     """Run all arms across all personas."""
     persona_results: dict[str, dict[str, np.ndarray]] = {}
@@ -203,7 +203,7 @@ def main() -> None:
     parser.add_argument(
         "--config",
         type=str,
-        default="config/pearl_constitution.yaml",
+        default="config/pearl_constitution_12action.yaml",
         help="Path to config YAML",
     )
     parser.add_argument(

@@ -174,12 +174,27 @@ def test_deterministic_output() -> None:
 
 @pytest.mark.timeout(120)
 def test_persona_switch_works() -> None:
-    """Running with a different persona (goal_driven) produces different results."""
+    """Running with a different persona (goal_driven) produces different results.
+
+    Uses the original 4-action config where persona table overrides apply.
+    """
     result_base = _run_script(
-        "run_baseline_check.py", "--seeds", "2", "--persona", "base"
+        "run_baseline_check.py",
+        "--seeds",
+        "2",
+        "--persona",
+        "base",
+        "--config",
+        "config/pearl_constitution.yaml",
     )
     result_goal = _run_script(
-        "run_baseline_check.py", "--seeds", "2", "--persona", "goal_driven"
+        "run_baseline_check.py",
+        "--seeds",
+        "2",
+        "--persona",
+        "goal_driven",
+        "--config",
+        "config/pearl_constitution.yaml",
     )
     assert result_base.returncode in (0, 1), (
         f"Base persona failed: {result_base.stderr}"
@@ -250,3 +265,132 @@ def test_no_nan_in_trajectories() -> None:
                         assert not (value != value), (  # NaN check
                             f"NaN in {arm_name}, seed {seed_idx}, step {step_idx}, key {key}"  # noqa: E501
                         )
+
+
+# ── 12-action PEARL config tests ──────────────────────────────────────────────
+
+
+def test_config_12action_loads() -> None:
+    """PEARL constitution 12-action YAML config loads without validation errors."""
+    from rl_health_interventions.config.loader import load_config
+
+    config_path = _REPO_ROOT / "config" / "pearl_constitution_12action.yaml"
+    config = load_config(str(config_path))
+    assert config.episode_days == 60
+    assert config.steps_per_day == 1
+    assert len(config.agents) == 4
+    # Verify 13 actions
+    assert len(config.action_names) == 13
+    assert "idle" in config.action_names
+    assert "ability_morning" in config.action_names
+    # Verify agent types
+    agent_types = [a.type for a in config.agents]
+    assert agent_types == ["fixed", "random", "comb_weighted_fixed", "epsilon_greedy"]
+
+
+@pytest.mark.timeout(120)
+def test_tier1_12action_runs() -> None:
+    """Tier 1 script runs with 12-action config without crashing."""
+    result = _run_script(
+        "run_baseline_check.py",
+        "--seeds",
+        "2",
+        "--config",
+        "config/pearl_constitution_12action.yaml",
+    )
+    assert result.returncode in (0, 1), (
+        f"Script crashed:\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}"
+    )
+    checks = _extract_check_results(result.stdout)
+    check_ids = {c["check_id"] for c in checks}
+    expected = set(_EXPECTED_CHECKS[1])
+    assert check_ids == expected, f"Expected Tier 1 checks {expected}, got {check_ids}"
+
+
+@pytest.mark.timeout(120)
+def test_no_nan_in_trajectories_12action() -> None:
+    """All 4 arms produce valid trajectories with 12-action config, no NaN values."""
+    sys.path.insert(0, str(_REPO_ROOT))
+    from scripts.pearl_constitution.utils import (
+        load_constitution_config,
+        run_all_arms,
+    )
+
+    config_path = str(_REPO_ROOT / "config" / "pearl_constitution_12action.yaml")
+    config = load_constitution_config("base", config_path)
+    trajectories = run_all_arms(config, n_seeds=3)
+
+    for arm_name, seed_trajs in trajectories.items():
+        for seed_idx, traj in enumerate(seed_trajs):
+            for step_idx, record in enumerate(traj):
+                for key, value in record.items():
+                    if isinstance(value, float):
+                        assert not (value != value), (
+                            f"NaN in {arm_name}, seed {seed_idx}, step {step_idx},"
+                            f" key {key}"
+                        )
+
+
+@pytest.mark.timeout(60)
+def test_compute_daily_steps_12action() -> None:
+    """compute_daily_steps works with recent_steps_mean records."""
+    sys.path.insert(0, str(_REPO_ROOT))
+    from scripts.pearl_constitution.utils import compute_daily_steps
+
+    # Simulate 12-action records: 3 days, 1 record per day
+    records = [
+        {
+            "day": 0,
+            "step": 0,
+            "recent_steps_mean": "low",
+            "action": "idle",
+            "reward": -1.0,
+        },
+        {
+            "day": 1,
+            "step": 1,
+            "recent_steps_mean": "moderate",
+            "action": "ability_morning",
+            "reward": -0.05,
+        },
+        {
+            "day": 2,
+            "step": 2,
+            "recent_steps_mean": "high",
+            "action": "ability_morning",
+            "reward": 0.95,
+        },
+    ]
+    daily = compute_daily_steps(records)
+    assert len(daily) == 3
+    assert daily[0] == 3000  # low
+    assert daily[1] == 5500  # moderate
+    assert daily[2] == 8000  # high
+
+
+@pytest.mark.timeout(60)
+def test_compute_daily_steps_backward_compat() -> None:
+    """compute_daily_steps still works with old step_bin records."""
+    sys.path.insert(0, str(_REPO_ROOT))
+    from scripts.pearl_constitution.utils import compute_daily_steps
+
+    records = [
+        {
+            "day": 0,
+            "step": 0,
+            "step_of_day": 0,
+            "step_bin": "inactive",
+            "action": "idle",
+        },
+        {
+            "day": 0,
+            "step": 1,
+            "step_of_day": 1,
+            "step_bin": "moderate",
+            "action": "idle",
+        },
+        {"day": 1, "step": 5, "step_of_day": 0, "step_bin": "active", "action": "idle"},
+    ]
+    daily = compute_daily_steps(records)
+    assert daily[0] == 400 + 1200  # inactive + moderate = 1600
+    assert daily[1] == 2000  # active

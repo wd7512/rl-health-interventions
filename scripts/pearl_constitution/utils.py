@@ -1,4 +1,9 @@
-"""Shared utilities for PEARL Constitution validation."""
+"""Shared utilities for PEARL Constitution validation.
+
+Supports both the original 4-action config (step_bin state) and the
+new 12-action PEARL config (recent_steps_mean state). Auto-detects
+the config version from trajectory record keys.
+"""
 
 from __future__ import annotations
 
@@ -18,11 +23,22 @@ from rl_health_interventions.episode import run_episode
 
 logger = logging.getLogger(__name__)
 
-# Step-bin midpoint mapping (from environment.py)
+# Step-bin midpoint mapping for the original 4-action config (from environment.py)
 _STEP_BIN_MIDPOINT: dict[str, int] = {
     "inactive": 400,
     "moderate": 1200,
     "active": 2000,
+}
+
+# recent_steps_mean midpoint mapping for the 12-action PEARL config.
+# Calibrated to PEARL Table 3 (baseline mean=5,580, SD=1,499):
+#   low: <4k steps/day  → midpoint 3000
+#   moderate: 4k-7k     → midpoint 5500
+#   high: >7k           → midpoint 8000
+_RECENT_STEPS_MEAN_MIDPOINT: dict[str, int] = {
+    "low": 3000,
+    "moderate": 5500,
+    "high": 8000,
 }
 
 # Known persona table directories relative to repo root
@@ -64,6 +80,10 @@ def load_reference() -> dict[str, Any]:
 def compute_daily_steps(records: list[dict]) -> np.ndarray:
     """Compute daily step totals from trajectory records.
 
+    Auto-detects the config version from record keys:
+    - ``recent_steps_mean`` present → 12-action PEARL config
+    - ``step_bin`` present → original 4-action config
+
     Parameters
     ----------
     records : list[dict]
@@ -80,10 +100,18 @@ def compute_daily_steps(records: list[dict]) -> np.ndarray:
 
     n_days = max(records_by_day.keys()) + 1 if records_by_day else 0
     daily_steps = np.zeros(n_days, dtype=np.float64)
+
+    # Auto-detect config version from record keys
+    sample = records[0] if records else {}
+    if "recent_steps_mean" in sample:
+        _midpoint = _RECENT_STEPS_MEAN_MIDPOINT
+        _field = "recent_steps_mean"
+    else:
+        _midpoint = _STEP_BIN_MIDPOINT
+        _field = "step_bin"
+
     for day, recs in records_by_day.items():
-        total = sum(
-            _STEP_BIN_MIDPOINT.get(r.get("step_bin", "inactive"), 0) for r in recs
-        )
+        total = sum(_midpoint.get(r.get(_field, ""), 0) for r in recs)
         daily_steps[day] = total
     return daily_steps
 
@@ -249,9 +277,13 @@ def eta_squared(
 
 def load_constitution_config(
     persona: str = "base",
-    config_path: str | Path = "config/pearl_constitution.yaml",
+    config_path: str | Path = "config/pearl_constitution_12action.yaml",
 ) -> MDPConfig:
     """Load the PEARL constitution config, optionally switching persona.
+
+    Auto-detects 12-action config (steps_per_day == 1). For the 12-action
+    config, personas are differentiated by COM-B agent scores rather than
+    transition tables, so the persona table override is skipped.
 
     Parameters
     ----------
@@ -267,7 +299,17 @@ def load_constitution_config(
     """
     config = load_config(config_path)
 
-    # Override table_dir for persona mixture
+    # Detect 12-action config: 1 step/day → PEARL-matched config.
+    # Personas are handled by COM-B agent scores, not transition tables.
+    if config.steps_per_day == 1:
+        logger.info(
+            "12-action config detected (steps_per_day=1); "
+            "persona '%s' handled by COM-B agent, skipping table override",
+            persona,
+        )
+        return config
+
+    # Original config: override table_dir for persona mixture
     table_rel = PERSONA_TABLE_DIRS.get(persona)
     if table_rel is not None:
         config_path_resolved = Path(config_path).resolve()

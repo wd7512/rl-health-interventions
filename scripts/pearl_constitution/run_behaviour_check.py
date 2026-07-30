@@ -218,7 +218,7 @@ def main() -> None:
     parser.add_argument(
         "--config",
         type=str,
-        default="config/pearl_constitution.yaml",
+        default="config/pearl_constitution_12action.yaml",
         help="Path to config YAML",
     )
     args = parser.parse_args()
