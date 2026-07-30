@@ -9,14 +9,15 @@ from __future__ import annotations
 import json
 import logging
 
-logger = logging.getLogger(__name__)
+from rl_health_interventions.llm_bootstrapping.prompts.pearl import (
+    MORNING_RATIO_HIGH,
+    MORNING_RATIO_LOW,
+    STEPS_HIGH_LOWER,
+    STEPS_LOW_UPPER,
+    WALK_PATTERN_HIGH_THRESHOLD,
+)
 
-# Binning thresholds (calibrated to PEARL Table 3)
-_STEPS_LOW_UPPER = 4000
-_STEPS_HIGH_LOWER = 7000
-_WALK_PATTERN_HIGH_THRESHOLD = 5000
-_MORNING_RATIO_LOW = 0.4
-_MORNING_RATIO_HIGH = 0.6
+logger = logging.getLogger(__name__)
 
 
 def parse_day_history(response: str) -> list[dict[str, int]] | None:  # noqa: C901, PLR0912
@@ -50,8 +51,10 @@ def parse_day_history(response: str) -> list[dict[str, int]] | None:  # noqa: C9
         if day is None or morning is None or afternoon is None:
             continue
 
-        if not isinstance(morning, (int, float)) or not isinstance(
-            afternoon, (int, float)
+        if (
+            not isinstance(day, (int, float))
+            or not isinstance(morning, (int, float))
+            or not isinstance(afternoon, (int, float))
         ):
             continue
 
@@ -82,9 +85,9 @@ def bin_recent_steps_mean(daily_totals: list[int]) -> str:
         return "moderate"
 
     mean_steps = sum(daily_totals) / len(daily_totals)
-    if mean_steps < _STEPS_LOW_UPPER:
+    if mean_steps < STEPS_LOW_UPPER:
         return "low"
-    if mean_steps > _STEPS_HIGH_LOWER:
+    if mean_steps > STEPS_HIGH_LOWER:
         return "high"
     return "moderate"
 
@@ -98,7 +101,7 @@ def bin_walk_pattern(daily_totals: list[int]) -> str:
         return "low"
 
     mean_steps = sum(daily_totals) / len(daily_totals)
-    return "high" if mean_steps >= _WALK_PATTERN_HIGH_THRESHOLD else "low"
+    return "high" if mean_steps >= WALK_PATTERN_HIGH_THRESHOLD else "low"
 
 
 def bin_morning_ratio(  # noqa: PLR0911
@@ -119,9 +122,9 @@ def bin_morning_ratio(  # noqa: PLR0911
         return "balanced"
 
     ratio = total_morning / total_all
-    if ratio < _MORNING_RATIO_LOW:
+    if ratio < MORNING_RATIO_LOW:
         return "morning"
-    if ratio > _MORNING_RATIO_HIGH:
+    if ratio > MORNING_RATIO_HIGH:
         return "evening"
     return "balanced"
 

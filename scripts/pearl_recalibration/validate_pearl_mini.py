@@ -93,6 +93,8 @@ def main() -> None:
     logger.info("\n=== Intervention Effect Analysis ===")
     for state_group in ["low", "high"]:
         logger.info(f"\nState: recent_steps_mean={state_group}")
+        idle_high = 0.0
+        idle_low = 0.0
         for t in table["transitions"]:
             if t["state"]["recent_steps_mean"] != state_group:
                 continue

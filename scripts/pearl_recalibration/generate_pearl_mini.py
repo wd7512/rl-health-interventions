@@ -156,25 +156,17 @@ def main() -> None:
         samples,
     )
 
-    system_prompt, prompts = generate_prompts(
+    system_prompt, prompt_entries = generate_prompts(
         persona="base",
         samples_per_cell=samples,
         state_subset=MINI_STATES,
     )
-    logger.info("Generated %d prompts", len(prompts))
-
-    # Build state-action pairs for aggregation
-    state_action_pairs = [
-        (state, action)
-        for state in MINI_STATES
-        for action in ACTIONS
-        for _ in range(samples)
-    ]
+    logger.info("Generated %d prompts", len(prompt_entries))
 
     # Call LLM
     logger.info("Calling LLM...")
     results = batch_complete(
-        prompts,
+        [p for p, _s, _a in prompt_entries],
         system_prompt=system_prompt,
         max_workers=50,
         provider="openrouter",
@@ -184,8 +176,8 @@ def main() -> None:
     ok = sum(1 for r in results if "content" in r)
     logger.info("LLM results: %d/%d succeeded", ok, len(results))
 
-    # Aggregate
-    table = _aggregate_to_table(results, state_action_pairs)
+    # Aggregate — use metadata embedded in prompt_entries, not reconstructed
+    table = _aggregate_to_table(results, [(s, a) for _p, s, a in prompt_entries])
     logger.info("Table has %d transitions", len(table["transitions"]))
 
     # Save

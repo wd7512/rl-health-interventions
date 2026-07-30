@@ -124,7 +124,7 @@ def _render_user_prompt(
     action: str,
 ) -> str:
     """Build a user prompt for one (state, action) combination."""
-    burden_desc = _BURDEN_DESC[burden]
+    burden_desc = _BURDEN_DESC.get(burden, f"Burden: {burden}")
     action_desc = ACTION_DESCRIPTIONS.get(action, f"Action: {action}")
 
     # Describe current state in natural language
@@ -164,16 +164,18 @@ def _render_user_prompt(
     )
 
 
+PromptEntry = tuple[str, dict, str]  # (prompt_text, state, action)
+
+
 def generate_prompts(
     persona: str = "base",
     samples_per_cell: int = 10,
     state_subset: list[dict] | None = None,
-) -> tuple[str, list[str]]:
-    """Return (system_prompt, list of prompt strings).
+) -> tuple[str, list[PromptEntry]]:
+    """Return (system_prompt, list of PromptEntry tuples).
 
-    Each prompt asks the LLM to simulate a 7-day walking history for a
-    specific (state, action) combination. The response is parsed to extract
-    raw step counts, which are then binned into state factors.
+    Each entry pairs the prompt string with its originating state and action
+    metadata, so downstream aggregation never depends on loop ordering.
 
     Parameters
     ----------
@@ -208,7 +210,7 @@ def generate_prompts(
             (state, action) for state in all_states for action in ACTIONS
         ]
 
-    prompts = []
+    prompts: list[PromptEntry] = []
     for state, action in state_action_combos:
         prompt = _render_user_prompt(
             recent_steps_mean=state["recent_steps_mean"],
@@ -218,6 +220,7 @@ def generate_prompts(
             burden=state["burden"],
             action=action,
         )
-        prompts.extend([prompt] * samples_per_cell)
+        for _ in range(samples_per_cell):
+            prompts.append((prompt, state, action))
 
     return system_prompt, prompts

@@ -158,7 +158,7 @@ class TestGeneratePrompts:
         for action, desc in ACTION_DESCRIPTIONS.items():
             # Check for a key phrase from the description
             key_phrase = desc.split("(")[0].strip()[:30]
-            found = any(key_phrase.lower() in p.lower() for p in prompts)
+            found = any(key_phrase.lower() in p[0].lower() for p in prompts)
             assert found, f"Action {action} description not found in prompts"
 
     def test_state_factors_covered(self) -> None:
