@@ -140,6 +140,7 @@ def _aggregate_to_table(  # noqa: C901, PLR0912
 
 
 def main() -> None:
+    """Generate the pilot PEARL transition table via LLM bootstrapping."""
     setup_logging()
     load_env()
 

@@ -51,6 +51,7 @@ def run_simulation(config_path: str, n_days: int = 60, seed: int = 42) -> dict:
 
 
 def main() -> None:
+    """Load a pilot table, check action coverage and intervention direction."""
     setup_logging()
 
     table_path = (
