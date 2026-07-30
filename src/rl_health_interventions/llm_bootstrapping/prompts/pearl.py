@@ -43,7 +43,8 @@ SLEEP_TYPES = ["good", "poor"]
 
 
 def generate_prompts(
-    persona: str = "base", samples_per_cell: int = 10  # noqa: ARG001
+    persona: str = "base",
+    samples_per_cell: int = 10,  # noqa: ARG001
 ) -> tuple[str, list[str]]:
     """Return (system_prompt, list of prompt strings).
 
