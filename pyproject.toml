@@ -219,6 +219,10 @@ polars = "pl"
 # Read Python 3.11 core definitions
 python-version = "3.11"
 
+[tool.ty.src]
+# Match CI's type-check scope so local `uv run ty check` behaves identically
+exclude = ["tests/", "scripts/"]
+
 [tool.ty.rules]
 # Enable strict validation flags matching your engineering ethos
 all = "error"
