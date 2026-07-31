@@ -16,6 +16,7 @@ pearl_pilot{_<variant>}.json, raw results in tables/pearl_12action_pilot/raw/.
 
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import sys
@@ -38,6 +39,7 @@ from rl_health_interventions.llm_bootstrapping.parse_pearl import (  # noqa: E40
 )
 from rl_health_interventions.llm_bootstrapping.prompts.pearl import (  # noqa: E402
     ACTIONS,
+    PROMPT_VARIANTS,
     generate_prompts,
 )
 from rl_health_interventions.llm_bootstrapping.request import (  # noqa: E402
@@ -62,8 +64,6 @@ MINI_STATES = [
 ]
 
 SAMPLES_PER_CELL = 5
-
-_VARIANT_ARG_INDEX = 2
 
 
 _MIN_SAMPLES_PER_CELL = 2
@@ -140,6 +140,7 @@ def _aggregate_to_table(  # noqa: C901, PLR0912
                 "state": state,
                 "action": action,
                 "next_state_probs": next_state_probs,
+                "n_samples": len(factor_samples),
             }
         )
 
@@ -154,8 +155,14 @@ def main() -> None:  # noqa: PLR0915
     setup_logging()
     load_env()
 
-    variant = sys.argv[2] if len(sys.argv) > _VARIANT_ARG_INDEX else "baseline"
-    samples = int(sys.argv[1]) if len(sys.argv) > 1 else SAMPLES_PER_CELL
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("samples", nargs="?", type=int, default=SAMPLES_PER_CELL)
+    parser.add_argument(
+        "variant", nargs="?", default="baseline", choices=PROMPT_VARIANTS
+    )
+    args = parser.parse_args()
+    variant, samples = args.variant, args.samples
+
     out_dir = Path(_REPO_ROOT / "tables" / "pearl_12action_pilot")
     out_dir.mkdir(parents=True, exist_ok=True)
     table_name = (
@@ -196,10 +203,9 @@ def main() -> None:  # noqa: PLR0915
     raw_dir = out_dir / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
     raw_path = raw_dir / f"results_{variant}_{datetime.now(UTC):%Y%m%d_%H%M%S}.jsonl"
+    state_action_pairs = [(s, a) for _p, s, a in prompt_entries]
     with raw_path.open("w") as f:
-        for result, (state, action) in zip(
-            results, [(s, a) for _p, s, a in prompt_entries], strict=True
-        ):
+        for result, (state, action) in zip(results, state_action_pairs, strict=True):
             record = {"state": state, "action": action}
             if "error" in result:
                 record["error"] = result["error"]
@@ -209,7 +215,7 @@ def main() -> None:  # noqa: PLR0915
     logger.info("Saved %d raw results to %s", len(results), raw_path)
 
     # Aggregate — use metadata embedded in prompt_entries, not reconstructed
-    table = _aggregate_to_table(results, [(s, a) for _p, s, a in prompt_entries])
+    table = _aggregate_to_table(results, state_action_pairs)
     logger.info("Table has %d transitions", len(table["transitions"]))
 
     # Save
