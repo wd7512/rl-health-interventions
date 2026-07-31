@@ -422,6 +422,151 @@ def _empirical_anchors_user_extra(state: dict, action: str) -> str:
     )
 
 
+# Round 5: "protocol" - the full PEARL protocol frame (constitution-alignment
+# rung). Replaces round 4's binary matched/unmatched rule with a graded match
+# weight per (profile, theme): every nudge day produces a positive response,
+# sized by the theme's weight for that day's profile. The idle baseline is
+# pinned independent of burden (round 4's high/major idle sat at 6,871, below
+# the 7,000 bin, because burden language counteracted the anchor).
+_PROTOCOL_SYSTEM_EXTRA = (
+    "PROTOCOL FRAME: You are a participant in a year-long adaptive "
+    "walking-intervention study. Each day at one decision point the study's "
+    "RL system either sends you one of 12 possible nudge messages (a "
+    "behavioral theme x time-of-day pair) or no message. Your walking is "
+    "tracked every day, and the system learns which messages work for you.\n\n"
+    "EMPIRICAL PROTOCOL ANCHORS (PEARL trial): the system favors "
+    "ability-improvement messages most often - about 27% of the nudges it "
+    "sends, and these get ~90% thumbs-up from participants - with "
+    "perceived-benefit and planning messages also frequent. Messages that "
+    "improve a barrier you actually have are the ones that raise your "
+    "walking that day.\n\n"
+    "GRADED MATCH RULE: each nudge theme has a match weight between 0 and 1 "
+    "for this person's day. Weight 0.7 or higher -> strong response, in the "
+    "middle of the +150-450 step band (around +300). Weight 0.3 to 0.7 -> "
+    "modest response (around +120). Weight below 0.3 -> weak but still "
+    "slightly positive (around +40). NO intervention-day response is ever "
+    "zero or negative: even a poorly matched message beats nothing.\n\n"
+    "WEIGHTS BY PROFILE (theme: weight for low/no-burden, low/major-burden, "
+    "high/no-burden, high/major-burden):\n"
+    "- ability: 0.9, 0.8, 0.5, 0.5 (strong when walking feels hard; moderate "
+    "for active people)\n"
+    "- perceived_benefit: 0.7, 0.6, 0.7, 0.6 (moderate-to-strong everywhere - "
+    "it works through motivation, not logistics)\n"
+    "- planning: 0.5, 0.8, 0.4, 0.9 (strong when strain disrupts the "
+    "routine)\n"
+    "- prioritization: 0.4, 0.7, 0.4, 0.8 (strong when time is tight)\n"
+    "- social_opportunity: 0.4, 0.4, 0.5, 0.4 (low-moderate everywhere)\n"
+    "- physical_opportunity: 0.5, 0.8, 0.3, 0.8 (strong when the burden is "
+    "major)\n\n"
+    "IDLE PINNED INDEPENDENT OF BURDEN: on days with no message your steps "
+    "stay at your current level regardless of your burden level: around "
+    "8,000 if you are a high-activity person, around 3,000 if you are a "
+    "low-activity person. Never regress toward the ~5,580 population average."
+)
+
+_PROTOCOL_THEME_WEIGHT_CLASS = {
+    "ability": ("It is a strong match when walking feels hard, moderate otherwise."),
+    "perceived_benefit": (
+        "It is a moderate-to-strong match for most profiles (it works "
+        "through motivation, not logistics)."
+    ),
+    "planning": (
+        "It is a strong match when strain disrupts the routine, moderate otherwise."
+    ),
+    "prioritization": ("It is a strong match when time is tight, moderate otherwise."),
+    "social_opportunity": ("It is a low-moderate match for most profiles."),
+    "physical_opportunity": (
+        "It is a strong match when the day's burden is major, low-moderate otherwise."
+    ),
+}
+
+_PROTOCOL_ACTIONS_OVERRIDES = dict(_COMB_MECHANISMS_ACTION_OVERRIDES)
+for _theme, _class_sentence in _PROTOCOL_THEME_WEIGHT_CLASS.items():
+    for _time in ("morning", "afternoon"):
+        _key = f"{_theme}_{_time}"
+        _PROTOCOL_ACTIONS_OVERRIDES[_key] += f" {_class_sentence}"
+
+# (recent_steps_mean, burden) -> profile name + per-theme match weights.
+# Weights are spelled out for all 4 profiles x 6 themes so the model never
+# has to guess (mirrors the WEIGHTS BY PROFILE table in the system extra).
+_PROTOCOL_PROFILE_NAMES = {
+    ("low", "none"): "low activity, no burden",
+    ("low", "major"): "low activity, major burden",
+    ("high", "none"): "high activity, no burden",
+    ("high", "major"): "high activity, major burden",
+}
+
+_PROTOCOL_PROFILE_WEIGHTS = {
+    ("low", "none"): {
+        "ability": 0.9,
+        "perceived_benefit": 0.7,
+        "planning": 0.5,
+        "prioritization": 0.4,
+        "social_opportunity": 0.4,
+        "physical_opportunity": 0.5,
+    },
+    ("low", "major"): {
+        "ability": 0.8,
+        "perceived_benefit": 0.6,
+        "planning": 0.8,
+        "prioritization": 0.7,
+        "social_opportunity": 0.4,
+        "physical_opportunity": 0.8,
+    },
+    ("high", "none"): {
+        "ability": 0.5,
+        "perceived_benefit": 0.7,
+        "planning": 0.4,
+        "prioritization": 0.4,
+        "social_opportunity": 0.5,
+        "physical_opportunity": 0.3,
+    },
+    ("high", "major"): {
+        "ability": 0.5,
+        "perceived_benefit": 0.6,
+        "planning": 0.9,
+        "prioritization": 0.8,
+        "social_opportunity": 0.4,
+        "physical_opportunity": 0.8,
+    },
+}
+
+_PROTOCOL_THEME_DISPLAY = {
+    "ability": "ability",
+    "perceived_benefit": "perceived-benefit",
+    "planning": "planning",
+    "prioritization": "prioritization",
+    "social_opportunity": "social-opportunity",
+    "physical_opportunity": "physical-opportunity",
+}
+
+
+_STRONG_MATCH_WEIGHT = 0.7
+_MODEST_MATCH_WEIGHT = 0.3
+
+
+def _protocol_user_extra(state: dict, action: str) -> str:
+    """Per-day profile + theme weight line for the protocol variant."""
+    if action == "idle":
+        return ""
+    theme = action.rsplit("_", 1)[0]
+    key = (state["recent_steps_mean"], state["burden"])
+    weight = _PROTOCOL_PROFILE_WEIGHTS.get(key, {}).get(theme)
+    if weight is None:
+        return ""
+    if weight >= _STRONG_MATCH_WEIGHT:
+        strength = "a strong match"
+    elif weight >= _MODEST_MATCH_WEIGHT:
+        strength = "a modest match"
+    else:
+        strength = "a weak match"
+    return (
+        f"Your profile today: {_PROTOCOL_PROFILE_NAMES[key]}. "
+        f"{_PROTOCOL_THEME_DISPLAY[theme]} messages are {strength} (weight "
+        f"{weight}) for you today."
+    )
+
+
 PROMPT_VARIANT_CONFIGS: dict[str, PromptVariant] = {
     "baseline": PromptVariant(),
     "state_self_model": PromptVariant(
@@ -438,7 +583,11 @@ PROMPT_VARIANT_CONFIGS: dict[str, PromptVariant] = {
         action_overrides=_EMPIRICAL_ANCHORS_ACTIONS_OVERRIDES,
         user_extra=_empirical_anchors_user_extra,
     ),
-    "protocol": PromptVariant(),
+    "protocol": PromptVariant(
+        system_extra=_PROTOCOL_SYSTEM_EXTRA,
+        action_overrides=_PROTOCOL_ACTIONS_OVERRIDES,
+        user_extra=_protocol_user_extra,
+    ),
     "protocol_fewshot": PromptVariant(),
 }
 

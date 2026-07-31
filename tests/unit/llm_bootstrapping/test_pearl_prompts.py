@@ -515,6 +515,153 @@ class TestEmpiricalAnchorsVariant:
         assert prompt.count('{"day"') == 3  # only the 3 format examples
 
 
+class TestProtocolVariant:
+    """Full PEARL protocol frame with graded match weights (round 5)."""
+
+    def test_system_extra_has_protocol_frame(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="protocol")
+        assert "adaptive walking-intervention study" in prompt
+        assert "RL system" in prompt
+        assert "12 possible nudge messages" in prompt
+
+    def test_system_extra_has_empirical_anchors(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="protocol")
+        assert "27%" in prompt
+        assert "90% thumbs-up" in prompt
+
+    def test_system_extra_has_graded_match_rule(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="protocol")
+        assert "GRADED MATCH RULE" in prompt
+        assert "0.7 or higher" in prompt
+        assert "around +300" in prompt
+        assert "around +120" in prompt
+        assert "around +40" in prompt
+        assert "never" in prompt.lower()
+
+    def test_system_extra_has_all_weights_by_profile(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="protocol")
+        for theme in (
+            "ability",
+            "perceived_benefit",
+            "planning",
+            "prioritization",
+            "social_opportunity",
+            "physical_opportunity",
+        ):
+            assert f"- {theme}:" in prompt
+        for profile_weights in ("0.9, 0.8, 0.5, 0.5", "0.5, 0.8, 0.4, 0.9"):
+            assert profile_weights in prompt
+
+    def test_system_extra_idle_pinned_independent_of_burden(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="protocol")
+        assert "regardless of your burden level" in prompt
+        assert "around 8,000" in prompt
+        assert "around 3,000" in prompt
+        assert "Never regress" in prompt
+
+    def test_all_actions_overridden_with_weight_class(self) -> None:
+        for action in ACTIONS:
+            prompt = _render_user_prompt(
+                recent_steps_mean="moderate",
+                walk_pattern="low",
+                morning_ratio="balanced",
+                day_type="weekday",
+                burden="none",
+                action=action,
+                prompt_variant="protocol",
+            )
+            if action == "idle":
+                assert "No intervention is delivered today." in prompt
+                continue
+            assert "message" in prompt
+            assert "noticeably longer walk" in prompt
+            assert "match" in prompt
+
+    def test_user_extra_empty_on_idle(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="high",
+            walk_pattern="high",
+            morning_ratio="balanced",
+            day_type="weekday",
+            burden="major",
+            action="idle",
+            prompt_variant="protocol",
+        )
+        assert "Your profile today" not in prompt
+        assert '{"day"' in prompt
+
+    def test_user_extra_names_profile_and_weight(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="balanced",
+            day_type="weekday",
+            burden="major",
+            action="physical_opportunity_morning",
+            prompt_variant="protocol",
+        )
+        assert "Your profile today: low activity, major burden" in prompt
+        assert "physical-opportunity messages are a strong match" in prompt
+        assert "weight 0.8" in prompt
+
+    def test_user_extra_weights_match_system_table(self) -> None:
+        system = _render_system_prompt("base", prompt_variant="protocol")
+        theme_rows = {
+            "ability": (0.9, 0.8, 0.5, 0.5),
+            "perceived_benefit": (0.7, 0.6, 0.7, 0.6),
+            "planning": (0.5, 0.8, 0.4, 0.9),
+            "prioritization": (0.4, 0.7, 0.4, 0.8),
+            "social_opportunity": (0.4, 0.4, 0.5, 0.4),
+            "physical_opportunity": (0.5, 0.8, 0.3, 0.8),
+        }
+        profiles = (
+            ("low", "none"),
+            ("low", "major"),
+            ("high", "none"),
+            ("high", "major"),
+        )
+        for theme, row in theme_rows.items():
+            assert f"- {theme}: " + ", ".join(str(w) for w in row) in system
+            for (rsm, burden), weight in zip(profiles, row, strict=True):
+                prompt = _render_user_prompt(
+                    recent_steps_mean=rsm,
+                    walk_pattern="low",
+                    morning_ratio="balanced",
+                    day_type="weekday",
+                    burden=burden,
+                    action=f"{theme}_afternoon",
+                    prompt_variant="protocol",
+                )
+                assert f"weight {weight}" in prompt
+
+    def test_extra_before_json_instruction(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="morning",
+            day_type="weekday",
+            burden="none",
+            action="ability_morning",
+            prompt_variant="protocol",
+        )
+        assert prompt.index("Your profile today") < prompt.index(
+            "Output exactly 7 JSON objects"
+        )
+
+    def test_extra_contains_no_json_objects(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="morning",
+            day_type="weekday",
+            burden="none",
+            action="ability_morning",
+            prompt_variant="protocol",
+        )
+        assert '{"day"' in prompt
+        assert prompt.count('{"day"') == 3  # only the 3 format examples
+
+
 class TestConstants:
     def test_actions_count(self) -> None:
         assert len(ACTIONS) == 13  # idle + 12 COM-B x time

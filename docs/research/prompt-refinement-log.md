@@ -303,6 +303,108 @@ profile made the model too selective, collapsing the mean lift to +43.1
 
 ---
 
+### Round 5 — protocol (2026-07-31)
+
+**Prompt version:** `protocol` variant in `prompts/pearl.py` (`system_extra` +
+`action_overrides` + callable `user_extra`). System extra frames the whole
+simulation as the PEARL protocol: (a) **PROTOCOL FRAME** — "You are a
+participant in a year-long adaptive walking-intervention study. Each day at
+one decision point the study's RL system either sends you one of 12 possible
+nudge messages (a behavioral theme x time-of-day pair) or no message";
+(b) **EMPIRICAL PROTOCOL ANCHORS** from the PEARL trial — the system favors
+ability-improvement messages (~27% of nudges, ~90% thumbs-up), with
+perceived-benefit and planning also frequent, and "messages that improve a
+barrier you actually have are the ones that raise your walking that day";
+(c) **GRADED MATCH RULE** replacing round 4's binary matched/unmatched — each
+nudge theme carries a match weight 0-1 for the day's profile: weight ≥ 0.7 →
+strong response, middle of the +150-450 band (~+300); 0.3-0.7 → modest
+(~+120); < 0.3 → weak but still positive (~+40); **no intervention-day
+response is ever zero or negative** — even a poorly matched message beats
+nothing. A WEIGHTS BY PROFILE table spells out all 6 theme weights for all 4
+profiles (ability 0.9/0.8/0.5/0.5, perceived_benefit 0.7/0.6/0.7/0.6,
+planning 0.5/0.8/0.4/0.9, prioritization 0.4/0.7/0.4/0.8, social_opportunity
+0.4/0.4/0.5/0.4, physical_opportunity 0.5/0.8/0.3/0.8 for low/none,
+low/major, high/none, high/major); (d) **IDLE PINNED INDEPENDENT OF BURDEN** —
+idle days stay at the current level regardless of burden (~8,000 high,
+~3,000 low). Action overrides copy round 3/4's 12 mechanism sentences and
+append a per-theme weight-class clause; user extra is a callable naming the
+day's profile and the theme's weight ("Your profile today: low activity,
+major burden. physical-opportunity messages are a strong match (weight 0.8)
+for you today."), empty on idle. Baseline output byte-identical.
+
+**Config:** deepseek-v4-flash (openrouter), temp 0.7, 3 samples/cell, 4 states
+(2 burden x 2 recent_steps_mean) x 13 actions = 156 prompts.
+
+**Run:** 156/156 LLM calls succeeded; **0 malformed-JSON responses** — first
+perfect parse round (round 4: 2, round 3: 8). Table: 52/52 cells. Raw results
+saved to
+`tables/pearl_12action_pilot/raw/results_protocol_20260731_183258.jsonl`.
+
+| Check | Result | Detail |
+|-------|--------|--------|
+| C1 action coverage | PASS | 13/13 |
+| C2 cell coverage | PASS | 52/52 |
+| C3 state persistence | FAIL | idle P(stay): low=1.0, high=0.333 (high idle means 7,081 / 6,819 — burden-independence fixed, but both straddle the 7,000 bin; 3/6 samples bin moderate) |
+| C4 action sensitivity | PASS | 2/4 cells (first C4 pass; dP=+0.333 high/none, +1.0 high/major — headroom from weakened high idle) |
+| C5 burden monotonicity | PASS | high: 0.923 -> 0.897; low: 0.0 -> 0.0 |
+| C6 factor variation | FAIL | morning_steps_ratio = balanced as modal value in 51/52 cells (structural in this subset) |
+
+**Raw effect (analyzer):** overall mean lift **+584.9** steps/day (round 4:
++43.1, round 3: +149.6 — overshoots the +150-300 target), min **-82.5**
+(round 4: -547.6), max **+1,557.1**, **46/48** cells positive (round 4:
+26/48). Per state — high/none: idle 7,081, lift **+726.2** (round 4: -138.2);
+high/major: idle 6,819, lift **+964.6** (round 4: +496.4); low/none: idle
+3,010, lift **+445.6** (round 4: +9.2); low/major: idle 3,151, lift **+203.4**
+(round 4: -195.1). All four states positive for the first time since round 2.
+
+**Summary:** 4/6 checks pass (round 4: 4/6) — C4 passes for the first time
+and the round-4 lift collapse is fully reversed (46/48 positive, all states
+positive, min -83), but the graded rule overshoots (mean +584.9 vs +150-300
+target, max +1,557) and C3 regressed because the high idle pin landed at
+~6,800-7,100 instead of ~8,000.
+
+**Diagnosis:**
+- The graded weights + never-negative rule fixed round 4's killer: 46/48
+  positive cells, all four states positive (low/none +445.6, low/major
+  +203.4, high/none +726.2, high/major +964.6), min -82.5. The no-op
+  distribution (8-10 unmatched themes → near-idle days) is gone — the model
+  now gives every intervention day at least a small positive response.
+- But magnitudes overshoot ~2-4x the target: overall mean +584.9 (target
+  +150-300). Afternoon cells systematically land ~2-3x their morning twins
+  (perceived_benefit_afternoon +1,533 vs +717 in high/none; planning_afternoon
+  +1,557 vs +790 in high/major), so the "noticeably longer walk this
+  afternoon" mechanism sentences inflate the tail. The "strong ~+300" anchor
+  did not bind — strong cells run +500-1,500, while modest (mostly morning)
+  cells are closer to target.
+- C3 regressed (high idle P(stay) 0.333 vs 0.5): the pin held for low
+  (~3,000: 3,010/3,151) and burden-independence worked (high gap closed from
+  683 to 262 steps), but high idle hugs the state description "over 7,000"
+  rather than the pinned ~8,000 (7,081/6,819), so 3/6 high-idle samples bin
+  moderate. Round 2's "around 8,000, within roughly +/-500" anchored
+  7,931/7,960; the bare pin is weaker.
+- Format compliance is now perfect (0/156 malformed; best round of the
+  pilot). C4's first pass is partly structural (high/major idle P(high)=0.0
+  freed headroom); C5 holds; C6 remains structural in this subset.
+
+**Next steps (for round 6):**
+1. `protocol_fewshot`: add few-shot exemplars with concrete day-level step
+   numbers — an idle day at the person's own level (~8,000 high / ~3,000
+   low, independent of burden) and intervention days responding at
+   +150-450 scaled by match weight (strong ~+300, modest ~+120, weak ~+40) —
+   to calibrate both the idle pin and the lift size the abstract rule failed
+   to bind.
+2. Re-anchor the idle pin with a tolerance band ("around 8,000, within
+   roughly +/-500, regardless of burden") so high idle cannot straddle the
+   7,000 bin.
+3. Rebalance the afternoon mechanism sentences (bound the "noticeably longer
+   walk" language, e.g. a fixed +150-450 response) or rely on few-shot
+   magnitudes; monitor the morning/afternoon asymmetry.
+4. For C4/C6 signal, extend the pilot subset to moderate recent_steps_mean
+   cells and vary morning_steps_ratio / walk_pattern / day_of_week (both
+   checks remain structurally blind in this subset).
+
+---
+
 ## How to add a round
 
 1. Edit prompts in `prompts/pearl.py`; record the diff in the round header.
