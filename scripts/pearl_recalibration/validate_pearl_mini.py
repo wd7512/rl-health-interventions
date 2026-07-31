@@ -1,156 +1,123 @@
 """Validate a PEARL transition table by running it through the simulator.
 
-Loads the table, runs 1 seed for 60 days, and checks if interventions
-produce higher step counts than idle (control).
+Loads the table, checks action coverage and intervention direction, and
+runs one 60-day episode per arm through the simulator to confirm the
+pilot table is consumable end-to-end.
 """
-# ruff: noqa: E402, BLE001, C901, PLR0912, PLR0915, PLR2004, B007, RUF059, PLC0415
+# ruff: noqa: E402, PLC0415
 
 from __future__ import annotations
 
+import argparse
 import json
 import logging
+import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from rl_health_interventions.config.loader import load_config
 from rl_health_interventions.llm_bootstrapping._shared import (
     setup_logging,
 )
 
 logger = logging.getLogger(__name__)
 
+_DEFAULT_TABLE = _REPO_ROOT / "tables" / "pearl_12action_pilot" / "pearl_pilot.json"
+_DEFAULT_CONFIG = (
+    _REPO_ROOT
+    / "docs"
+    / "experimental_phases"
+    / "pearl_random"
+    / "configs"
+    / "pearl_bootstrap.yaml"
+)
 
-def run_simulation(config_path: str, n_days: int = 60, seed: int = 42) -> dict:
-    """Run a single simulation and return daily steps per arm."""
-    from rl_health_interventions.environment import Environment
 
-    config = load_config(config_path)
-    env = Environment(config, seed=seed)
+def check_intervention_direction(table: dict) -> None:
+    """Log ΔP(high)/ΔP(low) for ability_morning vs idle per full state."""
+    groups: dict[str, dict[str, dict]] = {}
+    for t in table["transitions"]:
+        state_key = json.dumps(t["state"], sort_keys=True)
+        groups.setdefault(state_key, {})[t["action"]] = t["next_state_probs"]
 
-    # Run episode
-    trajectories = {}
-    for arm_idx, agent in enumerate(env.agents):
-        env.reset()
-        daily_steps = []
-        for day in range(n_days):
-            state = env.state
-            action = agent.act(state, env.step_idx)
-            next_state, reward, done = env.step(action)
-            daily_steps.append(
-                sum(1 for _ in range(config.steps_per_day))  # Placeholder
-            )
-            if done:
-                break
-        trajectories[f"arm_{arm_idx}"] = daily_steps
+    logger.info("\n=== Intervention Effect Analysis ===")
+    for state_key, action_probs in sorted(groups.items()):
+        state = json.loads(state_key)
+        idle = action_probs.get("idle")
+        ability = action_probs.get("ability_morning")
+        if idle is None or ability is None:
+            continue
+        idle_probs = idle.get("recent_steps_mean", {})
+        ability_probs = ability.get("recent_steps_mean", {})
+        diff_high = ability_probs.get("high", 0.0) - idle_probs.get("high", 0.0)
+        diff_low = ability_probs.get("low", 0.0) - idle_probs.get("low", 0.0)
+        logger.info(
+            "  %s / burden=%s: ΔP(high)=%+.3f ΔP(low)=%+.3f %s",
+            state["recent_steps_mean"],
+            state["burden"],
+            diff_high,
+            diff_low,
+            "✓" if diff_high > 0 else "✗ WRONG DIRECTION",
+        )
 
-    return trajectories
+
+def run_simulator_smoke_test(table_path: Path, config_path: Path) -> None:
+    """Run one 60-day episode per arm against the pilot table.
+
+    The transition loader reads every ``*.json`` in the table directory, so
+    the target table is copied to a temp directory to keep the test isolated.
+    """
+    from rl_health_interventions.config.loader import load_config
+    from scripts.pearl_constitution.utils import (
+        compute_arm_daily_steps,
+        run_all_arms,
+    )
+
+    config = load_config(str(config_path))
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        table_dir = Path(tmp_dir)
+        shutil.copy2(table_path, table_dir / table_path.name)
+        config.transition_model.table_dir = str(table_dir)
+
+        logger.info("\n=== Simulator Test ===")
+        trajectories = run_all_arms(config, n_seeds=1)
+
+    daily_steps = compute_arm_daily_steps(trajectories)
+    for arm, steps in daily_steps.items():
+        logger.info("  %s: mean daily steps = %.1f", arm, float(steps.mean()))
+    logger.info("Simulation completed successfully")
 
 
 def main() -> None:
     """Load a pilot table, check action coverage and intervention direction."""
     setup_logging()
 
-    table_path = (
-        sys.argv[1]
-        if len(sys.argv) > 1
-        else str(_REPO_ROOT / "tables" / "pearl_12action_pilot" / "pearl_pilot.json")
-    )
-    config_path = (
-        sys.argv[2]
-        if len(sys.argv) > 2
-        else str(
-            _REPO_ROOT
-            / "docs"
-            / "experimental_phases"
-            / "pearl_random"
-            / "configs"
-            / "pearl_bootstrap.yaml"
-        )
-    )
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("table", nargs="?", type=Path, default=_DEFAULT_TABLE)
+    parser.add_argument("config", nargs="?", type=Path, default=_DEFAULT_CONFIG)
+    args = parser.parse_args()
 
-    logger.info("Loading table from %s", table_path)
-    logger.info("Using config from %s", config_path)
+    logger.info("Loading table from %s", args.table)
+    logger.info("Using config from %s", args.config)
 
-    # Load and inspect the table
-    with open(table_path) as f:
+    with args.table.open() as f:
         table = json.load(f)
 
     n_transitions = len(table["transitions"])
     logger.info("Table has %d transitions", n_transitions)
 
-    # Check action distribution
     action_counts = {}
     for t in table["transitions"]:
         action = t["action"]
         action_counts[action] = action_counts.get(action, 0) + 1
     logger.info("Action coverage: %d/%d actions", len(action_counts), 13)
 
-    # Check for intervention effects in the table
-    logger.info("\n=== Intervention Effect Analysis ===")
-    for state_group in ["low", "high"]:
-        logger.info(f"\nState: recent_steps_mean={state_group}")
-        idle_high = 0.0
-        idle_low = 0.0
-        for t in table["transitions"]:
-            if t["state"]["recent_steps_mean"] != state_group:
-                continue
-            if t["action"] == "idle":
-                idle_probs = t["next_state_probs"]["recent_steps_mean"]
-                idle_high = idle_probs.get("high", 0)
-                idle_low = idle_probs.get("low", 0)
-            elif t["action"] == "ability_morning":
-                int_probs = t["next_state_probs"]["recent_steps_mean"]
-                int_high = int_probs.get("high", 0)
-                int_low = int_probs.get("low", 0)
-
-                diff_high = int_high - idle_high
-                diff_low = int_low - idle_low
-                logger.info(
-                    "  ability_morning vs idle: ΔP(high)=%+.3f ΔP(low)=%+.3f %s",
-                    diff_high,
-                    diff_low,
-                    "✓" if diff_high > 0 else "✗ WRONG DIRECTION",
-                )
-
-    # Try to run through simulator
-    try:
-        logger.info("\n=== Simulator Test ===")
-        from rl_health_interventions.environment import Environment
-
-        config = load_config(config_path)
-        # Override table_dir to use pilot table
-        config.transition_model.table_dir = str(Path(table_path).parent)
-
-        env = Environment(config, seed=42)
-
-        # Run 1 episode
-        env.reset()
-        daily_steps_by_arm = {i: [] for i in range(len(env.agents))}
-
-        for day in range(60):
-            for arm_idx, agent in enumerate(env.agents):
-                env.reset()
-                for d in range(day):
-                    state = env.state
-                    action = agent.act(state, env.step_idx)
-                    env.step(action)
-                # Record step for this day
-                state = env.state
-                action = agent.act(state, env.step_idx)
-                next_state, reward, done = env.step(action)
-                # Get step count from state
-                step_count = getattr(state, "recent_steps_mean", "moderate")
-                daily_steps_by_arm[arm_idx].append(step_count)
-
-        logger.info("Simulation completed successfully")
-
-    except Exception as e:
-        logger.warning("Simulator test failed (expected for pilot): %s", e)
-        logger.info("Table format is valid - can be tested with full simulator")
+    check_intervention_direction(table)
+    run_simulator_smoke_test(args.table, args.config)
 
 
 if __name__ == "__main__":
