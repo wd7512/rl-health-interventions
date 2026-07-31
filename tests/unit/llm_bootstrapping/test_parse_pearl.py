@@ -31,12 +31,11 @@ class TestParseDayHistory:
         assert result[0]["morning_steps"] == 2100  # 2000 + 1*100
         assert result[6]["afternoon_steps"] == 1850  # 1500 + 7*50
 
-    def test_single_day(self) -> None:
+    def test_single_day_rejected(self) -> None:
         result = parse_day_history(
             '{"day": 1, "morning_steps": 3000, "afternoon_steps": 2000}'
         )
-        assert result is not None
-        assert len(result) == 1
+        assert result is None
 
     def test_missing_morning_steps(self) -> None:
         result = parse_day_history('{"day": 1, "afternoon_steps": 2000}')
@@ -57,9 +56,17 @@ class TestParseDayHistory:
         assert result is None
 
     def test_float_steps(self) -> None:
-        result = parse_day_history(
-            '{"day": 1, "morning_steps": 2500.5, "afternoon_steps": 1500.2}'
-        )
+        lines = [
+            json.dumps(
+                {
+                    "day": i,
+                    "morning_steps": 2500.5,
+                    "afternoon_steps": 1500.2,
+                }
+            )
+            for i in range(1, 8)
+        ]
+        result = parse_day_history("\n".join(lines))
         assert result is not None
         assert result[0]["morning_steps"] == 2500
 
@@ -71,22 +78,71 @@ class TestParseDayHistory:
         result = parse_day_history("not json at all")
         assert result is None
 
-    def test_partial_valid(self) -> None:
+    def test_partial_history_rejected(self) -> None:
         lines = [
-            '{"day": 1, "morning_steps": 2000, "afternoon_steps": 1500}',
-            "not valid json",
-            '{"day": 3, "morning_steps": 2200, "afternoon_steps": 1600}',
+            json.dumps(
+                {
+                    "day": i,
+                    "morning_steps": 2000,
+                    "afternoon_steps": 1500,
+                }
+            )
+            for i in range(1, 6)
         ]
         result = parse_day_history("\n".join(lines))
-        assert result is not None
-        assert len(result) == 2
+        assert result is None
+
+    def test_duplicate_days_rejected(self) -> None:
+        lines = [
+            json.dumps(
+                {
+                    "day": 1 if i % 2 else 2,
+                    "morning_steps": 2000,
+                    "afternoon_steps": 1500,
+                }
+            )
+            for i in range(7)
+        ]
+        result = parse_day_history("\n".join(lines))
+        assert result is None
 
     def test_extra_text_around_json(self) -> None:
-        text = (
-            "Here is the history:\n"
-            '{"day": 1, "morning_steps": 2000, "afternoon_steps": 1500}\nDone.'
-        )
+        lines = [
+            json.dumps(
+                {
+                    "day": i,
+                    "morning_steps": 2000,
+                    "afternoon_steps": 1500,
+                }
+            )
+            for i in range(1, 8)
+        ]
+        text = "Here is the history:\n" + "\n".join(lines) + "\nDone."
         result = parse_day_history(text)
+        assert result is not None
+        assert len(result) == 7
+
+    def test_fenced_json_block(self) -> None:
+        lines = [
+            json.dumps(
+                {
+                    "day": i,
+                    "morning_steps": 2000,
+                    "afternoon_steps": 1500,
+                }
+            )
+            for i in range(1, 8)
+        ]
+        text = "```json\n" + "\n".join(lines) + "\n```"
+        result = parse_day_history(text)
+        assert result is not None
+        assert len(result) == 7
+
+    def test_custom_expected_days(self) -> None:
+        result = parse_day_history(
+            '{"day": 1, "morning_steps": 3000, "afternoon_steps": 2000}',
+            expected_days=1,
+        )
         assert result is not None
         assert len(result) == 1
 
