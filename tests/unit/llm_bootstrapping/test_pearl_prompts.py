@@ -183,6 +183,88 @@ class TestGeneratePrompts:
         assert len(prompts) == 108 * 13  # 1,404
 
 
+class TestStateSelfModelVariant:
+    """State-conditional self-model anchors (round 2 variant)."""
+
+    def test_system_extra_reframes_population_average(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="state_self_model")
+        assert "5,580" in prompt
+        assert "population average" in prompt
+        assert "never regress" in prompt
+
+    def test_user_extra_is_state_conditional(self) -> None:
+        high_prompt = _render_user_prompt(
+            recent_steps_mean="high",
+            walk_pattern="high",
+            morning_ratio="balanced",
+            day_type="weekday",
+            burden="none",
+            action="idle",
+            prompt_variant="state_self_model",
+        )
+        low_prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="balanced",
+            day_type="weekday",
+            burden="none",
+            action="idle",
+            prompt_variant="state_self_model",
+        )
+        assert "8,000" in high_prompt
+        assert "3,000" in low_prompt
+        assert "8,000" not in low_prompt
+
+    def test_idle_vs_intervention_day_lines(self) -> None:
+        idle_prompt = _render_user_prompt(
+            recent_steps_mean="moderate",
+            walk_pattern="low",
+            morning_ratio="balanced",
+            day_type="weekday",
+            burden="none",
+            action="idle",
+            prompt_variant="state_self_model",
+        )
+        ability_prompt = _render_user_prompt(
+            recent_steps_mean="moderate",
+            walk_pattern="low",
+            morning_ratio="balanced",
+            day_type="weekday",
+            burden="none",
+            action="ability_morning",
+            prompt_variant="state_self_model",
+        )
+        assert "no step boost" in idle_prompt
+        assert "150-450 steps" in ability_prompt
+
+    def test_extra_before_json_instruction(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="morning",
+            day_type="weekday",
+            burden="none",
+            action="idle",
+            prompt_variant="state_self_model",
+        )
+        assert prompt.index("SELF-MODEL ANCHORS") < prompt.index(
+            "Output exactly 7 JSON objects"
+        )
+
+    def test_extra_contains_no_json_objects(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="morning",
+            day_type="weekday",
+            burden="none",
+            action="idle",
+            prompt_variant="state_self_model",
+        )
+        assert '{"day"' in prompt
+        assert prompt.count('{"day"') == 3  # only the 3 format examples
+
+
 class TestConstants:
     def test_actions_count(self) -> None:
         assert len(ACTIONS) == 13  # idle + 12 COM-B x time
