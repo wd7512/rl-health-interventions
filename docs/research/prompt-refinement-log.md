@@ -657,6 +657,138 @@ in this subset.
 
 ---
 
+### Round 8 — protocol_fewshot (2026-07-31)
+
+**Prompt version:** `protocol_fewshot` r8 in `prompts/pearl.py`. Three edits,
+all inside the fewshot constants; the protocol variant and every other
+variant are untouched:
+
+1. **Absolute-lift rule** — a new paragraph in the causal-rule section:
+   *"The size of the increase is a FIXED absolute number of steps — it
+   does not scale with your usual activity level. A strongly matched
+   message adds about 300 steps whether your baseline is 3,000 steps or
+   8,000 steps. A modestly matched message adds about 150 steps. A weak
+   match adds about 60-100 steps."* The existing +150-450 band statement
+   (strong = middle of the band, ~+300) is kept as-is — consistent with
+   the new rule.
+2. **Ceiling** — appended to the same paragraph: *"No message adds more
+   than about 500 steps in a day."*
+3. **High-baseline strong-match exemplar** — added to DAY-LEVEL EXEMPLARS
+   after the existing low-baseline strong exemplar (3,100 → 3,400, kept
+   verbatim): *"For example, a strongly matched message on a high-activity
+   day raised the day from 8,100 total steps (5,000 morning + 3,100
+   afternoon) to about 8,400 total (5,200 morning + 3,200 afternoon) —
+   about 300 extra steps, the same absolute increase a low-activity person
+   would get."* Prose only. No action override quantifies an effect, so
+   `_PROTOCOL_FEWSHOT_ACTIONS_OVERRIDES` is unchanged.
+
+**Config:** deepseek-v4-flash (openrouter), temp 0.7, 3 samples/cell, 4 states
+(2 burden x 2 recent_steps_mean) x 13 actions = 156 prompts.
+
+**Run:** 156/156 LLM calls succeeded, **0/156 parse failures** — second
+clean run in a row. Table: 52/52 cells, every cell at 3 samples. Raw results
+saved to
+`tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260731_190547.jsonl`.
+Round-7 table archived as
+`tables/pearl_12action_pilot/archive/pearl_pilot_protocol_fewshot_r7.json`.
+
+| Check | Result | Detail |
+|-------|--------|--------|
+| C1 action coverage | PASS | 13/13 |
+| C2 cell coverage | PASS | 52/52 |
+| C3 state persistence | PASS | idle P(stay): low=1.0, high=1.0 (raw idle means: high 7,626/7,390, low 3,019/2,981 — high/major idle slid to 7,390 but still bins high) |
+| C4 action sensitivity | FAIL | 0/4 cells (structurally blind: high idle P(high)=1.0 leaves no headroom; low cannot cross 7,000) |
+| C5 burden monotonicity | FAIL | high: 0.9744 vs 0.9744 — burden_reduces_steps=false. Two high-state intervention cells (high/none prioritization_morning, high/major social_opportunity_morning) each dipped one sample below 7,000, so both state means fell to 0.9744 and the check's `major <= none` comparison fails on equality |
+| C6 factor variation | FAIL | morning_steps_ratio = balanced as modal value in 47/52 cells (structural in this subset) |
+
+**Raw effect (analyzer):** overall mean lift **+179.1** steps/day (round 7:
++194.1 — still in the +150-450 band), min **-80.5** (round 7: -140.0), max
+**+775.4** (round 7: +811.0), **36/48** cells positive (round 7: 47/48).
+Per state — high/major: idle 7,390, lift **+425.5** (round 7: +164.6);
+high/none: idle 7,626, lift **+212.4** (round 7: +380.6); low/major: idle
+2,981, lift **+72.8** (round 7: +128.8); low/none: idle 3,019, lift **+5.6**
+(round 7: +102.4). All four states positive, but the low states collapsed.
+
+**Cell-level highlights:**
+- **Negatives: 11 (vs 1).** The floor broke in low states: 8/12 low/none
+  cells negative or zero (only ability_morning +102.4, ability_afternoon
+  +146.2, planning_morning +53.3, prioritization_afternoon +14.8 positive;
+  perceived_benefit_morning at exactly +0.0) and 2/12 low/major
+  (social_opportunity_afternoon -73.8, physical_opportunity_afternoon
+  -80.5, the min). High states each have 1: high/none
+  prioritization_morning -4.8, high/major social_opportunity_morning -30.5.
+  Round 7's lone negative (high/major ability_afternoon -140.0) recovered
+  to +418.8.
+- **Max cell lift: +775.4** (high/major prioritization_afternoon; its
+  morning twin +769.0) — barely down from round 7's +811.0. The ceiling
+  sentence held for the round-7 +800 cells (high/none ability_afternoon
+  +800.0 → +88.1, perceived_benefit_afternoon +811.0 → +366.7) but not for
+  high/major's strong-weight cells (prioritization 0.8, planning 0.9,
+  physical_opportunity 0.8): planning_morning +492.9, ability_morning
+  +733.3, physical_opportunity_morning +407.1.
+- **low/none: +5.6 (vs +102.4).** The target was up toward +200-300; the
+  state moved the wrong way. The 0.8-weight themes' mornings delivered
+  +102.4/+0.0 (ability/perceived_benefit) — the strong-match exemplar that
+  anchored this state in rounds 6-7 stopped binding — and modest/weak
+  afternoons went negative.
+- **high/none: +212.4 (vs +380.6)** — into band, exactly the round-8
+  target for this state. **high/major: +425.5 (vs +164.6)** — the overshoot
+  moved here instead; mornings now dominate (+733.3/+769.0/+492.9).
+
+**Summary:** 3/6 checks pass (round 7: 4/6). The fixed-absolute rule
+corrected the state it targeted most (high/none into band, both round-7
++800 cells killed) and C3 stays fully green, but it did not deliver the
+pair: low/none collapsed to +5.6 with 7/12 negative cells (the round-7
+floor did not survive the new paragraph), the ceiling held only
+adversarially (max +775.4 vs +811.0, two high/major prioritization cells
++769/+775), and C5 broke for the first time since round 2 when two
+high-state intervention cells dipped one sample each below 7,000 (0.9744 vs
+0.9744, burden_reduces_steps=false). Mean lift +179.1 stays in band and
+parse failures stay 0.
+
+**Diagnosis:**
+- The ABSOLUTE-LIFT RULE over-corrected in low states and under-corrected
+  in high/major. Reading "modest adds about 150, weak adds about 60-100" as
+  a small fixed number, the model pushed low-state modest/weak cells back
+  toward zero — 9 of the 11 negatives are low-state cells — where round 7's
+  binding floor had held all 12 low/none cells positive (+102.4). The
+  strong-match anchor for low states (the 3,100 → 3,400 exemplar) stopped
+  binding in the morning: the 0.8-weight themes delivered +102.4/+0.0
+  mornings, so the low/none mean collapsed to +5.6 against the +200-300
+  target.
+- The ceiling sentence lost to the exemplars in the strong-weight state.
+  high/none's two round-7 +800 cells were reined in (the high-baseline
+  exemplar binds for that state: +88.1/+366.7), but high/major's
+  strong-weight column (prioritization 0.8, planning 0.9, physical_opp 0.8)
+  produced +769/+775 and a state mean of +425.5 — a single sentence at the
+  end of a rule paragraph is weaker than two concrete +300 exemplar days.
+- C5's regression is a binning artifact at the sample level, not a
+  monotonicity violation: both high states sit at 0.9744 because one
+  intervention day per state crossed just below 7,000 (high/none
+  prioritization_morning, high/major social_opportunity_morning — both
+  low-lift cells this round), so `major <= none` fails on equality.
+  C4 (0/4) and C6 (0.90 dominant share) remain structurally blind in this
+  subset; 0/156 parse failures.
+
+**Next steps:**
+1. Round 9: make the ceiling binding — state it as a cap on the exemplars
+   ("the largest increase in any example day is about +300; nothing in this
+   study exceeds about +500") or re-state it in the strong tier of the
+   GRADED MATCH RULE, since the single sentence lost to the +300 exemplars
+   in high/major.
+2. Restore the floor inside the ABSOLUTE-LIFT RULE: re-pin the weak tier to
+   never-below (~+60 minimum, never zero or negative) and add a low-baseline
+   strong-match *morning* exemplar to re-anchor low/none's 0.8-weight
+   themes (+102.4/+0.0 this round).
+3. If the next round holds negatives ≤ 2, max cell lift ≤ +550, low/none
+   ≥ +150 and C5 green, ship `protocol_fewshot` for the real bootstrapping
+   experiment; keep `protocol` as fallback.
+4. For C4/C6 signal, extend the pilot subset to moderate
+   recent_steps_mean cells and vary morning_steps_ratio / walk_pattern /
+   day_of_week.
+
+---
+
 ## Ladder summary
 
 | Rung | Variant | n_passes | Mean lift | n positive cells | Parse failures | Verdict |
