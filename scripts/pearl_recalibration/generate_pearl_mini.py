@@ -13,6 +13,7 @@ import json
 import logging
 import sys
 from collections import defaultdict
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Ensure repo root is on path
@@ -139,7 +140,7 @@ def _aggregate_to_table(  # noqa: C901, PLR0912
     }
 
 
-def main() -> None:
+def main() -> None:  # noqa: PLR0915
     """Generate the pilot PEARL transition table via LLM bootstrapping."""
     setup_logging()
     load_env()
@@ -175,6 +176,22 @@ def main() -> None:
     # Count successes
     ok = sum(1 for r in results if "content" in r)
     logger.info("LLM results: %d/%d succeeded", ok, len(results))
+
+    # Save raw results for diagnosis (parse failures, bad output inspection)
+    raw_dir = out_dir / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    raw_path = out_dir / "raw" / f"results_{datetime.now(UTC):%Y%m%d_%H%M%S}.jsonl"
+    with raw_path.open("w") as f:
+        for result, (state, action) in zip(
+            results, [(s, a) for _p, s, a in prompt_entries], strict=True
+        ):
+            record = {"state": state, "action": action}
+            if "error" in result:
+                record["error"] = result["error"]
+            else:
+                record["content"] = result["content"]
+            f.write(json.dumps(record) + "\n")
+    logger.info("Saved %d raw results to %s", len(results), raw_path)
 
     # Aggregate — use metadata embedded in prompt_entries, not reconstructed
     table = _aggregate_to_table(results, [(s, a) for _p, s, a in prompt_entries])
