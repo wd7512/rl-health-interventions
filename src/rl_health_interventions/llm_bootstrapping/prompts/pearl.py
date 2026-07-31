@@ -11,21 +11,16 @@ state factors deterministically.
 from __future__ import annotations
 
 import itertools
+import logging
 from collections.abc import Callable
+
+logger = logging.getLogger(__name__)
 
 # Prompt variants: ladder from implicit (baseline) to fully explicit
 # alignment with the PEARL RCT paper. Each round of the refinement log
 # (docs/research/prompt-refinement-log.md) uses one variant.
 # Empirical facts source:
 # docs/research/recreations/pearl-rct-2025/pearl-deep-analysis.md
-PROMPT_VARIANTS = (
-    "baseline",
-    "state_self_model",
-    "com_b_mechanisms",
-    "empirical_anchors",
-    "protocol",
-    "protocol_fewshot",
-)
 
 
 class PromptVariant:
@@ -545,14 +540,22 @@ _STRONG_MATCH_WEIGHT = 0.7
 _MODEST_MATCH_WEIGHT = 0.3
 
 
-def _protocol_user_extra(state: dict, action: str) -> str:
-    """Per-day profile + theme weight line for the protocol variant."""
-    if action == "idle":
-        return ""
+def _format_profile_weight_line(
+    weight_table: dict[tuple[str, str], dict[str, float]],
+    state: dict,
+    action: str,
+) -> str:
+    """Format the per-day profile + theme weight line for one cell.
+
+    Returns an empty string (with a warning) when the profile or theme has
+    no configured weight, so missing weights surface in logs instead of
+    silently producing an unguided prompt.
+    """
     theme = action.rsplit("_", 1)[0]
     key = (state["recent_steps_mean"], state["burden"])
-    weight = _PROTOCOL_PROFILE_WEIGHTS.get(key, {}).get(theme)
+    weight = weight_table.get(key, {}).get(theme)
     if weight is None:
+        logger.warning("No configured weight for profile %s / theme %s", key, theme)
         return ""
     if weight >= _STRONG_MATCH_WEIGHT:
         strength = "a strong match"
@@ -565,6 +568,13 @@ def _protocol_user_extra(state: dict, action: str) -> str:
         f"{_PROTOCOL_THEME_DISPLAY[theme]} messages are {strength} (weight "
         f"{weight}) for you today."
     )
+
+
+def _protocol_user_extra(state: dict, action: str) -> str:
+    """Per-day profile + theme weight line for the protocol variant."""
+    if action == "idle":
+        return ""
+    return _format_profile_weight_line(_PROTOCOL_PROFILE_WEIGHTS, state, action)
 
 
 # Round 6: "protocol_fewshot" - the protocol variant plus prose day-level
@@ -671,22 +681,7 @@ def _protocol_fewshot_user_extra(state: dict, action: str) -> str:
     """Per-day profile + theme weight line for the fewshot variant."""
     if action == "idle":
         return ""
-    theme = action.rsplit("_", 1)[0]
-    key = (state["recent_steps_mean"], state["burden"])
-    weight = _PROTOCOL_FEWSHOT_PROFILE_WEIGHTS.get(key, {}).get(theme)
-    if weight is None:
-        return ""
-    if weight >= _STRONG_MATCH_WEIGHT:
-        strength = "a strong match"
-    elif weight >= _MODEST_MATCH_WEIGHT:
-        strength = "a modest match"
-    else:
-        strength = "a weak match"
-    return (
-        f"Your profile today: {_PROTOCOL_PROFILE_NAMES[key]}. "
-        f"{_PROTOCOL_THEME_DISPLAY[theme]} messages are {strength} (weight "
-        f"{weight}) for you today."
-    )
+    return _format_profile_weight_line(_PROTOCOL_FEWSHOT_PROFILE_WEIGHTS, state, action)
 
 
 _PROTOCOL_FEWSHOT_USER_EXTRA = _protocol_fewshot_user_extra
@@ -719,6 +714,9 @@ PROMPT_VARIANT_CONFIGS: dict[str, PromptVariant] = {
         user_extra=_PROTOCOL_FEWSHOT_USER_EXTRA,
     ),
 }
+
+# Single source of truth for variant names (also used for CLI validation).
+PROMPT_VARIANTS = tuple(PROMPT_VARIANT_CONFIGS)
 
 # PEARL-specific burden tiers (matches YAML configs)
 BURDENS = ["none", "minor", "major"]
