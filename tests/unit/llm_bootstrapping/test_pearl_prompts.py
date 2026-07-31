@@ -662,6 +662,136 @@ class TestProtocolVariant:
         assert prompt.count('{"day"') == 3  # only the 3 format examples
 
 
+class TestProtocolFewshotVariant:
+    """Protocol frame + prose day-level exemplars (round 6 variant)."""
+
+    def test_system_extra_has_idle_band_language(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="protocol_fewshot")
+        assert "between 7,500 and 8,500" in prompt
+        assert "between 2,800 and 3,200" in prompt
+        assert "regardless of your burden level" in prompt
+        assert "Never regress" in prompt
+
+    def test_system_extra_keeps_graded_rule_and_weights(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="protocol_fewshot")
+        assert "GRADED MATCH RULE" in prompt
+        assert "around +300" in prompt
+        assert "around +120" in prompt
+        assert "around +40" in prompt
+        assert "zero or negative" in prompt
+        assert "- ability: 0.9, 0.8, 0.5, 0.5" in prompt
+        assert "- planning: 0.5, 0.8, 0.4, 0.9" in prompt
+
+    def test_system_extra_has_prose_exemplars(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="protocol_fewshot")
+        assert "DAY-LEVEL EXEMPLARS" in prompt
+        assert "on a day with no message" in prompt
+        assert "8,200 total" in prompt
+        assert "3,100 total" in prompt
+        assert "strongly matched message" in prompt
+        assert "about 300 steps more" in prompt
+        assert "about 120 steps" in prompt
+        assert "added only about 40" in prompt
+
+    def test_exemplars_are_prose_not_json_lines(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="protocol_fewshot")
+        for day in range(1, 8):
+            assert f'"day": {day}' not in prompt
+        assert '"morning_steps"' not in prompt
+
+    def test_all_actions_overridden(self) -> None:
+        for action in ACTIONS:
+            prompt = _render_user_prompt(
+                recent_steps_mean="moderate",
+                walk_pattern="low",
+                morning_ratio="balanced",
+                day_type="weekday",
+                burden="none",
+                action=action,
+                prompt_variant="protocol_fewshot",
+            )
+            if action == "idle":
+                assert "No intervention is delivered today." in prompt
+                continue
+            assert "message" in prompt
+            assert "noticeably longer walk" in prompt
+            assert "match" in prompt
+
+    def test_overrides_match_protocol_variant(self) -> None:
+        from rl_health_interventions.llm_bootstrapping.prompts.pearl import (
+            PROMPT_VARIANT_CONFIGS,
+        )
+
+        protocol_overrides = PROMPT_VARIANT_CONFIGS["protocol"].action_overrides
+        fewshot_overrides = PROMPT_VARIANT_CONFIGS["protocol_fewshot"].action_overrides
+        assert set(fewshot_overrides) == set(protocol_overrides)
+        for action, text in protocol_overrides.items():
+            assert fewshot_overrides[action] == text
+
+    def test_user_extra_empty_on_idle(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="high",
+            walk_pattern="high",
+            morning_ratio="balanced",
+            day_type="weekday",
+            burden="major",
+            action="idle",
+            prompt_variant="protocol_fewshot",
+        )
+        assert "Your profile today" not in prompt
+        assert '{"day"' in prompt
+
+    def test_user_extra_names_profile_and_weight(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="balanced",
+            day_type="weekday",
+            burden="major",
+            action="physical_opportunity_morning",
+            prompt_variant="protocol_fewshot",
+        )
+        assert "Your profile today: low activity, major burden" in prompt
+        assert "physical-opportunity messages are a strong match" in prompt
+        assert "weight 0.8" in prompt
+
+    def test_extra_before_json_instruction(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="morning",
+            day_type="weekday",
+            burden="none",
+            action="ability_morning",
+            prompt_variant="protocol_fewshot",
+        )
+        assert prompt.index("Your profile today") < prompt.index(
+            "Output exactly 7 JSON objects"
+        )
+
+    def test_extra_contains_no_json_objects(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="morning",
+            day_type="weekday",
+            burden="none",
+            action="ability_morning",
+            prompt_variant="protocol_fewshot",
+        )
+        assert '{"day"' in prompt
+        assert prompt.count('{"day"') == 3  # only the 3 format examples
+
+    def test_generate_prompts_accepts_variant(self) -> None:
+        system, prompts = generate_prompts(
+            persona="base",
+            samples_per_cell=1,
+            prompt_variant="protocol_fewshot",
+        )
+        assert "DAY-LEVEL EXEMPLARS" in system
+        assert len(prompts) == 108 * 13
+
+
 class TestConstants:
     def test_actions_count(self) -> None:
         assert len(ACTIONS) == 13  # idle + 12 COM-B x time

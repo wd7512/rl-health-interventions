@@ -392,16 +392,154 @@ target, max +1,557) and C3 regressed because the high idle pin landed at
    low, independent of burden) and intervention days responding at
    +150-450 scaled by match weight (strong ~+300, modest ~+120, weak ~+40) —
    to calibrate both the idle pin and the lift size the abstract rule failed
-   to bind.
+   to bind. *(implemented in round 6 below)*
 2. Re-anchor the idle pin with a tolerance band ("around 8,000, within
    roughly +/-500, regardless of burden") so high idle cannot straddle the
-   7,000 bin.
+   7,000 bin. *(implemented in round 6 below)*
 3. Rebalance the afternoon mechanism sentences (bound the "noticeably longer
    walk" language, e.g. a fixed +150-450 response) or rely on few-shot
-   magnitudes; monitor the morning/afternoon asymmetry.
+   magnitudes; monitor the morning/afternoon asymmetry. *(resolved by the
+   few-shot magnitudes in round 6 — state-level afternoon:morning ratios are
+   now 0.85-1.29)*
 4. For C4/C6 signal, extend the pilot subset to moderate recent_steps_mean
    cells and vary morning_steps_ratio / walk_pattern / day_of_week (both
    checks remain structurally blind in this subset).
+
+---
+
+### Round 6 — protocol_fewshot (2026-07-31)
+
+**Prompt version:** `protocol_fewshot` variant in `prompts/pearl.py`
+(`system_extra` + `action_overrides` + callable `user_extra`). The entire
+protocol variant was copied to `_PROTOCOL_FEWSHOT_SYSTEM_EXTRA`,
+`_PROTOCOL_FEWSHOT_ACTIONS_OVERRIDES`, `_PROTOCOL_FEWSHOT_USER_EXTRA` and
+registered as `PROMPT_VARIANT_CONFIGS["protocol_fewshot"]`; the protocol
+variant is untouched. Two changes to the fewshot copies: (a) **IDLE PIN
+re-anchored with a tolerance band** — "around 8,000" → "between 7,500 and
+8,500" and "around 3,000" → "between 2,800 and 3,200" (round 2's ±500-band
+trick), keeping the burden-independence sentence; (b) **DAY-LEVEL
+EXEMPLARS** appended to the end of system_extra — three plain-English
+single-day descriptions anchoring magnitudes: an idle day (high-activity
+person 5,100 morning + 3,100 afternoon = 8,200 total; low-activity 1,800 +
+1,300 = 3,100 total), a strong-match day (weight ≥ 0.7: a low-activity
+major-burden person who usually walks ~3,100 steps takes 2,200 + 1,200 =
+3,400 after a well-matched ability message — about +300 vs their
+no-message day), and a modest/weak day (weight ~0.4 → about +120, e.g.
+5,150 + 3,150 on an 8,200 baseline; weight < 0.3 → only about +40).
+Exemplars are prose ONLY — no JSON-shaped example days, because the
+response parser ingests any JSON line with day/morning_steps/
+afternoon_steps. The graded-weight table and never-negative rule are kept
+verbatim; user_extra is round 5's profile+weight line unchanged.
+
+**Config:** deepseek-v4-flash (openrouter), temp 0.7, 3 samples/cell, 4 states
+(2 burden x 2 recent_steps_mean) x 13 actions = 156 prompts.
+
+**Run:** 156/156 LLM calls succeeded; 3 responses had no valid day records
+(low/none physical_opportunity_morning, low/major prioritization_morning,
+high/major perceived_benefit_afternoon) — a new failure class: the response
+opened with a prose narrative preamble (echoing the exemplar style) and the
+day JSON never appeared. Each cost one sample in its own cell; all three
+cells stayed above the 2-sample minimum. Table: 52/52 cells. Raw results
+saved to
+`tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260731_184001.jsonl`.
+
+| Check | Result | Detail |
+|-------|--------|--------|
+| C1 action coverage | PASS | 13/13 |
+| C2 cell coverage | PASS | 52/52 (3 cells at 2 samples; no cell lost) |
+| C3 state persistence | PASS | idle P(stay): low=1.0, high=1.0 (raw idle means: high 7,638/7,557, low 3,031/2,924 — every idle mean inside its stated band, burden gap only 81/107 steps) |
+| C4 action sensitivity | FAIL | 0/4 cells (structurally blind in all 4: with C3 fully green, high idle P(high)=1.0 leaves no headroom; low cannot cross 7,000) |
+| C5 burden monotonicity | PASS | high: 1.0 -> 1.0; low: 0.0 -> 0.0 |
+| C6 factor variation | FAIL | morning_steps_ratio = balanced as modal value in 47/52 cells (structural in this subset; 5 cells now show "morning" — first real variation) |
+
+**Raw effect (analyzer):** overall mean lift **+212.4** steps/day (round 5:
++584.9 — now in the +150-350 target band), min **-119.5** (round 5: -82.5),
+max **+673.8** (round 5: +1,557.1), **43/48** cells positive (round 5:
+46/48). Per state — high/none: idle 7,638, lift **+325.6** (round 5:
++726.2); high/major: idle 7,557, lift **+295.9** (round 5: +964.6);
+low/none: idle 3,031, lift **+61.7** (round 5: +445.6); low/major: idle
+2,924, lift **+166.3** (round 5: +203.4). All four states positive. The 5
+negative cells are all on the weakest-weight themes: social_opportunity
+afternoon ×2 (-119.5 high/major, -15.7 low/major) and morning ×1 (-7.1
+low/none), physical_opportunity_afternoon (-97.1 low/none),
+prioritization_afternoon (-59.5 low/none). Morning/afternoon asymmetry is
+gone: state-level afternoon:morning lift ratios 0.85-1.29 (round 5: 2-3x).
+
+**Summary:** 4/6 checks pass (round 5: 4/6) — C3 is fully green for the
+first time since round 2 (idle P(stay) 1.0/1.0, burden-independent, all
+idle means inside the stated bands) and the round-5 magnitude overshoot is
+corrected into the +150-350 target (mean +212.4, max +673.8, no 2-3x
+morning/afternoon asymmetry). Trade-offs: C4 regresses to 0/4 (structurally
+blind in all four cells now that the idle pin holds), and 3 parse failures
+(a new prose-preamble class vs round 5's perfect 0) cost one sample each
+without losing a cell.
+
+**Diagnosis:**
+- The prose day-level exemplars calibrated the lift the abstract rule could
+  not bind: mean +212.4 vs +584.9 (a ~2.7x correction toward the paper's
+  +150-450 effect), max +673.8 vs +1,557.1, all four states positive, and
+  the round-5 2-3x afternoon inflation collapsed to 0.85-1.29. The five
+  remaining negative cells concentrate on the lowest-weight themes
+  (social_opportunity, weight 0.4/0.4/0.5/0.4) and afternoon cells of
+  low/none — the exemplars demonstrate a strong match and idle but never a
+  weak/afternoon day, so the model still under-shoots those.
+- The ±500 band pin fixed C3 exactly as it did in round 2: high idle
+  7,638/7,557 and low idle 3,031/2,924 — every idle mean inside its stated
+  band, burden gaps of 81/107 steps, P(stay) 1.0/1.0. Round 5's straddle
+  (7,081/6,819, P(stay) 0.333) is gone.
+- C4 is now structurally blind in all 4 cells (0/4): a fully-green C3 means
+  high idle P(high)=1.0 — no headroom for ability_morning to raise — and
+  low cells cannot cross 7,000 from ~3,000. Round 5's 2/4 pass was an
+  artifact of the broken pin. C4 and C3 are structurally opposed in this
+  subset; the fix belongs in the subset (moderate RSM cells), not the
+  prompt. C6 remains structural (47/52 balanced, though 5 cells now vary).
+- 3/156 parse failures — first regression from round 5's 0, and a new
+  class: prose-preamble responses that never emitted day JSON (the
+  exemplars teach narrative style). No cell fell below 2 samples, so C1/C2
+  still pass 52/52; the output instruction should say "JSON lines only, no
+  narrative" to close it.
+
+**Next steps (post-ladder):**
+1. Ship `protocol_fewshot` as the prompt for the real bootstrapping
+   experiment (see Ladder summary below); keep `protocol` as fallback.
+2. Rebalance the weakest themes: add a weak-match afternoon exemplar or
+   bound the afternoon mechanism sentences so social_opportunity afternoons
+   stop going negative.
+3. Harden the prose-preamble parse class: "output the 7 JSON lines only,
+   no narrative" in the format instruction.
+4. For C4/C6 signal, extend the pilot subset to moderate recent_steps_mean
+   cells and vary morning_steps_ratio / walk_pattern / day_of_week.
+
+---
+
+## Ladder summary
+
+| Rung | Variant | n_passes | Mean lift | n positive cells | Parse failures | Verdict |
+|------|---------|----------|-----------|------------------|----------------|---------|
+| 1 | baseline | 2/6 | — (raw not saved) | — | 2 | no — high states collapse to moderate |
+| 2 | state_self_model | 3/6 | +115.0 | — | 1 | no — lift under target, no mechanisms |
+| 3 | com_b_mechanisms | 2/6 | +149.6 | 31/48 | 8 | no — wild variance, C3/C2 regress |
+| 4 | empirical_anchors | 4/6 | +43.1 | 26/48 | 2 | no — binary matchedness kills lift |
+| 5 | protocol | 4/6 | +584.9 | 46/48 | 0 | no — overshoots 2-4x, C3 straddles |
+| 6 | protocol_fewshot | 4/6 | **+212.4** | 43/48 | 3 | **SHIP** — in-band lift + fully green C3 |
+
+Round 2's mean lift is taken from the round-3 log entry (+115); rounds 1-2
+predate the raw-effect analyzer, so their positive-cell counts are unknown.
+
+**Conclusion:** `protocol_fewshot` is the variant to ship for the real
+bootstrapping experiment. It is the only rung that combines a fully green
+C3 (idle P(stay) 1.0/1.0, burden-independent, every idle mean inside its
+stated band) with lift magnitudes inside the +150-350 target (mean +212.4,
+max +673.8, no morning/afternoon asymmetry) — round 5's protocol fixed
+directionality but overshot ~2.7x, and rounds 2-4 each traded one of those
+two properties for the other. The remaining blemishes are minor and
+addressable: 3 prose-preamble parse failures (no cell lost), 5 negative
+cells on the weakest-weight themes (social_opportunity afternoons), and C4
+blind in all 4 cells — a structural consequence of C3 being fully green in
+this subset, not a prompt defect. Baseline, state_self_model, and
+com_b_mechanisms are ruled out on checks; empirical_anchors and protocol
+are the fallbacks if a post-ship regression appears, with protocol the
+closer of the two.
 
 ---
 

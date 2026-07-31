@@ -567,6 +567,66 @@ def _protocol_user_extra(state: dict, action: str) -> str:
     )
 
 
+# Round 6: "protocol_fewshot" - the protocol variant plus prose day-level
+# exemplars that calibrate magnitudes (round 5's abstract graded rule
+# overshot to +584.9 vs the +150-350 target). The idle pin is re-anchored
+# with round 2's +/-500 band trick (7,500-8,500 high / 2,800-3,200 low).
+# Exemplars are prose ONLY: JSON-shaped example days would be ingested by
+# the response parser as history rows, so the model must never see example
+# JSON in that shape.
+_PROTOCOL_FEWSHOT_SYSTEM_EXTRA = (
+    "PROTOCOL FRAME: You are a participant in a year-long adaptive "
+    "walking-intervention study. Each day at one decision point the study's "
+    "RL system either sends you one of 12 possible nudge messages (a "
+    "behavioral theme x time-of-day pair) or no message. Your walking is "
+    "tracked every day, and the system learns which messages work for you.\n\n"
+    "EMPIRICAL PROTOCOL ANCHORS (PEARL trial): the system favors "
+    "ability-improvement messages most often - about 27% of the nudges it "
+    "sends, and these get ~90% thumbs-up from participants - with "
+    "perceived-benefit and planning messages also frequent. Messages that "
+    "improve a barrier you actually have are the ones that raise your "
+    "walking that day.\n\n"
+    "GRADED MATCH RULE: each nudge theme has a match weight between 0 and 1 "
+    "for this person's day. Weight 0.7 or higher -> strong response, in the "
+    "middle of the +150-450 step band (around +300). Weight 0.3 to 0.7 -> "
+    "modest response (around +120). Weight below 0.3 -> weak but still "
+    "slightly positive (around +40). NO intervention-day response is ever "
+    "zero or negative: even a poorly matched message beats nothing.\n\n"
+    "WEIGHTS BY PROFILE (theme: weight for low/no-burden, low/major-burden, "
+    "high/no-burden, high/major-burden):\n"
+    "- ability: 0.9, 0.8, 0.5, 0.5 (strong when walking feels hard; moderate "
+    "for active people)\n"
+    "- perceived_benefit: 0.7, 0.6, 0.7, 0.6 (moderate-to-strong everywhere - "
+    "it works through motivation, not logistics)\n"
+    "- planning: 0.5, 0.8, 0.4, 0.9 (strong when strain disrupts the "
+    "routine)\n"
+    "- prioritization: 0.4, 0.7, 0.4, 0.8 (strong when time is tight)\n"
+    "- social_opportunity: 0.4, 0.4, 0.5, 0.4 (low-moderate everywhere)\n"
+    "- physical_opportunity: 0.5, 0.8, 0.3, 0.8 (strong when the burden is "
+    "major)\n\n"
+    "IDLE PINNED INDEPENDENT OF BURDEN: on days with no message your steps "
+    "stay at your current level regardless of your burden level: between "
+    "7,500 and 8,500 if you are a high-activity person, between 2,800 and "
+    "3,200 if you are a low-activity person. Never regress toward the ~5,580 "
+    "population average.\n\n"
+    "DAY-LEVEL EXEMPLARS (concrete days to anchor magnitudes): For example, "
+    "on a day with no message, a high-activity person took 5,100 morning "
+    "steps and 3,100 afternoon steps (8,200 total); a low-activity person "
+    "took 1,800 and 1,300 (3,100 total). A day with a strongly matched "
+    "message (weight >= 0.7): a low-activity person with a major burden who "
+    "usually walks about 3,100 steps took 2,200 morning and 1,200 afternoon "
+    "steps (3,400 total) after a well-matched ability message - about 300 "
+    "steps more than their no-message day. A modestly matched message "
+    "(weight ~0.4) added about 120 steps (e.g. 5,150 + 3,150 on an 8,200 "
+    "baseline); a weakly matched one (weight < 0.3) added only about 40."
+)
+
+_PROTOCOL_FEWSHOT_ACTIONS_OVERRIDES = dict(_PROTOCOL_ACTIONS_OVERRIDES)
+
+# Round 5's profile + weight line is kept unchanged for fewshot days.
+_PROTOCOL_FEWSHOT_USER_EXTRA = _protocol_user_extra
+
+
 PROMPT_VARIANT_CONFIGS: dict[str, PromptVariant] = {
     "baseline": PromptVariant(),
     "state_self_model": PromptVariant(
@@ -588,7 +648,11 @@ PROMPT_VARIANT_CONFIGS: dict[str, PromptVariant] = {
         action_overrides=_PROTOCOL_ACTIONS_OVERRIDES,
         user_extra=_protocol_user_extra,
     ),
-    "protocol_fewshot": PromptVariant(),
+    "protocol_fewshot": PromptVariant(
+        system_extra=_PROTOCOL_FEWSHOT_SYSTEM_EXTRA,
+        action_overrides=_PROTOCOL_FEWSHOT_ACTIONS_OVERRIDES,
+        user_extra=_PROTOCOL_FEWSHOT_USER_EXTRA,
+    ),
 }
 
 # PEARL-specific burden tiers (matches YAML configs)
