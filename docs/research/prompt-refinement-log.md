@@ -57,7 +57,7 @@ were dropped (raw results not saved — fixed for round 2+). Table: 52/52 cells.
 | C5 burden monotonicity | PASS (weak) | high: P(high) 0.333 -> 0.103 under major; low degenerate at 0.0 |
 | C6 factor variation | FAIL | morning_steps_ratio = balanced as modal value in 51/52 cells |
 
-**Summary:** 2/6 checks pass. Pipeline works end-to-end; prompt behaviour does
+**Summary:** 3/6 checks pass (C5 counted per verdict table; weak signal). Pipeline works end-to-end; prompt behaviour does
 not meet constitution proxies.
 
 **Diagnosis:**
@@ -103,7 +103,7 @@ was dropped (raw results saved to `tables/pearl_12action_pilot/raw/`). Table:
 | C5 burden monotonicity | PASS | low: 0.0 vs 0.0; high: 1.0 vs 1.0 |
 | C6 factor variation | FAIL | morning_steps_ratio = balanced as modal value in 52/52 cells (subset pins factor; model respects it) |
 
-**Summary:** 3/6 checks pass (round 1: 2/6). C3 fully fixed; C4/C6 fail for
+**Summary:** 4/6 checks pass (round 1: 3/6; C5 degenerate 1.0/1.0 but counted per verdict table). C3 fully fixed; C4/C6 fail for
 subset-coverage reasons rather than prompt behaviour.
 
 **Diagnosis:**
@@ -168,7 +168,7 @@ were dropped — one cell fell below the 2-sample minimum. Raw results saved to
 high/major: idle 6,864, lift +382.4 (in band); low/none: idle 3,514, lift
 +112.5; low/major: idle 3,388, lift +97.5; high/none: idle 7,210, lift +6.2.
 
-**Summary:** 2/6 checks pass (round 2: 3/6). Mean intervention lift moved
+**Summary:** 2/6 checks pass (round 2: 4/6). Mean intervention lift moved
 toward the +150-450 target (+149.6 vs +115) but the mechanism framing did
 not land evenly, and C3 regressed because the numeric self-model anchors
 were dropped.
@@ -828,7 +828,7 @@ Round-8 table archived as
 | C3 state persistence | PASS | idle P(stay): low=1.0, high=1.0 (raw idle means: high 7,333/7,758, low 2,976/2,933 — all inside their stated bands) |
 | C4 action sensitivity | FAIL | 0/4 cells (structurally blind: high idle P(high)=1.0 leaves no headroom; low cannot cross 7,000) |
 | C5 burden monotonicity | PASS | burden_reduces_steps=true at both levels (round 8's fail was a binning artifact) |
-| C6 factor variation | PASS | morning_steps_ratio = balanced as modal value in 45/52 cells (0.8654 — this round's stronger high/none lifts pushed 7 cells to "morning") |
+| C6 factor variation | FAIL | morning_steps_ratio = balanced as modal value in 45/52 cells (0.8654 > 0.75 threshold — marked PASS in the round-9 report but FAIL per the analyzer) |
 
 **Raw effect (analyzer):** overall mean lift **+231.3** steps/day (round 7:
 +194.1; round 8: +179.1 — in the +150-450 band), min **-313.3** (round 7:
@@ -847,7 +847,7 @@ the +100 floor, but NOT collapsed the way round 8 collapsed it to +5.6).
 
 | Metric | Target | Round 7 | Round 8 | Round 9 | Verdict |
 |--------|--------|---------|---------|---------|---------|
-| Checks | — | 4/6 | 3/6 | 5/6 | better on paper (C5/C6), not on lift |
+| Checks | — | 4/6 | 3/6 | 4/6 | better on paper (C5), not on lift |
 | Max cell lift | ≤ ~+550 | +811.0 | +775.4 | **+981.0** | FAIL — worse |
 | high/none mean | → +300 | +380.6 | +212.4 | **+596.7** | FAIL — amplified |
 | low/none mean | ≥ +100 | +102.4 | +5.6 | +70.9 | FAIL (slipped, not collapsed) |
@@ -937,7 +937,7 @@ Round-9 table archived as
 | C3 state persistence | PASS | idle P(stay): low=1.0, high=1.0 (raw idle means: high 7,607/7,436, low 2,883/3,005 — all inside their stated bands) |
 | C4 action sensitivity | FAIL | 0/4 cells (structurally blind: high idle P(high)=1.0 leaves no headroom; low cannot cross 7,000) |
 | C5 burden monotonicity | PASS | burden_reduces_steps=true at both levels (major high P(high) 0.9744 ≤ none 1.0) |
-| C6 factor variation | FAIL | morning_steps_ratio dominant share 0.9423 (49 balanced / 3 morning; round 9: 0.8654 pass) — the ceiling capped high/none cells so fewer crossed into "morning" |
+| C6 factor variation | FAIL | morning_steps_ratio dominant share 0.9423 (49 balanced / 3 morning; round 9: 0.8654, also FAIL per analyzer) — the ceiling capped high/none cells so fewer crossed into "morning" |
 
 **Raw effect (analyzer):** overall mean lift **+222.1** steps/day (round 9:
 +231.3 — in the +150-450 band), min **-614.3** (round 9: -313.3), max
@@ -957,7 +957,7 @@ fell under the +100 floor, 5 of 6 negatives); low/none: idle 2,883, lift
 
 | Metric | Target | Round 8 | Round 9 | Round 10 | Verdict |
 |--------|--------|---------|---------|----------|---------|
-| Checks | — | 3/6 | 5/6 | 4/6 | mixed — C6 flipped (structural noise) |
+| Checks | — | 3/6 | 4/6 | 4/6 | stable — C6 stays FAIL (structural noise) |
 | Max cell lift | ≤ ~+600 | +775.4 | +981.0 | **+674.8** | FAIL — better, still over |
 | high/none mean | +250-350 | +212.4 | +596.7 | **+271.2** | PASS — tamed |
 | low/none mean | ≥ +150 | +5.6 | +70.9 | **+205.6** | PASS — exemplar worked |
