@@ -1929,6 +1929,281 @@
     "If the next round holds negatives <= 2, max cell lift <= +550, low/none >= +150 and C5 green, ship protocol_fewshot for the real bootstrapping experiment; keep protocol as fallback.",
     "For C4/C6 signal, extend the pilot subset to moderate recent_steps_mean cells and vary morning_steps_ratio / walk_pattern / day_of_week - both checks remain structurally blind in this subset."
    ]
+  },
+  {
+   "round": 9,
+   "date": "2026-07-31",
+   "prompt_version": "protocol_fewshot r9 (revert r8; exemplar-bound ceiling)",
+   "prompt_changes_since_previous": "Round 8 fully reverted (git checkout d2b634b \u2014 the ABSOLUTE-LIFT RULE paragraph, its ceiling sentence, and the high-baseline exemplar all removed; the staged revert is committed together with this round). Exactly one new edit to _PROTOCOL_FEWSHOT_SYSTEM_EXTRA: one prose sentence appended to the strong-match exemplar paragraph in DAY-LEVEL EXEMPLARS, right after the low-activity strong exemplar (3,100 -> 3,400): 'A strongly matched message looks the same for a high-activity person: for example, a day that would have been 8,100 total steps (5,000 morning, 3,100 afternoon) becomes about 8,400 total (5,200 morning, 3,200 afternoon) - again about 300 extra steps, and never more than about 500.' No rule sentences, no standalone ceiling, graded-weight table / floor wording / barrier profiles / afternoon-parity / action overrides / user_extra untouched. The r8 lesson (small fixed absolute numbers collapse low states) is respected: magnitudes are anchored by example only.",
+   "config": {
+    "model": "openrouter/deepseek/deepseek-v4-flash",
+    "provider": "openrouter",
+    "temperature": 0.7,
+    "max_workers": 50,
+    "samples_per_cell": 3,
+    "n_states": 4,
+    "n_actions": 13,
+    "n_prompts": 156,
+    "state_subset": "2 burden levels (none, major) x 2 recent_steps_mean (low, high); walk_pattern=low, morning_ratio=balanced, day=weekday fixed",
+    "prompt_variant": "protocol_fewshot"
+   },
+   "run": {
+    "exit_status": 0,
+    "llm_success_rate": "156/156",
+    "n_parse_failures": 0,
+    "table_path": "tables/pearl_12action_pilot/pearl_pilot_protocol_fewshot.json",
+    "raw_results_path": "tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260731_191508.jsonl",
+    "notes": "All 156 LLM calls succeeded and all 156 responses parsed - 0 parse failures, third clean run in a row. Table 52/52 cells. Round-8 table archived as tables/pearl_12action_pilot/archive/pearl_pilot_protocol_fewshot_r8.json before the run. 43/48 intervention cells positive (round 7: 47/48); 5 negative cells: high/major ability_morning -313.3 (the min), high/major perceived_benefit_afternoon -232.9, high/major physical_opportunity_morning -74.3, low/none physical_opportunity_afternoon -78.6, low/none ability_afternoon -38.1. C5 back to green (round 8: fail)."
+   },
+   "metrics": {
+    "structure": {
+     "n_states": 4,
+     "n_actions": 13,
+     "n_actions_present": 13,
+     "n_expected_cells": 52,
+     "n_cells": 52,
+     "action_coverage_frac": 1.0,
+     "cell_coverage_frac": 1.0
+    },
+    "checks": {
+     "C1_action_coverage": {
+      "pass": true,
+      "actual": 1.0,
+      "threshold": 1.0,
+      "detail": "13/13 actions present"
+     },
+     "C2_cell_coverage": {
+      "pass": true,
+      "actual": 1.0,
+      "threshold": 1.0,
+      "detail": "52/52 cells filled"
+     },
+     "C3_state_persistence": {
+      "pass": true,
+      "actual": {
+       "low": 1.0,
+       "high": 1.0
+      },
+      "threshold": {
+       "low": 0.5,
+       "high": 0.5
+      },
+      "detail": "idle keeps low states low and high states high"
+     },
+     "C4_action_sensitivity": {
+      "pass": false,
+      "actual": 0.0,
+      "threshold": 0.5,
+      "detail": "0/4 cells where ability_morning raises P(high) vs idle"
+     },
+     "C5_burden_monotonicity": {
+      "pass": true,
+      "actual": {
+       "low": {
+        "mean_P(high)_none": 0.0,
+        "mean_P(high)_major": 0.0,
+        "burden_reduces_steps": true
+       },
+       "high": {
+        "mean_P(high)_none": 1.0,
+        "mean_P(high)_major": 1.0,
+        "burden_reduces_steps": true
+       }
+      },
+      "threshold": "major <= none for every recent_steps_mean level",
+      "detail": "major burden does not raise mean P(high) vs no burden"
+     },
+     "C6_factor_variation": {
+      "pass": false,
+      "actual": {
+       "recent_steps_mean": {
+        "n_distinct_values": 2,
+        "dominant_value": "low",
+        "dominant_share": 0.5
+       },
+       "recent_walk_pattern": {
+        "n_distinct_values": 2,
+        "dominant_value": "low",
+        "dominant_share": 0.5
+       },
+       "morning_steps_ratio": {
+        "n_distinct_values": 2,
+        "dominant_value": "balanced",
+        "dominant_share": 0.8654
+       }
+      },
+      "threshold": 0.75,
+      "detail": "no factor collapses onto one value"
+     }
+    },
+    "sensitivity": [
+     {
+      "state": {
+       "burden": "none",
+       "day_of_week": "weekday",
+       "morning_steps_ratio": "balanced",
+       "recent_steps_mean": "low",
+       "recent_walk_pattern": "low"
+      },
+      "dP(high)": 0.0
+     },
+     {
+      "state": {
+       "burden": "major",
+       "day_of_week": "weekday",
+       "morning_steps_ratio": "balanced",
+       "recent_steps_mean": "low",
+       "recent_walk_pattern": "low"
+      },
+      "dP(high)": 0.0
+     },
+     {
+      "state": {
+       "burden": "none",
+       "day_of_week": "weekday",
+       "morning_steps_ratio": "balanced",
+       "recent_steps_mean": "high",
+       "recent_walk_pattern": "low"
+      },
+      "dP(high)": 0.0
+     },
+     {
+      "state": {
+       "burden": "major",
+       "day_of_week": "weekday",
+       "morning_steps_ratio": "balanced",
+       "recent_steps_mean": "high",
+       "recent_walk_pattern": "low"
+      },
+      "dP(high)": 0.0
+     }
+    ],
+    "persistence": {
+     "low": {
+      "n_cells": 2,
+      "mean_p_stay": 1.0
+     },
+     "high": {
+      "n_cells": 2,
+      "mean_p_stay": 1.0
+     }
+    },
+    "monotonicity": {
+     "low": {
+      "mean_P(high)_none": 0.0,
+      "mean_P(high)_major": 0.0,
+      "burden_reduces_steps": true
+     },
+     "high": {
+      "mean_P(high)_none": 1.0,
+      "mean_P(high)_major": 1.0,
+      "burden_reduces_steps": true
+     }
+    },
+    "factor_variation": {
+     "recent_steps_mean": {
+      "n_distinct_values": 2,
+      "dominant_value": "low",
+      "dominant_share": 0.5
+     },
+     "recent_walk_pattern": {
+      "n_distinct_values": 2,
+      "dominant_value": "low",
+      "dominant_share": 0.5
+     },
+     "morning_steps_ratio": {
+      "n_distinct_values": 2,
+      "dominant_value": "balanced",
+      "dominant_share": 0.8654
+     }
+    },
+    "modal_value_counts": {
+     "recent_steps_mean": {
+      "low": 26,
+      "high": 26
+     },
+     "recent_walk_pattern": {
+      "low": 26,
+      "high": 26
+     },
+     "morning_steps_ratio": {
+      "balanced": 45,
+      "morning": 7
+     }
+    },
+    "raw_effect": {
+     "n_records": 156,
+     "n_parsed": 156,
+     "per_state": [
+      {
+       "state": {
+        "recent_steps_mean": "high",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "major"
+       },
+       "idle_mean_steps": 7758.1,
+       "n_intervention_cells": 12,
+       "mean_lift_steps": 148.6
+      },
+      {
+       "state": {
+        "recent_steps_mean": "low",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "major"
+       },
+       "idle_mean_steps": 2932.9,
+       "n_intervention_cells": 12,
+       "mean_lift_steps": 109.2
+      },
+      {
+       "state": {
+        "recent_steps_mean": "high",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "none"
+       },
+       "idle_mean_steps": 7333.3,
+       "n_intervention_cells": 12,
+       "mean_lift_steps": 596.7
+      },
+      {
+       "state": {
+        "recent_steps_mean": "low",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "none"
+       },
+       "idle_mean_steps": 2976.2,
+       "n_intervention_cells": 12,
+       "mean_lift_steps": 70.9
+      }
+     ],
+     "n_lift_cells": 43,
+     "n_state_cells": 48,
+     "mean_lift_steps": 231.3,
+     "min_lift_steps": -313.3,
+     "max_lift_steps": 981.0
+    }
+   },
+   "n_passes": 5,
+   "n_failures": 1,
+   "diagnosis": [
+    "The exemplar-only ceiling FAILED on its main target: high/none overshoot got worse, not better - mean lift +596.7 vs round 7's +380.6, with max cell lift +981.0 (high/none perceived_benefit_afternoon; planning_afternoon +1476.7 at the cell level vs round 7's +811.0). The model read the new high-activity exemplar as a typical strongly-matched day, not a bound: 'never more than about 500' inside an example sentence was treated as example flavor, and several high/none intervention days landed near the exemplar's 8,400 TOTAL regardless of the 7,300-7,500 idle baseline (e.g. planning_afternoon +1,476.7 on a 6,700 idle) - the exemplar anchored totals rather than increments.",
+    "The low states were NOT collapsed this time - the round-8 failure mode is absent: low/none +70.9 and low/major +109.2 vs round 8's +5.6/+72.8. But low/none still slipped below the +100 floor (+70.9 vs round 7's +102.4) with 2 of the 5 negatives in low/none (physical_opportunity_afternoon -78.6, ability_afternoon -38.1), so the exemplar-only branch left the low-state undershoot residual untouched while actively worsening the high-state overshoot it was meant to fix.",
+    "Everything else held: overall mean lift +231.3 stays in the +150-450 band (round 7: +194.1; round 8: +179.1), C3 fully green again (idle P(stay) 1.0/1.0; idle means 7,333/7,758/2,976/2,933), C5 back to PASS (round-8 fail was a binning artifact), 5/6 checks vs round 7's 4/6 and round 8's 3/6 - but the only regression C4 remains structurally blind, and the check count gain comes from C5/C6, not from the lift problem. C6 passed this round only because high/none's stronger lifts pushed 7 cells to 'morning' ratio. 0/156 parse failures, 156/156 LLM success."
+   ],
+   "next_steps": [
+    "Round 10: drop the high-activity exemplar (it anchored totals at ~8,400 and amplified high/none overshoot) and state the ceiling as a rule sentence inside the GRADED MATCH RULE paragraph - the one rule paragraph that demonstrably binds (round 7's floor +60-100 and +150-450 band both held): e.g. append 'the +150-450 band is also a ceiling: no message, however well matched, raises a day by more than about 500 steps' - a rule-level cap with no small fixed absolute numbers, avoiding round 8's collapse mechanism.",
+    "Close the low-state gap separately: low/none is stuck at +70-102 across rounds 7-9; re-anchor it with an explicit low-baseline strong-match MORNING exemplar (round 8's next-steps item) so the 0.8-weight ability/perceived_benefit morning cells stop undershooting.",
+    "If a rule-level ceiling round holds negatives <= 2, max cell lift <= +550, low/none >= +100 and C5 green, ship protocol_fewshot for the real bootstrapping experiment; keep protocol as fallback.",
+    "For C4/C6 signal, extend the pilot subset to moderate recent_steps_mean cells and vary morning_steps_ratio / walk_pattern / day_of_week - both checks remain structurally blind in this subset."
+   ]
   }
  ]
 }

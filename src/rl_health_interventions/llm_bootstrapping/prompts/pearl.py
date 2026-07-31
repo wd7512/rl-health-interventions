@@ -578,11 +578,6 @@ def _protocol_user_extra(state: dict, action: str) -> str:
 # the low/no-burden profile gets an explicit 3-barrier breakdown with
 # re-weighted themes, and afternoon parity is stated in the causal rule,
 # with a low-baseline weak-match exemplar anchoring the floor.
-# Round 8: the lift is re-anchored as a FIXED ABSOLUTE amount (~+300 strong /
-# ~+150 modest / ~+60-100 weak) that does not scale with the person's usual
-# activity level, with a hard ceiling (~+500 max per day) and a high-baseline
-# strong-match exemplar (8,100 -> 8,400), so high states stop overshooting
-# (+800 cells) while low states under-deliver (+20-100 on 0.8-weight themes).
 _PROTOCOL_FEWSHOT_SYSTEM_EXTRA = (
     "PROTOCOL FRAME: You are a participant in a year-long adaptive "
     "walking-intervention study. Each day at one decision point the study's "
@@ -605,12 +600,6 @@ _PROTOCOL_FEWSHOT_SYSTEM_EXTRA = (
     "alike. An afternoon message is just as likely to raise your steps as a "
     "morning message; the time of day only changes which part of the day "
     "the extra steps land in.\n\n"
-    "ABSOLUTE-LIFT RULE: the size of the increase is a FIXED absolute "
-    "number of steps - it does not scale with your usual activity level. A "
-    "strongly matched message adds about 300 steps whether your baseline is "
-    "3,000 steps or 8,000 steps. A modestly matched message adds about 150 "
-    "steps. A weak match adds about 60-100 steps. No message adds more than "
-    "about 500 steps in a day.\n\n"
     "WEIGHTS BY PROFILE (theme: weight for low/no-burden, low/major-burden, "
     "high/no-burden, high/major-burden):\n"
     "- ability: 0.8, 0.8, 0.5, 0.5 (strong when walking feels hard; moderate "
@@ -646,11 +635,11 @@ _PROTOCOL_FEWSHOT_SYSTEM_EXTRA = (
     "message (weight >= 0.7): a low-activity person with a major burden who "
     "usually walks about 3,100 steps took 2,200 morning and 1,200 afternoon "
     "steps (3,400 total) after a well-matched ability message - about 300 "
-    "steps more than their no-message day. For example, a strongly matched "
-    "message on a high-activity day raised the day from 8,100 total steps "
-    "(5,000 morning + 3,100 afternoon) to about 8,400 total (5,200 morning "
-    "+ 3,200 afternoon) - about 300 extra steps, the same absolute increase "
-    "a low-activity person would get. A modestly matched message "
+    "steps more than their no-message day. A strongly matched message looks "
+    "the same for a high-activity person: for example, a day that would have "
+    "been 8,100 total steps (5,000 morning, 3,100 afternoon) becomes about "
+    "8,400 total (5,200 morning, 3,200 afternoon) - again about 300 extra "
+    "steps, and never more than about 500. A modestly matched message "
     "(weight ~0.4) added about 120 steps (e.g. 5,150 + 3,150 on an 8,200 "
     "baseline). A weakly matched message (weight ~0.3) on a low-activity "
     "day added about 60 steps: a person who usually takes 3,060 steps took "

@@ -789,6 +789,110 @@ parse failures stay 0.
 
 ---
 
+### Round 9 — protocol_fewshot (2026-07-31)
+
+**Prompt version:** `protocol_fewshot` r9 in `prompts/pearl.py`.
+
+**Prompt change summary:**
+
+1. **Round 8 fully reverted** (the orchestrator's `git checkout d2b634b`; the
+   staged revert is committed together with this round) — the ABSOLUTE-LIFT
+   RULE paragraph, its ceiling sentence, and round 8's high-baseline
+   exemplar are all gone. The prompt returns to the exact round-7 state.
+2. **One exemplar added** — a single prose sentence appended to the
+   strong-match exemplar paragraph in DAY-LEVEL EXEMPLARS, immediately
+   after the low-activity strong exemplar (3,100 → 3,400, kept verbatim):
+   *"A strongly matched message looks the same for a high-activity person:
+   for example, a day that would have been 8,100 total steps (5,000
+   morning, 3,100 afternoon) becomes about 8,400 total (5,200 morning,
+   3,200 afternoon) — again about 300 extra steps, and never more than
+   about 500."* The ceiling is carried by the example alone, per round 8's
+   lesson that abstract magnitude rules (fixed ~150/60-100 numbers) collapse
+   low states. No rule sentences, no standalone ceiling, no changes to the
+   graded-weight table, round-7 floor wording, barrier profiles, afternoon
+   parity, action overrides, or user_extra.
+
+**Config:** deepseek-v4-flash (openrouter), temp 0.7, 3 samples/cell, 4 states
+(2 burden x 2 recent_steps_mean) x 13 actions = 156 prompts.
+
+**Run:** 156/156 LLM calls succeeded, **0/156 parse failures** — third clean
+run in a row. Table: 52/52 cells, every cell at 3 samples. Raw results saved
+to `tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260731_191508.jsonl`.
+Round-8 table archived as
+`tables/pearl_12action_pilot/archive/pearl_pilot_protocol_fewshot_r8.json`.
+
+| Check | Result | Detail |
+|-------|--------|--------|
+| C1 action coverage | PASS | 13/13 |
+| C2 cell coverage | PASS | 52/52 |
+| C3 state persistence | PASS | idle P(stay): low=1.0, high=1.0 (raw idle means: high 7,333/7,758, low 2,976/2,933 — all inside their stated bands) |
+| C4 action sensitivity | FAIL | 0/4 cells (structurally blind: high idle P(high)=1.0 leaves no headroom; low cannot cross 7,000) |
+| C5 burden monotonicity | PASS | burden_reduces_steps=true at both levels (round 8's fail was a binning artifact) |
+| C6 factor variation | PASS | morning_steps_ratio = balanced as modal value in 45/52 cells (0.8654 — this round's stronger high/none lifts pushed 7 cells to "morning") |
+
+**Raw effect (analyzer):** overall mean lift **+231.3** steps/day (round 7:
++194.1; round 8: +179.1 — in the +150-450 band), min **-313.3** (round 7:
+-140.0), max **+981.0** (round 7: +811.0 — worse), **43/48** cells positive
+(round 7: 47/48), **5 negative cells** (round 7: 1; target ≤ 3): high/major
+ability_morning -313.3, high/major perceived_benefit_afternoon -232.9,
+high/major physical_opportunity_morning -74.3, low/none
+physical_opportunity_afternoon -78.6, low/none ability_afternoon -38.1.
+Per state — high/major: idle 7,758, lift **+148.6** (round 7: +164.6 — in
+band); high/none: idle 7,333, lift **+596.7** (round 7: +380.6 — target
+~+300, overshoot amplified); low/major: idle 2,933, lift **+109.2** (round
+7: +128.8); low/none: idle 2,976, lift **+70.9** (round 7: +102.4 — below
+the +100 floor, but NOT collapsed the way round 8 collapsed it to +5.6).
+
+**Verdict table:**
+
+| Metric | Target | Round 7 | Round 8 | Round 9 | Verdict |
+|--------|--------|---------|---------|---------|---------|
+| Checks | — | 4/6 | 3/6 | 5/6 | better on paper (C5/C6), not on lift |
+| Max cell lift | ≤ ~+550 | +811.0 | +775.4 | **+981.0** | FAIL — worse |
+| high/none mean | → +300 | +380.6 | +212.4 | **+596.7** | FAIL — amplified |
+| low/none mean | ≥ +100 | +102.4 | +5.6 | +70.9 | FAIL (slipped, not collapsed) |
+| Overall mean | +150-450 | +194.1 | +179.1 | +231.3 | PASS |
+| Negative cells | ≤ 3 | 1 | 11 | 5 | FAIL |
+| C3 idle P(stay) | 1.0/1.0 | 1.0/1.0 | 1.0/1.0 | 1.0/1.0 | PASS |
+| Parse failures | ≤ 2 | 0 | 0 | 0 | PASS |
+
+**Diagnosis:** The exemplar-only ceiling failed on its main target — the
+high-activity exemplar was read as a *typical* strongly-matched day, not a
+bound. Several high/none intervention days landed near the exemplar's 8,400
+*total* regardless of the 7,300-7,500 idle baseline (planning_afternoon
++1,476.7 on a 6,700 idle, perceived_benefit_afternoon +1,400), so the
+exemplar anchored totals rather than increments and high/none mean lift rose
+to +596.7 with max cell +981.0 — worse than round 7. "Never more than about
+500" inside an example sentence was treated as example flavor. The one
+bright spot: the low states did NOT collapse this time (low/none +70.9 vs
+round 8's +5.6), so the round-8 failure mode is confirmed as specific to the
+fixed-absolute *rule*, not to mentioning high-activity magnitudes at all.
+But low/none still slipped below the +100 floor (2 of the 5 negatives are
+low/none) and high/major is the only state fully in band — the two
+residuals from round 7 are both still open, one of them wider.
+
+**Next steps:**
+1. Round 10: drop the high-activity exemplar (it anchored totals at ~8,400
+   and amplified high/none overshoot) and state the ceiling as a rule
+   sentence inside the GRADED MATCH RULE paragraph — the one rule paragraph
+   that demonstrably binds (round 7's floor +60-100 and +150-450 band both
+   held): e.g. *"the +150-450 band is also a ceiling: no message, however
+   well matched, raises a day by more than about 500 steps."* Rule-level
+   cap, no small fixed absolute numbers — round 8's collapse mechanism is
+   avoided.
+2. Close the low-state gap separately: low/none is stuck at +70-102 across
+   rounds 7-9; add an explicit low-baseline strong-match *morning* exemplar
+   so the 0.8-weight ability/perceived_benefit morning cells stop
+   undershooting.
+3. If a rule-level ceiling round holds negatives ≤ 2, max cell lift ≤ +550,
+   low/none ≥ +100 and C5 green, ship `protocol_fewshot` for the real
+   bootstrapping experiment; keep `protocol` as fallback.
+4. For C4/C6 signal, extend the pilot subset to moderate
+   recent_steps_mean cells and vary morning_steps_ratio / walk_pattern /
+   day_of_week.
+
+---
+
 ## Ladder summary
 
 | Rung | Variant | n_passes | Mean lift | n positive cells | Parse failures | Verdict |
