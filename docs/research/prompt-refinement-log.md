@@ -512,6 +512,151 @@ without losing a cell.
 
 ---
 
+### Round 7 — protocol_fewshot (2026-07-31)
+
+**Prompt version:** `protocol_fewshot` r7 in `prompts/pearl.py`. Four edits,
+all inside the fewshot constants; the protocol variant and every other
+variant are untouched:
+
+1. **Binding never-negative floor** — the weak tier goes from "weak but
+   still slightly positive (~+40)" to "small but clearly positive (~+60 to
+   +100)" and the modest tier from "around +120" to "~+120 to +180". The
+   old "never zero or negative" sentence is replaced by the binding
+   sentence: *"A message NEVER reduces your steps, no matter how poorly it
+   matches. Even the weakest match raises your day's total by a small
+   amount. This holds for morning AND afternoon messages alike."*
+2. **Low/no-burden profile enrichment** — a "LOW NO-BURDEN PROFILE"
+   paragraph spells out three explicit barriers: (a) effort/technique →
+   ability is a strong match (weight 0.8), (b) motivation/energy dips →
+   perceived_benefit is a strong match (0.8, "works through motivation,
+   not logistics"), (c) lack of routine → planning is a good match (0.7).
+   The WEIGHTS BY PROFILE table's low/no-burden column is re-weighted
+   accordingly (ability 0.9→0.8, perceived_benefit 0.7→0.8, planning
+   0.5→0.7, social_opportunity 0.4→0.3; prioritization 0.4 and
+   physical_opportunity 0.5 unchanged), and the fewshot day-level
+   user_extra reads the same table via `_PROTOCOL_FEWSHOT_PROFILE_WEIGHTS`
+   so the per-day line never contradicts the system table. The other three
+   profiles keep round-5 weights.
+3. **Afternoon parity** — one sentence in the causal-rule block: *"An
+   afternoon message is just as likely to raise your steps as a morning
+   message; the time of day only changes which part of the day the extra
+   steps land in."* Action overrides unchanged (already symmetric).
+4. **Low-baseline weak-match exemplar** — the old "weight < 0.3 → added
+   only about 40" clause is replaced by: *"A weakly matched message (weight
+   ~0.3) on a low-activity day added about 60 steps: a person who usually
+   takes 3,060 steps took 1,700 morning and 1,420 afternoon (3,120
+   total)."* Other exemplars kept verbatim. Prose only — no JSON lines.
+
+**Config:** deepseek-v4-flash (openrouter), temp 0.7, 3 samples/cell, 4 states
+(2 burden x 2 recent_steps_mean) x 13 actions = 156 prompts.
+
+**Run:** 156/156 LLM calls succeeded, **0/156 parse failures** — the first
+clean run since round 5 (round 6: 3 prose-preamble failures). Table: 52/52
+cells, every cell at 3 samples. Raw results saved to
+`tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260731_185819.jsonl`.
+Round-6 table archived as
+`tables/pearl_12action_pilot/archive/pearl_pilot_protocol_fewshot_r6.json`.
+
+| Check | Result | Detail |
+|-------|--------|--------|
+| C1 action coverage | PASS | 13/13 |
+| C2 cell coverage | PASS | 52/52 |
+| C3 state persistence | PASS | idle P(stay): low=1.0, high=1.0 (raw idle means: high 7,710/7,545, low 2,930/2,924 — every idle mean inside its stated band, burden gap 24/165 steps) |
+| C4 action sensitivity | FAIL | 0/4 cells (structurally blind: high idle P(high)=1.0 leaves no headroom; low cannot cross 7,000) |
+| C5 burden monotonicity | PASS | high: 1.0 -> 1.0; low: 0.0 -> 0.0 |
+| C6 factor variation | FAIL | morning_steps_ratio = balanced as modal value in 44/52 cells (8 cells now "morning"; structural in this subset) |
+
+**Raw effect (analyzer):** overall mean lift **+194.1** steps/day (round 6:
++212.4 — still in the +150-450 band), min **-140.0** (round 6: -119.5),
+max **+811.0** (round 6: +673.8), **47/48** cells positive (round 6:
+43/48). Per state — high/none: idle 7,545, lift **+380.6** (round 6:
++325.6); high/major: idle 7,710, lift **+164.6** (round 6: +295.9);
+low/none: idle 2,930, lift **+102.4** (round 6: +61.7); low/major: idle
+2,924, lift **+128.8** (round 6: +166.3). All four states positive.
+
+**Cell-level highlights:**
+- **Negatives: 1 (vs 5).** The five round-6 negative cells are all
+  positive now — low/none physical_opportunity_afternoon +52.9 (was
+  -97.1), low/none prioritization_afternoon +136.7 (was -59.5), low/none
+  social_opportunity_morning +20.0 (was -7.1), low/major
+  social_opportunity_afternoon +2.4 (was -15.7), high/major
+  social_opportunity_afternoon +185.7 (was -119.5). The lone survivor is
+  **high/major ability_afternoon -140.0** — not a weak-weight cell (ability
+  is 0.5 for high/major), and it sits on a pattern where the same state's
+  afternoon cells collapsed (planning_afternoon +3.6,
+  perceived_benefit_afternoon +71.4) while mornings overshot
+  (perceived_benefit_morning +600.0, prioritization_morning +504.8).
+- **low/none: +102.4 (vs +61.7), all 12 cells positive.** The enriched
+  profile fixed the flatness directionally but undershot the +150 target:
+  the two 0.8-weight themes' *mornings* under-deliver (ability +93.8,
+  perceived_benefit +22.9) while their afternoons deliver (+151.0/+154.8).
+  Planning became the state's strongest theme (morning +191.4, afternoon
+  +196.7) — exactly what the habit-building barrier predicts.
+- **Afternoon vs morning:** low states are now afternoon-heavy (low/none
+  afternoon +125.4 vs morning +79.4; low/major +136.3 vs +121.3) — parity
+  held and then some. In high states the parity sentence redistributed
+  lift mass instead of equalizing: high/none afternoons +469.5 vs +291.7
+  mornings, with two +800 cells (ability_afternoon +800.0,
+  perceived_benefit_afternoon +811.0 — max, overshooting the +450 top of
+  the paper effect), while high/major afternoons collapsed to +65.5 vs
+  +263.7.
+
+**Summary:** 4/6 checks pass (round 6: 4/6). The binding floor did its job:
+1 negative cell (vs 5), 47/48 positive, all five round-6 negatives turned
+positive — the floor's targets exactly. C3 stays fully green (idle P(stay)
+1.0/1.0, every idle mean inside its band) and mean lift +194.1 stays in the
++150-450 band; 0 parse failures (round 6: 3). The new variance is
+time-of-day: afternoons now carry more lift than mornings in low states
+(parity, good) but also in high/none (two +800 cells — overshoot) while
+high/major afternoons sag (one -140 cell). C4/C6 remain structurally blind
+in this subset.
+
+**Diagnosis:**
+- The binding floor eliminated the weak-weight negatives outright: all five
+  round-6 negative cells are positive, including high/major
+  social_opportunity_afternoon (worst cell in round 6, -119.5 → +185.7).
+  The one surviving negative (high/major ability_afternoon -140.0, weight
+  0.5) is not on the weak tier, so the floor bound as written; it is
+  residue of a high/major afternoon pattern where planning (+3.6) and
+  perceived_benefit (+71.4) afternoons also hug zero while the same
+  themes' mornings overshoot (+204.8/+600.0) — the model shifted its
+  major-burden time-of-day discount onto afternoons.
+- The enriched low/no-burden profile lifted the state from +61.7 to +102.4
+  and made all 12 cells positive, but undershot the +150 target: the two
+  0.8-weight themes deliver +93.8/+22.9 in the morning, so the model reads
+  the profile as uniformly moderate rather than strongly matched on the
+  three named barriers. The clearest wins are planning (now the strongest
+  theme, as the routine-building barrier predicts) and the afternoon side
+  (afternoon mean now above morning, was the reverse in round 6).
+- Afternoon parity held in low states without inflating the mean out of
+  band (+194.1 overall), but it flipped the high-state time bias: high/none
+  afternoons now carry two +800 cells (vs the +150-450 paper effect) and
+  high/major afternoons carry the one negative — the sentence bound the
+  "afternoon = pointless" reading but over-corrected in the unburdened
+  high state and under-corrected in the burdened one.
+- 0/156 parse failures (round 6: 3) — the prose-preamble failure class did
+  not recur; C1/C2 pass with every cell at 3 samples. C4/C6 unchanged and
+  structural (high idle P(high)=1.0 leaves no headroom; 44/52 balanced).
+
+**Next steps:**
+1. One more prompt-only refinement: pin high/major afternoons (one -140,
+   two near-zero) — e.g. note in the major-burden fatigue clause that an
+   afternoon delivery does not flatten a matched message — and pull
+   high/none afternoons back under +450 with a high-state afternoon
+   exemplar.
+2. Bind the low/none strong-match mornings: ability/perceived_benefit
+   mornings (+93.8/+22.9) under-deliver vs the ~+300 anchor; a
+   low-person morning strong-match exemplar would close the gap toward the
+   +150 low/none target.
+3. If the next round holds negatives ≤ 1 and mean lift in band, ship
+   `protocol_fewshot` for the real bootstrapping experiment; keep
+   `protocol` as fallback.
+4. For C4/C6 signal, extend the pilot subset to moderate
+   recent_steps_mean cells and vary morning_steps_ratio / walk_pattern /
+   day_of_week.
+
+---
+
 ## Ladder summary
 
 | Rung | Variant | n_passes | Mean lift | n positive cells | Parse failures | Verdict |

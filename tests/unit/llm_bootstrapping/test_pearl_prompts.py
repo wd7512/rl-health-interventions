@@ -676,11 +676,11 @@ class TestProtocolFewshotVariant:
         prompt = _render_system_prompt("base", prompt_variant="protocol_fewshot")
         assert "GRADED MATCH RULE" in prompt
         assert "around +300" in prompt
-        assert "around +120" in prompt
-        assert "around +40" in prompt
-        assert "zero or negative" in prompt
-        assert "- ability: 0.9, 0.8, 0.5, 0.5" in prompt
-        assert "- planning: 0.5, 0.8, 0.4, 0.9" in prompt
+        assert "~+120 to +180" in prompt
+        assert "~+60 to +100" in prompt
+        assert "NEVER reduces your steps" in prompt
+        assert "- ability: 0.8, 0.8, 0.5, 0.5" in prompt
+        assert "- planning: 0.7, 0.8, 0.4, 0.9" in prompt
 
     def test_system_extra_has_prose_exemplars(self) -> None:
         prompt = _render_system_prompt("base", prompt_variant="protocol_fewshot")
@@ -691,7 +691,8 @@ class TestProtocolFewshotVariant:
         assert "strongly matched message" in prompt
         assert "about 300 steps more" in prompt
         assert "about 120 steps" in prompt
-        assert "added only about 40" in prompt
+        assert "about 60 steps" in prompt
+        assert "1,700 morning and 1,420 afternoon" in prompt
 
     def test_exemplars_are_prose_not_json_lines(self) -> None:
         prompt = _render_system_prompt("base", prompt_variant="protocol_fewshot")

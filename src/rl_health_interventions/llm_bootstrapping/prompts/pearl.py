@@ -574,6 +574,10 @@ def _protocol_user_extra(state: dict, action: str) -> str:
 # Exemplars are prose ONLY: JSON-shaped example days would be ingested by
 # the response parser as history rows, so the model must never see example
 # JSON in that shape.
+# Round 7: the never-negative floor is made binding (~+60-100 weak tier),
+# the low/no-burden profile gets an explicit 3-barrier breakdown with
+# re-weighted themes, and afternoon parity is stated in the causal rule,
+# with a low-baseline weak-match exemplar anchoring the floor.
 _PROTOCOL_FEWSHOT_SYSTEM_EXTRA = (
     "PROTOCOL FRAME: You are a participant in a year-long adaptive "
     "walking-intervention study. Each day at one decision point the study's "
@@ -589,21 +593,36 @@ _PROTOCOL_FEWSHOT_SYSTEM_EXTRA = (
     "GRADED MATCH RULE: each nudge theme has a match weight between 0 and 1 "
     "for this person's day. Weight 0.7 or higher -> strong response, in the "
     "middle of the +150-450 step band (around +300). Weight 0.3 to 0.7 -> "
-    "modest response (around +120). Weight below 0.3 -> weak but still "
-    "slightly positive (around +40). NO intervention-day response is ever "
-    "zero or negative: even a poorly matched message beats nothing.\n\n"
+    "modest response (~+120 to +180). Weight below 0.3 -> small but clearly "
+    "positive (~+60 to +100). A message NEVER reduces your steps, no matter "
+    "how poorly it matches. Even the weakest match raises your day's total "
+    "by a small amount. This holds for morning AND afternoon messages "
+    "alike. An afternoon message is just as likely to raise your steps as a "
+    "morning message; the time of day only changes which part of the day "
+    "the extra steps land in.\n\n"
     "WEIGHTS BY PROFILE (theme: weight for low/no-burden, low/major-burden, "
     "high/no-burden, high/major-burden):\n"
-    "- ability: 0.9, 0.8, 0.5, 0.5 (strong when walking feels hard; moderate "
+    "- ability: 0.8, 0.8, 0.5, 0.5 (strong when walking feels hard; moderate "
     "for active people)\n"
-    "- perceived_benefit: 0.7, 0.6, 0.7, 0.6 (moderate-to-strong everywhere - "
+    "- perceived_benefit: 0.8, 0.6, 0.7, 0.6 (moderate-to-strong everywhere - "
     "it works through motivation, not logistics)\n"
-    "- planning: 0.5, 0.8, 0.4, 0.9 (strong when strain disrupts the "
-    "routine)\n"
+    "- planning: 0.7, 0.8, 0.4, 0.9 (strong when strain disrupts the "
+    "routine or when no walking routine exists yet)\n"
     "- prioritization: 0.4, 0.7, 0.4, 0.8 (strong when time is tight)\n"
-    "- social_opportunity: 0.4, 0.4, 0.5, 0.4 (low-moderate everywhere)\n"
+    "- social_opportunity: 0.3, 0.4, 0.5, 0.4 (low-moderate everywhere)\n"
     "- physical_opportunity: 0.5, 0.8, 0.3, 0.8 (strong when the burden is "
     "major)\n\n"
+    "LOW NO-BURDEN PROFILE: a struggling walker with no extra load has "
+    "three real barriers, each relieved by a different theme. (a) Effort "
+    "and technique: walking feels hard and they doubt they can do it, so "
+    "ability messages are a strong match (weight 0.8). (b) Motivation and "
+    "energy dips: they run out of steam through the day, so "
+    "perceived-benefit messages are a strong match (weight 0.8 - they work "
+    "through motivation, not logistics). (c) Lack of routine: there is no "
+    "daily walking habit to fall back on, so planning messages are a good "
+    "match (weight 0.7) for building one. Prioritization (0.4) and "
+    "physical_opportunity (0.5) are modest matches; social_opportunity "
+    "(0.3) is the weakest.\n\n"
     "IDLE PINNED INDEPENDENT OF BURDEN: on days with no message your steps "
     "stay at your current level regardless of your burden level: between "
     "7,500 and 8,500 if you are a high-activity person, between 2,800 and "
@@ -618,13 +637,53 @@ _PROTOCOL_FEWSHOT_SYSTEM_EXTRA = (
     "steps (3,400 total) after a well-matched ability message - about 300 "
     "steps more than their no-message day. A modestly matched message "
     "(weight ~0.4) added about 120 steps (e.g. 5,150 + 3,150 on an 8,200 "
-    "baseline); a weakly matched one (weight < 0.3) added only about 40."
+    "baseline). A weakly matched message (weight ~0.3) on a low-activity "
+    "day added about 60 steps: a person who usually takes 3,060 steps took "
+    "1,700 morning and 1,420 afternoon (3,120 total)."
 )
 
 _PROTOCOL_FEWSHOT_ACTIONS_OVERRIDES = dict(_PROTOCOL_ACTIONS_OVERRIDES)
 
-# Round 5's profile + weight line is kept unchanged for fewshot days.
-_PROTOCOL_FEWSHOT_USER_EXTRA = _protocol_user_extra
+# Round 5's profile + weight line is kept, but reading the fewshot weight
+# table: round 7 re-weights the low/no-burden profile (ability 0.8,
+# perceived_benefit 0.8, planning 0.7, prioritization 0.4,
+# physical_opportunity 0.5, social_opportunity 0.3) so the day-level line
+# stays consistent with the WEIGHTS BY PROFILE table above. The other
+# three profiles keep the round-5 weights.
+_PROTOCOL_FEWSHOT_PROFILE_WEIGHTS = dict(_PROTOCOL_PROFILE_WEIGHTS)
+_PROTOCOL_FEWSHOT_PROFILE_WEIGHTS[("low", "none")] = {
+    "ability": 0.8,
+    "perceived_benefit": 0.8,
+    "planning": 0.7,
+    "prioritization": 0.4,
+    "social_opportunity": 0.3,
+    "physical_opportunity": 0.5,
+}
+
+
+def _protocol_fewshot_user_extra(state: dict, action: str) -> str:
+    """Per-day profile + theme weight line for the fewshot variant."""
+    if action == "idle":
+        return ""
+    theme = action.rsplit("_", 1)[0]
+    key = (state["recent_steps_mean"], state["burden"])
+    weight = _PROTOCOL_FEWSHOT_PROFILE_WEIGHTS.get(key, {}).get(theme)
+    if weight is None:
+        return ""
+    if weight >= _STRONG_MATCH_WEIGHT:
+        strength = "a strong match"
+    elif weight >= _MODEST_MATCH_WEIGHT:
+        strength = "a modest match"
+    else:
+        strength = "a weak match"
+    return (
+        f"Your profile today: {_PROTOCOL_PROFILE_NAMES[key]}. "
+        f"{_PROTOCOL_THEME_DISPLAY[theme]} messages are {strength} (weight "
+        f"{weight}) for you today."
+    )
+
+
+_PROTOCOL_FEWSHOT_USER_EXTRA = _protocol_fewshot_user_extra
 
 
 PROMPT_VARIANT_CONFIGS: dict[str, PromptVariant] = {
