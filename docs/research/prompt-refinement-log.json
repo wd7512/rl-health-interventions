@@ -1934,7 +1934,7 @@
    "round": 9,
    "date": "2026-07-31",
    "prompt_version": "protocol_fewshot r9 (revert r8; exemplar-bound ceiling)",
-   "prompt_changes_since_previous": "Round 8 fully reverted (git checkout d2b634b \u2014 the ABSOLUTE-LIFT RULE paragraph, its ceiling sentence, and the high-baseline exemplar all removed; the staged revert is committed together with this round). Exactly one new edit to _PROTOCOL_FEWSHOT_SYSTEM_EXTRA: one prose sentence appended to the strong-match exemplar paragraph in DAY-LEVEL EXEMPLARS, right after the low-activity strong exemplar (3,100 -> 3,400): 'A strongly matched message looks the same for a high-activity person: for example, a day that would have been 8,100 total steps (5,000 morning, 3,100 afternoon) becomes about 8,400 total (5,200 morning, 3,200 afternoon) - again about 300 extra steps, and never more than about 500.' No rule sentences, no standalone ceiling, graded-weight table / floor wording / barrier profiles / afternoon-parity / action overrides / user_extra untouched. The r8 lesson (small fixed absolute numbers collapse low states) is respected: magnitudes are anchored by example only.",
+   "prompt_changes_since_previous": "Round 8 fully reverted (git checkout d2b634b — the ABSOLUTE-LIFT RULE paragraph, its ceiling sentence, and the high-baseline exemplar all removed; the staged revert is committed together with this round). Exactly one new edit to _PROTOCOL_FEWSHOT_SYSTEM_EXTRA: one prose sentence appended to the strong-match exemplar paragraph in DAY-LEVEL EXEMPLARS, right after the low-activity strong exemplar (3,100 -> 3,400): 'A strongly matched message looks the same for a high-activity person: for example, a day that would have been 8,100 total steps (5,000 morning, 3,100 afternoon) becomes about 8,400 total (5,200 morning, 3,200 afternoon) - again about 300 extra steps, and never more than about 500.' No rule sentences, no standalone ceiling, graded-weight table / floor wording / barrier profiles / afternoon-parity / action overrides / user_extra untouched. The r8 lesson (small fixed absolute numbers collapse low states) is respected: magnitudes are anchored by example only.",
    "config": {
     "model": "openrouter/deepseek/deepseek-v4-flash",
     "provider": "openrouter",
@@ -2203,6 +2203,281 @@
     "Close the low-state gap separately: low/none is stuck at +70-102 across rounds 7-9; re-anchor it with an explicit low-baseline strong-match MORNING exemplar (round 8's next-steps item) so the 0.8-weight ability/perceived_benefit morning cells stop undershooting.",
     "If a rule-level ceiling round holds negatives <= 2, max cell lift <= +550, low/none >= +100 and C5 green, ship protocol_fewshot for the real bootstrapping experiment; keep protocol as fallback.",
     "For C4/C6 signal, extend the pilot subset to moderate recent_steps_mean cells and vary morning_steps_ratio / walk_pattern / day_of_week - both checks remain structurally blind in this subset."
+   ]
+  },
+  {
+   "round": 10,
+   "date": "2026-07-31",
+   "prompt_version": "protocol_fewshot r10 (drop high exemplar; ceiling inside graded rule; low/none morning exemplar)",
+   "prompt_changes_since_previous": "Three small edits to _PROTOCOL_FEWSHOT_SYSTEM_EXTRA (round 9's prompt was NOT reverted as a whole; only the round-9 exemplar sentence was removed): (1) the round-9 high-activity strong-match exemplar sentence ('A strongly matched message looks the same for a high-activity person: ... never more than about 500') is deleted, restoring the round-7 exemplar text verbatim; (2) one ceiling sentence appended at the end of the GRADED MATCH RULE paragraph - 'The +150-450 step band is also a ceiling: no message raises a day's total by more than about 500 steps, no matter how well it matches.' - a rule-level cap in the one paragraph that demonstrably binds (round 7's floor +60-100 and band +150-450 both held), with no small fixed absolute numbers so round 8's collapse mechanism is avoided; (3) one new prose low-baseline strong-match MORNING exemplar immediately after the existing strong-match exemplar (3,100 -> 3,400): 'The same applies for a low-activity person with no extra burden: a well-matched ability message in the morning raised their day from about 3,100 total (1,800 morning, 1,300 afternoon) to about 3,400 (2,200 morning, 1,200 afternoon).' Prose only, never JSON lines. Untouched: graded weight table, LOW NO-BURDEN PROFILE paragraph, afternoon parity sentence, weak-tier floor wording, action overrides, user_extra, idle exemplar, modest/weak exemplars.",
+   "config": {
+    "model": "openrouter/deepseek/deepseek-v4-flash",
+    "provider": "openrouter",
+    "temperature": 0.7,
+    "max_workers": 50,
+    "samples_per_cell": 3,
+    "n_states": 4,
+    "n_actions": 13,
+    "n_prompts": 156,
+    "state_subset": "2 burden levels (none, major) x 2 recent_steps_mean (low, high); walk_pattern=low, morning_ratio=balanced, day=weekday fixed",
+    "prompt_variant": "protocol_fewshot"
+   },
+   "run": {
+    "exit_status": 0,
+    "llm_success_rate": "156/156",
+    "n_parse_failures": 0,
+    "table_path": "tables/pearl_12action_pilot/pearl_pilot_protocol_fewshot.json",
+    "raw_results_path": "tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260731_192125.jsonl",
+    "notes": "All 156 LLM calls succeeded and all 156 responses parsed - 0 parse failures, fourth clean run in a row. Table 52/52 cells. Round-9 table archived as tables/pearl_12action_pilot/archive/pearl_pilot_protocol_fewshot_r9.json before the run. 42/48 intervention cells positive (round 9: 43/48); 6 negative cells: high/major social_opportunity_morning -614.3 (the min), low/major prioritization_afternoon -69.0, low/major perceived_benefit_morning -54.8, low/major ability_afternoon -16.0, low/major social_opportunity_afternoon -15.7, low/major perceived_benefit_afternoon -14.3. C6 flipped to FAIL this round (morning_steps_ratio dominant share 0.9423 vs round 9's 0.8654 pass) - the ceiling capped high/none cells so fewer crossed into 'morning' ratio."
+   },
+   "metrics": {
+    "structure": {
+     "n_states": 4,
+     "n_actions": 13,
+     "n_actions_present": 13,
+     "n_expected_cells": 52,
+     "n_cells": 52,
+     "action_coverage_frac": 1.0,
+     "cell_coverage_frac": 1.0
+    },
+    "checks": {
+     "C1_action_coverage": {
+      "pass": true,
+      "actual": 1.0,
+      "threshold": 1.0,
+      "detail": "13/13 actions present"
+     },
+     "C2_cell_coverage": {
+      "pass": true,
+      "actual": 1.0,
+      "threshold": 1.0,
+      "detail": "52/52 cells filled"
+     },
+     "C3_state_persistence": {
+      "pass": true,
+      "actual": {
+       "low": 1.0,
+       "high": 1.0
+      },
+      "threshold": {
+       "low": 0.5,
+       "high": 0.5
+      },
+      "detail": "idle keeps low states low and high states high"
+     },
+     "C4_action_sensitivity": {
+      "pass": false,
+      "actual": 0.0,
+      "threshold": 0.5,
+      "detail": "0/4 cells where ability_morning raises P(high) vs idle"
+     },
+     "C5_burden_monotonicity": {
+      "pass": true,
+      "actual": {
+       "low": {
+        "mean_P(high)_none": 0.0,
+        "mean_P(high)_major": 0.0,
+        "burden_reduces_steps": true
+       },
+       "high": {
+        "mean_P(high)_none": 1.0,
+        "mean_P(high)_major": 0.9744,
+        "burden_reduces_steps": true
+       }
+      },
+      "threshold": "major <= none for every recent_steps_mean level",
+      "detail": "major burden does not raise mean P(high) vs no burden"
+     },
+     "C6_factor_variation": {
+      "pass": false,
+      "actual": {
+       "recent_steps_mean": {
+        "n_distinct_values": 2,
+        "dominant_value": "low",
+        "dominant_share": 0.5
+       },
+       "recent_walk_pattern": {
+        "n_distinct_values": 2,
+        "dominant_value": "low",
+        "dominant_share": 0.5
+       },
+       "morning_steps_ratio": {
+        "n_distinct_values": 2,
+        "dominant_value": "balanced",
+        "dominant_share": 0.9423
+       }
+      },
+      "threshold": 0.75,
+      "detail": "no factor collapses onto one value"
+     }
+    },
+    "sensitivity": [
+     {
+      "state": {
+       "burden": "none",
+       "day_of_week": "weekday",
+       "morning_steps_ratio": "balanced",
+       "recent_steps_mean": "low",
+       "recent_walk_pattern": "low"
+      },
+      "dP(high)": 0.0
+     },
+     {
+      "state": {
+       "burden": "major",
+       "day_of_week": "weekday",
+       "morning_steps_ratio": "balanced",
+       "recent_steps_mean": "low",
+       "recent_walk_pattern": "low"
+      },
+      "dP(high)": 0.0
+     },
+     {
+      "state": {
+       "burden": "none",
+       "day_of_week": "weekday",
+       "morning_steps_ratio": "balanced",
+       "recent_steps_mean": "high",
+       "recent_walk_pattern": "low"
+      },
+      "dP(high)": 0.0
+     },
+     {
+      "state": {
+       "burden": "major",
+       "day_of_week": "weekday",
+       "morning_steps_ratio": "balanced",
+       "recent_steps_mean": "high",
+       "recent_walk_pattern": "low"
+      },
+      "dP(high)": 0.0
+     }
+    ],
+    "persistence": {
+     "low": {
+      "n_cells": 2,
+      "mean_p_stay": 1.0
+     },
+     "high": {
+      "n_cells": 2,
+      "mean_p_stay": 1.0
+     }
+    },
+    "monotonicity": {
+     "low": {
+      "mean_P(high)_none": 0.0,
+      "mean_P(high)_major": 0.0,
+      "burden_reduces_steps": true
+     },
+     "high": {
+      "mean_P(high)_none": 1.0,
+      "mean_P(high)_major": 0.9744,
+      "burden_reduces_steps": true
+     }
+    },
+    "factor_variation": {
+     "recent_steps_mean": {
+      "n_distinct_values": 2,
+      "dominant_value": "low",
+      "dominant_share": 0.5
+     },
+     "recent_walk_pattern": {
+      "n_distinct_values": 2,
+      "dominant_value": "low",
+      "dominant_share": 0.5
+     },
+     "morning_steps_ratio": {
+      "n_distinct_values": 2,
+      "dominant_value": "balanced",
+      "dominant_share": 0.9423
+     }
+    },
+    "modal_value_counts": {
+     "recent_steps_mean": {
+      "low": 26,
+      "high": 26
+     },
+     "recent_walk_pattern": {
+      "low": 26,
+      "high": 26
+     },
+     "morning_steps_ratio": {
+      "balanced": 49,
+      "morning": 3
+     }
+    },
+    "raw_effect": {
+     "n_records": 156,
+     "n_parsed": 156,
+     "per_state": [
+      {
+       "state": {
+        "recent_steps_mean": "high",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "major"
+       },
+       "idle_mean_steps": 7435.7,
+       "n_intervention_cells": 12,
+       "mean_lift_steps": 349.9
+      },
+      {
+       "state": {
+        "recent_steps_mean": "low",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "major"
+       },
+       "idle_mean_steps": 3004.8,
+       "n_intervention_cells": 12,
+       "mean_lift_steps": 61.8
+      },
+      {
+       "state": {
+        "recent_steps_mean": "high",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "none"
+       },
+       "idle_mean_steps": 7607.4,
+       "n_intervention_cells": 12,
+       "mean_lift_steps": 271.2
+      },
+      {
+       "state": {
+        "recent_steps_mean": "low",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "none"
+       },
+       "idle_mean_steps": 2883.3,
+       "n_intervention_cells": 12,
+       "mean_lift_steps": 205.6
+      }
+     ],
+     "n_lift_cells": 42,
+     "n_state_cells": 48,
+     "mean_lift_steps": 222.1,
+     "min_lift_steps": -614.3,
+     "max_lift_steps": 674.8
+    }
+   },
+   "n_passes": 4,
+   "n_failures": 2,
+   "diagnosis": [
+    "The ceiling-in-rule worked exactly where the exemplar-only ceiling failed: high/none mean lift fell from +596.7 (round 9) to +271.2 - inside the +250-350 target - and max cell lift dropped from +981.0 to +674.8. Removing the high-activity exemplar removed the total-anchoring (no more planning_afternoon-style +1,477 days); the rule-level cap bound the remaining overshoot: every high/none cell is now under +500 (max high/none cell +449.8). The low/none morning exemplar also delivered: low/none rose from +70.9 to +205.6, above the +150 floor, with all 12 low/none cells positive and mornings specifically fixed (ability_morning +166.7 vs round 9's -38.1 in low/major analog cells; low/none ability/perceived_benefit/planning mornings +167 to +212).",
+    "But the cap did NOT bind on high/major: its mean lift rose from +148.6 to +349.9, with six cells at +520-675 (prioritization_afternoon +674.8, planning_afternoon +624.8, ability_afternoon +592.9) - well above the 'about 500' ceiling. The +150-450/500 language is being read against the high/none profile's strong themes (ability/perceived_benefit at 0.5-0.7 weights) while high/major's 0.9-weight planning / 0.8-weight prioritization cells overshoot anyway; ceiling rule sentences appear to bind the band's tail, not each cell individually. high/major social_opportunity_morning is also a new -614.3 wild outlier.",
+    "The low states diverged: low/none is now the best low state (+205.6, 0 negatives) but low/major fell from +109.2 to +61.8, under the +100 floor, with 5 of the 6 negatives (perceived_benefit and ability afternoons, prioritization_afternoon, social_opportunity_afternoon, ability_afternoon). The new exemplar raised the low/none profile but the low/major profile's 0.6-weight perceived_benefit / 0.7-weight prioritization afternoon cells still under-deliver or go negative. Overall mean lift +222.1 stays in band (round 9: +231.3); C3 fully green (idle P(stay) 1.0/1.0; idle means 7,607/7,436/2,883/3,005 all inside bands); C5 PASS; 4/6 checks (C6 flipped to FAIL, dominant share 0.9423 vs threshold 0.75); C4 remains structurally blind. 0/156 parse failures, 156/156 LLM success."
+   ],
+   "next_steps": [
+    "Round 11 (final polish): tame high/major overshoot - the ceiling sentence caps the band but high/major's 0.8-0.9-weight planning/prioritization cells still land at +520-675. Options, in order of preference: (a) tighten the ceiling sentence to name absolute totals ('no message raises a day's total above about 500 steps of lift') and place a second copy of the cap sentence inside the WEIGHTS BY PROFILE or the per-profile line - a rule cap that applies per cell, not just to the band tail; (b) add a high-baseline strong-match exemplar that demonstrates the cap WITHOUT a total anchor (e.g. 'a well-matched planning message on a day that would have been 8,000 steps added about 400, landing near 8,400 - never above about 8,500'). Also investigate the high/major social_opportunity_morning -614.3 outlier before deciding.",
+    "Fix low/major's 5 negative cells: low/major under-delivers on afternoon cells (perceived_benefit_afternoon -14.3, ability_afternoon -16.0, prioritization_afternoon -69.0, social_opportunity_afternoon -15.7). The low/none morning exemplar lifted that profile, not low/major; consider an explicit fatigue-aware wording for major-burden afternoons (the 0.6-0.8 weights vs afternoon-parity sentence) or a low/major exemplar, without touching the fixed-absolute rule lesson of round 8.",
+    "Ship criteria for round 11: max cell lift <= +600, high/none and high/major both in +150-450, low/none >= +150, low/major >= +100, negatives <= 3, C5 green, parse failures <= 2 - then freeze protocol_fewshot for the real bootstrapping experiment; protocol stays as fallback.",
+    "C4/C6 remain structurally blind or noisy in this subset: C6 flips between rounds (0.8654 pass in r9, 0.9423 fail in r10) driven by a handful of 'morning'-ratio cells; for real C6 signal, extend the pilot subset to moderate recent_steps_mean cells and vary morning_steps_ratio / walk_pattern / day_of_week."
    ]
   }
  ]

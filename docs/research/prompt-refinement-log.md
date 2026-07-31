@@ -893,6 +893,132 @@ residuals from round 7 are both still open, one of them wider.
 
 ---
 
+### Round 10 — protocol_fewshot (2026-07-31)
+
+**Prompt version:** `protocol_fewshot` r10 in `prompts/pearl.py`.
+
+**Prompt change summary:**
+
+1. **Round-9 high-activity exemplar removed** — the sentence *"A strongly
+   matched message looks the same for a high-activity person: ... again
+   about 300 extra steps, and never more than about 500"* is deleted; the
+   exemplar paragraph returns to the round-7 text verbatim.
+2. **Ceiling moved into the GRADED MATCH RULE paragraph** — one sentence
+   appended at the paragraph's end: *"The +150-450 step band is also a
+   ceiling: no message raises a day's total by more than about 500 steps,
+   no matter how well it matches."* Rule-level cap in the one paragraph
+   that demonstrably binds (round 7's floor +60-100 and band +150-450 both
+   held), with no small fixed absolute numbers — round 8's collapse
+   mechanism is avoided. The weak-tier floor wording is untouched.
+3. **Low-baseline strong-match MORNING exemplar added** — one prose
+   sentence immediately after the existing strong-match exemplar (3,100 →
+   3,400): *"The same applies for a low-activity person with no extra
+   burden: a well-matched ability message in the morning raised their day
+   from about 3,100 total (1,800 morning, 1,300 afternoon) to about 3,400
+   (2,200 morning, 1,200 afternoon)."* Prose only, never JSON lines.
+
+Untouched: graded weight table, LOW NO-BURDEN PROFILE paragraph, afternoon
+parity sentence, weak-tier floor, action overrides, user_extra, idle
+exemplar, modest/weak exemplars.
+
+**Config:** deepseek-v4-flash (openrouter), temp 0.7, 3 samples/cell, 4 states
+(2 burden x 2 recent_steps_mean) x 13 actions = 156 prompts.
+
+**Run:** 156/156 LLM calls succeeded, **0/156 parse failures** — fourth clean
+run in a row. Table: 52/52 cells, every cell at 3 samples. Raw results saved
+to `tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260731_192125.jsonl`.
+Round-9 table archived as
+`tables/pearl_12action_pilot/archive/pearl_pilot_protocol_fewshot_r9.json`.
+
+| Check | Result | Detail |
+|-------|--------|--------|
+| C1 action coverage | PASS | 13/13 |
+| C2 cell coverage | PASS | 52/52 |
+| C3 state persistence | PASS | idle P(stay): low=1.0, high=1.0 (raw idle means: high 7,607/7,436, low 2,883/3,005 — all inside their stated bands) |
+| C4 action sensitivity | FAIL | 0/4 cells (structurally blind: high idle P(high)=1.0 leaves no headroom; low cannot cross 7,000) |
+| C5 burden monotonicity | PASS | burden_reduces_steps=true at both levels (major high P(high) 0.9744 ≤ none 1.0) |
+| C6 factor variation | FAIL | morning_steps_ratio dominant share 0.9423 (49 balanced / 3 morning; round 9: 0.8654 pass) — the ceiling capped high/none cells so fewer crossed into "morning" |
+
+**Raw effect (analyzer):** overall mean lift **+222.1** steps/day (round 9:
++231.3 — in the +150-450 band), min **-614.3** (round 9: -313.3), max
+**+674.8** (round 9: +981.0 — improved), **42/48** cells positive (round 9:
+43/48), **6 negative cells** (round 9: 5; target ≤ 3): high/major
+social_opportunity_morning -614.3, low/major prioritization_afternoon
+-69.0, low/major perceived_benefit_morning -54.8, low/major
+ability_afternoon -16.0, low/major social_opportunity_afternoon -15.7,
+low/major perceived_benefit_afternoon -14.3. Per state — high/major: idle
+7,436, lift **+349.9** (round 9: +148.6 — overshoot shifted to the 0.9-weight
+profile); high/none: idle 7,607, lift **+271.2** (round 9: +596.7 — target
++250-350, tamed); low/major: idle 3,005, lift **+61.8** (round 9: +109.2 —
+fell under the +100 floor, 5 of 6 negatives); low/none: idle 2,883, lift
+**+205.6** (round 9: +70.9 — above the +150 floor, 0 negatives).
+
+**Verdict table:**
+
+| Metric | Target | Round 8 | Round 9 | Round 10 | Verdict |
+|--------|--------|---------|---------|----------|---------|
+| Checks | — | 3/6 | 5/6 | 4/6 | mixed — C6 flipped (structural noise) |
+| Max cell lift | ≤ ~+600 | +775.4 | +981.0 | **+674.8** | FAIL — better, still over |
+| high/none mean | +250-350 | +212.4 | +596.7 | **+271.2** | PASS — tamed |
+| low/none mean | ≥ +150 | +5.6 | +70.9 | **+205.6** | PASS — exemplar worked |
+| low/major mean | ≥ +100 | +72.8 | +109.2 | +61.8 | FAIL — slipped |
+| high/major mean | +150-450 | — | +148.6 | +349.9 | PASS (but cells over +600) |
+| Overall mean | +150-450 | +179.1 | +231.3 | +222.1 | PASS |
+| Negative cells | ≤ 3 | 11 | 5 | 6 | FAIL |
+| C3 idle P(stay) | 1.0/1.0 | 1.0/1.0 | 1.0/1.0 | 1.0/1.0 | PASS |
+| Parse failures | ≤ 2 | 0 | 0 | 0 | PASS |
+
+**Diagnosis:** The ceiling-in-rule worked exactly where the exemplar-only
+ceiling failed: high/none fell from +596.7 to +271.2 (in the +250-350
+target) with every high/none cell under +500, and max cell lift dropped
+from +981.0 to +674.8 — removing the high-activity exemplar ended the
+total-anchoring (no more +1,477 planning_afternoon days) and the rule-level
+cap bound what remained. The low/none morning exemplar also delivered:
+low/none rose from +70.9 to +205.6, above the +150 floor, all 12 cells
+positive, and the 0.8-weight morning cells specifically fixed
+(ability_morning +166.7, perceived_benefit_morning +173.8, planning_morning
++211.9 — no more -38 low-state mornings). But the cap did NOT bind on
+high/major: its mean rose from +148.6 to +349.9 with six cells at +520-675
+(prioritization_afternoon +674.8, planning_afternoon +624.8, ability_
+afternoon +592.9) — the ceiling sentence is read as capping the band's
+tail, not each cell, and the 0.8-0.9-weight planning/prioritization cells
+overshoot anyway; high/major social_opportunity_morning is a new -614.3
+wild outlier. And the low states diverged: low/none is now the best low
+state while low/major fell to +61.8 (under the floor) with 5 of the 6
+negatives — the new exemplar lifted the low/no-burden profile, not the
+fatigued one. 4/6 checks (C6 flipped to FAIL at 0.9423 dominant share — a
+handful of "morning"-ratio cells flip it between rounds), C3 fully green,
+C5 PASS, 0 parse failures.
+
+**Next steps:**
+1. Round 11 (final polish): tame high/major's 0.8-0.9-weight cells — the
+   ceiling sentence caps the band's tail, not per-cell lift. Options: (a)
+   tighten the ceiling to state the cap as an absolute on the day's total
+   *increase* applied per message ("no single message raises a day's total
+   by more than about 500 steps — even a 0.9-weight match"), or (b) add a
+   high-baseline strong-match exemplar that demonstrates the cap without a
+   total anchor (e.g. "a well-matched planning message on a day that would
+   have been 8,000 steps added about 400, never more than about 500").
+   Investigate the high/major social_opportunity_morning -614.3 outlier
+   first.
+2. Fix low/major's 5 negative afternoons (perceived_benefit_afternoon,
+   ability_afternoon, prioritization_afternoon, social_opportunity_afternoon):
+   the low/none morning exemplar lifted that profile, not the fatigued one;
+   consider fatigue-aware afternoon wording or a low/major exemplar —
+   without touching the fixed-absolute rule lesson of round 8.
+3. Ship criteria for round 11: max cell lift ≤ +600, high/none and
+   high/major both in +150-450, low/none ≥ +150, low/major ≥ +100,
+   negatives ≤ 3, C5 green, parse failures ≤ 2 — then freeze
+   `protocol_fewshot` for the real bootstrapping experiment; `protocol`
+   stays as fallback.
+4. C4/C6 remain structurally blind or noisy in this subset (C6 flipped
+   0.8654 pass in r9 → 0.9423 fail in r10 on a handful of "morning"-ratio
+   cells); for real signal, extend the pilot subset to moderate
+   recent_steps_mean cells and vary morning_steps_ratio / walk_pattern /
+   day_of_week.
+
+---
+
 ## Ladder summary
 
 | Rung | Variant | n_passes | Mean lift | n positive cells | Parse failures | Verdict |
