@@ -65,6 +65,106 @@ def _load_table(table_path: Path) -> dict:
         return json.load(f)
 
 
+def _load_raw_results(raw_path: Path) -> list[dict]:
+    """Load the raw LLM results jsonl (state, action, content|error)."""
+    records = []
+    with raw_path.open() as f:
+        for raw_line in f:
+            stripped = raw_line.strip()
+            if stripped:
+                records.append(json.loads(stripped))
+    return records
+
+
+def _mean_daily_steps(content: str) -> float | None:
+    """Parse a 7-day history and return the mean daily steps, or None."""
+    from rl_health_interventions.llm_bootstrapping.parse_pearl import (  # noqa: PLC0415
+        parse_day_history,
+    )
+
+    history = parse_day_history(content)
+    if not history:
+        return None
+    totals = [d["morning_steps"] + d["afternoon_steps"] for d in history]
+    return sum(totals) / len(totals)
+
+
+def compute_raw_effect(  # noqa: C901, PLR0912, PLR0915
+    raw_records: list[dict],
+) -> dict:
+    """Compute intervention-vs-idle step lift directly from raw LLM output.
+
+    The bin-based C4 check is structurally blind in the pilot subset (idle
+    persists at P(high)=1.0 in high states; low states cannot cross the
+    >7,000 bin), so this measures the actual step response instead.
+    """
+    # (state_key, action) -> list of mean daily steps
+    cell_means: dict[tuple[str, str], list[float]] = defaultdict(list)
+    state_lookup: dict[tuple[str, str], dict] = {}
+    n_parsed = 0
+    for record in raw_records:
+        if "error" in record:
+            continue
+        mean = _mean_daily_steps(record.get("content", ""))
+        if mean is None:
+            continue
+        state_key = json.dumps(record["state"], sort_keys=True)
+        cell_means[(state_key, record["action"])].append(mean)
+        state_lookup[(state_key, record["action"])] = record["state"]
+        n_parsed += 1
+
+    per_state: list[dict] = []
+    by_state: dict[str, dict[str, list[float]]] = defaultdict(dict)
+    for (state_key, action), means in cell_means.items():
+        by_state[state_key][action] = means
+
+    n_lift_cells = 0
+    n_state_cells = 0
+    all_lifts: list[float] = []
+    for state_key, action_means in sorted(by_state.items()):
+        if CONTROL_ACTION not in action_means:
+            continue
+        idle_mean = sum(action_means[CONTROL_ACTION]) / len(
+            action_means[CONTROL_ACTION]
+        )
+        state_cells = 0
+        state_lifts = 0
+        for action, means in sorted(action_means.items()):
+            if action == CONTROL_ACTION:
+                continue
+            action_mean = sum(means) / len(means)
+            lift = action_mean - idle_mean
+            state_lifts += lift
+            state_cells += 1
+            all_lifts.append(lift)
+            if lift > 0:
+                n_lift_cells += 1
+        n_state_cells += state_cells
+        per_state.append(
+            {
+                "state": state_lookup[(state_key, CONTROL_ACTION)],
+                "idle_mean_steps": round(idle_mean, 1),
+                "n_intervention_cells": state_cells,
+                "mean_lift_steps": round(state_lifts / state_cells, 1)
+                if state_cells
+                else None,
+            }
+        )
+
+    return {
+        "n_records": len(raw_records),
+        "n_parsed": n_parsed,
+        "per_state": per_state,
+        "n_lift_cells": n_lift_cells,
+        "n_state_cells": n_state_cells,
+        "mean_lift_steps": round(sum(all_lifts) / len(all_lifts), 1)
+        if all_lifts
+        else None,
+        "min_lift_steps": round(min(all_lifts), 1) if all_lifts else None,
+        "max_lift_steps": round(max(all_lifts), 1) if all_lifts else None,
+    }
+
+
 def _per_cell(transitions: list[dict]) -> dict[tuple[str, str], dict]:
     """Group transitions by (state_key, action) and return next_state_probs."""
     cells: dict[tuple[str, str], dict] = {}
@@ -259,7 +359,7 @@ def compute_metrics(table: dict) -> dict:  # noqa: C901, PLR0912, PLR0915
     }
 
 
-def main() -> None:
+def main() -> None:  # noqa: C901
     """Print metrics for a pilot table (optionally as JSON)."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -267,11 +367,20 @@ def main() -> None:
         type=Path,
         default=_REPO_ROOT / "tables" / "pearl_12action_pilot" / "pearl_pilot.json",
     )
+    parser.add_argument(
+        "--raw",
+        type=Path,
+        default=None,
+        help="Raw results jsonl to compute intervention step-lift from",
+    )
     parser.add_argument("--json", action="store_true", help="Emit a single JSON object")
     args = parser.parse_args()
 
     table = _load_table(args.table)
     metrics = compute_metrics(table)
+
+    if args.raw is not None:
+        metrics["raw_effect"] = compute_raw_effect(_load_raw_results(args.raw))
 
     if args.json:
         print(json.dumps(metrics, indent=2))
