@@ -205,6 +205,104 @@ were dropped.
 
 ---
 
+### Round 4 — empirical_anchors (2026-07-31)
+
+**Prompt version:** `empirical_anchors` variant in `prompts/pearl.py`
+(`system_extra` + `action_overrides` + callable `user_extra`). System extra
+combines three blocks: (a) **numeric anchors** restored verbatim-style from
+round 2 (current level low = under 4,000 / moderate = 4,000-7,000 / high =
+over 7,000 daily steps; without intervention the person stays at their own
+level — high ~8,000, low ~3,000; idle continues at the established level,
+never regress toward the ~5,580 population average); (b) **barrier profile**
+naming one of four profiles per (recent_steps_mean, burden) cell — low/none
+= struggling walker (effort/self-efficacy), low/major = struggling walker
+under strain (fatigue AND opportunity), high/none = active person
+(complacency and reinforcement), high/major = active person under strain
+(scheduling/fatigue, NOT capability) — with the plain statement that every
+profile has at least one real barrier and a matched nudge relieves it; (c)
+**causal rule** kept from round 3 (matched nudge = +150-450 steps that day,
+target the middle of the band ~+300; unmatched = small or negligible) plus
+the **empirical anchor** from the PEARL paper (ability/technique messages
+most effective and best received at 90% thumbs-up, followed by perceived
+benefit; planning and prioritization help specifically when major burden
+interferes with acting). The 12 action overrides copy round 3's mechanism
+sentences verbatim and append one matched-clause each ("It is a matched
+nudge for anyone whose ... is the barrier"); idle unchanged. User extra is a
+callable that renders a per-state "BARRIER PROFILE TODAY" line naming the
+day's profile and the matched-nudge ~150-450 rule — and returns `""` on
+idle so nothing renders. Baseline output byte-identical.
+
+**Config:** deepseek-v4-flash (openrouter), temp 0.7, 3 samples/cell, 4 states
+(2 burden x 2 recent_steps_mean) x 13 actions = 156 prompts.
+
+**Run:** 156/156 LLM calls succeeded; 2 responses had malformed day JSON
+(low/major planning_morning, low/none perceived_benefit_morning — same quote
+typo class as round 3, down from 8) and were dropped, but both cells stayed
+above the 2-sample minimum. Table: 52/52 cells. Raw results saved to
+`tables/pearl_12action_pilot/raw/results_empirical_anchors_20260731_182330.jsonl`.
+
+| Check | Result | Detail |
+|-------|--------|--------|
+| C1 action coverage | PASS | 13/13 |
+| C2 cell coverage | PASS | 52/52 |
+| C3 state persistence | PASS (marginal) | idle P(stay): low=1.0, high=0.5 (exactly at threshold; high/none idle 7,554 in band, but high/major idle 6,871 still bins moderate) |
+| C4 action sensitivity | FAIL | ability_morning raises P(high) in 1/4 cells (dP=+1.0 in high/major, where idle P(high)=0.0 frees headroom) |
+| C5 burden monotonicity | PASS | high: 0.872 -> 0.718; low: 0.0 -> 0.0 |
+| C6 factor variation | FAIL | morning_steps_ratio = balanced as modal value in 52/52 cells (structural in this subset) |
+
+**Raw effect (analyzer):** overall mean lift **+43.1** steps/day (round 3:
++149.6, round 2: +115), min **-547.6**, max **+1,219.0**, 26/48 cells
+positive (round 3: 31/48). Per state — high/none: idle 7,554, lift **-138.2**
+(round 3: +6.2); high/major: idle 6,871, lift **+496.4** (round 3: +382.4,
+still over the +450 cap); low/none: idle 3,352, lift **+9.2** (round 3:
++112.5); low/major: idle 3,367, lift **-195.1** (round 3: +97.5).
+
+**Summary:** 4/6 checks pass (round 3: 2/6) — best check count so far, with
+C3 back and C2 recovered. But the primary target regressed: the barrier
+profile made the model too selective, collapsing the mean lift to +43.1
+(26/48 positive, min -548, max +1,219) and driving two states negative.
+
+**Diagnosis:**
+- Anchors + profiles + mechanisms **did** restore C3 in the aggregate: high
+  idle P(stay) 0.333 → 0.5, high/none idle back to 7,554 (vs 7,210 in round
+  3), low idle solid at 1.0. But the pass is exactly at threshold: high/major
+  idle is still 6,871 (vs 6,864 in round 3), below the 7,000 bin — the
+  "graded down under major burden" language still counteracts the "stay
+  around 8,000" anchor for that cell, so persistence holds only where burden
+  is none.
+- The barrier profile **destroyed the lift**: with only 1-2 named barriers
+  per profile, the model judges 8-10 of the 12 themes unmatched and outputs
+  near-idle days; at temp 0.7 that no-op distribution swings negative
+  (low/major -195.1, high/none -138.2). The few judged-matched cells
+  overshoot badly   (high/major planning_afternoon +1,219, social_opportunity_afternoon
+  +960, physical_opportunity_morning +745). Binary matched/
+  unmatched per-profile is incompatible with a +150-450 average across all
+  12 themes.
+- high/none is still the worst cell (-138.2 vs round 3's +6.2): naming
+  "complacency and reinforcement" as the barrier gave the model no concrete
+  lever to act on — every theme is treated as unmatched again, just recoded
+  from round 3's "no barriers" reading.
+- 2/156 malformed-JSON responses (down from 8; both morning cells, no cell
+  lost). C4 shows 1/4 for the same structural reason as round 3; C5 holds;
+  C6 remains structural in this subset.
+
+**Next steps (for round 5):**
+1. `protocol`: make the barrier profile **grade** matched-nudge strength
+   (all 12 themes produce +150-450 for every profile; themes matching the
+   stated barrier land at the top of the band) instead of switching
+   matchedness off, or give unmatched nudges a small guaranteed floor
+   (+0-100) so the all-theme mean stays in band.
+2. Fix high/major persistence: burden must modulate the intervention boost,
+   never the idle baseline — state that idle stays at the person's own
+   level regardless of burden.
+3. For C4, extend the subset to moderate recent_steps_mean cells (234 calls)
+   or evaluate sensitivity on a continuous step shift; for C6, vary
+   morning_steps_ratio / walk_pattern / day_of_week in the subset.
+4. Keep hardening the JSON format instruction (2 malformed responses this
+   round, both morning cells).
+
+---
+
 ## How to add a round
 
 1. Edit prompts in `prompts/pearl.py`; record the diff in the round header.

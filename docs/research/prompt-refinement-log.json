@@ -589,6 +589,269 @@
         "For C4 signal, extend the pilot subset to moderate recent_steps_mean cells (234 calls) or evaluate sensitivity on a continuous step shift (analyzer change)",
         "For C6, vary morning_steps_ratio / walk_pattern / day_of_week in the pilot subset"
       ]
+    },
+    {
+      "round": 4,
+      "date": "2026-07-31",
+      "prompt_version": "empirical_anchors variant (pearl.py)",
+      "prompt_changes_since_previous": "Added system_extra combining three blocks: (a) NUMERIC ANCHORS restored from round 2 (low = under 4,000 / moderate = 4,000-7,000 / high = over 7,000 daily steps; without intervention the person stays at their level - high around 8,000, low around 3,000; 'On days with no intervention (idle), the person simply continues at their own established level; never regress a stated high or low person toward the population average'); (b) BARRIER PROFILE naming one of four profiles per (recent_steps_mean, burden) cell - low/none = struggling walker, effort/self-efficacy barrier; low/major = struggling walker under strain, fatigue AND opportunity barriers; high/none = active person, complacency and reinforcement barriers; high/major = active person under strain, scheduling/fatigue (NOT capability) barrier - with the statement that every profile has at least one real barrier and a matched nudge relieves it; (c) CAUSAL RULE kept from round 3 (matched nudge = +150-450 steps that day, target the middle of the band ~+300; unmatched = small or negligible) plus the EMPIRICAL ANCHOR from the PEARL paper (ability/technique messages most effective and best received, 90% thumbs-up, followed by perceived benefit; planning and prioritization help specifically when major burden interferes with acting). action_overrides copies round 3's 12 mechanism sentences verbatim and appends one matched-clause per sentence ('It is a matched nudge for anyone whose ... is the barrier'); idle unchanged. user_extra is a callable returning per-state BARRIER PROFILE TODAY line naming the profile from (b) plus the matched-nudge ~150-450 steps rule; returns '' on idle so nothing renders.",
+      "config": {
+        "model": "openrouter/deepseek/deepseek-v4-flash",
+        "provider": "openrouter",
+        "temperature": 0.7,
+        "max_workers": 50,
+        "samples_per_cell": 3,
+        "n_states": 4,
+        "n_actions": 13,
+        "n_prompts": 156,
+        "state_subset": "2 burden levels (none, major) x 2 recent_steps_mean (low, high); walk_pattern=low, morning_ratio=balanced, day=weekday fixed",
+        "prompt_variant": "empirical_anchors"
+      },
+      "run": {
+        "exit_status": 0,
+        "llm_success_rate": "156/156",
+        "n_parse_failures": 2,
+        "table_path": "tables/pearl_12action_pilot/pearl_pilot_empirical_anchors.json",
+        "raw_results_path": "tables/pearl_12action_pilot/raw/results_empirical_anchors_20260731_182330.jsonl",
+        "notes": "All 156 LLM calls succeeded (0 errors in raw file). 2 responses had no valid day records and were dropped (low/major planning_morning and low/none perceived_benefit_morning - both still above the 2-sample minimum), so the table kept 52/52 cells. Same malformed-JSON class as round 3 but fewer cases (2 vs 8)."
+      },
+      "metrics": {
+        "structure": {
+          "n_states": 4,
+          "n_actions": 13,
+          "n_actions_present": 13,
+          "n_expected_cells": 52,
+          "n_cells": 52,
+          "action_coverage_frac": 1.0,
+          "cell_coverage_frac": 1.0
+        },
+        "persistence": {
+          "low": {
+            "n_cells": 2,
+            "mean_p_stay": 1.0
+          },
+          "high": {
+            "n_cells": 2,
+            "mean_p_stay": 0.5
+          }
+        },
+        "monotonicity": {
+          "low": {
+            "mean_P(high)_none": 0.0,
+            "mean_P(high)_major": 0.0,
+            "burden_reduces_steps": true
+          },
+          "high": {
+            "mean_P(high)_none": 0.8718,
+            "mean_P(high)_major": 0.718,
+            "burden_reduces_steps": true
+          }
+        },
+        "factor_variation": {
+          "recent_steps_mean": {
+            "n_distinct_values": 3,
+            "dominant_value": "low",
+            "dominant_share": 0.5
+          },
+          "recent_walk_pattern": {
+            "n_distinct_values": 2,
+            "dominant_value": "low",
+            "dominant_share": 0.5
+          },
+          "morning_steps_ratio": {
+            "n_distinct_values": 1,
+            "dominant_value": "balanced",
+            "dominant_share": 1.0
+          }
+        },
+        "sensitivity": [
+          {
+            "state": {
+              "burden": "none",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "low",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          },
+          {
+            "state": {
+              "burden": "major",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "low",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          },
+          {
+            "state": {
+              "burden": "none",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "high",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": -0.3333
+          },
+          {
+            "state": {
+              "burden": "major",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "high",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 1.0
+          }
+        ],
+        "raw_effect": {
+          "n_records": 156,
+          "n_parsed": 154,
+          "per_state": [
+            {
+              "state": {
+                "recent_steps_mean": "high",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "major"
+              },
+              "idle_mean_steps": 6871.4,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 496.4
+            },
+            {
+              "state": {
+                "recent_steps_mean": "low",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "major"
+              },
+              "idle_mean_steps": 3366.7,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": -195.1
+            },
+            {
+              "state": {
+                "recent_steps_mean": "high",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "none"
+              },
+              "idle_mean_steps": 7553.8,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": -138.2
+            },
+            {
+              "state": {
+                "recent_steps_mean": "low",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "none"
+              },
+              "idle_mean_steps": 3352.4,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 9.2
+            }
+          ],
+          "n_lift_cells": 26,
+          "n_state_cells": 48,
+          "mean_lift_steps": 43.1,
+          "min_lift_steps": -547.6,
+          "max_lift_steps": 1219.0
+        }
+      },
+      "checks": {
+        "C1_action_coverage": {
+          "pass": true,
+          "actual": 1.0,
+          "threshold": 1.0,
+          "detail": "13/13 actions present"
+        },
+        "C2_cell_coverage": {
+          "pass": true,
+          "actual": 1.0,
+          "threshold": 1.0,
+          "detail": "52/52 cells filled"
+        },
+        "C3_state_persistence": {
+          "pass": true,
+          "actual": {
+            "low": 1.0,
+            "high": 0.5
+          },
+          "threshold": {
+            "low": 0.5,
+            "high": 0.5
+          },
+          "detail": "idle keeps low states low and high states high"
+        },
+        "C4_action_sensitivity": {
+          "pass": false,
+          "actual": 0.25,
+          "threshold": 0.5,
+          "detail": "1/4 cells where ability_morning raises P(high) vs idle"
+        },
+        "C5_burden_monotonicity": {
+          "pass": true,
+          "actual": {
+            "low": {
+              "mean_P(high)_none": 0.0,
+              "mean_P(high)_major": 0.0,
+              "burden_reduces_steps": true
+            },
+            "high": {
+              "mean_P(high)_none": 0.8718,
+              "mean_P(high)_major": 0.718,
+              "burden_reduces_steps": true
+            }
+          },
+          "threshold": "major <= none for every recent_steps_mean level",
+          "detail": "major burden does not raise mean P(high) vs no burden"
+        },
+        "C6_factor_variation": {
+          "pass": false,
+          "actual": {
+            "recent_steps_mean": {
+              "n_distinct_values": 3,
+              "dominant_value": "low",
+              "dominant_share": 0.5
+            },
+            "recent_walk_pattern": {
+              "n_distinct_values": 2,
+              "dominant_value": "low",
+              "dominant_share": 0.5
+            },
+            "morning_steps_ratio": {
+              "n_distinct_values": 1,
+              "dominant_value": "balanced",
+              "dominant_share": 1.0
+            }
+          },
+          "threshold": 0.75,
+          "detail": "no factor collapses onto one value"
+        }
+      },
+      "n_passes": 4,
+      "n_failures": 2,
+      "diagnosis": [
+        "Combining numeric anchors + barrier profiles + mechanisms restored C3 in the aggregate (idle P(stay) low 1.0 / high 0.5 - exactly at the 0.5 threshold): high/none idle climbed back from round 3's 7,210 to 7,554 (in band, above the 7,000 bin), but high/major idle is still 6,871 (vs 6,864 in round 3) - below the 7,000 threshold, so that cell still bins moderate (P(high)=0.0) and the check passes only because high/none carries it. The 'graded down under major burden' language appears to counteract the 'stay around 8,000' anchor for the major-burden cell.",
+        "The barrier profile made the matched/unmatched classification too strict and destroyed the lift: overall mean lift +43.1 steps/day (round 3: +149.6, round 2: +115), only 26/48 cells positive (round 3: 31/48), min -547.6 / max +1,219.0. With only 1-2 named barriers per profile, the model judges 8-10 of the 12 themes unmatched per state and outputs near-idle days; at temp 0.7 that no-op distribution swings negative (low/major -195.1, high/none -138.2). The few judged-matched cells overshoot badly (planning_afternoon +1,219, social_opportunity_afternoon +960, physical_opportunity_morning +745 in high/major), far above the +450 cap.",
+        "high/none is still the worst cell (mean lift -138.2, vs +6.2 in round 3): naming 'complacency and reinforcement' as the barriers did not give the model a concrete lever to act on - every theme is treated as unmatched again, just recoded from round 3's 'no barriers'. The binary matched/unmatched rule, applied per-profile with 12 themes but 1-2 barriers, is incompatible with the aggregate +150-450 target.",
+        "2/156 malformed-JSON responses (quote typo class, both morning cells) - down from 8 in round 3, no cell lost. C4 shows 1/4 again (dP=+1.0 in high/major, where idle P(high)=0.0 leaves headroom); C5 passes (high 0.872 -> 0.718); C6 remains structural in this subset (morning_ratio balanced in 52/52 cells)."
+      ],
+      "next_steps": [
+        "Round 5 (protocol): either make the barrier profile grade matched-nudge strength instead of switching matchedness off (all 12 themes produce +150-450 for every profile, with the stated barrier themes toward the top of the band), or make unmatched nudges produce a small guaranteed floor (+0-100) instead of 'negligible' so the mean of matched+unmatched stays in band",
+        "Fix high/major persistence: the burden tier must modulate the intervention boost, not the idle baseline - state explicitly that idle stays at the person's own level REGARDLESS of burden, and move the burden grading to lift size only",
+        "For C4 signal, extend the pilot subset to moderate recent_steps_mean cells (234 calls) or evaluate sensitivity on a continuous step shift (analyzer change)",
+        "For C6, vary morning_steps_ratio / walk_pattern / day_of_week in the pilot subset",
+        "Keep hardening the JSON format instruction (2 malformed responses this round, both morning cells)"
+      ]
     }
   ]
 }

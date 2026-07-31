@@ -255,6 +255,173 @@ _COMB_MECHANISMS_USER_EXTRA = (
 )
 
 
+# Round 4: "empirical_anchors" — the synthesis. Restores the round-2 style
+# explicit numeric self-model anchors (persistence), adds a per-state
+# barrier profile so every persona has at least one real barrier that a
+# matched nudge relieves (fixes round 3's near-zero high/none lift), keeps
+# the round-3 COM-B mechanism framing, and adds the empirical anchor from
+# the PEARL RCT paper (ability messages best received at 90% thumbs-up).
+_EMPIRICAL_BARRIER_PROFILES = {
+    ("low", "none"): (
+        "a struggling walker with no extra load - the barrier is effort and "
+        "self-efficacy: walking feels hard and they doubt they can do it"
+    ),
+    ("low", "major"): (
+        "a struggling walker under heavy strain - the barriers are fatigue "
+        "AND opportunity: the strain drains their energy and fills their time"
+    ),
+    ("high", "none"): (
+        "an active person with no extra load - the barriers are complacency "
+        "and reinforcement: the walking habit is there but needs keeping"
+    ),
+    ("high", "major"): (
+        "an active person under heavy strain - the barrier is scheduling and "
+        "fatigue, NOT capability: they know how to walk, but the strain "
+        "disrupts their routine"
+    ),
+}
+
+_EMPIRICAL_ANCHORS_SYSTEM_EXTRA = (
+    "SELF-MODEL NOTE: the ~5,580 steps/day figure above is only the "
+    "population average at baseline - it is NOT this person's level. Every "
+    "scenario states the person's CURRENT recent activity level explicitly "
+    "(recent activity: low = under 4,000 steps/day, moderate = 4,000-7,000, "
+    "high = over 7,000 steps/day). Without intervention the person stays at "
+    "their current level: a 'high' person keeps walking around 8,000 steps "
+    "per day, a 'low' person around 3,000. On days with no intervention "
+    "(idle), the person simply continues at their own established level; "
+    "never regress a stated 'high' or 'low' person toward the population "
+    "average.\n\n"
+    "BARRIER PROFILE: each day the person falls into one of four profiles. "
+    "A struggling walker with no extra load (low activity, no burden) faces "
+    "an effort/self-efficacy barrier. A struggling walker under heavy "
+    "strain (low activity, major burden) faces fatigue AND opportunity "
+    "barriers. An active person with no extra load (high activity, no "
+    "burden) faces complacency and reinforcement barriers. An active person "
+    "under heavy strain (high activity, major burden) faces scheduling and "
+    "fatigue barriers, NOT capability. Every profile has at least one real "
+    "barrier; a nudge matched to that barrier is what relieves it.\n\n"
+    "CAUSAL RULE: every nudge targets one lever. A nudge that matches the "
+    "profile's barrier produces a REAL increase in walking on the day it is "
+    "delivered (+150-450 steps; a well-matched nudge targets the middle of "
+    "the band, around +300). A nudge that does not match the profile's "
+    "barrier produces only a small or negligible increase: someone who "
+    "already knows how to walk is not moved by another ability tip, and "
+    "someone with no practical obstacle is not moved by an opportunity "
+    "reminder.\n\n"
+    "EMPIRICAL ANCHOR (PEARL RCT): messages emphasizing ability and "
+    "technique were the most effective and best received in the trial (90% "
+    "thumbs-up), followed by perceived benefit; planning and prioritization "
+    "help specifically when strain (major burden) interferes with acting.\n\n"
+    "THEME MAPPING: ability = capability; physical_opportunity = "
+    "opportunity (the environment); social_opportunity = opportunity via "
+    "other people; perceived_benefit = reflective motivation; planning and "
+    "prioritization = self-regulation."
+)
+
+_EMPIRICAL_ANCHORS_ACTIONS_OVERRIDES = {
+    "idle": "No intervention is delivered today.",
+    "ability_morning": (
+        "A morning message offers a technique that makes walking easier "
+        "(e.g. a shorter route, or a walk paired with your morning coffee); "
+        "receiving it, you find walking less effortful and take a noticeably "
+        "longer walk this morning. It is a matched nudge for anyone whose "
+        "effort or technique is the barrier."
+    ),
+    "ability_afternoon": (
+        "An afternoon message offers a technique that makes walking easier "
+        "(e.g. splitting one long walk into two short ones); receiving it, "
+        "you find walking less effortful and take a noticeably longer walk "
+        "this afternoon. It is a matched nudge for anyone whose effort or "
+        "technique is the barrier."
+    ),
+    "perceived_benefit_morning": (
+        "A morning message reminds you what walking does for you (e.g. more "
+        "energy and a better mood for the day); it sharpens your motivation, "
+        "so you set out more readily and take a noticeably longer walk this "
+        "morning. It is a matched nudge for anyone whose motivation or "
+        "self-belief is the barrier."
+    ),
+    "perceived_benefit_afternoon": (
+        "An afternoon message reminds you what walking does for you (e.g. a "
+        "head-clearing break that helps you sleep); it sharpens your "
+        "motivation, so you set out more readily and take a noticeably "
+        "longer walk this afternoon. It is a matched nudge for anyone whose "
+        "motivation or self-belief is the barrier."
+    ),
+    "planning_morning": (
+        "A morning message helps you schedule today's walk (e.g. a specific "
+        "time and route written down before the day fills up); the concrete "
+        "plan turns intention into action, so you take a noticeably longer "
+        "walk this morning. It is a matched nudge for anyone whose barrier "
+        "is scheduling."
+    ),
+    "planning_afternoon": (
+        "An afternoon message helps you schedule the rest of the day (e.g. "
+        "blocking out a specific time and route); the concrete plan turns "
+        "intention into action, so you take a noticeably longer walk this "
+        "afternoon. It is a matched nudge for anyone whose barrier is "
+        "scheduling."
+    ),
+    "prioritization_morning": (
+        "A morning message helps you protect time for walking (e.g. moving "
+        "a low-priority task off the morning); walking becomes a deliberate "
+        "priority, so you take a noticeably longer walk this morning. It is "
+        "a matched nudge for anyone whose barrier is time or priority "
+        "pressure."
+    ),
+    "prioritization_afternoon": (
+        "An afternoon message helps you protect time for walking (e.g. "
+        "delaying a low-priority task to make room); walking becomes a "
+        "deliberate priority, so you take a noticeably longer walk this "
+        "afternoon. It is a matched nudge for anyone whose barrier is time "
+        "or priority pressure."
+    ),
+    "social_opportunity_morning": (
+        "A morning message connects walking to other people (e.g. a friend "
+        "who will join you, or a walk-and-talk call); the social opening "
+        "gets you out the door, so you take a noticeably longer walk this "
+        "morning. It is a matched nudge for anyone whose barrier is a lack "
+        "of social support."
+    ),
+    "social_opportunity_afternoon": (
+        "An afternoon message connects walking to other people (e.g. a group "
+        "walk or a colleague to join); the social opening gets you out the "
+        "door, so you take a noticeably longer walk this afternoon. It is a "
+        "matched nudge for anyone whose barrier is a lack of social support."
+    ),
+    "physical_opportunity_morning": (
+        "A morning message points to a physical opening (e.g. favourable "
+        "weather or a pleasant nearby route); the practical opportunity "
+        "makes the walk easier to take, so you take a noticeably longer walk "
+        "this morning. It is a matched nudge for anyone whose barrier is a "
+        "lack of practical opportunity."
+    ),
+    "physical_opportunity_afternoon": (
+        "An afternoon message points to a physical opening (e.g. a quieter "
+        "path or a stop on the way home); the practical opportunity makes "
+        "the walk easier to take, so you take a noticeably longer walk this "
+        "afternoon. It is a matched nudge for anyone whose barrier is a lack "
+        "of practical opportunity."
+    ),
+}
+
+
+def _empirical_anchors_user_extra(state: dict, action: str) -> str:
+    """Per-day barrier profile reminder for the empirical_anchors variant."""
+    if action == "idle":
+        return ""
+    profile = _EMPIRICAL_BARRIER_PROFILES.get(
+        (state["recent_steps_mean"], state["burden"])
+    )
+    return (
+        "BARRIER PROFILE TODAY: "
+        f"this person is {profile or 'facing the barrier described above'}. "
+        "A matched nudge adds roughly 150-450 steps on top of their usual "
+        "level today; an unmatched nudge adds little."
+    )
+
+
 PROMPT_VARIANT_CONFIGS: dict[str, PromptVariant] = {
     "baseline": PromptVariant(),
     "state_self_model": PromptVariant(
@@ -266,7 +433,11 @@ PROMPT_VARIANT_CONFIGS: dict[str, PromptVariant] = {
         action_overrides=_COMB_MECHANISMS_ACTION_OVERRIDES,
         user_extra=_COMB_MECHANISMS_USER_EXTRA,
     ),
-    "empirical_anchors": PromptVariant(),
+    "empirical_anchors": PromptVariant(
+        system_extra=_EMPIRICAL_ANCHORS_SYSTEM_EXTRA,
+        action_overrides=_EMPIRICAL_ANCHORS_ACTIONS_OVERRIDES,
+        user_extra=_empirical_anchors_user_extra,
+    ),
     "protocol": PromptVariant(),
     "protocol_fewshot": PromptVariant(),
 }

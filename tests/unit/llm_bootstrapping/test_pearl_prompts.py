@@ -380,6 +380,141 @@ class TestCombMechanismsVariant:
         assert prompt.count('{"day"') == 3  # only the 3 format examples
 
 
+class TestEmpiricalAnchorsVariant:
+    """Numeric anchors + barrier profiles + mechanisms (round 4 variant)."""
+
+    def test_system_extra_has_numeric_anchors(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="empirical_anchors")
+        assert "population average" in prompt
+        assert "under 4,000" in prompt
+        assert "4,000-7,000" in prompt
+        assert "over 7,000" in prompt
+        assert "never regress" in prompt
+        assert "around 8,000" in prompt
+        assert "around 3,000" in prompt
+
+    def test_system_extra_has_barrier_profiles(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="empirical_anchors")
+        assert "BARRIER PROFILE" in prompt
+        assert "complacency" in prompt
+        assert "fatigue AND opportunity" in prompt
+        assert "NOT capability" in prompt
+        assert "Every profile has at least one real barrier" in prompt
+
+    def test_system_extra_has_causal_rule_and_empirical_anchor(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="empirical_anchors")
+        assert "+150-450 steps" in prompt
+        assert "middle of the band" in prompt
+        assert "90%" in prompt
+        assert "thumbs-up" in prompt
+        assert "planning and prioritization" in prompt
+        assert "negligible" in prompt
+
+    def test_all_actions_overridden(self) -> None:
+        for action in ACTIONS:
+            prompt = _render_user_prompt(
+                recent_steps_mean="moderate",
+                walk_pattern="low",
+                morning_ratio="balanced",
+                day_type="weekday",
+                burden="none",
+                action=action,
+                prompt_variant="empirical_anchors",
+            )
+            if action == "idle":
+                assert "No intervention is delivered today." in prompt
+                continue
+            assert "nudge" in prompt
+            assert "noticeably longer walk" in prompt
+            assert "matched nudge" in prompt
+
+    def test_matched_clauses_per_theme(self) -> None:
+        expected = {
+            "ability": "effort or technique",
+            "perceived_benefit": "motivation or self-belief",
+            "planning": "barrier is scheduling",
+            "prioritization": "time or priority pressure",
+            "social_opportunity": "social support",
+            "physical_opportunity": "practical opportunity",
+        }
+        for theme, clause in expected.items():
+            prompt = _render_user_prompt(
+                recent_steps_mean="low",
+                walk_pattern="low",
+                morning_ratio="balanced",
+                day_type="weekday",
+                burden="major",
+                action=f"{theme}_morning",
+                prompt_variant="empirical_anchors",
+            )
+            assert clause in prompt
+
+    def test_user_extra_empty_on_idle(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="high",
+            walk_pattern="high",
+            morning_ratio="balanced",
+            day_type="weekday",
+            burden="none",
+            action="idle",
+            prompt_variant="empirical_anchors",
+        )
+        assert "BARRIER PROFILE TODAY" not in prompt
+        assert '{"day"' in prompt
+
+    def test_user_extra_profile_is_state_conditional(self) -> None:
+        high_none = _render_user_prompt(
+            recent_steps_mean="high",
+            walk_pattern="low",
+            morning_ratio="balanced",
+            day_type="weekday",
+            burden="none",
+            action="ability_morning",
+            prompt_variant="empirical_anchors",
+        )
+        low_major = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="balanced",
+            day_type="weekday",
+            burden="major",
+            action="ability_morning",
+            prompt_variant="empirical_anchors",
+        )
+        assert "complacency" in high_none
+        assert "complacency" not in low_major
+        assert "fatigue AND opportunity" in low_major
+        assert "150-450 steps" in high_none
+        assert "150-450 steps" in low_major
+
+    def test_extra_before_json_instruction(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="morning",
+            day_type="weekday",
+            burden="none",
+            action="ability_morning",
+            prompt_variant="empirical_anchors",
+        )
+        assert prompt.index("BARRIER PROFILE TODAY") < prompt.index(
+            "Output exactly 7 JSON objects"
+        )
+
+    def test_extra_contains_no_json_objects(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="morning",
+            day_type="weekday",
+            burden="none",
+            action="ability_morning",
+            prompt_variant="empirical_anchors",
+        )
+        assert '{"day"' in prompt
+        assert prompt.count('{"day"') == 3  # only the 3 format examples
+
+
 class TestConstants:
     def test_actions_count(self) -> None:
         assert len(ACTIONS) == 13  # idle + 12 COM-B x time
