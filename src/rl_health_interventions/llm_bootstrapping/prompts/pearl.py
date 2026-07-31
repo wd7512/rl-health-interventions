@@ -143,13 +143,129 @@ def _state_self_model_user_extra(state: dict, action: str) -> str:
     )
 
 
+# COM-B mechanism framing for the "com_b_mechanisms" variant. Each nudge is
+# given a causal mechanism: which behavioural lever it targets and why that
+# lever matters for this person. Matched nudges (target a lever the person
+# has a barrier on) produce the +150-450 step boost; unmatched nudges are
+# near no-ops. The persistence rule from round 2 is kept so idle baselines
+# stay at the person's stated level (the step-lift metric needs it).
+_COMB_MECHANISMS_SYSTEM_EXTRA = (
+    "COM-B MECHANISMS: behaviour change works through levers. Capability "
+    "is knowing how to walk and finding it easy; Opportunity is whether the "
+    "environment, schedule, and other people make walking possible; "
+    "Motivation is wanting to walk and believing it matters; self-regulation "
+    "(planning and prioritization) turns an intention into a concrete, "
+    "scheduled act.\n\n"
+    "CAUSAL RULE: every nudge targets one lever. A nudge that matches a "
+    "lever the person has a barrier on produces a REAL increase in walking "
+    "on the day it is delivered (+150-450 steps). A nudge that does not "
+    "match the person's barriers produces only a small or negligible "
+    "increase: someone who already knows how to walk is not moved by another "
+    "ability tip, and someone with no practical obstacle is not moved by an "
+    "opportunity reminder.\n\n"
+    "THEME MAPPING: ability = capability; physical_opportunity = "
+    "opportunity (the environment); social_opportunity = opportunity via "
+    "other people; perceived_benefit = reflective motivation; planning and "
+    "prioritization = self-regulation.\n\n"
+    "PERSISTENCE: each scenario states the person's current recent activity "
+    "level (low = under 4,000, moderate = 4,000-7,000, high = over 7,000 "
+    "steps/day). Days without an effective nudge (idle, or an unmatched "
+    "nudge) keep the person at their own established level - never regress "
+    "a stated 'high' or 'low' person toward the ~5,580 population average."
+)
+
+_COMB_MECHANISMS_ACTION_OVERRIDES = {
+    "idle": "No intervention is delivered today.",
+    "ability_morning": (
+        "A morning message offers a technique that makes walking easier "
+        "(e.g. a shorter route, or a walk paired with your morning coffee); "
+        "receiving it, you find walking less effortful and take a noticeably "
+        "longer walk this morning."
+    ),
+    "ability_afternoon": (
+        "An afternoon message offers a technique that makes walking easier "
+        "(e.g. splitting one long walk into two short ones); receiving it, "
+        "you find walking less effortful and take a noticeably longer walk "
+        "this afternoon."
+    ),
+    "perceived_benefit_morning": (
+        "A morning message reminds you what walking does for you (e.g. more "
+        "energy and a better mood for the day); it sharpens your motivation, "
+        "so you set out more readily and take a noticeably longer walk this "
+        "morning."
+    ),
+    "perceived_benefit_afternoon": (
+        "An afternoon message reminds you what walking does for you (e.g. a "
+        "head-clearing break that helps you sleep); it sharpens your "
+        "motivation, so you set out more readily and take a noticeably "
+        "longer walk this afternoon."
+    ),
+    "planning_morning": (
+        "A morning message helps you schedule today's walk (e.g. a specific "
+        "time and route written down before the day fills up); the concrete "
+        "plan turns intention into action, so you take a noticeably longer "
+        "walk this morning."
+    ),
+    "planning_afternoon": (
+        "An afternoon message helps you schedule the rest of the day (e.g. "
+        "blocking out a specific time and route); the concrete plan turns "
+        "intention into action, so you take a noticeably longer walk this "
+        "afternoon."
+    ),
+    "prioritization_morning": (
+        "A morning message helps you protect time for walking (e.g. moving "
+        "a low-priority task off the morning); walking becomes a deliberate "
+        "priority, so you take a noticeably longer walk this morning."
+    ),
+    "prioritization_afternoon": (
+        "An afternoon message helps you protect time for walking (e.g. "
+        "delaying a low-priority task to make room); walking becomes a "
+        "deliberate priority, so you take a noticeably longer walk this "
+        "afternoon."
+    ),
+    "social_opportunity_morning": (
+        "A morning message connects walking to other people (e.g. a friend "
+        "who will join you, or a walk-and-talk call); the social opening "
+        "gets you out the door, so you take a noticeably longer walk this "
+        "morning."
+    ),
+    "social_opportunity_afternoon": (
+        "An afternoon message connects walking to other people (e.g. a group "
+        "walk or a colleague to join); the social opening gets you out the "
+        "door, so you take a noticeably longer walk this afternoon."
+    ),
+    "physical_opportunity_morning": (
+        "A morning message points to a physical opening (e.g. favourable "
+        "weather or a pleasant nearby route); the practical opportunity "
+        "makes the walk easier to take, so you take a noticeably longer walk "
+        "this morning."
+    ),
+    "physical_opportunity_afternoon": (
+        "An afternoon message points to a physical opening (e.g. a quieter "
+        "path or a stop on the way home); the practical opportunity makes "
+        "the walk easier to take, so you take a noticeably longer walk this "
+        "afternoon."
+    ),
+}
+
+_COMB_MECHANISMS_USER_EXTRA = (
+    "Respond to the intervention if it fits your situation: a matched nudge "
+    "produces a clear increase in steps that day (~150-450 steps); an "
+    "unmatched or no nudge leaves your steps near your usual level."
+)
+
+
 PROMPT_VARIANT_CONFIGS: dict[str, PromptVariant] = {
     "baseline": PromptVariant(),
     "state_self_model": PromptVariant(
         system_extra=_SELF_MODEL_SYSTEM_EXTRA,
         user_extra=_state_self_model_user_extra,
     ),
-    "com_b_mechanisms": PromptVariant(),
+    "com_b_mechanisms": PromptVariant(
+        system_extra=_COMB_MECHANISMS_SYSTEM_EXTRA,
+        action_overrides=_COMB_MECHANISMS_ACTION_OVERRIDES,
+        user_extra=_COMB_MECHANISMS_USER_EXTRA,
+    ),
     "empirical_anchors": PromptVariant(),
     "protocol": PromptVariant(),
     "protocol_fewshot": PromptVariant(),

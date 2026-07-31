@@ -129,6 +129,82 @@ subset-coverage reasons rather than prompt behaviour.
 
 ---
 
+### Round 3 — com_b_mechanisms (2026-07-31)
+
+**Prompt version:** `com_b_mechanisms` variant in `prompts/pearl.py`
+(`system_extra` + `action_overrides` + static `user_extra`). System extra
+explains the COM-B levers (capability / opportunity / motivation /
+self-regulation) and the causal rule: a nudge that matches a lever the person
+has a barrier on produces a real +150-450 step increase that day; an
+unmatched nudge produces a small or negligible increase. The 6 nudge themes
+are mapped to COM-B components (ability = capability, physical_opportunity =
+opportunity, social_opportunity = opportunity via others, perceived_benefit =
+reflective motivation, planning/prioritization = self-regulation). Each of
+the 12 actions gets a distinct mechanism sentence ("A morning message offers
+a technique that makes walking easier ... you find walking less effortful
+and take a noticeably longer walk this morning."). A compact persistence
+clause keeps idle at the person's stated level; user extra is a one-line
+closing rule. Baseline output byte-identical.
+
+**Config:** deepseek-v4-flash (openrouter), temp 0.7, 3 samples/cell, 4 states
+(2 burden x 2 recent_steps_mean) x 13 actions = 156 prompts.
+
+**Run:** 156/156 LLM calls succeeded; 8 responses had malformed day JSON
+(quote typo on a day line; concentrated in major-burden morning cells) and
+were dropped — one cell fell below the 2-sample minimum. Raw results saved to
+`tables/pearl_12action_pilot/raw/`. Table: 51/52 cells.
+
+| Check | Result | Detail |
+|-------|--------|--------|
+| C1 action coverage | PASS | 13/13 |
+| C2 cell coverage | FAIL | 51/52 (8/156 malformed-JSON responses, one cell lost 2 samples) |
+| C3 state persistence | FAIL | idle P(stay): low=1.0, high=0.333 (raw high idle means 7,210 / 6,864 — straddling the 7,000 threshold vs 7,931/7,960 in round 2) |
+| C4 action sensitivity | FAIL | ability_morning raises P(high) in 1/4 cells (first real signal: dP=+0.667 in high/major, where weakened persistence freed headroom) |
+| C5 burden monotonicity | PASS | high: 0.795 -> 0.667; low: 0.0 -> 0.0 |
+| C6 factor variation | FAIL | morning_steps_ratio = balanced as modal value in 49/51 cells (structural in this subset) |
+
+**Raw effect (analyzer):** overall mean lift **+149.6** steps/day (round 2:
++115), min **-228.6**, max **+1,036.4**, 31/48 cells positive. Per state —
+high/major: idle 6,864, lift +382.4 (in band); low/none: idle 3,514, lift
++112.5; low/major: idle 3,388, lift +97.5; high/none: idle 7,210, lift +6.2.
+
+**Summary:** 2/6 checks pass (round 2: 3/6). Mean intervention lift moved
+toward the +150-450 target (+149.6 vs +115) but the mechanism framing did
+not land evenly, and C3 regressed because the numeric self-model anchors
+were dropped.
+
+**Diagnosis:**
+- Mechanism framing strengthened the average response (+149.6 vs +115) but
+  with wide variance (min -229, max +1,036). The near-zero high/none lift
+  (+6.2) suggests the model applied the causal rule literally: a high-
+  activity, no-burden person is judged barrier-free, so every nudge is
+  treated as unmatched → negligible — instead of the base persona (moderate
+  barriers everywhere) making all nudges matched.
+- C3 regressed (high idle P(stay) 1.0 → 0.333): the compact persistence
+  clause in the system extra is weaker than round 2's explicit numeric
+  anchor. High idle means drifted from ~7,931/7,960 to 7,210/6,864, landing
+  on both sides of the 7,000 bin threshold.
+- C2 failed for the first time: 8/156 responses carried malformed day JSON
+  (one misplaced quote per line), concentrated in major-burden morning
+  cells; one cell lost 2 samples. Format instruction needs hardening.
+- C4 shows its first real signal (1/4) precisely where persistence weakened
+  (high/major idle P(high)=0), confirming the bin-based check is sensitivity
+  to idle headroom, not to prompt quality.
+
+**Next steps (for round 4):**
+1. `empirical_anchors`: keep mechanism framing, restore round-2-style
+   explicit numeric anchors (low ~3,000 / moderate ~5,500 / high ~8,000,
+   ±500/day) to recover C3.
+2. Pair the causal rule with an explicit per-state barriers profile so
+   matched/unmatched is unambiguous and all nudges land in +150-450.
+3. Harden the JSON format instruction (one object per line, no trailing
+   characters) against the quote typo class of failures.
+4. For C4, extend the subset to moderate recent_steps_mean cells (234 calls)
+   or evaluate sensitivity on a continuous step shift; for C6, vary
+   morning_steps_ratio / walk_pattern / day_of_week in the subset.
+
+---
+
 ## How to add a round
 
 1. Edit prompts in `prompts/pearl.py`; record the diff in the round header.
