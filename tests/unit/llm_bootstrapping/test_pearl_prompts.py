@@ -265,6 +265,121 @@ class TestStateSelfModelVariant:
         assert prompt.count('{"day"') == 3  # only the 3 format examples
 
 
+class TestCombMechanismsVariant:
+    """COM-B causal mechanism framing (round 3 variant)."""
+
+    def test_system_extra_explains_com_b_and_causal_rule(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="com_b_mechanisms")
+        assert "COM-B" in prompt
+        assert "Capability" in prompt
+        assert "Opportunity" in prompt
+        assert "Motivation" in prompt
+        assert "self-regulation" in prompt
+        assert "+150-450 steps" in prompt
+        assert "negligible" in prompt
+
+    def test_theme_mapping_present(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="com_b_mechanisms")
+        assert "ability = capability" in prompt
+        assert "physical_opportunity = opportunity" in prompt
+        assert "social_opportunity = opportunity via other people" in prompt
+        assert "perceived_benefit = reflective motivation" in prompt
+
+    def test_persistence_rule_kept(self) -> None:
+        prompt = _render_system_prompt("base", prompt_variant="com_b_mechanisms")
+        assert "never regress" in prompt
+
+    def test_all_actions_overridden_with_mechanism(self) -> None:
+        for action in ACTIONS:
+            prompt = _render_user_prompt(
+                recent_steps_mean="moderate",
+                walk_pattern="low",
+                morning_ratio="balanced",
+                day_type="weekday",
+                burden="none",
+                action=action,
+                prompt_variant="com_b_mechanisms",
+            )
+            assert "nudge" in prompt
+            if action == "idle":
+                assert "No intervention is delivered today." in prompt
+            else:
+                assert "noticeably longer walk" in prompt
+
+    def test_morning_afternoon_mechanism_sentences_distinct(self) -> None:
+        for theme in (
+            "ability",
+            "perceived_benefit",
+            "planning",
+            "prioritization",
+            "social_opportunity",
+            "physical_opportunity",
+        ):
+            morning = _render_user_prompt(
+                recent_steps_mean="moderate",
+                walk_pattern="low",
+                morning_ratio="balanced",
+                day_type="weekday",
+                burden="none",
+                action=f"{theme}_morning",
+                prompt_variant="com_b_mechanisms",
+            )
+            afternoon = _render_user_prompt(
+                recent_steps_mean="moderate",
+                walk_pattern="low",
+                morning_ratio="balanced",
+                day_type="weekday",
+                burden="none",
+                action=f"{theme}_afternoon",
+                prompt_variant="com_b_mechanisms",
+            )
+            assert morning != afternoon
+
+    def test_user_extra_closing_line(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="morning",
+            day_type="weekday",
+            burden="none",
+            action="ability_morning",
+            prompt_variant="com_b_mechanisms",
+        )
+        assert "matched nudge produces a clear increase" in prompt
+        assert "unmatched or no nudge leaves your steps near your usual level" in prompt
+
+    def test_system_extra_before_json_instruction(self) -> None:
+        system = _render_system_prompt("base", prompt_variant="com_b_mechanisms")
+        assert "COM-B MECHANISMS" in system
+
+    def test_user_extra_before_json_instruction(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="morning",
+            day_type="weekday",
+            burden="none",
+            action="ability_morning",
+            prompt_variant="com_b_mechanisms",
+        )
+        assert prompt.index("matched nudge produces a clear increase") < prompt.index(
+            "Output exactly 7 JSON objects"
+        )
+
+    def test_extra_contains_no_json_objects(self) -> None:
+        prompt = _render_user_prompt(
+            recent_steps_mean="low",
+            walk_pattern="low",
+            morning_ratio="morning",
+            day_type="weekday",
+            burden="none",
+            action="ability_morning",
+            prompt_variant="com_b_mechanisms",
+        )
+        assert '{"day"' in prompt
+        assert prompt.count('{"day"') == 3  # only the 3 format examples
+
+
 class TestConstants:
     def test_actions_count(self) -> None:
         assert len(ACTIONS) == 13  # idle + 12 COM-B x time
