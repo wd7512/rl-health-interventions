@@ -1021,10 +1021,16 @@ C5 PASS, 0 parse failures.
 
 ## Ladder summary
 
+> Scope: this ladder covers variant selection through round 6 (the SHIP
+> decision). Rounds 7-10 refined the shipped `protocol_fewshot` variant
+> further; their per-round verdicts are in the round sections above, and
+> the check counts below match the per-round verdict tables (r1: 3/6,
+> r2: 4/6 — C5 counted per verdict table even where its signal was weak).
+
 | Rung | Variant | n_passes | Mean lift | n positive cells | Parse failures | Verdict |
 |------|---------|----------|-----------|------------------|----------------|---------|
-| 1 | baseline | 2/6 | — (raw not saved) | — | 2 | no — high states collapse to moderate |
-| 2 | state_self_model | 3/6 | +115.0 | — | 1 | no — lift under target, no mechanisms |
+| 1 | baseline | 3/6 | — (raw not saved) | — | 2 | no — high states collapse to moderate |
+| 2 | state_self_model | 4/6 | +115.0 | — | 1 | no — lift under target, no mechanisms |
 | 3 | com_b_mechanisms | 2/6 | +149.6 | 31/48 | 8 | no — wild variance, C3/C2 regress |
 | 4 | empirical_anchors | 4/6 | +43.1 | 26/48 | 2 | no — binary matchedness kills lift |
 | 5 | protocol | 4/6 | +584.9 | 46/48 | 0 | no — overshoots 2-4x, C3 straddles |
@@ -1040,13 +1046,13 @@ stated band) with lift magnitudes inside the +150-350 target (mean +212.4,
 max +673.8, no morning/afternoon asymmetry) — round 5's protocol fixed
 directionality but overshot ~2.7x, and rounds 2-4 each traded one of those
 two properties for the other. The remaining blemishes are minor and
-addressable: 3 prose-preamble parse failures (no cell lost), 5 negative
-cells on the weakest-weight themes (social_opportunity afternoons), and C4
-blind in all 4 cells — a structural consequence of C3 being fully green in
-this subset, not a prompt defect. Baseline, state_self_model, and
-com_b_mechanisms are ruled out on checks; empirical_anchors and protocol
-are the fallbacks if a post-ship regression appears, with protocol the
-closer of the two.
+addressable: 0 parse failures across rounds 7-10 (156/156 every run), 6
+negative cells on the weakest-weight themes concentrated in low/major
+afternoons (round 10), and C4 blind in all 4 cells — a structural
+consequence of C3 being fully green in this subset, not a prompt defect.
+Baseline, state_self_model, and com_b_mechanisms are ruled out on checks;
+empirical_anchors and protocol are the fallbacks if a post-ship regression
+appears, with protocol the closer of the two.
 
 ---
 
