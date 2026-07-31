@@ -63,9 +63,92 @@ class PromptVariant:
         return ""
 
 
+# State-conditional self-model anchors for the "state_self_model" variant.
+# The recent_steps_mean band stated in each scenario is the person's true
+# recent daily average; the population baseline (~5,580) is only an average
+# and must not override it.
+_STATE_STEP_ANCHORS = {
+    "low": 3000,
+    "moderate": 5500,
+    "high": 8000,
+}
+
+_STATE_RATIO_SHARE_DESC = {
+    "morning": "about 60-75% of their steps before noon",
+    "balanced": "roughly 40-60% of their steps before noon",
+    "evening": (
+        "only about 25-40% of their steps before noon (most walking happens "
+        "in the afternoon/evening)"
+    ),
+}
+
+_STATE_BURDEN_EFFECT_DESC = {
+    "none": (
+        "the person is fully receptive, so the day's boost tends toward the "
+        "top of that range (+300-450 steps)"
+    ),
+    "minor": (
+        "the person is somewhat receptive, so the day's boost tends toward "
+        "the middle of that range (+250-400 steps)"
+    ),
+    "major": (
+        "the person is fatigued by notifications, so the day's boost tends "
+        "toward the bottom of that range (+150-250 steps)"
+    ),
+}
+
+_SELF_MODEL_SYSTEM_EXTRA = (
+    "SELF-MODEL NOTE: the ~5,580 steps/day figure above is only the "
+    "population average at baseline - it is NOT this person's level. Every "
+    "scenario states the person's CURRENT recent activity level explicitly "
+    "(recent activity: low = under 4,000 steps/day, moderate = 4,000-7,000, "
+    "high = over 7,000 steps/day). Treat the stated band as this person's "
+    "true recent average and keep all 7 simulated days consistent with it: a "
+    "'high' person's days stay well above 7,000, a 'low' person's days stay "
+    "well below 4,000. On days with no intervention (idle), the person simply "
+    "continues at their own established level; never regress a stated 'high' "
+    "or 'low' person toward the population average."
+)
+
+
+def _state_self_model_user_extra(state: dict, action: str) -> str:
+    """State-conditional step anchors for the state_self_model variant."""
+    rsm = state["recent_steps_mean"]
+    anchor = _STATE_STEP_ANCHORS.get(rsm, 5500)
+    ratio_desc = _STATE_RATIO_SHARE_DESC.get(
+        state["morning_steps_ratio"], _STATE_RATIO_SHARE_DESC["balanced"]
+    )
+    burden_desc = _STATE_BURDEN_EFFECT_DESC.get(
+        state["burden"], _STATE_BURDEN_EFFECT_DESC["none"]
+    )
+    if action == "idle":
+        day_line = (
+            "Today is an idle day (no intervention): the person walks at "
+            "their own established level with no step boost."
+        )
+    else:
+        day_line = (
+            "Today's intervention is delivered: add roughly 150-450 steps on "
+            f"top of the person's own level ({burden_desc})."
+        )
+    return (
+        "SELF-MODEL ANCHORS: this person's recent daily average is around "
+        f"{anchor:,} steps/day (recent activity: {rsm}). Keep each day's "
+        f"total within roughly +/-500 steps of {anchor:,} - daily totals "
+        "should hover around that level and never drift toward the "
+        f"population average. {day_line} The person's time-of-day preference "
+        f"is {state['morning_steps_ratio']}: {ratio_desc}; a morning "
+        "intervention leans the day toward the upper end of that share and "
+        "an afternoon intervention toward the lower end."
+    )
+
+
 PROMPT_VARIANT_CONFIGS: dict[str, PromptVariant] = {
     "baseline": PromptVariant(),
-    "state_self_model": PromptVariant(),
+    "state_self_model": PromptVariant(
+        system_extra=_SELF_MODEL_SYSTEM_EXTRA,
+        user_extra=_state_self_model_user_extra,
+    ),
     "com_b_mechanisms": PromptVariant(),
     "empirical_anchors": PromptVariant(),
     "protocol": PromptVariant(),
@@ -231,15 +314,17 @@ def _render_user_prompt(
         f"# Task\n"
         f"Simulate this person's walking for the next 7 days. "
         f"For each day, provide morning_steps and afternoon_steps.\n\n"
-        f"Output exactly 7 JSON objects, one per day:\n"
-        f'{{"day": 1, "morning_steps": N, "afternoon_steps": N}}\n'
-        f'{{"day": 2, "morning_steps": N, "afternoon_steps": N}}\n'
-        f"...\n"
-        f'{{"day": 7, "morning_steps": N, "afternoon_steps": N}}'
     )
     extra = variant.render_user_extra(state, action)
     if extra:
-        base += f"\n\n{extra}"
+        base += f"{extra}\n\n"
+    base += (
+        "Output exactly 7 JSON objects, one per day:\n"
+        '{"day": 1, "morning_steps": N, "afternoon_steps": N}\n'
+        '{"day": 2, "morning_steps": N, "afternoon_steps": N}\n'
+        "...\n"
+        '{"day": 7, "morning_steps": N, "afternoon_steps": N}'
+    )
     return base
 
 

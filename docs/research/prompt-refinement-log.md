@@ -78,6 +78,57 @@ not meet constitution proxies.
 
 ---
 
+### Round 2 — state_self_model (2026-07-31)
+
+**Prompt version:** `state_self_model` variant in `prompts/pearl.py`
+(`system_extra` + callable `user_extra`). State anchors low ~3,000 / moderate
+~5,500 / high ~8,000 daily steps (±500/day), idle days persist at the person's
+own level, intervention days add ~150-450 steps (graded down under major
+burden), time-of-day share guidance matches `morning_steps_ratio`. Baseline
+output byte-identical.
+
+**Config:** deepseek-v4-flash (openrouter), temp 0.7, 3 samples/cell, 4 states
+(2 burden x 2 recent_steps_mean) x 13 actions = 156 prompts.
+
+**Run:** 156/156 LLM calls succeeded; 1 response had no valid day records and
+was dropped (raw results saved to `tables/pearl_12action_pilot/raw/`). Table:
+52/52 cells.
+
+| Check | Result | Detail |
+|-------|--------|--------|
+| C1 action coverage | PASS | 13/13 |
+| C2 cell coverage | PASS | 52/52 |
+| C3 state persistence | PASS | idle P(stay): low=1.0, high=1.0 (raw daily means: high 7,931, low 2,929) |
+| C4 action sensitivity | FAIL | ability_morning raises P(high) in 0/4 cells (structural: high idle P(high)=1.0; low anchor +boost cannot cross 7,000) |
+| C5 burden monotonicity | PASS | low: 0.0 vs 0.0; high: 1.0 vs 1.0 |
+| C6 factor variation | FAIL | morning_steps_ratio = balanced as modal value in 52/52 cells (subset pins factor; model respects it) |
+
+**Summary:** 3/6 checks pass (round 1: 2/6). C3 fully fixed; C4/C6 fail for
+subset-coverage reasons rather than prompt behaviour.
+
+**Diagnosis:**
+- State-conditional anchors fixed C3 completely: high states no longer
+  collapse to moderate on idle; low states stay low (idle P(stay) 1.0/1.0 vs
+  1.0/0.0 in round 1).
+- C4 regressed 1/4 → 0/4 structurally: with persistence fixed, idle P(high)
+  = 1.0 in high states so an intervention cannot raise it, and low states
+  anchored ~3,000 cannot cross the >7,000 bin even with the boost (which
+  landed at ~+110-120, below the +150-450 guidance).
+- C6 morning-ratio component cannot pass: the pilot subset pins
+  `morning_steps_ratio=balanced` in all 4 states, and the model now
+  faithfully respects it (52/52 balanced vs 51/52 in round 1).
+
+**Next steps (for round 3):**
+1. `com_b_mechanisms`: strengthen intervention effect magnitude so the boost
+   reliably lands in +150-450 (raw mean ~+110-120).
+2. For C4 signal, extend the pilot subset to moderate recent_steps_mean
+   cells (234 calls) or evaluate sensitivity on a continuous step shift
+   (analyzer change).
+3. For C6, vary morning_steps_ratio / walk_pattern / day_of_week in the
+   pilot subset so the time-of-day guidance can manifest.
+
+---
+
 ## How to add a round
 
 1. Edit prompts in `prompts/pearl.py`; record the diff in the round header.
