@@ -5,6 +5,13 @@ to validate the pipeline end-to-end before scaling to full 108-state table.
 
 States include all 5 MDP factors (recent_steps_mean, recent_walk_pattern,
 morning_steps_ratio, day_of_week, burden).
+
+Usage: uv run python scripts/pearl_recalibration/generate_pearl_mini.py
+    [samples_per_cell] [prompt_variant]
+
+prompt_variant selects the prompt style (see prompts.pearl.PROMPT_VARIANTS;
+default "baseline"). Output table: tables/pearl_12action_pilot/
+pearl_pilot{_<variant>}.json, raw results in tables/pearl_12action_pilot/raw/.
 """
 
 from __future__ import annotations
@@ -55,6 +62,8 @@ MINI_STATES = [
 ]
 
 SAMPLES_PER_CELL = 5
+
+_VARIANT_ARG_INDEX = 2
 
 
 _MIN_SAMPLES_PER_CELL = 2
@@ -145,13 +154,18 @@ def main() -> None:  # noqa: PLR0915
     setup_logging()
     load_env()
 
+    variant = sys.argv[2] if len(sys.argv) > _VARIANT_ARG_INDEX else "baseline"
     samples = int(sys.argv[1]) if len(sys.argv) > 1 else SAMPLES_PER_CELL
     out_dir = Path(_REPO_ROOT / "tables" / "pearl_12action_pilot")
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / "pearl_pilot.json"
+    table_name = (
+        "pearl_pilot.json" if variant == "baseline" else f"pearl_pilot_{variant}.json"
+    )
+    out_path = out_dir / table_name
 
     logger.info(
-        "Generating mini-table: %d states x %d actions x %d samples",
+        "Generating mini-table (variant=%s): %d states x %d actions x %d samples",
+        variant,
         len(MINI_STATES),
         len(ACTIONS),
         samples,
@@ -161,6 +175,7 @@ def main() -> None:  # noqa: PLR0915
         persona="base",
         samples_per_cell=samples,
         state_subset=MINI_STATES,
+        prompt_variant=variant,
     )
     logger.info("Generated %d prompts", len(prompt_entries))
 
@@ -180,7 +195,7 @@ def main() -> None:  # noqa: PLR0915
     # Save raw results for diagnosis (parse failures, bad output inspection)
     raw_dir = out_dir / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
-    raw_path = out_dir / "raw" / f"results_{datetime.now(UTC):%Y%m%d_%H%M%S}.jsonl"
+    raw_path = raw_dir / f"results_{variant}_{datetime.now(UTC):%Y%m%d_%H%M%S}.jsonl"
     with raw_path.open("w") as f:
         for result, (state, action) in zip(
             results, [(s, a) for _p, s, a in prompt_entries], strict=True

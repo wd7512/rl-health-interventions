@@ -11,6 +11,66 @@ state factors deterministically.
 from __future__ import annotations
 
 import itertools
+from collections.abc import Callable
+
+# Prompt variants: ladder from implicit (baseline) to fully explicit
+# alignment with the PEARL RCT paper. Each round of the refinement log
+# (docs/research/prompt-refinement-log.md) uses one variant.
+# Empirical facts source:
+# docs/research/recreations/pearl-rct-2025/pearl-deep-analysis.md
+PROMPT_VARIANTS = (
+    "baseline",
+    "state_self_model",
+    "com_b_mechanisms",
+    "empirical_anchors",
+    "protocol",
+    "protocol_fewshot",
+)
+
+
+class PromptVariant:
+    """Prompt text blocks for one variant of the PEARL bootstrapping prompt.
+
+    Parameters
+    ----------
+    system_extra : str
+        Text appended to the base system prompt.
+    action_overrides : dict[str, str] | None
+        Replacement per-action sentences (keyed by action name).
+    user_extra : str | Callable[[dict, str], str] | None
+        Text appended to every user prompt, or a callable returning it
+        given the (state, action) pair.
+    """
+
+    def __init__(
+        self,
+        *,
+        system_extra: str = "",
+        action_overrides: dict[str, str] | None = None,
+        user_extra: str | Callable[[dict, str], str] | None = None,
+    ) -> None:
+        self.system_extra = system_extra
+        self.action_overrides = action_overrides or {}
+        self.user_extra = user_extra
+
+    def render_user_extra(self, state: dict, action: str) -> str:
+        """Return the variant's user-prompt extra text for this cell."""
+        user_extra = self.user_extra
+        if isinstance(user_extra, str):
+            return user_extra
+        if user_extra is not None:
+            return user_extra(state, action)
+        return ""
+
+
+PROMPT_VARIANT_CONFIGS: dict[str, PromptVariant] = {
+    "baseline": PromptVariant(),
+    "state_self_model": PromptVariant(),
+    "com_b_mechanisms": PromptVariant(),
+    "empirical_anchors": PromptVariant(),
+    "protocol": PromptVariant(),
+    "protocol_fewshot": PromptVariant(),
+}
 
 # PEARL-specific burden tiers (matches YAML configs)
 BURDENS = ["none", "minor", "major"]
@@ -92,10 +152,10 @@ PERSONA_DESCRIPTIONS = {
 }
 
 
-def _render_system_prompt(persona: str) -> str:
-    """Build the system prompt for a given persona."""
+def _render_system_prompt(persona: str, prompt_variant: str = "baseline") -> str:
+    """Build the system prompt for a given persona (and optional variant)."""
     persona_desc = PERSONA_DESCRIPTIONS.get(persona, PERSONA_DESCRIPTIONS["base"])
-    return (
+    base = (
         "You are simulating a person's daily walking behavior in a health "
         "intervention study. The person receives daily notifications (nudges) "
         "designed to increase their physical activity.\n\n"
@@ -113,6 +173,10 @@ def _render_system_prompt(persona: str) -> str:
         "Consider the person's state, the intervention received, and natural "
         "variation in walking behavior."
     )
+    extra = PROMPT_VARIANT_CONFIGS[prompt_variant].system_extra
+    if extra:
+        base += f"\n\n{extra}"
+    return base
 
 
 def _render_user_prompt(
@@ -122,10 +186,14 @@ def _render_user_prompt(
     day_type: str,
     burden: str,
     action: str,
+    prompt_variant: str = "baseline",
 ) -> str:
     """Build a user prompt for one (state, action) combination."""
+    variant = PROMPT_VARIANT_CONFIGS[prompt_variant]
     burden_desc = _BURDEN_DESC.get(burden, f"Burden: {burden}")
-    action_desc = ACTION_DESCRIPTIONS.get(action, f"Action: {action}")
+    action_desc = variant.action_overrides.get(
+        action, ACTION_DESCRIPTIONS.get(action, f"Action: {action}")
+    )
 
     # Describe current state in natural language
     steps_desc = {
@@ -143,7 +211,14 @@ def _render_user_prompt(
         "evening": "doing most of their walking in the evening/afternoon",
     }
 
-    return (
+    state = {
+        "recent_steps_mean": recent_steps_mean,
+        "recent_walk_pattern": walk_pattern,
+        "morning_steps_ratio": morning_ratio,
+        "day_of_week": day_type,
+        "burden": burden,
+    }
+    base = (
         f"# Scenario\n"
         f"A person is in the following state:\n"
         f"- Recent activity: {steps_desc[recent_steps_mean]}\n"
@@ -162,6 +237,10 @@ def _render_user_prompt(
         f"...\n"
         f'{{"day": 7, "morning_steps": N, "afternoon_steps": N}}'
     )
+    extra = variant.render_user_extra(state, action)
+    if extra:
+        base += f"\n\n{extra}"
+    return base
 
 
 PromptEntry = tuple[str, dict, str]  # (prompt_text, state, action)
@@ -171,6 +250,7 @@ def generate_prompts(
     persona: str = "base",
     samples_per_cell: int = 10,
     state_subset: list[dict] | None = None,
+    prompt_variant: str = "baseline",
 ) -> tuple[str, list[PromptEntry]]:
     """Return (system_prompt, list of PromptEntry tuples).
 
@@ -186,8 +266,16 @@ def generate_prompts(
     state_subset : list[dict] | None
         Optional list of state dicts to generate prompts for. If None,
         generates for all 108 states x 13 actions = 1,404 combinations.
+    prompt_variant : str
+        Prompt variant name (see PROMPT_VARIANTS). Defaults to "baseline".
     """
-    system_prompt = _render_system_prompt(persona)
+    if prompt_variant not in PROMPT_VARIANT_CONFIGS:
+        msg = (
+            f"Unknown prompt_variant {prompt_variant!r}; choose from {PROMPT_VARIANTS}"
+        )
+        raise ValueError(msg)
+
+    system_prompt = _render_system_prompt(persona, prompt_variant)
 
     if state_subset is not None:
         state_action_combos = [
@@ -219,6 +307,7 @@ def generate_prompts(
             day_type=state["day_of_week"],
             burden=state["burden"],
             action=action,
+            prompt_variant=prompt_variant,
         )
         for _ in range(samples_per_cell):
             prompts.append((prompt, state, action))
