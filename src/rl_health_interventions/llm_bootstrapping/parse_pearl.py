@@ -28,8 +28,17 @@ def parse_day_history(  # noqa: C901, PLR0912, PLR0915
     Expected format: 7 JSON objects, each with day, morning_steps, afternoon_steps.
     The LLM may output these on separate lines or in a single block.
 
-    Returns list of 7 dicts with keys: day, morning_steps, afternoon_steps.
-    Returns None unless exactly ``expected_days`` distinct days parse.
+    Parameters
+    ----------
+    response : str
+        Raw LLM response text.
+    expected_days : int
+        Number of distinct day records required for a successful parse.
+
+    Returns
+    -------
+    list of 7 dicts with keys: day, morning_steps, afternoon_steps.
+    None unless exactly ``expected_days`` distinct days parse.
     """
     results = []
     dropped = 0
