@@ -35,6 +35,9 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+from rl_health_interventions.llm_bootstrapping._shared import (  # noqa: E402
+    setup_logging,
+)
 from rl_health_interventions.llm_bootstrapping.prompts.pearl import (  # noqa: E402
     ACTIONS,
 )
@@ -210,7 +213,7 @@ def compute_metrics(table: dict) -> dict:  # noqa: C901, PLR0912, PLR0915
     persistence: dict[str, dict[str, float | None]] = {}
     for level in ("low", "high"):
         idle_ps = [
-            next_probs["recent_steps_mean"].get(level, 0.0)
+            next_probs.get("recent_steps_mean", {}).get(level, 0.0)
             for (state_key, action), next_probs in cells.items()
             if action == CONTROL_ACTION
             and json.loads(state_key)["recent_steps_mean"] == level
@@ -228,9 +231,9 @@ def compute_metrics(table: dict) -> dict:  # noqa: C901, PLR0912, PLR0915
         idle_probs = cells.get((state_key, CONTROL_ACTION))
         if idle_probs is None:
             continue
-        d_high = next_probs["recent_steps_mean"].get("high", 0.0) - idle_probs[
-            "recent_steps_mean"
-        ].get("high", 0.0)
+        d_high = next_probs.get("recent_steps_mean", {}).get(
+            "high", 0.0
+        ) - idle_probs.get("recent_steps_mean", {}).get("high", 0.0)
         sensitivity.append(
             {
                 "state": json.loads(state_key),
@@ -243,7 +246,7 @@ def compute_metrics(table: dict) -> dict:  # noqa: C901, PLR0912, PLR0915
     burden_means: dict[tuple[str, str], list[float]] = defaultdict(list)
     for (state_key, _action), next_probs in cells.items():
         state = json.loads(state_key)
-        p_high = next_probs["recent_steps_mean"].get("high", 0.0)
+        p_high = next_probs.get("recent_steps_mean", {}).get("high", 0.0)
         burden_means[(state["recent_steps_mean"], state["burden"])].append(p_high)
     monotonicity = {}
     for rsm_level in ("low", "high"):
@@ -361,6 +364,8 @@ def compute_metrics(table: dict) -> dict:  # noqa: C901, PLR0912, PLR0915
 
 def main() -> None:  # noqa: C901
     """Print metrics for a pilot table (optionally as JSON)."""
+    setup_logging()
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--table",
@@ -383,18 +388,21 @@ def main() -> None:  # noqa: C901
         metrics["raw_effect"] = compute_raw_effect(_load_raw_results(args.raw))
 
     if args.json:
-        print(json.dumps(metrics, indent=2))
+        logger.info(json.dumps(metrics, indent=2))
         return
 
     for check_id, check in metrics["checks"].items():
         marker = "PASS" if check["pass"] else "FAIL"
-        print(f"{check_id}: [{marker}] {check['detail']}")
+        logger.info("%s: [%s] %s", check_id, marker, check["detail"])
     for level, m in metrics["persistence"].items():
-        print(f"persistence[{level}]: mean P(stay) = {m['mean_p_stay']}")
+        logger.info("persistence[%s]: mean P(stay) = %s", level, m["mean_p_stay"])
     for rsm_level, m in metrics["monotonicity"].items():
-        print(
-            f"monotonicity[{rsm_level}]: none={m['mean_P(high)_none']} "
-            f"major={m['mean_P(high)_major']} reduces={m['burden_reduces_steps']}"
+        logger.info(
+            "monotonicity[%s]: none=%s major=%s reduces=%s",
+            rsm_level,
+            m["mean_P(high)_none"],
+            m["mean_P(high)_major"],
+            m["burden_reduces_steps"],
         )
 
 

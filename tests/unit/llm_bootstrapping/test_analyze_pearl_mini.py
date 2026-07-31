@@ -19,6 +19,7 @@ from scripts.pearl_recalibration.analyze_pearl_mini import (  # noqa: E402
     CONTROL_ACTION,
     INTERVENTION_ACTION,
     compute_metrics,
+    compute_raw_effect,
 )
 
 
@@ -73,7 +74,7 @@ def good_table() -> dict:  # noqa: PLR0912
                 is_intervention = action != CONTROL_ACTION
                 if rsm == "low":
                     if is_intervention:
-                        p_high, p_mod, p_low = 0.0, 0.5, 0.5
+                        p_high, p_mod, p_low = 0.1, 0.4, 0.5
                     else:
                         p_high, p_mod, p_low = 0.0, 0.0, 1.0
                 elif is_intervention:
@@ -165,3 +166,40 @@ def test_thresholds_are_sane() -> None:
     assert CHECK_THRESHOLDS["min_action_coverage"] == 1.0
     assert CHECK_THRESHOLDS["min_cell_coverage"] == 1.0
     assert 0.0 < CHECK_THRESHOLDS["min_sensitivity_frac"] <= 1.0
+
+
+def _raw_record(rsm: str, action: str, morning: int, afternoon: int) -> dict:
+    days = "\n".join(
+        f'{{"day": {d}, "morning_steps": {morning}, "afternoon_steps": {afternoon}}}'
+        for d in range(1, 8)
+    )
+    return {"state": _state(rsm, "none"), "action": action, "content": days}
+
+
+def test_compute_raw_effect_reports_lift() -> None:
+    records = [
+        _raw_record("low", CONTROL_ACTION, 1500, 1500),
+        _raw_record("low", INTERVENTION_ACTION, 1650, 1650),
+        {"state": _state("low", "none"), "action": CONTROL_ACTION, "error": "boom"},
+    ]
+    effect = compute_raw_effect(records)
+    assert effect["n_records"] == 3
+    assert effect["n_parsed"] == 2
+    assert effect["mean_lift_steps"] == 300.0
+    assert effect["n_lift_cells"] == 1
+
+
+def test_compute_raw_effect_skips_partial_histories() -> None:
+    partial = {
+        "state": _state("low", "none"),
+        "action": CONTROL_ACTION,
+        "content": "\n".join(
+            f'{{"day": {d}, "morning_steps": 1500, "afternoon_steps": 1500}}'
+            for d in range(1, 4)
+        ),
+    }
+    records = [partial]
+    effect = compute_raw_effect(records)
+    assert effect["n_records"] == 1
+    assert effect["n_parsed"] == 0
+    assert effect["mean_lift_steps"] is None
