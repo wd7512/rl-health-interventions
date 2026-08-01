@@ -150,7 +150,7 @@ def _aggregate_to_table(  # noqa: C901, PLR0912
     }
 
 
-def main() -> None:  # noqa: PLR0915
+def main() -> None:  # noqa: C901, PLR0915
     """Generate the pilot PEARL transition table via LLM bootstrapping."""
     setup_logging()
     load_env()
@@ -199,11 +199,35 @@ def main() -> None:  # noqa: PLR0915
     ok = sum(1 for r in results if "content" in r)
     logger.info("LLM results: %d/%d succeeded", ok, len(results))
 
+    # Bounded retry for unparseable responses (Option B: retry-on-parse-None).
+    # One retry per record; failures stay in the raw file with their content
+    # so the parse-failure rate remains diagnosable.
+    state_action_pairs = [(s, a) for _p, s, a in prompt_entries]
+    retry_indices = [
+        i
+        for i, (result, (state, action)) in enumerate(
+            zip(results, state_action_pairs, strict=True)
+        )
+        if "error" not in result
+        and parse_day_history(result.get("content", "")) is None
+    ]
+    if retry_indices:
+        logger.info("Retrying %d unparseable response(s)", len(retry_indices))
+        retry_results = batch_complete(
+            [prompt_entries[i][0] for i in retry_indices],
+            system_prompt=system_prompt,
+            max_workers=50,
+            provider="openrouter",
+        )
+        for idx, retry_result in zip(retry_indices, retry_results, strict=True):
+            results[idx] = retry_result
+        n_ok_after = sum(1 for i in retry_indices if "content" in results[i])
+        logger.info("Retry recovered %d/%d records", n_ok_after, len(retry_indices))
+
     # Save raw results for diagnosis (parse failures, bad output inspection)
     raw_dir = out_dir / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
     raw_path = raw_dir / f"results_{variant}_{datetime.now(UTC):%Y%m%d_%H%M%S}.jsonl"
-    state_action_pairs = [(s, a) for _p, s, a in prompt_entries]
     with raw_path.open("w") as f:
         for result, (state, action) in zip(results, state_action_pairs, strict=True):
             record = {"state": state, "action": action}
