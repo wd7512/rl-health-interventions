@@ -72,12 +72,13 @@ def run_tier_1(
 def run_tier_2(
     daily_steps: dict[str, np.ndarray],
     ref_steps: float,
+    ref: dict,
 ) -> list[dict]:
     """Run all Tier 2 checks."""
     logger.info("=== Tier 2: Distribution Checks ===")
     return [
         check_t2_1_baseline_mean(daily_steps, ref_steps),
-        check_t2_2_effect_size_magnitude(daily_steps),
+        check_t2_2_effect_size_magnitude(daily_steps, ref),
         check_t2_3_effect_size_ordering(daily_steps),
         check_t2_4_attenuation_pattern(daily_steps),
         check_t2_5_between_person_variance(daily_steps),
@@ -252,7 +253,7 @@ def main() -> None:
     if 1 in tiers_to_run and shared_daily_steps is not None:
         all_results.extend(run_tier_1(shared_daily_steps, ref_steps))
     if 2 in tiers_to_run and shared_daily_steps is not None:
-        all_results.extend(run_tier_2(shared_daily_steps, ref_steps))
+        all_results.extend(run_tier_2(shared_daily_steps, ref_steps, ref))
     if 3 in tiers_to_run:
         assert shared_trajectories is not None
         assert shared_daily_steps is not None

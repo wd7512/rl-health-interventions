@@ -31,10 +31,14 @@ _STEP_BIN_MIDPOINT: dict[str, int] = {
 }
 
 # recent_steps_mean midpoint mapping for the 12-action PEARL config.
-# Calibrated to PEARL Table 3 (baseline mean=5,580, SD=1,499):
+# Calibrated to the persisted PEARL reference
+# (docs/research/reference/pearl_reference.json: mean_baseline_steps=5618.2,
+# SD=1,499):
 #   low: <4k steps/day  → midpoint 3000
 #   moderate: 4k-7k     → midpoint 5500
 #   high: >7k           → midpoint 8000
+# Note: check constants derive from load_reference() where possible; the
+# midpoints here are only for turning state factors into daily-step totals.
 _RECENT_STEPS_MEAN_MIDPOINT: dict[str, int] = {
     "low": 3000,
     "moderate": 5500,
