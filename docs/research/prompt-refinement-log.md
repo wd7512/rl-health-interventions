@@ -1263,6 +1263,44 @@ temperature 0.3.**
 
 ---
 
+### Round 16 — full-scale bootstrap + constitution validation (2026-08-01)
+
+**Prompt change summary:** none — frozen r13 prompt at temperature 0.3,
+full 108-state × 13-action table, 10 samples/cell (14,040 prompts).
+
+**Run:** main run 9,390 prompts in 109.7 min + `--retry-errors` recovery pass
+(90 cells / 773 prompts) in 4.1 min, at 1,000 workers with `--timeout 120
+--retries 1` (per-request bound added because Sprint-1's default retry count
+let a hung request stall a whole batch for ~13-14 min). Final table
+`tables/pearl_12action/pearl_bootstrap.json`: 1,404/1,404 cells, n=10
+everywhere, sums-to-1, `TableValidator` clean.
+
+**Constitution tiers on the full table (10 seeds): 11/17 pass.** Pass: T1.1,
+T1.2, T1.3, T1.4, T2.5, T3.2 (skip), T3.4, T4.1, T4.2 (documented WARNING
+skip), T4.3, T4.4 (skip). Fail: T2.1 (`t=-inf` — deterministic-idle control
+baseline at exactly 5,500, a check artifact; T1.1 on the same mean passes),
+T2.2 (Δ=1,525 vs reference band 218-296), T2.3 (Fixed 7,742 > RL 7,425 —
+ordering inversion), T2.4 (negative attenuation), T3.1 (no burden
+saturation), T3.3 (inverted weekend effect).
+
+**4-arm benchmark (50 seeds, reward space):** Fixed 49.2 > RL 47.5 > Random
+45.6 ≫ Control 10.9. Root cause: the table rewards *any intervention* over
+idle far more than it rewards the *right* intervention, so Random ≈ RL and
+idle collapses (driving the oversized T2.2 Δ).
+
+**Reward-penalty probe:** raising `action_penalty` 0.05 → 0.25 for the 12
+intervention actions restores the reference ordering in reward space
+(RL 37.8 > Fixed 37.2 > Random 34.6 ≫ Control 10.9) but does **not** change
+the step-domain checks (T2.2/T2.3/T3.1/T3.3 still fail) — those are driven by
+the transition table's state structure, not the reward. Full detail in
+`docs/research/full-scale-pearl-bootstrap-report.md`.
+
+**Verdict:** table shipped and structurally valid; the step-domain
+deviations are documented limitations of the LLM-bootstrap approach (see the
+report) rather than prompt defects.
+
+---
+
 ## Ladder summary
 
 > Scope: this ladder covers variant selection through round 6 (the SHIP
