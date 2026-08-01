@@ -52,6 +52,7 @@ TIME_VARYING_FACTORS = [
 MONOTONICITY_FACTOR = "recent_steps_mean"
 INTERVENTION_ACTION = "ability_morning"
 CONTROL_ACTION = "idle"
+_MIN_TRIMMED_LIFTS = 4
 
 CHECK_THRESHOLDS: dict[str, float] = {
     "min_action_coverage": 1.0,  # all actions present (fraction)
@@ -154,6 +155,26 @@ def compute_raw_effect(  # noqa: C901, PLR0912, PLR0915
             }
         )
 
+    # Robust summaries (Option B, literature-backed): the mean is the
+    # round-comparison metric (back-compatible with rounds 1-10); median
+    # and trimmed mean quantify outlier sensitivity (e.g. the round-10
+    # -614.3 cell) without changing the logged metric.
+    sorted_lifts = sorted(all_lifts)
+    n_lifts = len(sorted_lifts)
+    median_lift: float | None = None
+    if n_lifts:
+        if n_lifts % 2 == 1:
+            median_lift = round(sorted_lifts[n_lifts // 2], 1)
+        else:
+            median_lift = round(
+                (sorted_lifts[n_lifts // 2 - 1] + sorted_lifts[n_lifts // 2]) / 2, 1
+            )
+
+    def _trimmed_mean(values: list[float]) -> float | None:
+        if len(values) < _MIN_TRIMMED_LIFTS:
+            return None
+        return round(sum(values[1:-1]) / (len(values) - 2), 1)
+
     return {
         "n_records": len(raw_records),
         "n_parsed": n_parsed,
@@ -163,8 +184,10 @@ def compute_raw_effect(  # noqa: C901, PLR0912, PLR0915
         "mean_lift_steps": round(sum(all_lifts) / len(all_lifts), 1)
         if all_lifts
         else None,
-        "min_lift_steps": round(min(all_lifts), 1) if all_lifts else None,
-        "max_lift_steps": round(max(all_lifts), 1) if all_lifts else None,
+        "median_lift_steps": median_lift if all_lifts else None,
+        "trimmed_mean_lift_steps": _trimmed_mean(sorted_lifts),
+        "min_lift_steps": round(sorted_lifts[0], 1) if all_lifts else None,
+        "max_lift_steps": round(sorted_lifts[-1], 1) if all_lifts else None,
     }
 
 
@@ -388,7 +411,9 @@ def main() -> None:  # noqa: C901
         metrics["raw_effect"] = compute_raw_effect(_load_raw_results(args.raw))
 
     if args.json:
-        logger.info(json.dumps(metrics, indent=2))
+        # Machine-readable payload on stdout (log lines go to stderr via
+        # setup_logging), so `--json` output stays pipable.
+        print(json.dumps(metrics, indent=2))
         return
 
     for check_id, check in metrics["checks"].items():

@@ -203,3 +203,19 @@ def test_compute_raw_effect_skips_partial_histories() -> None:
     assert effect["n_records"] == 1
     assert effect["n_parsed"] == 0
     assert effect["mean_lift_steps"] is None
+
+
+def test_compute_raw_effect_robust_metrics_tame_outliers() -> None:
+    idle = _raw_record("low", CONTROL_ACTION, 1500, 1500)
+    lifts = (-614, -10, 100, 200, 300, 400)
+    records = [idle] + [
+        _raw_record("low", f"theme_{i}", 1500 + lift, 1500)
+        for i, lift in enumerate(lifts)
+    ]
+    effect = compute_raw_effect(records)
+    assert effect["n_parsed"] == 7
+    assert effect["mean_lift_steps"] == 62.7
+    assert effect["median_lift_steps"] == 150.0
+    assert effect["trimmed_mean_lift_steps"] == 147.5
+    assert effect["median_lift_steps"] == 150.0
+    assert effect["trimmed_mean_lift_steps"] == round(sum((-10, 100, 200, 300)) / 4, 1)
