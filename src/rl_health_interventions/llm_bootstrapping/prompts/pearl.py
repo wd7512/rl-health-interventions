@@ -658,7 +658,9 @@ _PROTOCOL_FEWSHOT_SYSTEM_EXTRA = (
     "for a low-activity person as for a high-activity person: the message "
     "adds steps on top of their own normal day, the extra steps land "
     "mostly in the half of the day that received the message, and their "
-    "normal day itself stays inside their pinned idle band.\n\n"
+    "normal day itself stays inside their pinned idle band. A strongly "
+    "matched message is never more than about 500 steps, even for the "
+    "person who matches it best.\n\n"
     "OUTPUT FORMAT: respond with exactly 7 lines, one JSON object per "
     'line, of the form {"day": N, "morning_steps": M, "afternoon_steps": '
     "A} with N = 1, 2, ..., 7 and M, A plain integers (no quotes, no "
