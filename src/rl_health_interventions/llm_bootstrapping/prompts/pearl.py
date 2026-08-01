@@ -588,6 +588,14 @@ def _protocol_user_extra(state: dict, action: str) -> str:
 # the low/no-burden profile gets an explicit 3-barrier breakdown with
 # re-weighted themes, and afternoon parity is stated in the causal rule,
 # with a low-baseline weak-match exemplar anchoring the floor.
+# Round 11 (Option B, literature-backed): exemplars become DELTAS AND
+# RANGES ONLY - every absolute step total is removed, because exemplar
+# magnitudes leak into outputs as anchors (Min et al. EMNLP 2022; Lou &
+# Sun 2025; see docs/research/llm-prompt-calibration-literature.md). The
+# only absolute numbers left in the prompt are the idle pin bands, which
+# are stated as rules. A JSON-schema grammar block is appended (Wang et
+# al. NeurIPS 2023): placeholders keep it unparseable (N/M/A are not
+# valid JSON), so it cannot be ingested as a history row.
 _PROTOCOL_FEWSHOT_SYSTEM_EXTRA = (
     "PROTOCOL FRAME: You are a participant in a year-long adaptive "
     "walking-intervention study. Each day at one decision point the study's "
@@ -640,22 +648,22 @@ _PROTOCOL_FEWSHOT_SYSTEM_EXTRA = (
     "7,500 and 8,500 if you are a high-activity person, between 2,800 and "
     "3,200 if you are a low-activity person. Never regress toward the ~5,580 "
     "population average.\n\n"
-    "DAY-LEVEL EXEMPLARS (concrete days to anchor magnitudes): For example, "
-    "on a day with no message, a high-activity person took 5,100 morning "
-    "steps and 3,100 afternoon steps (8,200 total); a low-activity person "
-    "took 1,800 and 1,300 (3,100 total). A day with a strongly matched "
-    "message (weight >= 0.7): a low-activity person with a major burden who "
-    "usually walks about 3,100 steps took 2,200 morning and 1,200 afternoon "
-    "steps (3,400 total) after a well-matched ability message - about 300 "
-    "steps more than their no-message day. The same applies for a "
-    "low-activity person with no extra burden: a well-matched ability "
-    "message in the morning raised their day from about 3,100 total (1,800 "
-    "morning, 1,300 afternoon) to about 3,400 (2,200 morning, 1,200 "
-    "afternoon). A modestly matched message "
-    "(weight ~0.4) added about 120 steps (e.g. 5,150 + 3,150 on an 8,200 "
-    "baseline). A weakly matched message (weight ~0.3) on a low-activity "
-    "day added about 60 steps: a person who usually takes 3,060 steps took "
-    "1,700 morning and 1,420 afternoon (3,120 total)."
+    "DAY-LEVEL EXEMPLARS (increments, not day totals - the size of the "
+    "response is what matters, never the absolute numbers): A strongly "
+    "matched message (weight >= 0.7) raises the day's total by about 250 "
+    "to 350 steps above the person's no-message day. A modestly matched "
+    "message (weight ~0.4) raises the total by about 120 to 180 steps. A "
+    "weakly matched message (weight ~0.3) raises the total by about 60 to "
+    "100 steps - small, but clearly present. The same increment applies "
+    "for a low-activity person as for a high-activity person: the message "
+    "adds steps on top of their own normal day, the extra steps land "
+    "mostly in the half of the day that received the message, and their "
+    "normal day itself stays inside their pinned idle band.\n\n"
+    "OUTPUT FORMAT: respond with exactly 7 lines, one JSON object per "
+    'line, of the form {"day": N, "morning_steps": M, "afternoon_steps": '
+    "A} with N = 1, 2, ..., 7 and M, A plain integers (no quotes, no "
+    "thousands separators). No reasoning, no markdown fences, no "
+    "commentary, no other text."
 )
 
 _PROTOCOL_FEWSHOT_ACTIONS_OVERRIDES = dict(_PROTOCOL_ACTIONS_OVERRIDES)

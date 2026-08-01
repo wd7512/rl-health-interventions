@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 from rl_health_interventions.llm_bootstrapping.prompts.pearl import (
     ACTIONS,
     BURDENS,
@@ -685,20 +687,31 @@ class TestProtocolFewshotVariant:
     def test_system_extra_has_prose_exemplars(self) -> None:
         prompt = _render_system_prompt("base", prompt_variant="protocol_fewshot")
         assert "DAY-LEVEL EXEMPLARS" in prompt
-        assert "on a day with no message" in prompt
-        assert "8,200 total" in prompt
-        assert "3,100 total" in prompt
+        assert "increments, not day totals" in prompt
         assert "strongly matched message" in prompt
-        assert "about 300 steps more" in prompt
-        assert "about 120 steps" in prompt
-        assert "about 60 steps" in prompt
-        assert "1,700 morning and 1,420 afternoon" in prompt
+        assert "about 250 to 350 steps" in prompt
+        assert "modestly matched message" in prompt
+        assert "about 120 to 180 steps" in prompt
+        assert "weakly matched message" in prompt
+        assert "about 60 to 100 steps" in prompt
+        assert "OUTPUT FORMAT" in prompt
+        # Round 11 (Option B): exemplars carry no absolute step totals —
+        # exemplar magnitudes leak into outputs as anchors (see
+        # docs/research/llm-prompt-calibration-literature.md).
+        assert "8,200 total" not in prompt
+        assert "3,100 total" not in prompt
 
     def test_exemplars_are_prose_not_json_lines(self) -> None:
         prompt = _render_system_prompt("base", prompt_variant="protocol_fewshot")
-        for day in range(1, 8):
-            assert f'"day": {day}' not in prompt
-        assert '"morning_steps"' not in prompt
+        # No line may be ingestible by parse_day_history (a dict with
+        # day/morning_steps/afternoon_steps). The OUTPUT FORMAT template
+        # uses N/M/A placeholders, so it must stay unparseable.
+        for line in prompt.splitlines():
+            try:
+                obj = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            assert not isinstance(obj, dict) or "morning_steps" not in obj
 
     def test_all_actions_overridden(self) -> None:
         for action in ACTIONS:
