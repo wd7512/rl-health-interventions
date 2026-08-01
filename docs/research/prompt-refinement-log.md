@@ -1194,6 +1194,75 @@ bootstrap.
 
 ---
 
+### Round 14 — temperature sweep (2026-08-01)
+
+**Prompt change summary:** none — frozen r13 prompt run at two sampling
+temperatures (0.3 vs 0.7), n=3 each (156 calls per arm), to pick the
+full-scale temperature.
+
+**Runs:** both 156/156, 0 parse failures, 0 retries. Tables archived as
+`archive/pearl_pilot_protocol_fewshot_r14_temp{03,07}.json`; raw
+`results_protocol_fewshot_20260801_0850{42,337}.jsonl`.
+
+| Metric | temp 0.3 | temp 0.7 | Winner |
+|--------|----------|----------|--------|
+| Overall mean | **+279.0** | +171.0 | 0.3 |
+| Median lift | +191.4 | +111.2 | 0.3 |
+| Trimmed mean | +268.9 | +158.7 | 0.3 |
+| Max cell lift | **+981.0** | +1,171.4 | 0.3 |
+| Min cell lift | **+39.0** | -265.3 | 0.3 |
+| Positive cells | **48/48** | 36/48 | 0.3 |
+| high/major mean | +567.6 | +483.3 | 0.3 |
+| high/none mean | +220.6 | **-126.3** | 0.3 |
+| low/major mean | +184.5 | +172.1 | 0.3 |
+| low/none mean | +143.2 | +155.0 | tie |
+| C3 idle P(stay) | 1.0/1.0 | 1.0/1.0 | tie |
+
+**Diagnosis:** temp 0.3 is the decisive winner. It keeps every one of the
+48 intervention cells positive (0.7 put the high/none arm at -126.3), holds
+the mean inside the +150-450 band, eliminates negative outliers (min +39.0
+vs -265.3), and *lowers* the high-side overshoot (max +981.0 vs +1,171.4).
+This matches the literature entry #8 (Renze & Guven): temperature is a
+diversity dial, not an accuracy dial — for a single target distribution,
+the more deterministic extreme (0.3) reduces deviation. The r13 default of
+0.7 was chosen before the sweep; 0.3 is now the full-scale temperature.
+
+**Decision: full-scale run at temperature 0.3.**
+
+---
+
+### Round 15 — n=6 convergence pilot (2026-08-01)
+
+**Prompt change summary:** none — frozen r13 prompt at temperature 0.3
+(the round-14 winner), n=6 (312 calls).
+
+**Run:** 312/312, 0 parse failures, 0 retries. Table archived as
+`archive/pearl_pilot_protocol_fewshot_r15_n06_temp03.json`; raw
+`results_protocol_fewshot_20260801_085845.jsonl`.
+
+| Metric | n=3 (r14, temp 0.3) | n=6 (r15) | Stable? |
+|--------|----------------------|-----------|---------|
+| Overall mean | +279.0 | **+272.8** | yes |
+| Median lift | +191.4 | +253.2 | yes |
+| Trimmed mean | +268.9 | +262.4 | yes |
+| Max cell lift | +981.0 | **+999.9** | overshoot persists |
+| Min cell lift | +39.0 | **+23.8** | yes — no negatives |
+| Positive cells | 48/48 | **48/48** | yes |
+| C3 idle P(stay) | 1.0/1.0 | 1.0/1.0 | yes |
+
+**Diagnosis:** per-cell means stabilize from n=3 to n=6; all 48 intervention
+cells stay positive and no negative outliers appear. The max-cell overshoot
+persists at ~+1,000 across temperature *and* sample size (high/major state
+mean +509.5 is over the band) — confirming it is structural and belongs at
+the pipeline level (robust aggregation + per-cell caps in analysis), not to
+further prompt iterations. **Evidence gate passed: proceed with the full
+14,040-call run at temperature 0.3.**
+
+**Decision: full-scale generation (108 states x 13 actions x 10 samples) at
+temperature 0.3.**
+
+---
+
 ## Ladder summary
 
 > Scope: this ladder covers variant selection through round 6 (the SHIP

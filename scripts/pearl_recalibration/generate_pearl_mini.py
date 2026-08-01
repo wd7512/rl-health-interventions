@@ -69,6 +69,15 @@ SAMPLES_PER_CELL = 5
 _MIN_SAMPLES_PER_CELL = 2
 
 
+def _resolve_temperature(temperature: float | None) -> float:
+    """Resolve the effective sampling temperature.
+
+    None means "use request.batch_complete's default" (0.7); an explicit
+    value passes through unchanged.
+    """
+    return temperature if temperature is not None else 0.7
+
+
 def _aggregate_to_table(  # noqa: C901, PLR0912
     results: list[dict],
     state_action_pairs: list[tuple[dict, str]],
@@ -160,8 +169,15 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     parser.add_argument(
         "variant", nargs="?", default="baseline", choices=PROMPT_VARIANTS
     )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=None,
+        help="Sampling temperature (default: request.batch_complete default 0.7)",
+    )
     args = parser.parse_args()
     variant, samples = args.variant, args.samples
+    temperature = args.temperature
 
     out_dir = Path(_REPO_ROOT / "tables" / "pearl_12action_pilot")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -187,10 +203,14 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     logger.info("Generated %d prompts", len(prompt_entries))
 
     # Call LLM
-    logger.info("Calling LLM...")
+    logger.info(
+        "Calling LLM (temperature=%s)...",
+        _resolve_temperature(temperature),
+    )
     results = batch_complete(
         [p for p, _s, _a in prompt_entries],
         system_prompt=system_prompt,
+        temperature=_resolve_temperature(temperature),
         max_workers=50,
         provider="openrouter",
     )
@@ -217,6 +237,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
         retry_results = batch_complete(
             [prompt_entries[i][0] for i in retry_indices],
             system_prompt=system_prompt,
+            temperature=_resolve_temperature(temperature),
             max_workers=50,
             provider="openrouter",
         )
