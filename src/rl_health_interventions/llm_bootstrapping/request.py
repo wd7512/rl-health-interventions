@@ -90,7 +90,7 @@ def batch_complete(
     n = len(prompts)
     logger.info("Batch: %d prompts, model=%s, workers=%d", n, model, max_workers)
 
-    timeout_kwargs = {"timeout": timeout} if timeout is not None else {}
+    timeout_kwargs: dict[str, Any] = {"timeout": timeout} if timeout is not None else {}
     responses = batch_completion(
         model=model,
         messages=messages_list,
