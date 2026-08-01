@@ -23,7 +23,7 @@ We prompt an LLM to generate 7-day step-count histories per (state, action) cell
 | Co-locate the ceiling constraint inside the operative rule paragraph, at prompt start/end, not middle | Liu et al. (#10, Lost in the Middle); Zhao et al. (#6, recency) | **Medium-strong** — position effects heavily replicated; matches our own r8-r10 observation |
 | Keep hard constraints in the system role, exemplars as user role | Wallace et al. (#11, instruction hierarchy) | Medium (model-side mechanism) |
 | Post-hoc numeric calibration via anchor-free probes | Zhao et al. (#6, contextual calibration concept) | Speculative |
-| Temperature ~0.3 for magnitude-sensitive generation | Renze & Guven (#8) | Medium |
+| Temperature ~0.3 for magnitude-sensitive generation | Renze & Guven (#8) — null finding: no accuracy effect 0–1; diversity rises with temperature | Weak — diversity dial, not accuracy dial |
 
 ### P2 — Structured-output reliability
 
@@ -39,7 +39,7 @@ We prompt an LLM to generate 7-day step-count histories per (state, action) cell
 | Technique | Evidence | Strength |
 |---|---|---|
 | More samples/cell + robust estimator (median/trimmed/vote) instead of mean | Wang et al. (#9); Chen et al. (#22); Argyle et al. (#16); Park et al. (#18) | **Strong** as a general strategy; no tested n for step-count cells |
-| Temperature ~0.3 (avoid 0 which collapses diversity; avoid high which inflates outliers) | Renze & Guven (#8) | Medium |
+| Temperature ~0.3 (avoid 0 which collapses diversity; avoid high which inflates outliers) | Renze & Guven (#8): null accuracy effect 0–1, diversity rises with temperature — supports the diversity rationale only | Weak |
 | Validate simulated step distributions against real reference data | Veenhuizen & O'Malley (#20); Santurkar et al. (#19); Aher et al. (#17); Dankar et al. (#21) | **Strong** — multiple studies show group-dependent distortion; validation is mandatory |
 | Shrinkage / prior-pooling toward baseline for sparse cells | no direct citation; statistical principle | Speculative |
 
@@ -67,7 +67,7 @@ We prompt an LLM to generate 7-day step-count histories per (state, action) cell
 
 7. **Lu, Y., Bartolo, M., Moore, A., Riedel, S., & Stenetorp, P. (2022). Fantastically Ordered Prompts and Where to Find Them. *ACL*.** DOI: 10.18653/v1/2022.acl-long.556. Exemplar order alone swings few-shot performance from near-random to near-SOTA; no principled per-task ordering rule.
 
-8. **Renze, M., & Guven, E. (2024). The Effect of Sampling Temperature on Problem Solving in Large Language Models. *Findings of EMNLP*.** DOI: 10.18653/v1/2024.findings-emnlp.432. Problem-solving accuracy peaks at low-to-moderate temperature (~0.3), degrades with both higher temperature (more variance/errors) and temperature 0 (repetition).
+8. **Renze, M., & Guven, E. (2024). The Effect of Sampling Temperature on Problem Solving in Large Language Models. *Findings of EMNLP*.** DOI: 10.18653/v1/2024.findings-emnlp.432. **Null finding:** sampling temperature in the range 0.0–1.0 had no statistically significant effect on problem-solving accuracy across models, prompting techniques, and problem domains (MCQA benchmarks). Higher temperatures did increase output diversity/text variability. Implication for us: temperature is a diversity dial, not an accuracy dial — the ~0.3 choice for the full run is a variance-management decision (and a documented break from pilot rounds), not an accuracy-optimality claim.
 
 9. **Wang, X., Wei, J., Schuurmans, D., et al. (2023). Self-Consistency Improves Chain of Thought Reasoning in Language Models. *ICLR*.** arXiv:2203.11171. Sampling multiple reasoning paths and taking the majority-consistent answer beats greedy decoding — the canonical "sample-many, aggregate-robustly" evidence.
 
@@ -125,5 +125,5 @@ We prompt an LLM to generate 7-day step-count histories per (state, action) cell
 | JSON schema embedded in system prompt | #14 | Round 11 experiment |
 | Median/trimmed cell lift alongside mean | #9, #22 | Analyzer addition |
 | Retry-on-parse-None (bounded) | engineering practice; #13 framing | Generator addition |
-| Temperature 0.3 for full-scale run | #8 | Full-run decision (documented break with rounds 1-10) |
+| Temperature 0.3 for full-scale run | #8 (null effect 0–1; diversity rationale); engineering decision to bound variance | Full-run decision (documented break with rounds 1-10) |
 | Samples 5/cell at full scale | #9, #16, #18 | Full-run decision |

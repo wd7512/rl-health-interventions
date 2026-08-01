@@ -413,7 +413,13 @@ def main() -> None:  # noqa: C901
     if args.json:
         # Machine-readable payload on stdout (log lines go to stderr via
         # setup_logging), so `--json` output stays pipable.
-        print(json.dumps(metrics, indent=2))
+        results_logger = logging.getLogger(f"{__name__}.results")
+        results_logger.propagate = False
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setFormatter(logging.Formatter("%(message)s"))
+        results_logger.addHandler(stdout_handler)
+        results_logger.setLevel(logging.INFO)
+        results_logger.info(json.dumps(metrics, indent=2))
         return
 
     for check_id, check in metrics["checks"].items():

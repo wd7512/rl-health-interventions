@@ -150,7 +150,7 @@ def _aggregate_to_table(  # noqa: C901, PLR0912
     }
 
 
-def main() -> None:  # noqa: C901, PLR0915
+def main() -> None:  # noqa: C901, PLR0912, PLR0915
     """Generate the pilot PEARL transition table via LLM bootstrapping."""
     setup_logging()
     load_env()
@@ -200,8 +200,8 @@ def main() -> None:  # noqa: C901, PLR0915
     logger.info("LLM results: %d/%d succeeded", ok, len(results))
 
     # Bounded retry for unparseable responses (Option B: retry-on-parse-None).
-    # One retry per record; failures stay in the raw file with their content
-    # so the parse-failure rate remains diagnosable.
+    # One retry per record; the original (unparseable) attempt is preserved in
+    # the raw file alongside the retry so the parse-failure rate stays diagnosable.
     state_action_pairs = [(s, a) for _p, s, a in prompt_entries]
     retry_indices = [
         i
@@ -211,6 +211,7 @@ def main() -> None:  # noqa: C901, PLR0915
         if "error" not in result
         and parse_day_history(result.get("content", "")) is None
     ]
+    retried_originals: dict[int, dict] = {}
     if retry_indices:
         logger.info("Retrying %d unparseable response(s)", len(retry_indices))
         retry_results = batch_complete(
@@ -220,21 +221,37 @@ def main() -> None:  # noqa: C901, PLR0915
             provider="openrouter",
         )
         for idx, retry_result in zip(retry_indices, retry_results, strict=True):
+            retried_originals[idx] = results[idx]
             results[idx] = retry_result
-        n_ok_after = sum(1 for i in retry_indices if "content" in results[i])
+        n_ok_after = sum(
+            1
+            for i in retry_indices
+            if "content" in results[i]
+            and parse_day_history(results[i]["content"]) is not None
+        )
         logger.info("Retry recovered %d/%d records", n_ok_after, len(retry_indices))
 
-    # Save raw results for diagnosis (parse failures, bad output inspection)
+    # Save raw results for diagnosis (parse failures, bad output inspection).
+    # Retried records keep their original attempt under "original_content" (or
+    # "original_error") alongside the retry, so both attempts are preserved.
     raw_dir = out_dir / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
     raw_path = raw_dir / f"results_{variant}_{datetime.now(UTC):%Y%m%d_%H%M%S}.jsonl"
     with raw_path.open("w") as f:
-        for result, (state, action) in zip(results, state_action_pairs, strict=True):
+        for idx, (result, (state, action)) in enumerate(
+            zip(results, state_action_pairs, strict=True)
+        ):
             record = {"state": state, "action": action}
             if "error" in result:
                 record["error"] = result["error"]
             else:
                 record["content"] = result["content"]
+            if idx in retried_originals:
+                original = retried_originals[idx]
+                if "error" in original:
+                    record["original_error"] = original["error"]
+                else:
+                    record["original_content"] = original["content"]
             f.write(json.dumps(record) + "\n")
     logger.info("Saved %d raw results to %s", len(results), raw_path)
 
