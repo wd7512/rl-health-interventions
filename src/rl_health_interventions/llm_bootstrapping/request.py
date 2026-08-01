@@ -64,9 +64,15 @@ def batch_complete(
     temperature: float = 0.7,
     max_workers: int = 50,
     num_retries: int = 7,
+    timeout: int | None = None,
     provider: str = "openrouter",
 ) -> list[dict[str, Any]]:
-    """Send batch completions via litellm."""
+    """Send batch completions via litellm.
+
+    timeout (seconds, optional): per-request timeout passed to litellm. A
+    short value makes hung requests fail fast instead of blocking the whole
+    batch; the caller's resume/retry path tops up the failures.
+    """
     extra_kwargs: dict[str, Any] = {}
     if provider == "zen":
         zen_key = resolve_zen_api_key()
@@ -84,12 +90,14 @@ def batch_complete(
     n = len(prompts)
     logger.info("Batch: %d prompts, model=%s, workers=%d", n, model, max_workers)
 
+    timeout_kwargs = {"timeout": timeout} if timeout is not None else {}
     responses = batch_completion(
         model=model,
         messages=messages_list,
         temperature=temperature,
         max_workers=max_workers,
         num_retries=num_retries,
+        **timeout_kwargs,
         **extra_kwargs,
     )
 

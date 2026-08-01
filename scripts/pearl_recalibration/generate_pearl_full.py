@@ -198,6 +198,8 @@ def _run_batch(
     batch: list[tuple[str, dict, str]],
     temperature: float,
     max_workers: int,
+    timeout: int | None = None,
+    num_retries: int = 7,
 ) -> tuple[list[dict], list[tuple[str, dict, str]]]:
     """Call the LLM for one batch; return (records, retry_batch).
 
@@ -213,6 +215,8 @@ def _run_batch(
         system_prompt=system_prompt,
         temperature=temperature,
         max_workers=max_workers,
+        timeout=timeout,
+        num_retries=num_retries,
         provider="openrouter",
     )
 
@@ -233,6 +237,8 @@ def _run_retry(
     original_records: dict[tuple[str, str], dict],
     temperature: float,
     max_workers: int,
+    timeout: int | None = None,
+    num_retries: int = 7,
 ) -> list[dict]:
     """Re-run unparseable prompts; return records with original preserved.
 
@@ -246,6 +252,8 @@ def _run_retry(
         system_prompt=system_prompt,
         temperature=temperature,
         max_workers=max_workers,
+        timeout=timeout,
+        num_retries=num_retries,
         provider="openrouter",
     )
     retried_originals = {
@@ -303,6 +311,20 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
         help="Prompts per LLM batch; raw records are appended after each batch",
     )
     parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS)
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=None,
+        help="Per-request timeout in seconds (default: litellm's 600); "
+        "a short value makes hung requests fail fast so resume tops them up",
+    )
+    parser.add_argument(
+        "--retries",
+        type=int,
+        default=7,
+        help="litellm retries per request (default 7); 1 makes a hung request "
+        "fail once instead of retrying for minutes",
+    )
     parser.add_argument(
         "--max-states",
         type=int,
@@ -401,6 +423,8 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
                 total_prompts,
                 done_prompts,
                 start,
+                args.timeout,
+                args.retries,
             )
             done_prompts += len(batch)
             batch = []
@@ -414,6 +438,8 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
             total_prompts,
             done_prompts,
             start,
+            args.timeout,
+            args.retries,
         )
 
     out_path = _finalize(raw_path)
@@ -429,6 +455,8 @@ def _flush_batch(
     total_prompts: int,
     done_prompts: int,
     start: datetime,
+    timeout: int | None = None,
+    num_retries: int = 7,
 ) -> None:
     """Run one batch, appending the primary records before retries.
 
@@ -436,7 +464,9 @@ def _flush_batch(
     never blocks already-succeeded output; the retry batch (if any) appends
     separately once it resolves.
     """
-    records, retry_batch = _run_batch(system_prompt, batch, temperature, max_workers)
+    records, retry_batch = _run_batch(
+        system_prompt, batch, temperature, max_workers, timeout, num_retries
+    )
     _append_raw(raw_path, records)
     done_prompts += len(batch)
     if retry_batch:
@@ -450,6 +480,8 @@ def _flush_batch(
             first_originals,
             temperature,
             max_workers,
+            timeout,
+            num_retries,
         )
         _append_raw(raw_path, retry_records)
     elapsed = (datetime.now(UTC) - start).total_seconds()
