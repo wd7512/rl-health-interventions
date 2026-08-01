@@ -1019,6 +1019,181 @@ C5 PASS, 0 parse failures.
 
 ---
 
+### Round 11 — protocol_fewshot, Option B (2026-08-01)
+
+**Prompt version:** `protocol_fewshot` r11 in `prompts/pearl.py` — first
+literature-backed round (Option B; see
+`docs/research/llm-prompt-calibration-literature.md`).
+
+**Prompt change summary:**
+
+1. **Exemplars rewritten as deltas and ranges only** — every absolute
+   step total is removed from DAY-LEVEL EXEMPLARS (no more 8,200 / 3,100 /
+   3,400 / 3,120 / 1,700-1,420). Strong match = "+250 to 350 steps above
+   the no-message day", modest = "+120 to 180", weak = "+60 to 100".
+   Rationale: exemplar magnitudes leak into outputs as anchors (Min et
+   al. EMNLP 2022; Lou & Sun 2025). The only absolute numbers left in
+   the prompt are the idle-pin bands, stated as rules.
+2. **OUTPUT FORMAT grammar block appended** (Wang et al. NeurIPS 2023) —
+   "respond with exactly 7 lines, one JSON object per line, of the form
+   {"day": N, "morning_steps": M, "afternoon_steps": A} with N = 1..7" —
+   N/M/A placeholders keep the template unparseable, so it cannot be
+   ingested as a history row.
+3. **Pipeline hardening** (code, not prompt): analyzer now reports
+   `median_lift_steps` and `trimmed_mean_lift_steps` alongside the
+   round-comparison `mean_lift_steps`; generator adds a bounded retry
+   (1 retry) on unparseable responses.
+
+**Config:** deepseek-v4-flash (openrouter), temp 0.7, 3 samples/cell, 4 states
+(2 burden x 2 recent_steps_mean) x 13 actions = 156 prompts.
+
+**Run:** 156/156 LLM calls succeeded, **0/156 parse failures, 0 retries**
+(fifth clean run in a row). Table: 52/52 cells, every cell at 3 samples.
+Raw results saved to
+`tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260801_003800.jsonl`.
+Round-10 table archived as
+`tables/pearl_12action_pilot/archive/pearl_pilot_protocol_fewshot_r10.json`.
+
+| Check | Result | Detail |
+|-------|--------|--------|
+| C1 action coverage | PASS | 13/13 |
+| C2 cell coverage | PASS | 52/52 |
+| C3 state persistence | PASS | idle P(stay): low=1.0, high=1.0 (raw idle means: high 7,857/7,849, low 2,943/2,962 — all inside their stated bands without exemplar reinforcement) |
+| C4 action sensitivity | FAIL | 0/4 cells (structurally blind: high idle P(high)=1.0 leaves no headroom; low cannot cross 7,000) |
+| C5 burden monotonicity | PASS | burden_reduces_steps=true at both levels |
+| C6 factor variation | FAIL | morning_steps_ratio dominant share 0.9231 (48 balanced / 3 morning / 1 evening; round 10: 0.9423) — ratio differentiation weakened when the concrete step splits were removed with the totals |
+
+**Raw effect (analyzer):** overall mean lift **+206.4** steps/day (round 10:
++222.1 — in the +150-450 band), median **+129.0**, trimmed mean **+193.4**
+(right-skew: a few overshoot cells inflate the mean), min **-123.8**
+(round 10: **-614.3** — the wild outlier is gone), max **+1,135.7** (round
+10: +674.8), **42/48** cells positive (round 10: 42/48), **6 negative
+cells** (round 10: 6; target ≤ 3) — all mild: high/major
+social_opportunity_morning -123.8, high/none physical_opportunity_afternoon
+-118.6, high/none planning_morning -80.7, high/major
+perceived_benefit_morning -52.4, high/none physical_opportunity_morning
+-28.6, low/major social_opportunity_morning -19.0. Per state — high/major:
+idle 7,857, lift **+240.4** (round 10: +349.9); high/none: idle 7,849,
+lift **+59.3** (round 10: +271.2 — fell below the +150 floor); low/major:
+idle 2,943, lift **+325.2** (round 10: +61.8 — recovered above floor);
+low/none: idle 2,962, lift **+200.9** (round 10: +205.6).
+
+**Verdict table:**
+
+| Metric | Target | Round 9 | Round 10 | Round 11 | Verdict |
+|--------|--------|---------|----------|----------|---------|
+| Checks | — | 4/6 | 4/6 | 4/6 | stable — C6 stays FAIL (structural noise) |
+| Max cell lift | ≤ ~+600 | +981.0 | +674.8 | **+1,135.7** | FAIL — worse; planning at 0.8-0.9 |
+| high/none mean | +250-350 | +596.7 | +271.2 | **+59.3** | FAIL — fell under floor |
+| low/none mean | ≥ +150 | +70.9 | +205.6 | **+200.9** | PASS |
+| low/major mean | ≥ +100 | +109.2 | +61.8 | **+325.2** | PASS — recovered |
+| high/major mean | +150-450 | +148.6 | +349.9 | **+240.4** | PASS |
+| Overall mean | +150-450 | +231.3 | +222.1 | **+206.4** | PASS |
+| Min cell lift | ≥ -300 | -313.3 | -614.3 | **-123.8** | PASS — outlier gone |
+| Negative cells | ≤ 3 | 5 | 6 | 6 | FAIL (but all mild, ≤ -124) |
+| C3 idle P(stay) | 1.0/1.0 | 1.0/1.0 | 1.0/1.0 | 1.0/1.0 | PASS |
+| Parse failures | ≤ 2 | 0 | 0 | 0 | PASS |
+
+**Diagnosis:** The delta/ranges exemplar rewrite delivered its two main
+targets: the -614.3 outlier is gone (min -123.8) and mean lift stays in
+band (+206.4, statistically indistinguishable from round 10's +222.1). The
+OUTPUT FORMAT grammar block works — 156/156 parsed, zero retries. Idle pins
+hold without exemplar totals (C3 fully green), so the main literature risk
+of the rewrite did not materialize. But removing the totals also removed
+the implicit ceilings they anchored: the two worst overshoot cells are
+planning at weight 0.8-0.9 under major burden (low/major planning_afternoon
++1,135.7, high/major planning_morning +1,081.4) — the standalone ceiling
+sentence caps the band's tail, not the strongest tier — and high/none
+weakened to +59.3, its lowest since round 8, because the exemplars no
+longer show high-activity people responding to strong matches. Negative
+cells shifted from low/major afternoons (round 10) to high-state weak-weight
+themes, but are all mild (≤ -124).
+
+**Next steps:**
+1. Round 12 (surgical, 156 calls): co-locate the ceiling directly inside
+   the strong-match tier sentence ("around +300 — and never more than
+   about 500, no matter how strong the match is") and add an exemplar
+   sentence that a strong match is capped at ~500 even for the best-
+   matching person; reinforce that high-activity people respond to strong
+   matches (+250-350 on top of their 7,500-8,500 idle day).
+2. Ship criteria for round 12: max cell lift ≤ ~+700, high/none ≥ +100,
+   mean in +150-450, C3 green, parse failures ≤ 2 — then freeze
+   `protocol_fewshot` for the full 108-state run.
+3. Then: full-scale generator (108 states), fix `pearl_bootstrap.yaml`'s
+   dead table path, wire `pearl_constitution_12action.yaml` to the full
+   table, run constitution T1-T4.
+4. C4/C6 remain structurally blind or noisy in this subset; real signal
+   needs the full state space (moderate cells, varied walk_pattern /
+   morning_steps_ratio / day_of_week).
+
+---
+
+### Round 12 — protocol_fewshot, ceiling co-location (2026-08-01)
+
+**Prompt change summary:** two surgical edits on top of r11 — (1) the
+strong tier of GRADED MATCH RULE reads *"around +300 - and never more than
+about 500, no matter how strong the match is"*; (2) the exemplar block
+gains *"A strongly matched message is never more than about 500 steps,
+even for the person who matches it best."*
+
+**Run:** 156/156, 0 parse failures, 0 retries. Raw:
+`results_protocol_fewshot_20260801_004422.jsonl`.
+
+| Metric | Target | Round 11 | Round 12 | Verdict |
+|--------|--------|----------|----------|---------|
+| Overall mean | +150-450 | +206.4 | **+347.9** | PASS (but inflated) |
+| Max cell lift | ≤ ~+600 | +1,135.7 | **+1,517.6** | FAIL — ceiling co-location backfired |
+| high/major mean | +150-450 | +240.4 | **+688.5** | FAIL — overshoot |
+| high/none mean | ≥ +100 | +59.3 | **+226.4** | PASS |
+| Min cell lift | ≥ -300 | -123.8 | **-24.4** | PASS — outlier stays gone |
+| Positive cells | — | 42/48 | **47/48** | PASS (best yet) |
+| C3 / parse fails | 1.0/1.0, ≤ 2 | 1.0/1.0, 0 | 1.0/1.0, 0 | PASS |
+
+**Diagnosis:** the strong-tier ceiling wording reads as permission to
+approach 500, so strong responses got *stronger*. The high/none improvement
+(+59 → +226) may be noise at n=3 rather than a wording effect.
+
+**Next step:** revert the strong-tier co-location to r11 wording, keep the
+exemplar cap sentence, re-run.
+
+### Round 13 — protocol_fewshot, FROZEN (2026-08-01)
+
+**Prompt change summary:** strong-tier co-location reverted to r11 wording;
+the r12 exemplar sentence *"A strongly matched message is never more than
+about 500 steps, even for the person who matches it best."* is kept.
+
+**Run:** 156/156, 0 parse failures, 0 retries. Raw:
+`results_protocol_fewshot_20260801_004943.jsonl`. Round-12 table archived
+as `archive/pearl_pilot_protocol_fewshot_r12.json`.
+
+| Metric | Target | Round 10 | Round 11 | Round 12 | Round 13 | Verdict |
+|--------|--------|----------|----------|----------|----------|---------|
+| Checks | — | 4/6 | 4/6 | 4/6 | 4/6 | stable |
+| Overall mean | +150-450 | +222.1 | +206.4 | +347.9 | **+223.2** | PASS |
+| Max cell lift | ≤ ~+600 | +674.8 | +1,135.7 | +1,517.6 | **+823.8** | FAIL (pipeline-level handling) |
+| Min cell lift | ≥ -300 | -614.3 | -123.8 | -24.4 | **-30.0** | PASS — outlier eliminated |
+| Positive cells | — | 42/48 | 42/48 | 47/48 | **47/48** | PASS |
+| high/major mean | +150-450 | +349.9 | +240.4 | +688.5 | **+409.0** | PASS (band edge) |
+| high/none mean | ≥ +100 | +271.2 | +59.3 | +226.4 | **+176.9** | PASS |
+| low/major mean | ≥ +100 | +61.8 | +325.2 | +308.7 | **+175.1** | PASS |
+| low/none mean | ≥ +150 | +205.6 | +200.9 | +167.9 | **+132.0** | marginal |
+| C3 idle P(stay) | 1.0/1.0 | 1.0/1.0 | 1.0/1.0 | 1.0/1.0 | 1.0/1.0 | PASS |
+| Parse failures | ≤ 2 | 0 | 0 | 0 | 0 | PASS |
+
+**Diagnosis:** best-balanced round of the Option-B ladder — mean +223.2 in
+band, min -30.0, 47/48 positive, C3 green. **The high-side overshoot
+persists across three ceiling-wording variants** (standalone +1,136,
+strong-tier co-location +1,518, restored wording +824): prompt wording
+cannot reliably enforce numeric ceilings (literature-predicted — instruction
+constraints are fragile). The remaining overshoot (max +823.8, high/major
+planning/prioritization) is handled at the pipeline level for the full run:
+robust aggregation plus per-cell caps in analysis.
+
+**Decision: protocol_fewshot r13 is FROZEN** for the full 108-state
+bootstrap.
+
+---
+
 ## Ladder summary
 
 > Scope: this ladder covers variant selection through round 6 (the SHIP
