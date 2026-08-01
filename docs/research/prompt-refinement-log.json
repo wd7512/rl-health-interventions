@@ -2319,6 +2319,851 @@
         "Ship criteria for round 11: max cell lift <= +600, high/none and high/major both in +150-450, low/none >= +150, low/major >= +100, negatives <= 3, C5 green, parse failures <= 2 - then freeze protocol_fewshot for the real bootstrapping experiment; protocol stays as fallback.",
         "C4/C6 remain structurally blind or noisy in this subset: C6 flips between rounds (0.8654 pass in r9, 0.9423 fail in r10) driven by a handful of 'morning'-ratio cells; for real C6 signal, extend the pilot subset to moderate recent_steps_mean cells and vary morning_steps_ratio / walk_pattern / day_of_week."
       ]
+    },
+    {
+      "round": 11,
+      "checks": {
+        "C1_action_coverage": "PASS",
+        "C2_cell_coverage": "PASS",
+        "C3_state_persistence": "PASS",
+        "C4_action_sensitivity": "FAIL",
+        "C5_burden_monotonicity": "PASS",
+        "C6_factor_variation": "FAIL"
+      },
+      "date": "2026-08-01",
+      "prompt_version": "protocol_fewshot r11 (Option B: exemplars as deltas/ranges, no absolute totals; OUTPUT FORMAT grammar block)",
+      "prompt_changes_since_previous": "Round 11 (Option B, literature-backed per docs/research/llm-prompt-calibration-literature.md): (1) DAY-LEVEL EXEMPLARS rewritten from concrete day totals (8,200 / 3,100 / 3,400 / 3,120 ...) to deltas and ranges only (+250-350 strong, +120-180 modest, +60-100 weak), because exemplar magnitudes leak into outputs as anchors (Min et al. EMNLP 2022; Lou & Sun 2025). The only absolute numbers left are the idle-pin bands, stated as rules. (2) OUTPUT FORMAT grammar block appended (Wang et al. NeurIPS 2023): exactly 7 lines of JSON with N/M/A placeholders so the template line cannot be ingested as a history row. (3) Analyzer adds median_lift_steps and trimmed_mean_lift_steps (mean stays the round-comparison metric); generator adds bounded retry on unparseable responses.",
+      "config": {
+        "model": "openrouter/deepseek/deepseek-v4-flash",
+        "provider": "openrouter",
+        "temperature": 0.7,
+        "max_workers": 50,
+        "samples_per_cell": 3,
+        "n_states": 4,
+        "n_actions": 13
+      },
+      "run": {
+        "exit_status": 0,
+        "llm_success_rate": "156/156",
+        "n_parse_failures": 0,
+        "n_retries": 0,
+        "table_path": "tables/pearl_12action_pilot/pearl_pilot_protocol_fewshot.json",
+        "raw_path": "tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260801_003800.jsonl"
+      },
+      "metrics": {
+        "structure": {
+          "n_states": 4,
+          "n_actions": 13,
+          "n_actions_present": 13,
+          "n_expected_cells": 52,
+          "n_cells": 52,
+          "action_coverage_frac": 1.0,
+          "cell_coverage_frac": 1.0
+        },
+        "checks": {
+          "C1_action_coverage": {
+            "pass": true,
+            "actual": 1.0,
+            "threshold": 1.0,
+            "detail": "13/13 actions present"
+          },
+          "C2_cell_coverage": {
+            "pass": true,
+            "actual": 1.0,
+            "threshold": 1.0,
+            "detail": "52/52 cells filled"
+          },
+          "C3_state_persistence": {
+            "pass": true,
+            "actual": {
+              "low": 1.0,
+              "high": 1.0
+            },
+            "threshold": {
+              "low": 0.5,
+              "high": 0.5
+            },
+            "detail": "idle keeps low states low and high states high"
+          },
+          "C4_action_sensitivity": {
+            "pass": false,
+            "actual": 0.0,
+            "threshold": 0.5,
+            "detail": "0/4 cells where ability_morning raises P(high) vs idle"
+          },
+          "C5_burden_monotonicity": {
+            "pass": true,
+            "actual": {
+              "low": {
+                "mean_P(high)_none": 0.0,
+                "mean_P(high)_major": 0.0,
+                "burden_reduces_steps": true
+              },
+              "high": {
+                "mean_P(high)_none": 1.0,
+                "mean_P(high)_major": 1.0,
+                "burden_reduces_steps": true
+              }
+            },
+            "threshold": "major <= none for every recent_steps_mean level",
+            "detail": "major burden does not raise mean P(high) vs no burden"
+          },
+          "C6_factor_variation": {
+            "pass": false,
+            "actual": {
+              "recent_steps_mean": {
+                "n_distinct_values": 2,
+                "dominant_value": "low",
+                "dominant_share": 0.5
+              },
+              "recent_walk_pattern": {
+                "n_distinct_values": 2,
+                "dominant_value": "low",
+                "dominant_share": 0.5
+              },
+              "morning_steps_ratio": {
+                "n_distinct_values": 3,
+                "dominant_value": "balanced",
+                "dominant_share": 0.9231
+              }
+            },
+            "threshold": 0.75,
+            "detail": "no factor collapses onto one value"
+          }
+        },
+        "sensitivity": [
+          {
+            "state": {
+              "burden": "none",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "low",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          },
+          {
+            "state": {
+              "burden": "major",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "low",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          },
+          {
+            "state": {
+              "burden": "none",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "high",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          },
+          {
+            "state": {
+              "burden": "major",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "high",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          }
+        ],
+        "persistence": {
+          "low": {
+            "n_cells": 2,
+            "mean_p_stay": 1.0
+          },
+          "high": {
+            "n_cells": 2,
+            "mean_p_stay": 1.0
+          }
+        },
+        "monotonicity": {
+          "low": {
+            "mean_P(high)_none": 0.0,
+            "mean_P(high)_major": 0.0,
+            "burden_reduces_steps": true
+          },
+          "high": {
+            "mean_P(high)_none": 1.0,
+            "mean_P(high)_major": 1.0,
+            "burden_reduces_steps": true
+          }
+        },
+        "factor_variation": {
+          "recent_steps_mean": {
+            "n_distinct_values": 2,
+            "dominant_value": "low",
+            "dominant_share": 0.5
+          },
+          "recent_walk_pattern": {
+            "n_distinct_values": 2,
+            "dominant_value": "low",
+            "dominant_share": 0.5
+          },
+          "morning_steps_ratio": {
+            "n_distinct_values": 3,
+            "dominant_value": "balanced",
+            "dominant_share": 0.9231
+          }
+        },
+        "modal_value_counts": {
+          "recent_steps_mean": {
+            "low": 26,
+            "high": 26
+          },
+          "recent_walk_pattern": {
+            "low": 26,
+            "high": 26
+          },
+          "morning_steps_ratio": {
+            "balanced": 48,
+            "morning": 3,
+            "evening": 1
+          }
+        },
+        "raw_effect": {
+          "n_records": 156,
+          "n_parsed": 156,
+          "per_state": [
+            {
+              "state": {
+                "recent_steps_mean": "high",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "major"
+              },
+              "idle_mean_steps": 7857.1,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 240.4
+            },
+            {
+              "state": {
+                "recent_steps_mean": "low",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "major"
+              },
+              "idle_mean_steps": 2942.9,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 325.2
+            },
+            {
+              "state": {
+                "recent_steps_mean": "high",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "none"
+              },
+              "idle_mean_steps": 7849.0,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 59.3
+            },
+            {
+              "state": {
+                "recent_steps_mean": "low",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "none"
+              },
+              "idle_mean_steps": 2962.4,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 200.9
+            }
+          ],
+          "n_lift_cells": 42,
+          "n_state_cells": 48,
+          "mean_lift_steps": 206.4,
+          "median_lift_steps": 129.0,
+          "trimmed_mean_lift_steps": 193.4,
+          "min_lift_steps": -123.8,
+          "max_lift_steps": 1135.7
+        }
+      },
+      "n_passes": 4,
+      "n_failures": 2,
+      "diagnosis": [
+        "The delta/ranges exemplar rewrite worked on its two main targets. The -614.3 outlier is gone: min cell lift -123.8 (round 10: -614.3), and mean lift +206.4 stays in the +150-450 band (round 10: +222.1) - essentially equivalent. Median +129.0 vs trimmed mean +193.4 confirms right-skew: a few overshoot cells inflate the mean.",
+        "The OUTPUT FORMAT grammar block works: 156/156 parsed with zero retries (round 10: 156/156, 0 failures). The model emits clean 7-line JSON without fences or reasoning.",
+        "Idle pins hold without exemplar reinforcement: high idle means 7,857 / 7,849, low idle means 2,943 / 2,962 - all inside the 7,500-8,500 / 2,800-3,200 bands (C3 green). The literature risk that removing the exemplar totals would destabilize idle did not materialize.",
+        "Regressions vs round 10: max cell lift +1,135.7 (round 10: +674.8) - both overshoot cells are planning at weight 0.8-0.9 under major burden (low/major planning_afternoon +1,135.7, high/major planning_morning +1,081.4) - and high/none weakened to +59.3 (round 10: +271.2), below the +150 floor for that state. Removing the exemplar totals removed the implicit ceiling they anchored; the standalone ceiling sentence binds less for the strongest-match tier.",
+        "C4/C6 FAIL as usual: C4 is structurally blind in this subset (idle P(high)=1.0 in high states; documented since round 6); C6 morning_steps_ratio dominant share 0.9231 (worse than round 10's 0.8654) - the concrete morning/afternoon step splits were removed with the totals, so ratio differentiation weakened (structural, tracked separately)."
+      ],
+      "next_steps": [
+        "Round 12 (surgical): co-locate the ceiling ('never more than about 500') directly inside the strong-match tier sentence, and state in the exemplars that a strong match is capped at ~500 even for the best-matching person - targeting the planning-at-0.8-0.9 overshoot. Add explicit reinforcement that high-activity people respond to strong matches (+250-350 on top of their 7,500-8,500 idle day), targeting high/none's +59.3.",
+        "If round 12 holds (max cell <= ~700, high/none >= ~100, mean in +150-450, C3 green), freeze protocol_fewshot for the full 108-state run.",
+        "Then: full-scale generator (108 states), fix pearl_bootstrap.yaml dead table path, wire pearl_constitution_12action.yaml to the full table, run constitution T1-T4."
+      ]
+    },
+    {
+      "round": 12,
+      "checks": {
+        "C1_action_coverage": "PASS",
+        "C2_cell_coverage": "PASS",
+        "C3_state_persistence": "PASS",
+        "C4_action_sensitivity": "FAIL",
+        "C5_burden_monotonicity": "PASS",
+        "C6_factor_variation": "FAIL"
+      },
+      "date": "2026-08-01",
+      "prompt_version": "protocol_fewshot r12 (ceiling co-located in strong-tier sentence; exemplar cap sentence added)",
+      "prompt_changes_since_previous": "Two surgical edits on top of r11: (1) strong tier of GRADED MATCH RULE now reads 'around +300 - and never more than about 500, no matter how strong the match is'; (2) exemplar block gains 'A strongly matched message is never more than about 500 steps, even for the person who matches it best.'",
+      "config": {
+        "model": "openrouter/deepseek/deepseek-v4-flash",
+        "provider": "openrouter",
+        "temperature": 0.7,
+        "max_workers": 50,
+        "samples_per_cell": 3,
+        "n_states": 4,
+        "n_actions": 13
+      },
+      "run": {
+        "exit_status": 0,
+        "llm_success_rate": "156/156",
+        "n_parse_failures": 0,
+        "n_retries": 0,
+        "table_path": "tables/pearl_12action_pilot/pearl_pilot_protocol_fewshot.json",
+        "raw_path": "tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260801_004422.jsonl"
+      },
+      "metrics": {
+        "structure": {
+          "n_states": 4,
+          "n_actions": 13,
+          "n_actions_present": 13,
+          "n_expected_cells": 52,
+          "n_cells": 52,
+          "action_coverage_frac": 1.0,
+          "cell_coverage_frac": 1.0
+        },
+        "checks": {
+          "C1_action_coverage": {
+            "pass": true,
+            "actual": 1.0,
+            "threshold": 1.0,
+            "detail": "13/13 actions present"
+          },
+          "C2_cell_coverage": {
+            "pass": true,
+            "actual": 1.0,
+            "threshold": 1.0,
+            "detail": "52/52 cells filled"
+          },
+          "C3_state_persistence": {
+            "pass": true,
+            "actual": {
+              "low": 1.0,
+              "high": 0.8334
+            },
+            "threshold": {
+              "low": 0.5,
+              "high": 0.5
+            },
+            "detail": "idle keeps low states low and high states high"
+          },
+          "C4_action_sensitivity": {
+            "pass": false,
+            "actual": 0.25,
+            "threshold": 0.5,
+            "detail": "1/4 cells where ability_morning raises P(high) vs idle"
+          },
+          "C5_burden_monotonicity": {
+            "pass": true,
+            "actual": {
+              "low": {
+                "mean_P(high)_none": 0.0,
+                "mean_P(high)_major": 0.0,
+                "burden_reduces_steps": true
+              },
+              "high": {
+                "mean_P(high)_none": 1.0,
+                "mean_P(high)_major": 0.9744,
+                "burden_reduces_steps": true
+              }
+            },
+            "threshold": "major <= none for every recent_steps_mean level",
+            "detail": "major burden does not raise mean P(high) vs no burden"
+          },
+          "C6_factor_variation": {
+            "pass": false,
+            "actual": {
+              "recent_steps_mean": {
+                "n_distinct_values": 3,
+                "dominant_value": "high",
+                "dominant_share": 0.5
+              },
+              "recent_walk_pattern": {
+                "n_distinct_values": 2,
+                "dominant_value": "low",
+                "dominant_share": 0.5
+              },
+              "morning_steps_ratio": {
+                "n_distinct_values": 2,
+                "dominant_value": "balanced",
+                "dominant_share": 0.9423
+              }
+            },
+            "threshold": 0.75,
+            "detail": "no factor collapses onto one value"
+          }
+        },
+        "sensitivity": [
+          {
+            "state": {
+              "burden": "none",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "low",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          },
+          {
+            "state": {
+              "burden": "major",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "low",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          },
+          {
+            "state": {
+              "burden": "none",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "high",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          },
+          {
+            "state": {
+              "burden": "major",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "high",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.3333
+          }
+        ],
+        "persistence": {
+          "low": {
+            "n_cells": 2,
+            "mean_p_stay": 1.0
+          },
+          "high": {
+            "n_cells": 2,
+            "mean_p_stay": 0.8334
+          }
+        },
+        "monotonicity": {
+          "low": {
+            "mean_P(high)_none": 0.0,
+            "mean_P(high)_major": 0.0,
+            "burden_reduces_steps": true
+          },
+          "high": {
+            "mean_P(high)_none": 1.0,
+            "mean_P(high)_major": 0.9744,
+            "burden_reduces_steps": true
+          }
+        },
+        "factor_variation": {
+          "recent_steps_mean": {
+            "n_distinct_values": 3,
+            "dominant_value": "high",
+            "dominant_share": 0.5
+          },
+          "recent_walk_pattern": {
+            "n_distinct_values": 2,
+            "dominant_value": "low",
+            "dominant_share": 0.5
+          },
+          "morning_steps_ratio": {
+            "n_distinct_values": 2,
+            "dominant_value": "balanced",
+            "dominant_share": 0.9423
+          }
+        },
+        "modal_value_counts": {
+          "recent_steps_mean": {
+            "low": 25,
+            "moderate": 1,
+            "high": 26
+          },
+          "recent_walk_pattern": {
+            "low": 26,
+            "high": 26
+          },
+          "morning_steps_ratio": {
+            "balanced": 49,
+            "morning": 3
+          }
+        },
+        "raw_effect": {
+          "n_records": 156,
+          "n_parsed": 156,
+          "per_state": [
+            {
+              "state": {
+                "recent_steps_mean": "high",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "major"
+              },
+              "idle_mean_steps": 7266.7,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 688.5
+            },
+            {
+              "state": {
+                "recent_steps_mean": "low",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "major"
+              },
+              "idle_mean_steps": 2891.9,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 308.7
+            },
+            {
+              "state": {
+                "recent_steps_mean": "high",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "none"
+              },
+              "idle_mean_steps": 7728.6,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 226.4
+            },
+            {
+              "state": {
+                "recent_steps_mean": "low",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "none"
+              },
+              "idle_mean_steps": 2937.6,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 167.9
+            }
+          ],
+          "n_lift_cells": 47,
+          "n_state_cells": 48,
+          "mean_lift_steps": 347.9,
+          "median_lift_steps": 243.1,
+          "trimmed_mean_lift_steps": 330.5,
+          "min_lift_steps": -24.4,
+          "max_lift_steps": 1517.6
+        }
+      },
+      "n_passes": 4,
+      "n_failures": 2,
+      "diagnosis": [
+        "The ceiling co-location BACKFIRED: mean lift rose to +347.9 (round 11: +206.4), max cell +1,517.6 (round 11: +1,135.7), high/major +688.5 (round 11: +240.4). Reading 'around +300 - and never more than about 500' as permission to approach 500, the strong tier responded harder.",
+        "The high-activity reinforcement hypothesis cannot be isolated here: high/none improved to +226.4 (round 11: +59.3) but at n=3 this is within round-to-round noise, and the wording change was the ceiling, not a high-activity prompt.",
+        "Positives improved to 47/48 (best yet) and the outlier stays gone (min -24.4), but the overshoot makes r12 the worst-balanced of the three rounds."
+      ],
+      "next_steps": [
+        "Round 13: revert the strong-tier co-location to r11 wording, keep the exemplar cap sentence, re-run to isolate the overshoot driver."
+      ]
+    },
+    {
+      "round": 13,
+      "checks": {
+        "C1_action_coverage": "PASS",
+        "C2_cell_coverage": "PASS",
+        "C3_state_persistence": "PASS",
+        "C4_action_sensitivity": "FAIL",
+        "C5_burden_monotonicity": "PASS",
+        "C6_factor_variation": "FAIL"
+      },
+      "date": "2026-08-01",
+      "prompt_version": "protocol_fewshot r13 (FROZEN for full-scale run; r11 ceiling wording + exemplar cap sentence)",
+      "prompt_changes_since_previous": "Strong-tier co-location reverted to the r11 wording; the r12 exemplar sentence 'A strongly matched message is never more than about 500 steps, even for the person who matches it best.' is kept.",
+      "config": {
+        "model": "openrouter/deepseek/deepseek-v4-flash",
+        "provider": "openrouter",
+        "temperature": 0.7,
+        "max_workers": 50,
+        "samples_per_cell": 3,
+        "n_states": 4,
+        "n_actions": 13
+      },
+      "run": {
+        "exit_status": 0,
+        "llm_success_rate": "156/156",
+        "n_parse_failures": 0,
+        "n_retries": 0,
+        "table_path": "tables/pearl_12action_pilot/pearl_pilot_protocol_fewshot.json",
+        "raw_path": "tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260801_004943.jsonl"
+      },
+      "metrics": {
+        "structure": {
+          "n_states": 4,
+          "n_actions": 13,
+          "n_actions_present": 13,
+          "n_expected_cells": 52,
+          "n_cells": 52,
+          "action_coverage_frac": 1.0,
+          "cell_coverage_frac": 1.0
+        },
+        "checks": {
+          "C1_action_coverage": {
+            "pass": true,
+            "actual": 1.0,
+            "threshold": 1.0,
+            "detail": "13/13 actions present"
+          },
+          "C2_cell_coverage": {
+            "pass": true,
+            "actual": 1.0,
+            "threshold": 1.0,
+            "detail": "52/52 cells filled"
+          },
+          "C3_state_persistence": {
+            "pass": true,
+            "actual": {
+              "low": 1.0,
+              "high": 1.0
+            },
+            "threshold": {
+              "low": 0.5,
+              "high": 0.5
+            },
+            "detail": "idle keeps low states low and high states high"
+          },
+          "C4_action_sensitivity": {
+            "pass": false,
+            "actual": 0.0,
+            "threshold": 0.5,
+            "detail": "0/4 cells where ability_morning raises P(high) vs idle"
+          },
+          "C5_burden_monotonicity": {
+            "pass": true,
+            "actual": {
+              "low": {
+                "mean_P(high)_none": 0.0,
+                "mean_P(high)_major": 0.0,
+                "burden_reduces_steps": true
+              },
+              "high": {
+                "mean_P(high)_none": 1.0,
+                "mean_P(high)_major": 1.0,
+                "burden_reduces_steps": true
+              }
+            },
+            "threshold": "major <= none for every recent_steps_mean level",
+            "detail": "major burden does not raise mean P(high) vs no burden"
+          },
+          "C6_factor_variation": {
+            "pass": false,
+            "actual": {
+              "recent_steps_mean": {
+                "n_distinct_values": 2,
+                "dominant_value": "low",
+                "dominant_share": 0.5
+              },
+              "recent_walk_pattern": {
+                "n_distinct_values": 2,
+                "dominant_value": "low",
+                "dominant_share": 0.5
+              },
+              "morning_steps_ratio": {
+                "n_distinct_values": 2,
+                "dominant_value": "balanced",
+                "dominant_share": 0.9808
+              }
+            },
+            "threshold": 0.75,
+            "detail": "no factor collapses onto one value"
+          }
+        },
+        "sensitivity": [
+          {
+            "state": {
+              "burden": "none",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "low",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          },
+          {
+            "state": {
+              "burden": "major",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "low",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          },
+          {
+            "state": {
+              "burden": "none",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "high",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          },
+          {
+            "state": {
+              "burden": "major",
+              "day_of_week": "weekday",
+              "morning_steps_ratio": "balanced",
+              "recent_steps_mean": "high",
+              "recent_walk_pattern": "low"
+            },
+            "dP(high)": 0.0
+          }
+        ],
+        "persistence": {
+          "low": {
+            "n_cells": 2,
+            "mean_p_stay": 1.0
+          },
+          "high": {
+            "n_cells": 2,
+            "mean_p_stay": 1.0
+          }
+        },
+        "monotonicity": {
+          "low": {
+            "mean_P(high)_none": 0.0,
+            "mean_P(high)_major": 0.0,
+            "burden_reduces_steps": true
+          },
+          "high": {
+            "mean_P(high)_none": 1.0,
+            "mean_P(high)_major": 1.0,
+            "burden_reduces_steps": true
+          }
+        },
+        "factor_variation": {
+          "recent_steps_mean": {
+            "n_distinct_values": 2,
+            "dominant_value": "low",
+            "dominant_share": 0.5
+          },
+          "recent_walk_pattern": {
+            "n_distinct_values": 2,
+            "dominant_value": "low",
+            "dominant_share": 0.5
+          },
+          "morning_steps_ratio": {
+            "n_distinct_values": 2,
+            "dominant_value": "balanced",
+            "dominant_share": 0.9808
+          }
+        },
+        "modal_value_counts": {
+          "recent_steps_mean": {
+            "low": 26,
+            "high": 26
+          },
+          "recent_walk_pattern": {
+            "low": 26,
+            "high": 26
+          },
+          "morning_steps_ratio": {
+            "balanced": 51,
+            "morning": 1
+          }
+        },
+        "raw_effect": {
+          "n_records": 156,
+          "n_parsed": 156,
+          "per_state": [
+            {
+              "state": {
+                "recent_steps_mean": "high",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "major"
+              },
+              "idle_mean_steps": 7461.9,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 409.0
+            },
+            {
+              "state": {
+                "recent_steps_mean": "low",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "major"
+              },
+              "idle_mean_steps": 2950.0,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 175.1
+            },
+            {
+              "state": {
+                "recent_steps_mean": "high",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "none"
+              },
+              "idle_mean_steps": 7657.1,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 176.9
+            },
+            {
+              "state": {
+                "recent_steps_mean": "low",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "none"
+              },
+              "idle_mean_steps": 2889.0,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 132.0
+            }
+          ],
+          "n_lift_cells": 47,
+          "n_state_cells": 48,
+          "mean_lift_steps": 223.2,
+          "median_lift_steps": 168.6,
+          "trimmed_mean_lift_steps": 215.7,
+          "min_lift_steps": -30.0,
+          "max_lift_steps": 823.8
+        }
+      },
+      "n_passes": 4,
+      "n_failures": 2,
+      "diagnosis": [
+        "Best-balanced round of the Option-B ladder: mean lift +223.2 in the +150-450 band (round 11: +206.4, round 12: +347.9, round 10: +222.1), min -30.0 (outlier stays eliminated; round 10: -614.3), 47/48 cells positive, 0 parse failures, C3 fully green.",
+        "All four states land near their targets: high/major +409.0 (band edge), high/none +176.9 (above the +100 floor; round 11: +59.3), low/major +175.1, low/none +132.0 (marginally under the +150 floor).",
+        "The high-side overshoot persists across three ceiling-wording variants (standalone sentence +1,135.7, strong-tier co-location +1,517.6, restored wording +823.8): prompt wording cannot reliably enforce numeric ceilings (matches literature - instruction constraints are fragile; see llm-prompt-calibration-literature.md). The remaining max-cell overshoot (+823.8, high/major planning/prioritization) is handled at the pipeline level: robust aggregation (median/trimmed) plus per-cell caps in analysis for the full-scale run."
+      ],
+      "next_steps": [
+        "FREEZE protocol_fewshot r13 as the Option-B prompt for the full 108-state bootstrap.",
+        "Full-scale generator (108 states x 13 actions), 5 samples/cell at temp 0.3, output to tables/pearl_12action/.",
+        "Fix pearl_bootstrap.yaml dead table path; wire pearl_constitution_12action.yaml to the full table; fix constitution check code (T2.3 ordering, T2.2 band, mu discrepancy, persona wiring); run constitution T1-T4 + 4-arm experiment."
+      ]
     }
   ]
 }

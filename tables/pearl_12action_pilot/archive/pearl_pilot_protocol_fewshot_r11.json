@@ -122,7 +122,8 @@
       "action": "planning_morning",
       "next_state_probs": {
         "recent_steps_mean": {
-          "low": 1.0
+          "low": 0.6667,
+          "moderate": 0.3333
         },
         "recent_walk_pattern": {
           "low": 1.0
@@ -239,8 +240,7 @@
           "low": 1.0
         },
         "morning_steps_ratio": {
-          "balanced": 0.6667,
-          "evening": 0.3333
+          "balanced": 1.0
         }
       },
       "n_samples": 3
@@ -328,7 +328,8 @@
           "low": 1.0
         },
         "morning_steps_ratio": {
-          "balanced": 1.0
+          "balanced": 0.3333,
+          "morning": 0.6667
         }
       },
       "n_samples": 3
@@ -366,13 +367,15 @@
       "action": "perceived_benefit_morning",
       "next_state_probs": {
         "recent_steps_mean": {
-          "low": 1.0
+          "moderate": 0.3333,
+          "low": 0.6667
         },
         "recent_walk_pattern": {
           "low": 1.0
         },
         "morning_steps_ratio": {
-          "balanced": 1.0
+          "morning": 0.3333,
+          "balanced": 0.6667
         }
       },
       "n_samples": 3
@@ -410,14 +413,13 @@
       "action": "planning_morning",
       "next_state_probs": {
         "recent_steps_mean": {
-          "moderate": 0.3333,
-          "low": 0.6667
+          "low": 1.0
         },
         "recent_walk_pattern": {
           "low": 1.0
         },
         "morning_steps_ratio": {
-          "balanced": 1.0
+          "morning": 1.0
         }
       },
       "n_samples": 3
@@ -431,116 +433,6 @@
         "burden": "major"
       },
       "action": "planning_afternoon",
-      "next_state_probs": {
-        "recent_steps_mean": {
-          "low": 1.0
-        },
-        "recent_walk_pattern": {
-          "low": 1.0
-        },
-        "morning_steps_ratio": {
-          "balanced": 1.0
-        }
-      },
-      "n_samples": 3
-    },
-    {
-      "state": {
-        "recent_steps_mean": "low",
-        "recent_walk_pattern": "low",
-        "morning_steps_ratio": "balanced",
-        "day_of_week": "weekday",
-        "burden": "major"
-      },
-      "action": "prioritization_morning",
-      "next_state_probs": {
-        "recent_steps_mean": {
-          "low": 1.0
-        },
-        "recent_walk_pattern": {
-          "low": 1.0
-        },
-        "morning_steps_ratio": {
-          "balanced": 1.0
-        }
-      },
-      "n_samples": 3
-    },
-    {
-      "state": {
-        "recent_steps_mean": "low",
-        "recent_walk_pattern": "low",
-        "morning_steps_ratio": "balanced",
-        "day_of_week": "weekday",
-        "burden": "major"
-      },
-      "action": "prioritization_afternoon",
-      "next_state_probs": {
-        "recent_steps_mean": {
-          "low": 1.0
-        },
-        "recent_walk_pattern": {
-          "low": 1.0
-        },
-        "morning_steps_ratio": {
-          "balanced": 1.0
-        }
-      },
-      "n_samples": 3
-    },
-    {
-      "state": {
-        "recent_steps_mean": "low",
-        "recent_walk_pattern": "low",
-        "morning_steps_ratio": "balanced",
-        "day_of_week": "weekday",
-        "burden": "major"
-      },
-      "action": "social_opportunity_morning",
-      "next_state_probs": {
-        "recent_steps_mean": {
-          "low": 1.0
-        },
-        "recent_walk_pattern": {
-          "low": 1.0
-        },
-        "morning_steps_ratio": {
-          "balanced": 1.0
-        }
-      },
-      "n_samples": 3
-    },
-    {
-      "state": {
-        "recent_steps_mean": "low",
-        "recent_walk_pattern": "low",
-        "morning_steps_ratio": "balanced",
-        "day_of_week": "weekday",
-        "burden": "major"
-      },
-      "action": "social_opportunity_afternoon",
-      "next_state_probs": {
-        "recent_steps_mean": {
-          "low": 1.0
-        },
-        "recent_walk_pattern": {
-          "low": 1.0
-        },
-        "morning_steps_ratio": {
-          "balanced": 1.0
-        }
-      },
-      "n_samples": 3
-    },
-    {
-      "state": {
-        "recent_steps_mean": "low",
-        "recent_walk_pattern": "low",
-        "morning_steps_ratio": "balanced",
-        "day_of_week": "weekday",
-        "burden": "major"
-      },
-      "action": "physical_opportunity_morning",
       "next_state_probs": {
         "recent_steps_mean": {
           "low": 0.6667,
@@ -551,8 +443,117 @@
           "high": 0.3333
         },
         "morning_steps_ratio": {
-          "balanced": 0.6667,
-          "morning": 0.3333
+          "balanced": 1.0
+        }
+      },
+      "n_samples": 3
+    },
+    {
+      "state": {
+        "recent_steps_mean": "low",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "major"
+      },
+      "action": "prioritization_morning",
+      "next_state_probs": {
+        "recent_steps_mean": {
+          "low": 1.0
+        },
+        "recent_walk_pattern": {
+          "low": 1.0
+        },
+        "morning_steps_ratio": {
+          "balanced": 1.0
+        }
+      },
+      "n_samples": 3
+    },
+    {
+      "state": {
+        "recent_steps_mean": "low",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "major"
+      },
+      "action": "prioritization_afternoon",
+      "next_state_probs": {
+        "recent_steps_mean": {
+          "low": 1.0
+        },
+        "recent_walk_pattern": {
+          "low": 1.0
+        },
+        "morning_steps_ratio": {
+          "balanced": 1.0
+        }
+      },
+      "n_samples": 3
+    },
+    {
+      "state": {
+        "recent_steps_mean": "low",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "major"
+      },
+      "action": "social_opportunity_morning",
+      "next_state_probs": {
+        "recent_steps_mean": {
+          "low": 1.0
+        },
+        "recent_walk_pattern": {
+          "low": 1.0
+        },
+        "morning_steps_ratio": {
+          "balanced": 1.0
+        }
+      },
+      "n_samples": 3
+    },
+    {
+      "state": {
+        "recent_steps_mean": "low",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "major"
+      },
+      "action": "social_opportunity_afternoon",
+      "next_state_probs": {
+        "recent_steps_mean": {
+          "low": 1.0
+        },
+        "recent_walk_pattern": {
+          "low": 1.0
+        },
+        "morning_steps_ratio": {
+          "balanced": 1.0
+        }
+      },
+      "n_samples": 3
+    },
+    {
+      "state": {
+        "recent_steps_mean": "low",
+        "recent_walk_pattern": "low",
+        "morning_steps_ratio": "balanced",
+        "day_of_week": "weekday",
+        "burden": "major"
+      },
+      "action": "physical_opportunity_morning",
+      "next_state_probs": {
+        "recent_steps_mean": {
+          "low": 1.0
+        },
+        "recent_walk_pattern": {
+          "low": 1.0
+        },
+        "morning_steps_ratio": {
+          "balanced": 1.0
         }
       },
       "n_samples": 3
@@ -574,7 +575,8 @@
           "low": 1.0
         },
         "morning_steps_ratio": {
-          "balanced": 1.0
+          "evening": 0.6667,
+          "balanced": 0.3333
         }
       },
       "n_samples": 3
@@ -750,8 +752,7 @@
           "high": 1.0
         },
         "morning_steps_ratio": {
-          "balanced": 0.6667,
-          "morning": 0.3333
+          "balanced": 1.0
         }
       },
       "n_samples": 3
@@ -1125,7 +1126,8 @@
           "high": 1.0
         },
         "morning_steps_ratio": {
-          "balanced": 1.0
+          "morning": 0.3333,
+          "balanced": 0.6667
         }
       },
       "n_samples": 3
