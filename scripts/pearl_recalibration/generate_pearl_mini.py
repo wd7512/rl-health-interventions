@@ -5,14 +5,23 @@ to validate the pipeline end-to-end before scaling to full 108-state table.
 
 States include all 5 MDP factors (recent_steps_mean, recent_walk_pattern,
 morning_steps_ratio, day_of_week, burden).
+
+Usage: uv run python scripts/pearl_recalibration/generate_pearl_mini.py
+    [samples_per_cell] [prompt_variant]
+
+prompt_variant selects the prompt style (see prompts.pearl.PROMPT_VARIANTS;
+default "baseline"). Output table: tables/pearl_12action_pilot/
+pearl_pilot{_<variant>}.json, raw results in tables/pearl_12action_pilot/raw/.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import sys
 from collections import defaultdict
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Ensure repo root is on path
@@ -30,6 +39,7 @@ from rl_health_interventions.llm_bootstrapping.parse_pearl import (  # noqa: E40
 )
 from rl_health_interventions.llm_bootstrapping.prompts.pearl import (  # noqa: E402
     ACTIONS,
+    PROMPT_VARIANTS,
     generate_prompts,
 )
 from rl_health_interventions.llm_bootstrapping.request import (  # noqa: E402
@@ -130,6 +140,7 @@ def _aggregate_to_table(  # noqa: C901, PLR0912
                 "state": state,
                 "action": action,
                 "next_state_probs": next_state_probs,
+                "n_samples": len(factor_samples),
             }
         )
 
@@ -139,18 +150,29 @@ def _aggregate_to_table(  # noqa: C901, PLR0912
     }
 
 
-def main() -> None:
+def main() -> None:  # noqa: PLR0915
     """Generate the pilot PEARL transition table via LLM bootstrapping."""
     setup_logging()
     load_env()
 
-    samples = int(sys.argv[1]) if len(sys.argv) > 1 else SAMPLES_PER_CELL
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("samples", nargs="?", type=int, default=SAMPLES_PER_CELL)
+    parser.add_argument(
+        "variant", nargs="?", default="baseline", choices=PROMPT_VARIANTS
+    )
+    args = parser.parse_args()
+    variant, samples = args.variant, args.samples
+
     out_dir = Path(_REPO_ROOT / "tables" / "pearl_12action_pilot")
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / "pearl_pilot.json"
+    table_name = (
+        "pearl_pilot.json" if variant == "baseline" else f"pearl_pilot_{variant}.json"
+    )
+    out_path = out_dir / table_name
 
     logger.info(
-        "Generating mini-table: %d states x %d actions x %d samples",
+        "Generating mini-table (variant=%s): %d states x %d actions x %d samples",
+        variant,
         len(MINI_STATES),
         len(ACTIONS),
         samples,
@@ -160,6 +182,7 @@ def main() -> None:
         persona="base",
         samples_per_cell=samples,
         state_subset=MINI_STATES,
+        prompt_variant=variant,
     )
     logger.info("Generated %d prompts", len(prompt_entries))
 
@@ -176,8 +199,23 @@ def main() -> None:
     ok = sum(1 for r in results if "content" in r)
     logger.info("LLM results: %d/%d succeeded", ok, len(results))
 
+    # Save raw results for diagnosis (parse failures, bad output inspection)
+    raw_dir = out_dir / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    raw_path = raw_dir / f"results_{variant}_{datetime.now(UTC):%Y%m%d_%H%M%S}.jsonl"
+    state_action_pairs = [(s, a) for _p, s, a in prompt_entries]
+    with raw_path.open("w") as f:
+        for result, (state, action) in zip(results, state_action_pairs, strict=True):
+            record = {"state": state, "action": action}
+            if "error" in result:
+                record["error"] = result["error"]
+            else:
+                record["content"] = result["content"]
+            f.write(json.dumps(record) + "\n")
+    logger.info("Saved %d raw results to %s", len(results), raw_path)
+
     # Aggregate — use metadata embedded in prompt_entries, not reconstructed
-    table = _aggregate_to_table(results, [(s, a) for _p, s, a in prompt_entries])
+    table = _aggregate_to_table(results, state_action_pairs)
     logger.info("Table has %d transitions", len(table["transitions"]))
 
     # Save

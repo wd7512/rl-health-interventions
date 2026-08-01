@@ -20,16 +20,28 @@ from rl_health_interventions.llm_bootstrapping.prompts.pearl import (
 logger = logging.getLogger(__name__)
 
 
-def parse_day_history(response: str) -> list[dict[str, int]] | None:  # noqa: C901, PLR0912
+def parse_day_history(  # noqa: C901, PLR0912, PLR0915
+    response: str, expected_days: int = 7
+) -> list[dict[str, int]] | None:
     """Parse a 7-day step history from LLM response.
 
     Expected format: 7 JSON objects, each with day, morning_steps, afternoon_steps.
     The LLM may output these on separate lines or in a single block.
 
-    Returns list of 7 dicts with keys: day, morning_steps, afternoon_steps.
-    Returns None on parse failure.
+    Parameters
+    ----------
+    response : str
+        Raw LLM response text.
+    expected_days : int
+        Number of distinct day records required for a successful parse.
+
+    Returns
+    -------
+    list of 7 dicts with keys: day, morning_steps, afternoon_steps.
+    None unless exactly ``expected_days`` distinct days parse.
     """
     results = []
+    dropped = 0
     lines = response.strip().split("\n")
 
     for raw_line in lines:
@@ -39,9 +51,11 @@ def parse_day_history(response: str) -> list[dict[str, int]] | None:  # noqa: C9
         try:
             obj = json.loads(line)
         except json.JSONDecodeError:
+            dropped += 1
             continue
 
         if not isinstance(obj, dict):
+            dropped += 1
             continue
 
         day = obj.get("day")
@@ -49,6 +63,7 @@ def parse_day_history(response: str) -> list[dict[str, int]] | None:  # noqa: C9
         afternoon = obj.get("afternoon_steps")
 
         if day is None or morning is None or afternoon is None:
+            dropped += 1
             continue
 
         if (
@@ -56,9 +71,11 @@ def parse_day_history(response: str) -> list[dict[str, int]] | None:  # noqa: C9
             or not isinstance(morning, (int, float))
             or not isinstance(afternoon, (int, float))
         ):
+            dropped += 1
             continue
 
         if morning < 0 or afternoon < 0:
+            dropped += 1
             continue
 
         results.append(
@@ -69,8 +86,22 @@ def parse_day_history(response: str) -> list[dict[str, int]] | None:  # noqa: C9
             }
         )
 
+    if dropped:
+        logger.warning("Dropped %d malformed line(s) in response", dropped)
+
     if len(results) == 0:
         logger.warning("No valid day records found in response")
+        return None
+
+    if len(results) != expected_days or len({d["day"] for d in results}) != len(
+        results
+    ):
+        logger.warning(
+            "Expected %d distinct day records, got %d (days=%s)",
+            expected_days,
+            len(results),
+            sorted(d["day"] for d in results),
+        )
         return None
 
     return results
