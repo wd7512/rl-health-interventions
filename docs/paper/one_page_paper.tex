@@ -1,0 +1,129 @@
+% =====================================================================
+%  ONE-PAGE PAPER  —  style proposal
+%  "Simulating Just-in-Time Adaptive Interventions: A Config-Driven,
+%   LLM-Bootstrapped Framework"
+%
+%  One consistent format: 11pt everywhere, no size changes.
+%  One-page deliverable: the report body fits on page 1; the reference list
+%  follows on page 2 (deliberate scope, matching the compilation note below).
+%  Compile: tectonic one_page_paper.tex
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+% --- clean, tight, sleek layout ---
+\usepackage[margin=1.5cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{parskip}
+\setlength{\parskip}{3pt}
+\usepackage{booktabs}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{titlesec}
+
+% compact section titles
+\titleformat{\section}{\bfseries}{\thesection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{6pt plus 2pt}{3pt plus 1pt}
+
+% header rule under title
+\newcommand{\paperrule}{\noindent\rule{\textwidth}{0.6pt}\par\vspace{6pt}}
+
+% pipeline figure removed per style revision (2026-08-02)
+
+\begin{document}
+
+% ============================ PAGE 1 ================================
+\begin{center}
+  {\LARGE\bfseries Simulating Just-in-Time Adaptive Interventions:\\[2pt]
+   A Config-Driven, LLM-Bootstrapped Framework}\\[4pt]
+  {\normalsize William Dennis}\\[2pt]
+  {\small University of Bristol \& National University of Singapore}\\[4pt]
+  \paperrule
+\end{center}
+
+Physical inactivity is a leading modifiable health risk
+\cite{guthold2018insufficient}; just-in-time adaptive
+interventions (JITAIs) deliver personalised prompts through wearables, but trials
+cannot probe counterfactuals and transition data is rarely public
+\cite{wang2021optimizing}. We
+reduce policy design to a config-driven pipeline for two simulators:
+LLM-bootstrapped patient models, evaluated against an optimal dynamic-programming
+bound and bandit baselines.
+
+\section{Motivation and approach}
+We formalise the intervention as a Markov decision process
+$\mathcal{M}=(\mathcal{S},\mathcal{A},\mathcal{P},\mathcal{R})$ and build a
+framework in which \emph{everything} is configuration: state spaces, action sets,
+transition models, rewards, and agents are declared in YAML, so experiments differ by
+config file alone (configs and tables in the repository)
+\cite{klasnja2019heartsteps,trella2022designing}.
+
+\section{LLM-bootstrapped transitions}
+The transition function $P(s' \mid s, a)$ is the hardest component of any
+patient model: it must encode how context, burden, and a delivered suggestion
+change behaviour, and it is rarely available as data. Rather than hand-curating
+tables or waiting for trials, we prompt an LLM (DeepSeek V4 Flash, with a GLM
+5.2 comparison) to sample
+next-state distributions given a persona description, current state, and
+candidate action --- a text world model \cite{liwang2026textworld}. Unlike
+data-driven simulators \cite{wang2021optimizing}, which require logged trial
+data, bootstrapping needs
+no logged data --- though it still requires hand-authored personas, states, and
+rewards in config. Personas were hand-curated by domain practitioners, loosely
+grounded in the behaviour-change literature: not arbitrary, but not validated
+against real patient data either. \citet{park2024thousandpeople} report agents reproducing held-out
+General Social Survey responses at 85\% of participants' own two-week response-replication
+consistency; we make no such population-replication claim for ours. Six sweeps of 22{,}320 prompts each (133{,}920 prompts, 10 samples
+per outcome) produced 31 JSON tables: \$24.52 (DeepSeek) + \$25.45 (GLM 5.2).
+Personas produced distinct sampled transition distributions, and the config's
+Bayesian mechanism models burden as lowering future activity probability
+\cite{park2023generative,wang2021optimizing}.
+
+\section{Validation}
+On the Phase-1 persona tables, a HeartSteps-V2-style UCB (upper confidence
+bound) bandit reaches 47--95.8\%
+of the optimal dynamic-programming bound across personas (50 seeds; 95\%
+confidence intervals $\pm$0.6--9.5pp);
+the idle policy alone reaches 96.8--100.1\%, the values above 100\% being
+Monte Carlo noise ($\pm$3--5) --- the bound is essentially the idle policy ---
+interventions underperform idle on these tables, a property of these personas'
+bootstrapped tables, not a claim about JITAI efficacy in general.
+All baselines are internal to the bootstrapped tables (mock-on-mock;
+no ground truth; burden sensitivity untested). Eight literature-review reports
+document this background; the one quantitative comparison (a V2-style agent at
+46.7\% vs the paper's 78.4\%, on different data) did not reproduce.
+
+\section{PEARL-matched extension (Phase 2)}
+In the final two weeks we compared against the PEARL randomised
+controlled trial (RCT) \cite{lee2025pearl}, whose reinforcement-learning (RL)
+arm gained $+$295.9 steps
+over control (p=0.0002): we used
+6 COM-B themes
+$\times$ 2 delivery times \cite{michie2011com}, plus idle
+--- with an $\varepsilon$-greedy bandit and a COM-B barrier-weighted fixed arm
+\cite{liu2025thompson,ghosh2024rebandit,tomkins2021intelligentpooling}. The
+14{,}040-prompt bootstrap (108 states $\times$ 13 actions $\times$ 10 samples)
+passed 11 of 17 checks; the six failures
+(inflated effect size $d{=}1{,}525$; fixed $>$ RL inversion; no attenuation;
+no burden saturation; inverted weekend; degenerate control t-test) trace to
+an idle-vs-action structure. A reward-penalty probe
+($R=\mathrm{step\_reward}-\lambda\mathbf{1}[\mathrm{action}\ne\mathrm{idle}]$,
+$\lambda=0.05$, step\_reward $-1/0/+1$; an anti-spam term from the Phase-1
+reward design, independent of the PEARL comparison) does not restore the
+RL-vs-fixed ordering: 50-seed runs sit within noise ($\pm$5--7) and the
+ordering flips with the penalty (unpenalised RL $3.0>$ fixed $2.4$; penalised
+fixed $-0.6>$ RL $-0.7$) --- the penalty taxes activeness. Calibration
+metrics, not trial outcomes; the probe is not a validated fix.
+
+\section{Conclusion}
+\emph{Policy design reduces to a cheap, config-driven pipeline, albeit
+mock-on-mock only, with a documented map of where the simulation diverges from
+published trials.}
+% ============================ PAGE 2+ ===============================
+\clearpage
+\begingroup
+\bibliographystyle{unsrtnat}
+\bibliography{../design/references}
+\endgroup
+
+\end{document}
