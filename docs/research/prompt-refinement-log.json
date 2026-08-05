@@ -3164,6 +3164,554 @@
         "Full-scale generator (108 states x 13 actions), 5 samples/cell at temp 0.3, output to tables/pearl_12action/.",
         "Fix pearl_bootstrap.yaml dead table path; wire pearl_constitution_12action.yaml to the full table; fix constitution check code (T2.3 ordering, T2.2 band, mu discrepancy, persona wiring); run constitution T1-T4 + 4-arm experiment."
       ]
+    },
+    {
+      "round": 14,
+      "checks": {
+        "C1_action_coverage": "PASS",
+        "C2_cell_coverage": "PASS",
+        "C3_state_persistence": "PASS",
+        "C4_action_sensitivity": "FAIL",
+        "C5_burden_monotonicity": "PASS",
+        "C6_factor_variation": "FAIL"
+      },
+      "date": "2026-08-01",
+      "prompt_version": "protocol_fewshot r13 (FROZEN) - temperature sweep",
+      "prompt_changes_since_previous": "No prompt changes. Frozen r13 prompt run at two sampling temperatures (0.3 vs 0.7) to pick the full-scale temperature.",
+      "config": {
+        "model": "openrouter/deepseek/deepseek-v4-flash",
+        "provider": "openrouter",
+        "max_workers": 50,
+        "samples_per_cell": 3,
+        "n_states": 4,
+        "n_actions": 13
+      },
+      "run": {
+        "exit_status": 0,
+        "description": "Temperature sweep: two independent n=3 runs of frozen r13 prompt.",
+        "arms": {
+          "temperature_0.3": {
+            "temperature": 0.3,
+            "llm_success_rate": "156/156",
+            "n_parse_failures": 0,
+            "n_retries": 0,
+            "table_path": "tables/pearl_12action_pilot/archive/pearl_pilot_protocol_fewshot_r14_temp03.json",
+            "raw_path": "tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260801_085042.jsonl",
+            "raw_effect": {
+              "n_records": 156,
+              "n_parsed": 156,
+              "per_state": [
+                {
+                  "state": {
+                    "recent_steps_mean": "high",
+                    "recent_walk_pattern": "low",
+                    "morning_steps_ratio": "balanced",
+                    "day_of_week": "weekday",
+                    "burden": "major"
+                  },
+                  "idle_mean_steps": 7433.3,
+                  "n_intervention_cells": 12,
+                  "mean_lift_steps": 567.6
+                },
+                {
+                  "state": {
+                    "recent_steps_mean": "low",
+                    "recent_walk_pattern": "low",
+                    "morning_steps_ratio": "balanced",
+                    "day_of_week": "weekday",
+                    "burden": "major"
+                  },
+                  "idle_mean_steps": 2878.6,
+                  "n_intervention_cells": 12,
+                  "mean_lift_steps": 184.5
+                },
+                {
+                  "state": {
+                    "recent_steps_mean": "high",
+                    "recent_walk_pattern": "low",
+                    "morning_steps_ratio": "balanced",
+                    "day_of_week": "weekday",
+                    "burden": "none"
+                  },
+                  "idle_mean_steps": 7690.5,
+                  "n_intervention_cells": 12,
+                  "mean_lift_steps": 220.6
+                },
+                {
+                  "state": {
+                    "recent_steps_mean": "low",
+                    "recent_walk_pattern": "low",
+                    "morning_steps_ratio": "balanced",
+                    "day_of_week": "weekday",
+                    "burden": "none"
+                  },
+                  "idle_mean_steps": 2921.4,
+                  "n_intervention_cells": 12,
+                  "mean_lift_steps": 143.2
+                }
+              ],
+              "n_lift_cells": 48,
+              "n_state_cells": 48,
+              "mean_lift_steps": 279.0,
+              "median_lift_steps": 191.4,
+              "trimmed_mean_lift_steps": 268.9,
+              "min_lift_steps": 39.0,
+              "max_lift_steps": 981.0
+            }
+          },
+          "temperature_0.7": {
+            "temperature": 0.7,
+            "llm_success_rate": "156/156",
+            "n_parse_failures": 0,
+            "n_retries": 0,
+            "table_path": "tables/pearl_12action_pilot/archive/pearl_pilot_protocol_fewshot_r14_temp07.json",
+            "raw_path": "tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260801_085337.jsonl",
+            "raw_effect": {
+              "n_records": 156,
+              "n_parsed": 156,
+              "per_state": [
+                {
+                  "state": {
+                    "recent_steps_mean": "high",
+                    "recent_walk_pattern": "low",
+                    "morning_steps_ratio": "balanced",
+                    "day_of_week": "weekday",
+                    "burden": "major"
+                  },
+                  "idle_mean_steps": 7476.2,
+                  "n_intervention_cells": 12,
+                  "mean_lift_steps": 483.3
+                },
+                {
+                  "state": {
+                    "recent_steps_mean": "low",
+                    "recent_walk_pattern": "low",
+                    "morning_steps_ratio": "balanced",
+                    "day_of_week": "weekday",
+                    "burden": "major"
+                  },
+                  "idle_mean_steps": 2881.9,
+                  "n_intervention_cells": 12,
+                  "mean_lift_steps": 172.1
+                },
+                {
+                  "state": {
+                    "recent_steps_mean": "high",
+                    "recent_walk_pattern": "low",
+                    "morning_steps_ratio": "balanced",
+                    "day_of_week": "weekday",
+                    "burden": "none"
+                  },
+                  "idle_mean_steps": 7940.5,
+                  "n_intervention_cells": 12,
+                  "mean_lift_steps": -126.3
+                },
+                {
+                  "state": {
+                    "recent_steps_mean": "low",
+                    "recent_walk_pattern": "low",
+                    "morning_steps_ratio": "balanced",
+                    "day_of_week": "weekday",
+                    "burden": "none"
+                  },
+                  "idle_mean_steps": 2892.9,
+                  "n_intervention_cells": 12,
+                  "mean_lift_steps": 155.0
+                }
+              ],
+              "n_lift_cells": 36,
+              "n_state_cells": 48,
+              "mean_lift_steps": 171.0,
+              "median_lift_steps": 111.2,
+              "trimmed_mean_lift_steps": 158.7,
+              "min_lift_steps": -265.3,
+              "max_lift_steps": 1171.4
+            }
+          }
+        },
+        "winner": "temperature 0.3",
+        "winner_rationale": "0.3: 48/48 positive cells, mean lift +279.0 (in +150-450 band), min +39.0 (no outliers), max +981.0. 0.7: only 36/48 positive (high/none intervention mean -126.3), mean +171.0, max +1171.4. Lower temperature both keeps all intervention cells positive and lowers the high-side overshoot - consistent with Renze & Guven (temperature is a diversity dial, lower temp = more deterministic = less deviation)."
+      },
+      "metrics": {
+        "temperature_0.3": {
+          "raw_effect": {
+            "n_records": 156,
+            "n_parsed": 156,
+            "per_state": [
+              {
+                "state": {
+                  "recent_steps_mean": "high",
+                  "recent_walk_pattern": "low",
+                  "morning_steps_ratio": "balanced",
+                  "day_of_week": "weekday",
+                  "burden": "major"
+                },
+                "idle_mean_steps": 7433.3,
+                "n_intervention_cells": 12,
+                "mean_lift_steps": 567.6
+              },
+              {
+                "state": {
+                  "recent_steps_mean": "low",
+                  "recent_walk_pattern": "low",
+                  "morning_steps_ratio": "balanced",
+                  "day_of_week": "weekday",
+                  "burden": "major"
+                },
+                "idle_mean_steps": 2878.6,
+                "n_intervention_cells": 12,
+                "mean_lift_steps": 184.5
+              },
+              {
+                "state": {
+                  "recent_steps_mean": "high",
+                  "recent_walk_pattern": "low",
+                  "morning_steps_ratio": "balanced",
+                  "day_of_week": "weekday",
+                  "burden": "none"
+                },
+                "idle_mean_steps": 7690.5,
+                "n_intervention_cells": 12,
+                "mean_lift_steps": 220.6
+              },
+              {
+                "state": {
+                  "recent_steps_mean": "low",
+                  "recent_walk_pattern": "low",
+                  "morning_steps_ratio": "balanced",
+                  "day_of_week": "weekday",
+                  "burden": "none"
+                },
+                "idle_mean_steps": 2921.4,
+                "n_intervention_cells": 12,
+                "mean_lift_steps": 143.2
+              }
+            ],
+            "n_lift_cells": 48,
+            "n_state_cells": 48,
+            "mean_lift_steps": 279.0,
+            "median_lift_steps": 191.4,
+            "trimmed_mean_lift_steps": 268.9,
+            "min_lift_steps": 39.0,
+            "max_lift_steps": 981.0
+          },
+          "checks": {
+            "C1_action_coverage": true,
+            "C2_cell_coverage": true,
+            "C3_state_persistence": true,
+            "C4_action_sensitivity": false,
+            "C5_burden_monotonicity": true,
+            "C6_factor_variation": false
+          }
+        },
+        "temperature_0.7": {
+          "raw_effect": {
+            "n_records": 156,
+            "n_parsed": 156,
+            "per_state": [
+              {
+                "state": {
+                  "recent_steps_mean": "high",
+                  "recent_walk_pattern": "low",
+                  "morning_steps_ratio": "balanced",
+                  "day_of_week": "weekday",
+                  "burden": "major"
+                },
+                "idle_mean_steps": 7476.2,
+                "n_intervention_cells": 12,
+                "mean_lift_steps": 483.3
+              },
+              {
+                "state": {
+                  "recent_steps_mean": "low",
+                  "recent_walk_pattern": "low",
+                  "morning_steps_ratio": "balanced",
+                  "day_of_week": "weekday",
+                  "burden": "major"
+                },
+                "idle_mean_steps": 2881.9,
+                "n_intervention_cells": 12,
+                "mean_lift_steps": 172.1
+              },
+              {
+                "state": {
+                  "recent_steps_mean": "high",
+                  "recent_walk_pattern": "low",
+                  "morning_steps_ratio": "balanced",
+                  "day_of_week": "weekday",
+                  "burden": "none"
+                },
+                "idle_mean_steps": 7940.5,
+                "n_intervention_cells": 12,
+                "mean_lift_steps": -126.3
+              },
+              {
+                "state": {
+                  "recent_steps_mean": "low",
+                  "recent_walk_pattern": "low",
+                  "morning_steps_ratio": "balanced",
+                  "day_of_week": "weekday",
+                  "burden": "none"
+                },
+                "idle_mean_steps": 2892.9,
+                "n_intervention_cells": 12,
+                "mean_lift_steps": 155.0
+              }
+            ],
+            "n_lift_cells": 36,
+            "n_state_cells": 48,
+            "mean_lift_steps": 171.0,
+            "median_lift_steps": 111.2,
+            "trimmed_mean_lift_steps": 158.7,
+            "min_lift_steps": -265.3,
+            "max_lift_steps": 1171.4
+          },
+          "checks": {
+            "C1_action_coverage": true,
+            "C2_cell_coverage": true,
+            "C3_state_persistence": true,
+            "C4_action_sensitivity": false,
+            "C5_burden_monotonicity": true,
+            "C6_factor_variation": false
+          }
+        }
+      },
+      "n_passes": 4,
+      "n_failures": 2,
+      "diagnosis": [
+        "Temperature sweep result (both arms C1/C2/C3/C5 PASS, C4/C6 FAIL as structurally expected in the 4-state subset).",
+        "temp 0.3 is the full-scale temperature: all 48 intervention cells positive (0.7: 36/48; high/none arm went negative at -126.3), mean +279.0 vs 0.7 mean +171.0, max cell +981.0 vs 0.7 +1171.4.",
+        "Lower temperature reduces both outlier risk (0.3 min +39.0 vs 0.7 min -265.3) and high-side overshoot. Matches the literature entry #8 (Renze & Guven): temperature controls diversity, not accuracy; for a single target distribution the deterministic extreme is preferable."
+      ],
+      "next_steps": [
+        "Run n=6 convergence pilot at temperature 0.3 (round 15) to check whether per-cell means stabilize and the max-cell overshoot (+981 at n=3) shrinks.",
+        "If convergence holds, proceed to the full 14,040-call run at temperature 0.3."
+      ]
+    },
+    {
+      "round": 15,
+      "checks": {
+        "C1_action_coverage": true,
+        "C2_cell_coverage": true,
+        "C3_state_persistence": true,
+        "C4_action_sensitivity": false,
+        "C5_burden_monotonicity": true,
+        "C6_factor_variation": false
+      },
+      "date": "2026-08-01",
+      "prompt_version": "protocol_fewshot r13 (FROZEN) at temperature 0.3 - n=6 convergence pilot",
+      "prompt_changes_since_previous": "None - same frozen prompt + temperature as the round-14 winning arm.",
+      "config": {
+        "model": "openrouter/deepseek/deepseek-v4-flash",
+        "provider": "openrouter",
+        "temperature": 0.3,
+        "max_workers": 50,
+        "samples_per_cell": 6,
+        "n_states": 4,
+        "n_actions": 13
+      },
+      "run": {
+        "exit_status": 0,
+        "llm_success_rate": "312/312",
+        "n_parse_failures": 0,
+        "n_retries": 0,
+        "table_path": "tables/pearl_12action_pilot/archive/pearl_pilot_protocol_fewshot_r15_n06_temp03.json",
+        "raw_path": "tables/pearl_12action_pilot/raw/results_protocol_fewshot_20260801_085845.jsonl"
+      },
+      "metrics": {
+        "structure": {
+          "n_states": 4,
+          "n_actions": 13,
+          "n_actions_present": 13,
+          "n_expected_cells": 52,
+          "n_cells": 52,
+          "action_coverage_frac": 1.0,
+          "cell_coverage_frac": 1.0
+        },
+        "checks": {
+          "C1_action_coverage": {
+            "pass": true,
+            "actual": 1.0,
+            "threshold": 1.0,
+            "detail": "13/13 actions present"
+          },
+          "C2_cell_coverage": {
+            "pass": true,
+            "actual": 1.0,
+            "threshold": 1.0,
+            "detail": "52/52 cells filled"
+          },
+          "C3_state_persistence": {
+            "pass": true,
+            "actual": {
+              "low": 1.0,
+              "high": 0.9166
+            },
+            "threshold": {
+              "low": 0.5,
+              "high": 0.5
+            },
+            "detail": "idle keeps low states low and high states high"
+          },
+          "C4_action_sensitivity": {
+            "pass": false,
+            "actual": 0.25,
+            "threshold": 0.5,
+            "detail": "1/4 cells where ability_morning raises P(high) vs idle"
+          },
+          "C5_burden_monotonicity": {
+            "pass": true,
+            "actual": {
+              "low": {
+                "mean_P(high)_none": 0.0,
+                "mean_P(high)_major": 0.0,
+                "burden_reduces_steps": true
+              },
+              "high": {
+                "mean_P(high)_none": 1.0,
+                "mean_P(high)_major": 0.9872,
+                "burden_reduces_steps": true
+              }
+            },
+            "threshold": "major <= none for every recent_steps_mean level",
+            "detail": "major burden does not raise mean P(high) vs no burden"
+          },
+          "C6_factor_variation": {
+            "pass": false,
+            "actual": {
+              "recent_steps_mean": {
+                "n_distinct_values": 2,
+                "dominant_value": "low",
+                "dominant_share": 0.5
+              },
+              "recent_walk_pattern": {
+                "n_distinct_values": 2,
+                "dominant_value": "low",
+                "dominant_share": 0.5
+              },
+              "morning_steps_ratio": {
+                "n_distinct_values": 2,
+                "dominant_value": "balanced",
+                "dominant_share": 0.9808
+              }
+            },
+            "threshold": 0.75,
+            "detail": "no factor collapses onto one value"
+          }
+        },
+        "persistence": {
+          "low": {
+            "n_cells": 2,
+            "mean_p_stay": 1.0
+          },
+          "high": {
+            "n_cells": 2,
+            "mean_p_stay": 0.9166
+          }
+        },
+        "monotonicity": {
+          "low": {
+            "mean_P(high)_none": 0.0,
+            "mean_P(high)_major": 0.0,
+            "burden_reduces_steps": true
+          },
+          "high": {
+            "mean_P(high)_none": 1.0,
+            "mean_P(high)_major": 0.9872,
+            "burden_reduces_steps": true
+          }
+        },
+        "factor_variation": {
+          "recent_steps_mean": {
+            "n_distinct_values": 2,
+            "dominant_value": "low",
+            "dominant_share": 0.5
+          },
+          "recent_walk_pattern": {
+            "n_distinct_values": 2,
+            "dominant_value": "low",
+            "dominant_share": 0.5
+          },
+          "morning_steps_ratio": {
+            "n_distinct_values": 2,
+            "dominant_value": "balanced",
+            "dominant_share": 0.9808
+          }
+        },
+        "raw_effect": {
+          "n_records": 312,
+          "n_parsed": 312,
+          "per_state": [
+            {
+              "state": {
+                "recent_steps_mean": "high",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "major"
+              },
+              "idle_mean_steps": 7502.5,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 509.5
+            },
+            {
+              "state": {
+                "recent_steps_mean": "low",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "major"
+              },
+              "idle_mean_steps": 2933.3,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 128.4
+            },
+            {
+              "state": {
+                "recent_steps_mean": "high",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "none"
+              },
+              "idle_mean_steps": 7566.7,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 304.8
+            },
+            {
+              "state": {
+                "recent_steps_mean": "low",
+                "recent_walk_pattern": "low",
+                "morning_steps_ratio": "balanced",
+                "day_of_week": "weekday",
+                "burden": "none"
+              },
+              "idle_mean_steps": 2913.3,
+              "n_intervention_cells": 12,
+              "mean_lift_steps": 148.6
+            }
+          ],
+          "n_lift_cells": 48,
+          "n_state_cells": 48,
+          "mean_lift_steps": 272.8,
+          "median_lift_steps": 253.2,
+          "trimmed_mean_lift_steps": 262.4,
+          "min_lift_steps": 23.8,
+          "max_lift_steps": 999.9
+        }
+      },
+      "n_passes": 4,
+      "n_failures": 2,
+      "diagnosis": [
+        "Convergence pilot at temperature 0.3, n=6 (312 calls): mean +272.8 vs n=3 +279.0 (stable), median +253.2, trimmed +262.4, 48/48 positive cells (stable), min +23.8 (no negative outliers), max +999.9 vs n=3 +981.0.",
+        "Per-cell means stabilize from n=3 to n=6; the all-positive result and the absence of negative outliers persist. C1/C2/C3/C5 PASS, C4/C6 FAIL as structurally expected in the 4-state subset.",
+        "The max-cell overshoot persists at ~+1000 (high/major +509.5 state mean is over the band): this is a structural, temperature- and sample-size-independent ceiling overshoot, confirming the r13 decision to handle it at the pipeline level (robust aggregation + per-cell caps), not via further prompt iterations.",
+        "Evidence gate passed: convergence is adequate to proceed with the full 14,040-call run (108 states x 13 actions x 10 samples) at temperature 0.3."
+      ],
+      "next_steps": [
+        "Proceed to Phase 2: extract table_aggregate.py (sum-to-1 fix), write generate_pearl_full.py, run the full 14,040-call bootstrap at temperature 0.3, validate, delete stale pearl_random.json.",
+        "Phase 3: constitution Layer-2 fixes + T1-T4 validation on the full table."
+      ]
     }
   ]
 }

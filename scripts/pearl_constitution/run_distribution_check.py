@@ -57,8 +57,15 @@ def check_t2_1_baseline_mean(
 
 def check_t2_2_effect_size_magnitude(
     daily_steps: dict[str, np.ndarray],
+    ref: dict,
 ) -> dict:
-    """T2.2: RL vs Control Δ at 1 month: 150 ≤ Δ ≤ 450 steps."""
+    """T2.2: RL vs Control Δ at 1 month within the reference-derived band.
+
+    The band is derived from the reference 1-month effect-size deltas
+    (observed range 218-296: RL vs Fixed Δ=238, RL vs Random Δ=218, RL vs
+    Control Δ=296). A wide 150-450 floor is kept as a documented fallback
+    when the reference does not carry 1-month effect sizes.
+    """
     control = daily_steps.get("control", np.array([]))
     rl = daily_steps.get("rl", np.array([]))
     if control.size == 0 or rl.size == 0:
@@ -69,11 +76,24 @@ def check_t2_2_effect_size_magnitude(
             "Missing arm data",
             tier=2,
         )
+
+    deltas = [
+        float(v["delta"])
+        for name, v in ref.get("effect_sizes", {}).items()
+        if isinstance(v, dict) and "delta" in v and "1mo" in name
+    ]
+    if deltas:
+        lo, hi = min(deltas), max(deltas)
+        source = f"reference 1-month deltas [{lo:.0f}-{hi:.0f}]"
+    else:
+        lo, hi = 150.0, 450.0
+        source = "fallback floor 150-450 (reference has no 1-month effect sizes)"
+
     ctrl_means = np.mean(control[:, :ONE_MONTH_DAYS], axis=1)
     rl_means = np.mean(rl[:, :ONE_MONTH_DAYS], axis=1)
     delta = float(np.mean(rl_means - ctrl_means))
-    passed = 150.0 <= delta <= 450.0
-    detail = f"Δ={delta:.1f} steps (range: 150–450)"
+    passed = lo <= delta <= hi
+    detail = f"Δ={delta:.1f} steps (range: {source})"
     return format_check_result(
         "T2.2",
         "Effect size magnitude",
@@ -86,7 +106,13 @@ def check_t2_2_effect_size_magnitude(
 def check_t2_3_effect_size_ordering(
     daily_steps: dict[str, np.ndarray],
 ) -> dict:
-    """T2.3: Mean daily steps: RL ≥ Fixed ≥ Random > Control."""
+    """T2.3: RL strictly beats Fixed, Random, and Control (gap map).
+
+    The reference and r13 ladder show no reliable ordering between Fixed,
+    Random, and Control — they cluster far below RL. The check therefore
+    asserts RL > max(Fixed, Random, Control) without imposing a chain on the
+    three non-RL arms.
+    """
     arm_means: dict[str, float] = {}
     for arm in ARM_NAMES:
         data = daily_steps.get(arm, np.array([]))
@@ -100,13 +126,12 @@ def check_t2_3_effect_size_ordering(
             )
         arm_means[arm] = float(np.mean(data[:, :ONE_MONTH_DAYS]))
 
-    rl_ge_fixed = arm_means["rl"] >= arm_means["fixed"]
-    fixed_ge_random = arm_means["fixed"] >= arm_means["random"]
-    random_gt_control = arm_means["random"] > arm_means["control"]
-    passed = rl_ge_fixed and fixed_ge_random and random_gt_control
+    non_rl_max = max(arm_means[arm] for arm in ("fixed", "random", "control"))
+    passed = arm_means["rl"] > non_rl_max
     detail = (
-        f"RL={arm_means['rl']:.1f} ≥ Fixed={arm_means['fixed']:.1f} "
-        f"≥ Random={arm_means['random']:.1f} > Control={arm_means['control']:.1f}"
+        f"RL={arm_means['rl']:.1f} > max(Fixed, Random, Control)="
+        f"{non_rl_max:.1f} (Fixed={arm_means['fixed']:.1f}, "
+        f"Random={arm_means['random']:.1f}, Control={arm_means['control']:.1f})"
     )
     return format_check_result(
         "T2.3",
@@ -231,7 +256,7 @@ def main() -> None:
     logger.info("Running Tier 2 checks...")
     results = [
         check_t2_1_baseline_mean(daily_steps, ref_steps),
-        check_t2_2_effect_size_magnitude(daily_steps),
+        check_t2_2_effect_size_magnitude(daily_steps, ref),
         check_t2_3_effect_size_ordering(daily_steps),
         check_t2_4_attenuation_pattern(daily_steps),
         check_t2_5_between_person_variance(daily_steps),

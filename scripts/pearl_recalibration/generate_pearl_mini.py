@@ -20,7 +20,6 @@ import argparse
 import json
 import logging
 import sys
-from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -34,7 +33,6 @@ from rl_health_interventions.llm_bootstrapping._shared import (  # noqa: E402
     setup_logging,
 )
 from rl_health_interventions.llm_bootstrapping.parse_pearl import (  # noqa: E402
-    history_to_factors,
     parse_day_history,
 )
 from rl_health_interventions.llm_bootstrapping.prompts.pearl import (  # noqa: E402
@@ -43,7 +41,11 @@ from rl_health_interventions.llm_bootstrapping.prompts.pearl import (  # noqa: E
     generate_prompts,
 )
 from rl_health_interventions.llm_bootstrapping.request import (  # noqa: E402
+    DEFAULT_TEMPERATURE,
     batch_complete,
+)
+from rl_health_interventions.llm_bootstrapping.table_aggregate import (  # noqa: E402
+    aggregate_to_table,
 )
 
 logger = logging.getLogger(__name__)
@@ -66,88 +68,34 @@ MINI_STATES = [
 SAMPLES_PER_CELL = 5
 
 
-_MIN_SAMPLES_PER_CELL = 2
+def _resolve_temperature(temperature: float | None) -> float:
+    """Resolve the effective sampling temperature.
 
-
-def _aggregate_to_table(  # noqa: C901, PLR0912
-    results: list[dict],
-    state_action_pairs: list[tuple[dict, str]],
-) -> dict:
-    """Aggregate LLM responses into a transition table.
-
-    Parameters
-    ----------
-    results : list[dict]
-        LLM batch results with 'content' or 'error' keys.
-    state_action_pairs : list[tuple[dict, str]]
-        Corresponding (state, action) for each prompt.
-
-    Returns
-    -------
-    dict in pearl_random.json format.
+    None means "use request.batch_complete's default"
+    (request.DEFAULT_TEMPERATURE); an explicit value passes through unchanged.
     """
-    # Group results by (state_key, action)
-    cell_results: dict[str, list[dict[str, str]]] = defaultdict(list)
-    state_lookup: dict[str, dict] = {}
+    return temperature if temperature is not None else DEFAULT_TEMPERATURE
 
-    for result, (state, action) in zip(results, state_action_pairs, strict=True):
-        if "error" in result:
-            continue
 
-        content = result.get("content", "")
-        history = parse_day_history(content)
-        if history is None:
-            continue
+def _request(
+    prompts: list[str],
+    system_prompt: str,
+    temperature: float | None,
+    timeout: float | None,
+) -> list[dict]:
+    """Run batch_complete forwarding the resolved temperature and timeout.
 
-        factors = history_to_factors(history)
-        state_key = json.dumps(state, sort_keys=True)
-        cell_key = f"{state_key}||{action}"
-        cell_results[cell_key].append(factors)
-        state_lookup[cell_key] = state
-
-    # Build transition table
-    transitions = []
-    for cell_key, factor_samples in cell_results.items():
-        state = state_lookup[cell_key]
-        state_key_str, action = cell_key.rsplit("||", 1)
-
-        if len(factor_samples) < _MIN_SAMPLES_PER_CELL:
-            logger.warning(
-                "Too few samples for %s/%s: %d",
-                state_key_str[:50],
-                action,
-                len(factor_samples),
-            )
-            continue
-
-        # Count occurrences of each factor value
-        next_state_probs = {}
-        for factor in [
-            "recent_steps_mean",
-            "recent_walk_pattern",
-            "morning_steps_ratio",
-        ]:
-            counts: dict[str, int] = defaultdict(int)
-            for sample in factor_samples:
-                counts[sample[factor]] += 1
-
-            total = len(factor_samples)
-            probs = {k: round(v / total, 4) for k, v in counts.items()}
-            next_state_probs[factor] = probs
-
-        transitions.append(
-            {
-                "state": state,
-                "action": action,
-                "next_state_probs": next_state_probs,
-                "n_samples": len(factor_samples),
-            }
-        )
-
-    return {
-        "global_state": {},
-        "transitions": transitions,
-    }
+    Extracted from main so the initial and retry calls share one path (and
+    one resolved temperature) and are directly testable.
+    """
+    return batch_complete(
+        prompts,
+        system_prompt=system_prompt,
+        temperature=_resolve_temperature(temperature),
+        max_workers=50,
+        provider="openrouter",
+        timeout=timeout,
+    )
 
 
 def main() -> None:  # noqa: C901, PLR0912, PLR0915
@@ -160,8 +108,23 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     parser.add_argument(
         "variant", nargs="?", default="baseline", choices=PROMPT_VARIANTS
     )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=None,
+        help="Sampling temperature (default: request.batch_complete default)",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=None,
+        help="Per-request timeout in seconds (default: litellm's default); "
+        "a short value makes hung requests fail fast",
+    )
     args = parser.parse_args()
     variant, samples = args.variant, args.samples
+    temperature = args.temperature
+    timeout = args.timeout
 
     out_dir = Path(_REPO_ROOT / "tables" / "pearl_12action_pilot")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -187,12 +150,13 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     logger.info("Generated %d prompts", len(prompt_entries))
 
     # Call LLM
-    logger.info("Calling LLM...")
-    results = batch_complete(
+    effective_temperature = _resolve_temperature(temperature)
+    logger.info("Calling LLM (temperature=%s)...", effective_temperature)
+    results = _request(
         [p for p, _s, _a in prompt_entries],
-        system_prompt=system_prompt,
-        max_workers=50,
-        provider="openrouter",
+        system_prompt,
+        temperature,
+        timeout,
     )
 
     # Count successes
@@ -214,11 +178,11 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     retried_originals: dict[int, dict] = {}
     if retry_indices:
         logger.info("Retrying %d unparseable response(s)", len(retry_indices))
-        retry_results = batch_complete(
+        retry_results = _request(
             [prompt_entries[i][0] for i in retry_indices],
-            system_prompt=system_prompt,
-            max_workers=50,
-            provider="openrouter",
+            system_prompt,
+            temperature,
+            timeout,
         )
         for idx, retry_result in zip(retry_indices, retry_results, strict=True):
             retried_originals[idx] = results[idx]
@@ -256,7 +220,7 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     logger.info("Saved %d raw results to %s", len(results), raw_path)
 
     # Aggregate — use metadata embedded in prompt_entries, not reconstructed
-    table = _aggregate_to_table(results, state_action_pairs)
+    table = aggregate_to_table(results, state_action_pairs)
     logger.info("Table has %d transitions", len(table["transitions"]))
 
     # Save

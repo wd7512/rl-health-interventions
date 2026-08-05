@@ -1194,6 +1194,113 @@ bootstrap.
 
 ---
 
+### Round 14 — temperature sweep (2026-08-01)
+
+**Prompt change summary:** none — frozen r13 prompt run at two sampling
+temperatures (0.3 vs 0.7), n=3 each (156 calls per arm), to pick the
+full-scale temperature.
+
+**Runs:** both 156/156, 0 parse failures, 0 retries. Tables archived as
+`archive/pearl_pilot_protocol_fewshot_r14_temp{03,07}.json`; raw
+`results_protocol_fewshot_20260801_0850{42,337}.jsonl`.
+
+| Metric | temp 0.3 | temp 0.7 | Winner |
+|--------|----------|----------|--------|
+| Overall mean | **+279.0** | +171.0 | 0.3 |
+| Median lift | +191.4 | +111.2 | 0.3 |
+| Trimmed mean | +268.9 | +158.7 | 0.3 |
+| Max cell lift | **+981.0** | +1,171.4 | 0.3 |
+| Min cell lift | **+39.0** | -265.3 | 0.3 |
+| Positive cells | **48/48** | 36/48 | 0.3 |
+| high/major mean | +567.6 | +483.3 | 0.3 |
+| high/none mean | +220.6 | **-126.3** | 0.3 |
+| low/major mean | +184.5 | +172.1 | 0.3 |
+| low/none mean | +143.2 | +155.0 | tie |
+| C3 idle P(stay) | 1.0/1.0 | 1.0/1.0 | tie |
+
+**Diagnosis:** temp 0.3 is the decisive winner. It keeps every one of the
+48 intervention cells positive (0.7 put the high/none arm at -126.3), holds
+the mean inside the +150-450 band, eliminates negative outliers (min +39.0
+vs -265.3), and *lowers* the high-side overshoot (max +981.0 vs +1,171.4).
+This matches the literature entry #8 (Renze & Guven): temperature is a
+diversity dial, not an accuracy dial — for a single target distribution,
+the more deterministic extreme (0.3) reduces deviation. The r13 default of
+0.7 was chosen before the sweep; 0.3 is now the full-scale temperature.
+
+**Decision: full-scale run at temperature 0.3.**
+
+---
+
+### Round 15 — n=6 convergence pilot (2026-08-01)
+
+**Prompt change summary:** none — frozen r13 prompt at temperature 0.3
+(the round-14 winner), n=6 (312 calls).
+
+**Run:** 312/312, 0 parse failures, 0 retries. Table archived as
+`archive/pearl_pilot_protocol_fewshot_r15_n06_temp03.json`; raw
+`results_protocol_fewshot_20260801_085845.jsonl`.
+
+| Metric | n=3 (r14, temp 0.3) | n=6 (r15) | Stable? |
+|--------|----------------------|-----------|---------|
+| Overall mean | +279.0 | **+272.8** | yes |
+| Median lift | +191.4 | +253.2 | yes |
+| Trimmed mean | +268.9 | +262.4 | yes |
+| Max cell lift | +981.0 | **+999.9** | overshoot persists |
+| Min cell lift | +39.0 | **+23.8** | yes — no negatives |
+| Positive cells | 48/48 | **48/48** | yes |
+| C3 idle P(stay) | 1.0/1.0 | 1.0/1.0 | yes |
+
+**Diagnosis:** per-cell means stabilize from n=3 to n=6; all 48 intervention
+cells stay positive and no negative outliers appear. The max-cell overshoot
+persists at ~+1,000 across temperature *and* sample size (high/major state
+mean +509.5 is over the band) — confirming it is structural and belongs at
+the pipeline level (robust aggregation + per-cell caps in analysis), not to
+further prompt iterations. **Evidence gate passed: proceed with the full
+14,040-call run at temperature 0.3.**
+
+**Decision: full-scale generation (108 states x 13 actions x 10 samples) at
+temperature 0.3.**
+
+---
+
+### Round 16 — full-scale bootstrap + constitution validation (2026-08-01)
+
+**Prompt change summary:** none — frozen r13 prompt at temperature 0.3,
+full 108-state × 13-action table, 10 samples/cell (14,040 prompts).
+
+**Run:** main run 9,390 prompts in 109.7 min + `--retry-errors` recovery pass
+(90 cells / 773 prompts) in 4.1 min, at 1,000 workers with `--timeout 120
+--retries 1` (per-request bound added because Sprint-1's default retry count
+let a hung request stall a whole batch for ~13-14 min). Final table
+`tables/pearl_12action/pearl_bootstrap.json`: 1,404/1,404 cells, n=10
+everywhere, sums-to-1, `TableValidator` clean.
+
+**Constitution tiers on the full table (10 seeds): 11/17 pass.** Pass: T1.1,
+T1.2, T1.3, T1.4, T2.5, T3.2 (skip), T3.4, T4.1, T4.2 (documented WARNING
+skip), T4.3, T4.4 (skip). Fail: T2.1 (`t=-inf` — deterministic-idle control
+baseline at exactly 5,500, a check artifact; T1.1 on the same mean passes),
+T2.2 (Δ=1,525 vs reference band 218-296), T2.3 (Fixed 7,742 > RL 7,425 —
+ordering inversion), T2.4 (negative attenuation), T3.1 (no burden
+saturation), T3.3 (inverted weekend effect).
+
+**4-arm benchmark (50 seeds, reward space):** Fixed 49.2 > RL 47.5 > Random
+45.6 ≫ Control 10.9. Root cause: the table rewards *any intervention* over
+idle far more than it rewards the *right* intervention, so Random ≈ RL and
+idle collapses (driving the oversized T2.2 Δ).
+
+**Reward-penalty probe:** raising `action_penalty` 0.05 → 0.25 for the 12
+intervention actions restores the reference ordering in reward space
+(RL 37.8 > Fixed 37.2 > Random 34.6 ≫ Control 10.9) but does **not** change
+the step-domain checks (T2.2/T2.3/T3.1/T3.3 still fail) — those are driven by
+the transition table's state structure, not the reward. Full detail in
+`docs/research/full-scale-pearl-bootstrap-report.md`.
+
+**Verdict:** table shipped and structurally valid; the step-domain
+deviations are documented limitations of the LLM-bootstrap approach (see the
+report) rather than prompt defects.
+
+---
+
 ## Ladder summary
 
 > Scope: this ladder covers variant selection through round 6 (the SHIP

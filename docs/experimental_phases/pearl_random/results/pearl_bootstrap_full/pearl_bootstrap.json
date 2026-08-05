@@ -1,0 +1,31 @@
+{
+  "config": "docs/experimental_phases/pearl_random/configs/pearl_bootstrap.yaml",
+  "seed": 42,
+  "seeds": 50,
+  "agents": {
+    "Std fixed": {
+      "total_reward": 10.92,
+      "total_std": 22.665250936179817,
+      "per_step": 0.182,
+      "last50": 0.2172
+    },
+    "Random": {
+      "total_reward": 45.628,
+      "total_std": 21.294234337021845,
+      "per_step": 0.7604666666666665,
+      "last50": 0.8252200000000001
+    },
+    "Std comb_weighted_fixed": {
+      "total_reward": 49.18000000000001,
+      "total_std": 15.742541090942089,
+      "per_step": 0.8196666666666665,
+      "last50": 0.8772
+    },
+    "Std EG": {
+      "total_reward": 47.49700000000001,
+      "total_std": 18.05052190381209,
+      "per_step": 0.7916166666666666,
+      "last50": 0.8735199999999999
+    }
+  }
+}
