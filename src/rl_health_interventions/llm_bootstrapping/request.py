@@ -33,6 +33,8 @@ from rl_health_interventions.llm_bootstrapping.prompts import generate_prompts
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_TEMPERATURE = 0.7
+
 
 def check_model_match(out_path: Path, provider: str = "openrouter") -> None:
     """Raise RuntimeError if the output filename's model doesn't match MODEL."""
@@ -61,12 +63,18 @@ def batch_complete(
     *,
     system_prompt: str | None = None,
     model: str = MODEL,
-    temperature: float = 0.7,
+    temperature: float = DEFAULT_TEMPERATURE,
     max_workers: int = 50,
     num_retries: int = 7,
+    timeout: float | None = None,
     provider: str = "openrouter",
 ) -> list[dict[str, Any]]:
-    """Send batch completions via litellm."""
+    """Send batch completions via litellm.
+
+    timeout (seconds, optional): per-request timeout passed to litellm. A
+    short value makes hung requests fail fast instead of blocking the whole
+    batch; the caller's resume/retry path tops up the failures.
+    """
     extra_kwargs: dict[str, Any] = {}
     if provider == "zen":
         zen_key = resolve_zen_api_key()
@@ -84,12 +92,14 @@ def batch_complete(
     n = len(prompts)
     logger.info("Batch: %d prompts, model=%s, workers=%d", n, model, max_workers)
 
+    timeout_kwargs: dict[str, Any] = {"timeout": timeout} if timeout is not None else {}
     responses = batch_completion(
         model=model,
         messages=messages_list,
         temperature=temperature,
         max_workers=max_workers,
         num_retries=num_retries,
+        **timeout_kwargs,
         **extra_kwargs,
     )
 

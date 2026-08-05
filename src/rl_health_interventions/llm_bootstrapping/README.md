@@ -111,6 +111,61 @@ uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --resu
 uv run python -m rl_health_interventions.llm_bootstrapping.request_helper --retry-errors --persona=goal_driven
 ```
 
+## Full-scale PEARL bootstrap (12-action transition table)
+
+The full 108-state PEARL table is generated the same way as Sprint 1: a base
+generator writes raw responses to a JSONL, and a resume/retry pass fills the
+gaps. The table is **cell-granular**: a cell is one `(state, action)` pair that
+needs `--samples` (default 10) parseable responses.
+
+### Workflow
+
+```bash
+# 1. Generate — appends raw records to the jsonl after every batch, so
+#    partial progress always survives an interruption.
+uv run python scripts/pearl_recalibration/generate_pearl_full.py
+
+# 2. After a stall/interruption, pick up where it left off — only cells
+#    with < --samples responses are regenerated.
+uv run python scripts/pearl_recalibration/generate_pearl_full.py --resume
+
+# 3. Clear error records and regenerate those cells.
+uv run python scripts/pearl_recalibration/generate_pearl_full.py --retry-errors
+
+# 4. Aggregate the raw jsonl into the final table (no API calls).
+uv run python scripts/pearl_recalibration/generate_pearl_full.py --finalize-only
+```
+
+Options: `--samples N`, `--variant NAME` (default `protocol_fewshot`, the
+frozen r13 prompt), `--temperature T` (default 0.3, the round-14 pilot winner),
+`--batch-size N` (prompts per LLM batch, default 100), `--workers N` (default
+50), and `--max-states N` (limit for smoke tests).
+
+Raw records: `tables/pearl_12action/raw/results_full_<variant>.jsonl`, one
+`{"state": {...}, "action": "...", "content|error": ...}` per line. Final table:
+`tables/pearl_12action/pearl_bootstrap.json`.
+
+### Why this design
+
+- **Per-batch append (not per-chunk)**: the generator appends to the raw jsonl
+  after each LLM batch returns. A stalled request therefore never risks losing
+  completed work — everything already on disk survives, and `--resume` re-runs
+  only what is missing. This is the same resilience Sprint 1 got from
+  `request_helper.py --resume / --retry-errors` (see above).
+- **Cell-level resume**: `--resume` counts only records with `content` (errors
+  do not count), so a partially-filled cell is topped up to `--samples` rather
+  than regenerated from scratch.
+- **`--retry-errors`** rewrites the raw file without error records, then tops up
+  the affected cells. Use it after a run finished with error lines.
+- Errors are harmless to the table: `aggregate_to_table` (in
+  `table_aggregate.py`) skips them and drops cells below its min-sample floor.
+
+### Relation to the mini pilot
+
+`generate_pearl_mini.py` is the 4-state pilot (temperature sweep, rounds 14-15)
+that picked temperature 0.3 for the full run. `generate_pearl_full.py` uses the
+same prompts, parser, and aggregator at full scale (1,404 cells, 14,040 calls).
+
 ## stable_maintainer: complete
 
 The `stable_maintainer` persona run is complete: 22,320/22,320 prompts with 0
