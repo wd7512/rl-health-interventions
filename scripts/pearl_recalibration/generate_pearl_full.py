@@ -100,13 +100,22 @@ def _append_raw(raw_path: Path, records: list[dict]) -> None:
 
 
 def _strip_errors(raw_path: Path) -> None:
-    """Rewrite the raw file without error records (used by --retry-errors)."""
+    """Rewrite the raw file without error records (used by --retry-errors).
+
+    Writes to a temporary file and atomically replaces the raw file so an
+    interrupted run never leaves a partially-written raw file behind.
+    """
     if not raw_path.exists():
         return
     keep = [r for r in _load_raw_records(raw_path) if "content" in r]
-    with raw_path.open("w") as f:
-        for record in keep:
-            f.write(json.dumps(record) + "\n")
+    tmp_path = raw_path.with_suffix(raw_path.suffix + ".tmp")
+    try:
+        with tmp_path.open("w") as f:
+            for record in keep:
+                f.write(json.dumps(record) + "\n")
+        tmp_path.replace(raw_path)
+    finally:
+        tmp_path.unlink(missing_ok=True)
     logger.info("Stripped error records; %d content records remain", len(keep))
 
 
@@ -200,13 +209,14 @@ def _run_batch(
     max_workers: int,
     timeout: int | None = None,
     num_retries: int = 7,
-) -> tuple[list[dict], list[tuple[str, dict, str]]]:
-    """Call the LLM for one batch; return (records, retry_batch).
+) -> tuple[list[dict], list[tuple[str, dict, str]], list[int]]:
+    """Call the LLM for one batch; return (records, retry_batch, retry_indices).
 
     batch is a list of (prompt, state, action). The primary batch runs first
     and its records are returned alongside a retry_batch of unparseable
-    responses, so the caller can append the primary records before any retry
-    call -- a stalled retry never holds the primary batch hostage in memory.
+    responses and the batch indices they replaced, so the caller can append
+    the primary records before any retry call -- a stalled retry never holds
+    the primary batch hostage in memory.
     """
     prompts = [p for p, _s, _a in batch]
     pairs = [(s, a) for _p, s, a in batch]
@@ -228,13 +238,14 @@ def _run_batch(
     retry_batch = [(prompts[i], pairs[i][0], pairs[i][1]) for i in retry_indices]
     if retry_batch:
         logger.info("Retrying %d unparseable response(s)", len(retry_batch))
-    return records, retry_batch
+    return records, retry_batch, retry_indices
 
 
 def _run_retry(
     system_prompt: str,
     retry_batch: list[tuple[str, dict, str]],
-    original_records: dict[tuple[str, str], dict],
+    original_records: list[dict],
+    retry_indices: list[int],
     temperature: float,
     max_workers: int,
     timeout: int | None = None,
@@ -242,8 +253,10 @@ def _run_retry(
 ) -> list[dict]:
     """Re-run unparseable prompts; return records with original preserved.
 
-    original_records maps (state_key, action) -> the primary record replaced,
-    keyed by the first occurrence so retry output keeps the original.
+    original_records are the primary records aligned to the full batch, and
+    retry_indices are their positions in that batch. Each retried occurrence
+    is paired with the exact primary record it replaced, so audit fields stay
+    accurate even when a cell has multiple samples and several need retries.
     """
     prompts = [p for p, _s, _a in retry_batch]
     pairs = [(s, a) for _p, s, a in retry_batch]
@@ -256,10 +269,7 @@ def _run_retry(
         num_retries=num_retries,
         provider="openrouter",
     )
-    retried_originals = {
-        i: original_records.get(_state_key(pairs[i][0]) + "||" + pairs[i][1], {})
-        for i in range(len(pairs))
-    }
+    retried_originals = {k: original_records[i] for k, i in enumerate(retry_indices)}
     records = _records_from_results(pairs, results, retried_originals)
     n_ok_after = sum(
         1
@@ -464,20 +474,17 @@ def _flush_batch(
     never blocks already-succeeded output; the retry batch (if any) appends
     separately once it resolves.
     """
-    records, retry_batch = _run_batch(
+    records, retry_batch, retry_indices = _run_batch(
         system_prompt, batch, temperature, max_workers, timeout, num_retries
     )
     _append_raw(raw_path, records)
     done_prompts += len(batch)
     if retry_batch:
-        first_originals = {
-            (_state_key(s) + "||" + a): rec
-            for rec, (_p, s, a) in zip(records, batch, strict=True)
-        }
         retry_records = _run_retry(
             system_prompt,
             retry_batch,
-            first_originals,
+            records,
+            retry_indices,
             temperature,
             max_workers,
             timeout,
@@ -493,7 +500,7 @@ def _flush_batch(
     )
 
     out_path = _finalize(raw_path)
-    logger.info("Full-scale run complete: %s", out_path)
+    logger.debug("Checkpoint saved: %s", out_path)
 
 
 if __name__ == "__main__":

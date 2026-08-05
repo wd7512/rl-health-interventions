@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 
 import numpy as np
@@ -86,8 +87,6 @@ def check_t4_2_persona_collapse(
     silent PASS. Set PEARL_T4_2_AVAILABLE=1 to run the real check when
     identity tables exist.
     """
-    import os
-
     if os.environ.get("PEARL_T4_2_AVAILABLE") == "1":
         arm_means: list[np.ndarray] = []
         for arm in ARM_NAMES:

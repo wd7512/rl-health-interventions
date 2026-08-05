@@ -157,3 +157,27 @@ def test_t4_2_reports_documented_skip_by_default() -> None:
     assert result["passed"] is True
     assert "SKIPPED" in result["detail"]
     assert "documented limitation" in result["detail"].lower()
+
+
+def test_t4_2_runs_anova_when_available(monkeypatch) -> None:
+    """With PEARL_T4_2_AVAILABLE=1 and 2+ arms, the ANOVA path runs."""
+    daily = _daily_steps(
+        {
+            "control": 5600.0,
+            "random": 5750.0,
+            "fixed": 5700.0,
+            "rl": 5900.0,
+        }
+    )
+    monkeypatch.setenv("PEARL_T4_2_AVAILABLE", "1")
+    result = check_t4_2_persona_collapse(daily)
+    assert result["detail"].startswith("F=")
+    assert "SKIPPED" not in result["detail"]
+
+
+def test_t4_2_anova_requires_two_arms(monkeypatch) -> None:
+    """With fewer than two non-empty arms, T4.2 falls back to the skip path."""
+    daily = {"control": np.empty((0, 60))}
+    monkeypatch.setenv("PEARL_T4_2_AVAILABLE", "1")
+    result = check_t4_2_persona_collapse(daily)
+    assert "SKIPPED" in result["detail"]

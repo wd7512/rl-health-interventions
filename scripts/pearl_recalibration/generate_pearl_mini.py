@@ -41,6 +41,7 @@ from rl_health_interventions.llm_bootstrapping.prompts.pearl import (  # noqa: E
     generate_prompts,
 )
 from rl_health_interventions.llm_bootstrapping.request import (  # noqa: E402
+    DEFAULT_TEMPERATURE,
     batch_complete,
 )
 from rl_health_interventions.llm_bootstrapping.table_aggregate import (  # noqa: E402
@@ -70,10 +71,31 @@ SAMPLES_PER_CELL = 5
 def _resolve_temperature(temperature: float | None) -> float:
     """Resolve the effective sampling temperature.
 
-    None means "use request.batch_complete's default" (0.7); an explicit
-    value passes through unchanged.
+    None means "use request.batch_complete's default"
+    (request.DEFAULT_TEMPERATURE); an explicit value passes through unchanged.
     """
-    return temperature if temperature is not None else 0.7
+    return temperature if temperature is not None else DEFAULT_TEMPERATURE
+
+
+def _request(
+    prompts: list[str],
+    system_prompt: str,
+    temperature: float | None,
+    timeout: float | None,
+) -> list[dict]:
+    """Run batch_complete forwarding the resolved temperature and timeout.
+
+    Extracted from main so the initial and retry calls share one path (and
+    one resolved temperature) and are directly testable.
+    """
+    return batch_complete(
+        prompts,
+        system_prompt=system_prompt,
+        temperature=_resolve_temperature(temperature),
+        max_workers=50,
+        provider="openrouter",
+        timeout=timeout,
+    )
 
 
 def main() -> None:  # noqa: C901, PLR0912, PLR0915
@@ -90,11 +112,19 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
         "--temperature",
         type=float,
         default=None,
-        help="Sampling temperature (default: request.batch_complete default 0.7)",
+        help="Sampling temperature (default: request.batch_complete default)",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=None,
+        help="Per-request timeout in seconds (default: litellm's default); "
+        "a short value makes hung requests fail fast",
     )
     args = parser.parse_args()
     variant, samples = args.variant, args.samples
     temperature = args.temperature
+    timeout = args.timeout
 
     out_dir = Path(_REPO_ROOT / "tables" / "pearl_12action_pilot")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -120,16 +150,13 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     logger.info("Generated %d prompts", len(prompt_entries))
 
     # Call LLM
-    logger.info(
-        "Calling LLM (temperature=%s)...",
-        _resolve_temperature(temperature),
-    )
-    results = batch_complete(
+    effective_temperature = _resolve_temperature(temperature)
+    logger.info("Calling LLM (temperature=%s)...", effective_temperature)
+    results = _request(
         [p for p, _s, _a in prompt_entries],
-        system_prompt=system_prompt,
-        temperature=_resolve_temperature(temperature),
-        max_workers=50,
-        provider="openrouter",
+        system_prompt,
+        temperature,
+        timeout,
     )
 
     # Count successes
@@ -151,12 +178,11 @@ def main() -> None:  # noqa: C901, PLR0912, PLR0915
     retried_originals: dict[int, dict] = {}
     if retry_indices:
         logger.info("Retrying %d unparseable response(s)", len(retry_indices))
-        retry_results = batch_complete(
+        retry_results = _request(
             [prompt_entries[i][0] for i in retry_indices],
-            system_prompt=system_prompt,
-            temperature=_resolve_temperature(temperature),
-            max_workers=50,
-            provider="openrouter",
+            system_prompt,
+            temperature,
+            timeout,
         )
         for idx, retry_result in zip(retry_indices, retry_results, strict=True):
             retried_originals[idx] = results[idx]

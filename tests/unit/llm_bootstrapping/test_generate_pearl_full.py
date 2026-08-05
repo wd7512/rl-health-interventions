@@ -205,3 +205,51 @@ def test_flush_batch_appends_primary_before_retry(tmp_path: Path, monkeypatch) -
     records = _load_raw_records(raw)
     assert len(records) == 3
     assert all("content" in r for r in records)
+
+
+def test_flush_batch_retry_preserves_matching_original_for_duplicate_cell(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """A duplicate (state, action) cell keeps the original it actually replaced.
+
+    Regression: when a cell has multiple samples and only a middle one needs
+    a retry, the audit original_content must come from that specific sample,
+    not the last occurrence of the cell.
+    """
+    from scripts.pearl_recalibration import generate_pearl_full as gp
+
+    raw = tmp_path / "raw.jsonl"
+    state = _state("low")
+    batch = [
+        (_day_response(), state, "idle"),
+        ("garbage-not-json", state, "idle"),
+        (_day_response(), state, "idle"),
+    ]
+    calls = {"n": 0}
+
+    def fake_batch_complete(prompts, **kwargs):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return [{"content": p} for p in prompts]
+        return [{"content": _day_response()}]
+
+    monkeypatch.setattr(gp, "batch_complete", fake_batch_complete)
+
+    def fake_finalize(raw_path, **kwargs):
+        return raw_path
+
+    monkeypatch.setattr(gp, "_finalize", fake_finalize)
+    gp._flush_batch(
+        raw,
+        "sys",
+        batch,
+        temperature=0.3,
+        max_workers=2,
+        total_prompts=3,
+        done_prompts=0,
+        start=gp.datetime.now(gp.UTC),
+    )
+    records = _load_raw_records(raw)
+    retried = [r for r in records if "original_content" in r]
+    assert len(retried) == 1
+    assert retried[0]["original_content"] == "garbage-not-json"

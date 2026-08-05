@@ -1,6 +1,6 @@
 # PEARL Constitution 12-action config (matching pearl_bootstrap structure).
 # For constitution validation — scores the 12-action COM-B simulator config.
-# See docs/experimental_phases/pearl_random/configs/pearl_bootstrap.yaml for source.
+# See docs/experimental_phases/pearl_random/configs/pearl_bootstrap_reward_penalty.yaml for source.
 #
 # 108-state × 13-action MDP. 60 days × 1 step/day = 60 steps/episode.
 # 5 state factors: 3 stochastic (recent_steps_mean, recent_walk_pattern,

@@ -33,6 +33,8 @@ from rl_health_interventions.llm_bootstrapping.prompts import generate_prompts
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_TEMPERATURE = 0.7
+
 
 def check_model_match(out_path: Path, provider: str = "openrouter") -> None:
     """Raise RuntimeError if the output filename's model doesn't match MODEL."""
@@ -61,10 +63,10 @@ def batch_complete(
     *,
     system_prompt: str | None = None,
     model: str = MODEL,
-    temperature: float = 0.7,
+    temperature: float = DEFAULT_TEMPERATURE,
     max_workers: int = 50,
     num_retries: int = 7,
-    timeout: int | None = None,
+    timeout: float | None = None,
     provider: str = "openrouter",
 ) -> list[dict[str, Any]]:
     """Send batch completions via litellm.
