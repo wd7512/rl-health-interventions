@@ -1,0 +1,190 @@
+{
+  "batch_id": 6,
+  "evaluator": "subagent-06",
+  "promotions": [
+    {
+      "id": "ref:aou:an",
+      "label": "Fitbit data quality in All of Us",
+      "reason": "Core domain data: data quality control for Fitbit device data from All of Us, which is a primary dataset used in this project. Directly relevant for understanding wearable sensor data quality in the same data source the project leverages for PA research."
+    },
+    {
+      "id": "ref:aou:ao",
+      "label": "Consumer wearables for PA surveillance",
+      "reason": "Core domain data: addresses considerations for consumer-grade wearables in physical activity surveillance, directly relevant to the project's use of wearable step count data for JITAI state estimation and intervention targeting."
+    },
+    {
+      "id": "ref:aou:ap",
+      "label": "Fitbit accuracy systematic review",
+      "reason": "Core domain data: systematic review of Fitbit device accuracy provides critical domain knowledge for interpreting step count measurements from the primary wearable sensor used in the project's PA intervention research."
+    },
+    {
+      "id": "ref:aou:aq",
+      "label": "Fitbit sleep accuracy meta-analysis",
+      "reason": "Core domain data: meta-analysis of Fitbit sleep stage accuracy is directly relevant since the project's factored MDP includes a sleep state variable derived from wearable data."
+    },
+    {
+      "id": "ref:aou:ar",
+      "label": "Wearable activity tracker accuracy",
+      "reason": "Core domain data: comprehensive review of wrist-wearable activity tracking device accuracy informs sensor processing pipeline and measurement reliability for the project's step count and activity outcomes."
+    },
+    {
+      "id": "ref:aou:as",
+      "label": "Commercial sleep tracker accuracy",
+      "reason": "Core domain data: accuracy assessment of commercial wearable sleep tracking devices supports the project's sleep state variable estimation from consumer wearable sensors."
+    },
+    {
+      "id": "ref:aou:at",
+      "label": "Fitness tracker validity",
+      "reason": "Core domain data: validity assessment of mainstream wearable fitness devices provides methodological grounding for the project's primary measurement instrument (wearable step counters)."
+    },
+    {
+      "id": "ref:aou:au",
+      "label": "Activity trackers in Parkinson's",
+      "reason": "Core domain data: accuracy assessment of activity trackers in a clinical population informs understanding of wearable performance across subgroups relevant to the project's diverse user populations in PA interventions."
+    },
+    {
+      "id": "ref:aou:av",
+      "label": "Reactivity to digital measurement",
+      "reason": "Theoretical foundation: examines how digital in-the-moment measurement of health behaviour affects behavior itself, a critical consideration for MRT/JITAI design where measurement and intervention are intertwined."
+    },
+    {
+      "id": "ref:aou:ax",
+      "label": "Fitbit data in All of Us (2025)",
+      "reason": "Core domain data: directly describes PA and sleep data exploration and processing in the All of Us dataset that the project uses for offline RL and simulation, providing essential data processing methodology."
+    },
+    {
+      "id": "ref:aou:ay",
+      "label": "Wearable data quality challenges",
+      "reason": "Core domain data / Implementation-relevant: addresses mitigating data quality issues in ambulatory wrist-worn monitoring, directly relevant to the project's sensor processing pipeline and real-world deployment."
+    },
+    {
+      "id": "ref:aou:ba",
+      "label": "Fitbit data in All of Us (2023)",
+      "reason": "Core domain data: explains how Fitbit data are structured and made available in the All of Us dataset, essential methodological reference for the project's primary data source for offline RL and simulation."
+    },
+    {
+      "id": "ref:aou:bb",
+      "label": "Sleep patterns and chronic disease",
+      "reason": "Core domain data: uses All of Us wearable data to study sleep patterns, providing domain knowledge about sleep distributions in the same dataset the project uses, relevant for the MDP sleep state dimension."
+    },
+    {
+      "id": "ref:scan:002",
+      "label": "Machine Learning Methods to Personalize Persuasive Strategies in mHealth Interve",
+      "reason": "Directly applicable methodology: scoping review finding RL is the dominant approach for timing personalization in PA mHealth interventions. Provides taxonomy that situates our config-driven framework in the broader landscape of ML-for-PA personalization."
+    },
+    {
+      "id": "ref:scan:003",
+      "label": "A scoping review of methodologies for applying artificial intelligence to physic",
+      "reason": "Directly applicable methodology: comprehensive scoping review finding RL is most promising for adaptive PA intervention delivery and personalization. Directly situates RL-based JITAI methodology in the evidence base."
+    },
+    {
+      "id": "ref:scan:008",
+      "label": "MoveMentor - examining effectiveness of a machine learning and app-based digital",
+      "reason": "Directly applicable methodology: protocol for RCT evaluating ML/RL-based PA message personalization JITAI. Provides important upcoming clinical trial context for comparing RL personalization effectiveness."
+    },
+    {
+      "id": "ref:scan:009",
+      "label": "Automated Personalized Goal Setting for Individual Exercise Behavior: Protocol f",
+      "reason": "Directly applicable methodology: protocol for adaptive intervention trial using contextual bandits for personalized PA goal recommendation. Directly relevant as a concurrent CB-for-PA trial design and comparison point."
+    },
+    {
+      "id": "ref:scan:020",
+      "label": "The Micro-Randomized Trial for Developing Digital Interventions: Data Analysis M",
+      "reason": "Directly applicable methodology: foundational MRT methods paper introducing WCLS estimator for causal excursion effects, using HeartSteps as running example. Essential reference for the project's MRT-based experimental design framework."
+    },
+    {
+      "id": "ref:scan:021",
+      "label": "Multi-Level Micro-Randomized Trial: Detecting the Proximal Effect of Messages on",
+      "reason": "Directly applicable methodology: extends MRT design to multi-level intervention components, motivated by PA intervention for diabetes. Relevant for the project's multi-action (4-action) JITAI design with varying treatment levels."
+    },
+    {
+      "id": "ref:scan:022",
+      "label": "Assessing Time-Varying Causal Effect Moderation in the Presence of Cluster-Level",
+      "reason": "Directly applicable methodology: extends MRT causal framework to handle cluster-level heterogeneity and interference, relevant for the project's multi-user deployment scenarios and group-level analyses."
+    },
+    {
+      "id": "ref:scan:023",
+      "label": "The Micro-Randomized Trial for Developing Digital Interventions: Experimental De",
+      "reason": "Directly applicable methodology: comprehensive MRT tutorial covering design, implementation, and analysis with HeartSteps examples. Definitive practitioner guide for the project's experimental methodology."
+    },
+    {
+      "id": "ref:scan:024",
+      "label": "Estimating Time-Varying Direct and Indirect Causal Excursion Effects with Longit",
+      "reason": "Directly applicable methodology: extends MRT causal framework to decompose direct and indirect effects through time-varying mediators, relevant for understanding mechanism of action in the project's multi-action interventions."
+    },
+    {
+      "id": "ref:scan:025",
+      "label": "A Meta-Learning Method for Estimation of Causal Excursion Effects to Assess Time",
+      "reason": "Directly applicable methodology: doubly robust DR-WCLS estimator handling unknown randomization, missing data, and high-dimensional mHealth features. Key advance for robust analysis in the project's real-world deployment context."
+    },
+    {
+      "id": "ref:scan:026",
+      "label": "Incorporating Auxiliary Variables to Improve the Efficiency of Time-Varying Trea",
+      "reason": "Directly applicable methodology: method to incorporate auxiliary sensor variables into MRT estimation. Directly relevant for leveraging the project's rich wearable sensor data to improve treatment effect estimation efficiency."
+    },
+    {
+      "id": "ref:scan:027",
+      "label": "Estimating Causal Effects for Binary Outcomes Using Per-Decision Inverse Probabi",
+      "reason": "Directly applicable methodology: per-decision IPW estimators reducing variance for binary proximal outcomes common in mHealth (e.g., engagement, app opens). Relevant for the project's binary outcome analysis needs."
+    },
+    {
+      "id": "ref:scan:028",
+      "label": "Incorporating nonparametric methods for estimating causal excursion effects in m",
+      "reason": "Directly applicable methodology: extends causal excursion effects to zero-inflated count outcomes, relevant for the project's step count outcomes which exhibit zero-inflation (periods of non-wear or inactivity)."
+    },
+    {
+      "id": "ref:scan:029",
+      "label": "Efficient and Globally Robust Causal Excursion Effect Estimation",
+      "reason": "Directly applicable methodology: derives semiparametric efficiency bound for causal excursion effects and proposes estimators achieving it. Establishes theoretical ceiling for the project's MRT analysis methods."
+    },
+    {
+      "id": "ref:scan:030",
+      "label": "Data integration methods for micro-randomized trials",
+      "reason": "Directly applicable methodology: methods to integrate data from multiple MRTs for efficiency gains, relevant for the project's goal of combining multiple PA intervention trials or study phases."
+    },
+    {
+      "id": "ref:scan:031",
+      "label": "Modeling Time-Varying Effects of Mobile Health Interventions Using Longitudinal ",
+      "reason": "Directly applicable methodology: first semiparametric varying-coefficient model for time-varying MRT effects using longitudinal step count outcomes. HeartSteps analysis shows prompt effects vary by context. Directly relevant to project context."
+    },
+    {
+      "id": "ref:scan:032",
+      "label": "Doubly Robust Estimation of Causal Excursion Effects in Micro-Randomized Trials ",
+      "reason": "Directly applicable methodology: first doubly robust CEE estimator handling MAR missing data in MRTs, demonstrated on HeartSteps data. Addresses sensor non-wear and missed self-report issues pervasive in the project's deployment context."
+    },
+    {
+      "id": "ref:scan:033",
+      "label": "Evaluation of the HeartSteps Online Sampling Algorithm",
+      "reason": "Directly applicable methodology: case study of HeartSteps V2/V3 online randomization algorithm managing intervention frequency and uniformity constraints. Directly relevant to the project's HeartSteps reproduction and constraint handling in MRTs."
+    },
+    {
+      "id": "ref:scan:034",
+      "label": "Distal Causal Excursion Effects: Modeling Long-Term Effects of Time-Varying Trea",
+      "reason": "Directly applicable methodology: introduces distal causal excursion effects for long-term behavior change in MRTs, with HeartSteps analysis. Bridges proximal effects to long-term outcomes critical for the project's behavior change goals."
+    }
+  ],
+  "demotions": [
+    {
+      "id": "ref:scan:016",
+      "label": "A novel physical activity recognition approach using deep ensemble optimized tra",
+      "reason": "Tangential domain: uses RL purely as a model optimization technique (ensemble weighting) for activity recognition, not for intervention design or personalization. Does not address JITAIs, MRTs, or adaptive intervention delivery, which are the core of this project."
+    },
+    {
+      "id": "ref:scan:017",
+      "label": "Personalized Type 1 Diabetes Management: Reinforcement Learning-Based Insulin Do",
+      "reason": "Tangential domain: focused on insulin dosing for diabetes management where PA is only a context variable, not an intervention target. The goal is glucose control, not PA promotion. The core methodology and objective are outside the project's scope."
+    },
+    {
+      "id": "ref:scan:018",
+      "label": "Artificial Intelligence-Enabled Mobile Health Intervention (mDiabetes) to Reduce",
+      "reason": "Too general: uses rule-based AI message personalization (not RL), evaluated via pre-post design (not MRT/MDP). Lacks the RL methodology, config-driven design, or JITAI framework that defines this project's approach. AI-personalized messaging without RL specificity."
+    }
+  ],
+  "summary": {
+    "total_evaluated": 52,
+    "promoted": 32,
+    "demoted": 3,
+    "kept_curated": 11,
+    "kept_regular": 6
+  }
+}

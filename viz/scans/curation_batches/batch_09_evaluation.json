@@ -1,0 +1,79 @@
+{
+  "batch_id": 9,
+  "evaluator": "subagent-09",
+  "promotions": [
+    {
+      "id": "ref:scan:139",
+      "label": "A Transparent Method for Step Detection using an Acceleration Threshold",
+      "reason": "Core domain data: step detection algorithm directly applicable to measuring step_bin, a key state variable in the project's 36-state factored MDP. Transparent threshold-based methods are preferable to proprietary black-box algorithms for reproducible RL-based JITAI research."
+    },
+    {
+      "id": "ref:scan:140",
+      "label": "Open-Source, Step-Counting Algorithm for Smartphone Data Collected in Clinical a",
+      "reason": "Core domain data: open-source step-counting algorithm for smartphone accelerometer data that can be directly integrated into the project's wearable data processing pipeline. Open-source nature aligns with reproducibility needs for the config-driven RL framework."
+    },
+    {
+      "id": "ref:scan:141",
+      "label": "Real-World Gait Detection Using a Wrist-Worn Inertial Sensor: Validation Study",
+      "reason": "Core domain data: validates wrist-worn inertial sensor algorithms for gait detection in real-world settings, which is directly relevant to the project's use of wearable sensors to infer step_bin state and deliver just-in-time interventions."
+    },
+    {
+      "id": "ref:scan:142",
+      "label": "DeM-FCN: An Ultra-Lightweight and Purely Convolutional Framework for Edge-Native",
+      "reason": "Implementation-relevant: ultra-lightweight fully convolutional network for on-device human activity recognition on wearable fitness trackers. Directly applicable to the project's need for real-time sensor processing on-device to compute MDP states and trigger interventions with minimal latency."
+    },
+    {
+      "id": "ref:scan:143",
+      "label": "An Open-Source, Open Data Approach to Activity Classification from Triaxial Acce",
+      "reason": "Core domain data: open dataset and open-source code for activity classification from triaxial accelerometry, moving beyond simple step counting. Provides richer activity recognition that could enhance the project's state representation beyond the current step_bin variable."
+    },
+    {
+      "id": "ref:scan:144",
+      "label": "Continuous Assessment of Daily-Living Gait Using Self-Supervised Learning of Wri",
+      "reason": "Implementation-relevant: applies self-supervised learning to wrist-worn accelerometer data for continuous gait assessment without labeled data. Directly relevant to the project's next-step direction of sensor foundation models (NormWear 768-dim embeddings) and reducing reliance on labeled training data."
+    },
+    {
+      "id": "ref:scan:145",
+      "label": "A Wearable IMU-Based Framework for Daily Physical Activity Recognition and Energ",
+      "reason": "Core domain data: combines activity recognition with energy expenditure classification for daily PA monitoring using IMU sensors. Directly relevant to the project's physical activity domain and use of wearable sensors for state estimation."
+    },
+    {
+      "id": "ref:scan:146",
+      "label": "Application of Machine Learning Approach to Classify Human Activity Level Based",
+      "reason": "Core domain data: ML approach to classify human activity levels from lifelog data including step counts and heart rate. Directly applicable to inferring the step_bin state variable from multimodal wearable sensor streams in the project's MDP."
+    },
+    {
+      "id": "ref:scan:163",
+      "label": "Technology-mediated just-in-time adaptive interventions (JITAIs) to reduce harmful",
+      "reason": "Theoretical foundation: comprehensive conceptual paper by Perski et al. on JITAI design principles for reducing harmful behaviors. Provides essential theoretical grounding for the project's JITAI framework, including intervention timing, tailoring, and adaptation strategies."
+    },
+    {
+      "id": "ref:scan:176",
+      "label": "Just-in-Time Adaptive Interventions: Where Are We Now and What Is Next?",
+      "reason": "Theoretical foundation: seminal Annual Review of Psychology article by Nahum-Shani and Murphy, the founders of MRT/JITAI methodology. Directly defines the theoretical and methodological framework that the project's config-driven RL approach builds upon for physical activity interventions."
+    },
+    {
+      "id": "ref:scan:182",
+      "label": "Physical activity and diet just-in-time adaptive intervention to reduce blood pressure",
+      "reason": "Core domain relevance: implements a PA JITAI to reduce blood pressure, directly in the project's application domain. Demonstrates feasibility of combining wearable sensors with just-in-time intervention delivery for cardiovascular health through physical activity."
+    },
+    {
+      "id": "ref:scan:185",
+      "label": "Text Messages to Promote Physical Activity in Patients With CVD: A Micro-Randomized Trial",
+      "reason": "Directly applicable methodology: micro-randomized trial (MRT) for physical activity promotion in cardiovascular patients. MRT design is the experimental foundation that the project's RL-based approach extends, and this paper provides a real-world PA MRT benchmark for comparison."
+    },
+    {
+      "id": "ref:scan:186",
+      "label": "Design and Evaluation of a JITAI to Reduce Sedentary Behavior at Work: Experimen",
+      "reason": "Core domain relevance: JITAI targeting sedentary behavior reduction, which is closely related to the project's physical activity focus. Provides implementation insights for intervention design, action selection timing, and user engagement strategies applicable to the project's 4-action intervention set."
+    }
+  ],
+  "demotions": [],
+  "summary": {
+    "total_evaluated": 52,
+    "promoted": 13,
+    "demoted": 0,
+    "kept_curated": 0,
+    "kept_regular": 39
+  }
+}

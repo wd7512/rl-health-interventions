@@ -1,0 +1,99 @@
+{
+  "batch_id": 10,
+  "evaluator": "subagent-10",
+  "promotions": [
+    {
+      "id": "ref:scan:213",
+      "label": "Evaluating and Optimizing JITAIs in a Digital Mental Health Intervention (Wysa)",
+      "reason": "Directly applicable JITAI methodology: addresses evaluation and optimization of JITAIs, which is the core framework of this project. The methods for assessing JITAI effectiveness and using data to improve intervention timing/delivery transfer directly to physical activity JITAI context, even though the domain (mental health) differs."
+    },
+    {
+      "id": "ref:scan:214",
+      "label": "Multimodal Personalized Mobile Health JITAI for Occupational Stress Management",
+      "reason": "Directly applicable JITAI methodology: implements a multimodal personalized JITAI with mobile sensing and adaptive intervention delivery. The personalization framework and multimodal data integration strategies are directly relevant to the project's config-driven RL approach for physical activity JITAIs."
+    },
+    {
+      "id": "ref:scan:216",
+      "label": "Extended COM-B model for digital health: incorporating technology affordances",
+      "reason": "Theoretical foundation directly relevant to the project: COM-B is a primary behavioral framework underpinning JITAI design, and this paper extends it specifically for digital health contexts. The COM-B model is explicitly listed as relevant theoretical foundation for behavioral intervention design in the project."
+    },
+    {
+      "id": "ref:scan:218",
+      "label": "Reliability and validity of commercially available wearable devices for measuring step count and HR",
+      "reason": "Core domain data: validates consumer wearable step count and heart rate accuracy (Apple, Samsung, Fitbit, Garmin). Directly informs the project's sensor pipeline for step_bin state estimation and activity measurement, establishing which devices provide reliable PA data."
+    },
+    {
+      "id": "ref:scan:219",
+      "label": "Comparison of raw accelerometry data from ActiGraph, Apple Watch, Garmin, and Fitbit",
+      "reason": "Core domain data on accelerometer/PPG processing: compares raw accelerometry data formats and quality across research-grade and consumer devices. Directly relevant to the project's sensor processing needs for extracting state features from wearable accelerometer data."
+    },
+    {
+      "id": "ref:scan:220",
+      "label": "Heart rate measurement accuracy of Fitbit Charge 4 and Samsung Galaxy Watch",
+      "reason": "Core domain data on wearable PPG processing: quantifies HR measurement accuracy vs ECG reference for consumer wearables. The MAE findings inform the project's understanding of sensor noise in PPG-based heart rate data used for state estimation."
+    },
+    {
+      "id": "ref:scan:221",
+      "label": "Heart rate detection by Fitbit ChargeHR validation study",
+      "reason": "Core domain data on wearable HR accuracy during sleep: Fitbit HR validation against polysomnography. Relevant for the project's sleep state dimension and understanding sensor performance during sedentary/low-activity periods."
+    },
+    {
+      "id": "ref:scan:222",
+      "label": "Performance of a commercial multi-sensor wearable (Fitbit Charge HR) in measuring sleep and steps",
+      "reason": "Core domain data on wearable multi-sensor accuracy: validates step count and sleep measurement in children. Directly relevant to the project's step_bin and sleep state variables derived from wearable sensors."
+    },
+    {
+      "id": "ref:scan:223",
+      "label": "Fitbit's accuracy to measure short bouts of stepping and sedentary behaviour",
+      "reason": "Core domain data on step detection and sedentary behavior classification: validates Fitbit's sensitivity for short stepping bouts and specificity for sedentary periods. Directly relevant to the project's step_bin state variable and activity classification needs."
+    },
+    {
+      "id": "ref:scan:224",
+      "label": "Understanding activity and physiology at scale: the Apple Heart & Movement Study",
+      "reason": "Core domain data on large-scale physical activity data collection: demonstrates scalable collection of HealthKit activity, heart rate, and movement data from 200,000+ participants. Directly relevant to understanding wearable PA data characteristics at population scale."
+    },
+    {
+      "id": "ref:scan:226",
+      "label": "Validity and reliability of the Apple Health app on iPhone for measuring gait parameters",
+      "reason": "Core domain data on consumer device step count and gait measurement: validates Apple Health app step count, walking distance, and gait speed. Relevant for projects using iOS/HealthKit-based step data for PA state estimation."
+    },
+    {
+      "id": "ref:scan:228",
+      "label": "Validation of Garmin and Polar devices for continuous heart rate monitoring during exercise",
+      "reason": "Core domain data on wearable HR validation during physical activity: quantifies Garmin/Polar HR accuracy at different exercise intensities. Directly relevant for understanding PPG sensor performance during PA, the core measurement domain of the project."
+    },
+    {
+      "id": "ref:scan:229",
+      "label": "Continuous monitoring of heart rate variability in free-living conditions using Garmin",
+      "reason": "Core domain data on wearable HRV monitoring: validates Garmin HRV data in free-living conditions and documents API data retrieval characteristics. Relevant for the project's sensor pipeline and understanding wearable data availability patterns."
+    },
+    {
+      "id": "ref:scan:230",
+      "label": "Limiting racial disparities and bias for wearable devices in health science research",
+      "reason": "Core domain data on wearable sensor bias: documents systematic PPG measurement bias across skin tone, BMI, and age groups. Directly relevant for ensuring equitable PA measurement in the project's state estimation and avoiding biased RL policies."
+    },
+    {
+      "id": "ref:scan:239",
+      "label": "Wearable sensors with possibilities for data exchange: analyzing status and needs",
+      "reason": "Implementation-relevant: analyzes wearable API access for research (Fitbit, Garmin, Apple HealthKit, Google Fit). Documents data availability, rate limits, and integration patterns that directly inform the project's sensor data ingestion pipeline design."
+    },
+    {
+      "id": "ref:scan:240",
+      "label": "Challenges and recommendations for wearable devices in digital health: data quality",
+      "reason": "Core domain data on wearable data quality: systematizes four major challenges (data quality, interoperability, demographic bias, security) for consumer wearables. Directly relevant to understanding data quality issues in the project's wearable sensor stream."
+    },
+    {
+      "id": "ref:scan:241",
+      "label": "Data quality evaluation in wearable monitoring",
+      "reason": "Core domain data on wearable sensor data quality: proposes a standardized framework for evaluating wearable data quality and quantifies motion artifact rates. Directly applicable to the project's sensor processing pipeline for assessing and filtering noisy wearable data."
+    }
+  ],
+  "demotions": [],
+  "summary": {
+    "total_evaluated": 52,
+    "promoted": 17,
+    "demoted": 0,
+    "kept_curated": 0,
+    "kept_regular": 35
+  }
+}

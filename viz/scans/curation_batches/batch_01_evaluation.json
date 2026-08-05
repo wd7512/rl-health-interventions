@@ -1,0 +1,75 @@
+{
+  "batch_id": 1,
+  "evaluator": "subagent-01",
+  "promotions": [
+    {
+      "id": "ref:hsv1:aa",
+      "label": "Non-stationary bandits with habituation",
+      "reason": "Directly relevant to the project's core challenge of intervention effectiveness decay over time. Habituation is a critical phenomenon in JITAIs where users become desensitized to repeated suggestions; this paper models exactly that dynamic with non-stationary bandit algorithms, which maps onto the project's need to handle waning intervention effects in the 36-state factored MDP."
+    },
+    {
+      "id": "ref:hsv1:af",
+      "label": "Learning unknown MDPs with TS",
+      "reason": "Directly applicable methodology: combines Thompson Sampling with MDP learning, which mirrors the project's approach of using TS-style exploration in a factored MDP environment for JITAIs. The paper addresses exactly the class of algorithms the project uses for learning intervention policies."
+    },
+    {
+      "id": "ref:hsv1:ai",
+      "label": "Control systems for adaptive interventions",
+      "reason": "Directly applicable to the project's config-driven RL framework for JITAIs. Control systems engineering provides formal methods for designing intensively adaptive interventions, paralleling the project's closed-loop approach with state-dependent action selection (idle, movement_suggestion, goal_reminder, journal)."
+    },
+    {
+      "id": "ref:hsv1:ap",
+      "label": "RL for mobile fitness",
+      "reason": "Core domain relevance: applies RL to personalize mobile fitness apps, which is the exact application domain of this project (physical activity JITAIs via mobile/wearable platforms). Demonstrates RL feasibility for PA intervention personalization."
+    },
+    {
+      "id": "ref:hsv1:z",
+      "label": "Control-oriented SCT model",
+      "reason": "Directly relevant to the project's theoretical foundation: Social Cognitive Theory is a primary behavioral framework underpinning JITAIs, and this paper models it with control engineering — a clear bridge between behavioral theory and the project's config-driven RL/control approach for physical activity interventions."
+    }
+  ],
+  "demotions": [
+    {
+      "id": "ref:hsv1:h",
+      "label": "Habituation effects",
+      "reason": "Too peripheral and outdated: 1972 neurology paper studying habituation to electrical toe stimulation. While habituation is conceptually relevant, this paper is about neurophysiological stimulus-response in a clinical setting, not about digital intervention habituation, wearable sensing, or behavioral intervention design. Does not inform the project's algorithmic or implementation needs."
+    },
+    {
+      "id": "ref:hsv1:v",
+      "label": "Contextual-bandit news recommendation",
+      "reason": "Too general: seminal LinUCB paper but applies contextual bandits to news article recommendation (web advertising domain), with no health, wearable, or intervention application. While the algorithm is relevant, the paper itself is pure ML/IR without any connection to physical activity, mHealth, or JITAIs."
+    },
+    {
+      "id": "ref:hsv1:ac",
+      "label": "Efficient RL via posterior sampling",
+      "reason": "Too general: broad RL efficiency method without health or intervention application. Does not address the specific constraints of mHealth (small state spaces, habituation, burden management, wearable data streams) that define this project."
+    },
+    {
+      "id": "ref:hsv1:ae",
+      "label": "Why posterior sampling",
+      "reason": "Too general: theoretical RL comparison (posterior sampling vs optimism) with no application to health, wearables, or behavioral interventions. Purely algorithmic theory without connection to the project's applied domain."
+    },
+    {
+      "id": "ref:hsv1:ag",
+      "label": "PopTherapy",
+      "reason": "Tangential domain: addresses stress coping through pop-culture media interventions, not physical activity. The health condition (stress) and intervention modality (pop-culture content) are different from the project's focus on step-count and physical activity JITAIs via movement suggestions, goal reminders, and journaling."
+    },
+    {
+      "id": "ref:hsv1:an",
+      "label": "Data-efficient off-policy evaluation",
+      "reason": "Too general: pure RL methodology for off-policy evaluation without any health, wearable, or intervention context. While off-policy evaluation is used in the project, this specific paper is a general algorithmic contribution with no mHealth application or domain-specific considerations."
+    },
+    {
+      "id": "ref:hsv2:as",
+      "label": "Minimax-optimal off-policy evaluation",
+      "reason": "Too general: theoretical ML/stats paper on minimax-optimal policy evaluation with no connection to health, physical activity, wearables, or digital interventions. Purely methodological without domain applicability."
+    }
+  ],
+  "summary": {
+    "total_evaluated": 52,
+    "promoted": 5,
+    "demoted": 7,
+    "kept_curated": 18,
+    "kept_regular": 22
+  }
+}

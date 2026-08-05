@@ -1,0 +1,2142 @@
+{
+  "scan_date": "2026-07-13",
+  "missions": {
+    "mission_01_rl_pa": [
+      {
+        "status": "valid",
+        "actual_title": "Effectiveness of a Digital Health Intervention Leveraging Reinforcement Learning: Results From the Diabetes and Mental Health Adaptive Notification Tracking and Evaluation (DIAMANTE) Randomized Clinical Trial",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/60834",
+        "paper_label": "Effectiveness of a Digital Health Intervention Leveraging Reinforcement Learning: Results From the Diabetes and Mental Health Adaptive Notification Tracking and Evaluation (DIAMANTE) Randomized Clinical Trial",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Machine Learning Methods to Personalize Persuasive Strategies in mHealth Interventions That Promote Physical Activity: Scoping Review and Categorization Overview",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/47774",
+        "paper_label": "Machine Learning Methods to Personalize Persuasive Strategies in mHealth Interventions That Promote Physical Activity: Scoping Review and Categorization Overview",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "A scoping review of methodologies for applying artificial intelligence to physical activity interventions",
+        "actual_year": 2024,
+        "title_similarity": 1.0,
+        "paper_id": "10.1016/j.jshs.2023.09.010",
+        "paper_label": "A scoping review of methodologies for applying artificial intelligence to physical activity interventions",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "An Evaluation of the Effect of App-Based Exercise Prescription Using Reinforcement Learning on Satisfaction and Exercise Intensity: Randomized Crossover Trial",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/49443",
+        "paper_label": "An Evaluation of the Effect of App-Based Exercise Prescription Using Reinforcement Learning on Satisfaction and Exercise Intensity: Randomized Crossover Trial",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Did we personalize? Assessing personalization by an online reinforcement learning algorithm using resampling",
+        "actual_year": 2024,
+        "title_similarity": 1.0,
+        "paper_id": "10.1007/s10994-024-06526-x",
+        "paper_label": "Did we personalize? Assessing personalization by an online reinforcement learning algorithm using resampling",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Smartphone App Using Reinforcement Learning for Obesity: Single-Arm Feasibility Study",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/77323",
+        "paper_label": "Smartphone App Using Reinforcement Learning for Obesity: Single-Arm Feasibility Study",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Impact of Iterative Development and Beta-Testing on the Usability and Acceptability of a Novel Just-in-Time Adaptive Digital Physical Activity Intervention",
+        "actual_year": 2025,
+        "title_similarity": 1.0,
+        "paper_id": "10.1123/jpah.2025-0107",
+        "paper_label": "Impact of Iterative Development and Beta-Testing on the Usability and Acceptability of a Novel Just-in-Time Adaptive Digital Physical Activity Intervention",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "MoveMentor\u2014examining the effectiveness of a machine learning and app-based digital assistant to increase physical activity in adults: protocol for a randomised controlled trial",
+        "actual_year": null,
+        "title_similarity": 0.833,
+        "paper_id": "10.1186/s13063-025-08926-3",
+        "paper_label": "MoveMentor - examining effectiveness of a machine learning and app-based digital assistant to increase physical activity in adults: protocol for a randomised controlled trial",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Automated Personalized Goal Setting for Individual Exercise Behavior: Protocol for a Web-Based Adaptive Intervention Trial",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/73766",
+        "paper_label": "Automated Personalized Goal Setting for Individual Exercise Behavior: Protocol for a Web-Based Adaptive Intervention Trial",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Promoting physical activity in middle-aged and older adults through digital intervention: matching message frame and recipient profile through deep reinforcement learning",
+        "actual_year": 2025,
+        "title_similarity": 1.0,
+        "paper_id": "10.1080/23311908.2025.2541720",
+        "paper_label": "Promoting physical activity in middle-aged and older adults through digital intervention: matching message frame and recipient profile through deep reinforcement learning",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "A REINFORCEMENT LEARNING APPROACH TO ENHANCE PHYSICAL ACTIVITY AND REDUCE FALL RISK IN OLDER ADULTS",
+        "actual_year": 2024,
+        "title_similarity": 1.0,
+        "paper_id": "10.1093/geroni/igae098.3473",
+        "paper_label": "A Reinforcement Learning Approach to Enhance Physical Activity and Reduce Fall Risk in Older Adults",
+        "paper_year": 2024
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2506.07275",
+        "paper_label": "Tailored Behavior-Change Messaging for Physical Activity: Integrating Contextual Bandits and Large Language Models",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2507.03871",
+        "paper_label": "Enhancing Adaptive Behavioral Interventions with LLM Inference from Participant-Described States",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Diffusion Policies with Offline and Inverse Reinforcement Learning for Promoting Physical Activity in Older Adults Using Wearable Sensors",
+        "actual_year": 2025,
+        "title_similarity": 1.0,
+        "paper_id": "10.1109/icmla66185.2025.00043",
+        "paper_label": "Diffusion Policies with Offline and Inverse Reinforcement Learning for Promoting Physical Activity in Older Adults Using Wearable Sensors",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2605.19208",
+        "paper_label": "Precision Physical Activity Prescription via Reinforcement Learning for Functional Actions",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "A novel physical activity recognition approach using deep ensemble optimized transformers and reinforcement learning",
+        "actual_year": 2024,
+        "title_similarity": 1.0,
+        "paper_id": "10.1016/j.neunet.2024.106159",
+        "paper_label": "A novel physical activity recognition approach using deep ensemble optimized transformers and reinforcement learning",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Personalized Type 1 Diabetes Management: Reinforcement Learning\u2013Based Insulin Dosing and Glucose Forecasting",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/79195",
+        "paper_label": "Personalized Type 1 Diabetes Management: Reinforcement Learning-Based Insulin Dosing and Glucose Forecasting",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Artificial Intelligence\u2013Enabled Mobile Health Intervention (mDiabetes) to Reduce Diabetes Risk Behaviors in Rural India: Quasi-Experimental Pre-Post Study",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/79283",
+        "paper_label": "Artificial Intelligence-Enabled Mobile Health Intervention (mDiabetes) to Reduce Diabetes Risk Behaviors in Rural India: Quasi-Experimental Pre-Post Study",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "A Scoping Review on Artificial Intelligence\u2013Supported Interventions for Nonpharmacologic Management of Chronic Rheumatic Diseases",
+        "actual_year": 2026,
+        "title_similarity": 1.0,
+        "paper_id": "10.1002/acr.25612",
+        "paper_label": "A Scoping Review on Artificial Intelligence-Supported Interventions for Nonpharmacologic Management of Chronic Rheumatic Diseases",
+        "paper_year": 2026
+      }
+    ],
+    "mission_02_mrt_methods": [
+      {
+        "status": "valid",
+        "actual_title": "The Micro-Randomized Trial for Developing Digital Interventions: Data Analysis Methods",
+        "actual_year": 2020,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2004.10241",
+        "paper_label": "The Micro-Randomized Trial for Developing Digital Interventions: Data Analysis Methods",
+        "paper_year": 2020
+      },
+      {
+        "status": "valid",
+        "actual_title": "Multi-Level Micro-Randomized Trial: Detecting the Proximal Effect of Messages on Physical Activity",
+        "actual_year": 2020,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2007.13741",
+        "paper_label": "Multi-Level Micro-Randomized Trial: Detecting the Proximal Effect of Messages on Physical Activity",
+        "paper_year": 2020
+      },
+      {
+        "status": "valid",
+        "actual_title": "Assessing Time-Varying Causal Effect Moderation in the Presence of Cluster-Level Treatment Effect Heterogeneity",
+        "actual_year": 2021,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2102.01681",
+        "paper_label": "Assessing Time-Varying Causal Effect Moderation in the Presence of Cluster-Level Treatment Effect Heterogeneity",
+        "paper_year": 2021
+      },
+      {
+        "status": "valid",
+        "actual_title": "The Micro-Randomized Trial for Developing Digital Interventions: Experimental Design and Data Analysis Considerations",
+        "actual_year": 2021,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2107.03544",
+        "paper_label": "The Micro-Randomized Trial for Developing Digital Interventions: Experimental Design and Data Analysis Considerations",
+        "paper_year": 2021
+      },
+      {
+        "status": "valid",
+        "actual_title": "Estimating Time-Varying Direct and Indirect Causal Excursion Effects with Longitudinal Binary Outcomes",
+        "actual_year": 2022,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2212.01472",
+        "paper_label": "Estimating Time-Varying Direct and Indirect Causal Excursion Effects with Longitudinal Binary Outcomes",
+        "paper_year": 2022
+      },
+      {
+        "status": "valid",
+        "actual_title": "A Meta-Learning Method for Estimation of Causal Excursion Effects to Assess Time-Varying Moderation",
+        "actual_year": 2023,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2306.16297",
+        "paper_label": "A Meta-Learning Method for Estimation of Causal Excursion Effects to Assess Time-Varying Moderation",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Incorporating Auxiliary Variables to Improve the Efficiency of Time-Varying Treatment Effect Estimation",
+        "actual_year": 2023,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2306.17260",
+        "paper_label": "Incorporating Auxiliary Variables to Improve the Efficiency of Time-Varying Treatment Effect Estimation",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Estimating Causal Effects for Binary Outcomes Using Per-Decision Inverse Probability Weighting",
+        "actual_year": 2023,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2308.12260",
+        "paper_label": "Estimating Causal Effects for Binary Outcomes Using Per-Decision Inverse Probability Weighting",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Incorporating nonparametric methods for estimating causal excursion effects in mobile health with zero-inflated count outcomes",
+        "actual_year": 2023,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2310.18905",
+        "paper_label": "Incorporating nonparametric methods for estimating causal excursion effects in mobile health with zero-inflated count outcomes",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Efficient and Globally Robust Causal Excursion Effect Estimation",
+        "actual_year": 2023,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2311.16529",
+        "paper_label": "Efficient and Globally Robust Causal Excursion Effect Estimation",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Data integration methods for micro-randomized trials",
+        "actual_year": 2024,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2403.13934",
+        "paper_label": "Data integration methods for micro-randomized trials",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Modeling Time-Varying Effects of Mobile Health Interventions Using Longitudinal Functional Data from HeartSteps Micro-Randomized Trial",
+        "actual_year": 2024,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2410.15049",
+        "paper_label": "Modeling Time-Varying Effects of Mobile Health Interventions Using Longitudinal Functional Data from HeartSteps Micro-Randomized Trial",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Doubly Robust Estimation of Causal Excursion Effects in Micro-Randomized Trials with Missing Longitudinal Outcomes",
+        "actual_year": 2024,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2411.10620",
+        "paper_label": "Doubly Robust Estimation of Causal Excursion Effects in Micro-Randomized Trials with Missing Longitudinal Outcomes",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Evaluation of the HeartSteps Online Sampling Algorithm",
+        "actual_year": 2025,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2501.02137",
+        "paper_label": "Evaluation of the HeartSteps Online Sampling Algorithm",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Distal Causal Excursion Effects: Modeling Long-Term Effects of Time-Varying Treatments in Micro-Randomized Trials",
+        "actual_year": 2025,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2502.13500",
+        "paper_label": "Distal Causal Excursion Effects: Modeling Long-Term Effects of Time-Varying Treatments in Micro-Randomized Trials",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Micro-randomized Trials with Categorical Treatments: Causal Effect Estimation and Sample Size Calculation",
+        "actual_year": 2025,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2504.15484",
+        "paper_label": "Micro-randomized Trials with Categorical Treatments: Causal Effect Estimation and Sample Size Calculation",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Semiparametric Off-Policy Inference for Optimal Policy Values under Possible Non-Uniqueness",
+        "actual_year": 2025,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2505.13809",
+        "paper_label": "Semiparametric Off-Policy Inference for Optimal Policy Values under Possible Non-Uniqueness",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Dynamic Causal Mediation Analysis for Intensive Longitudinal Data",
+        "actual_year": 2025,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2506.20027",
+        "paper_label": "Dynamic Causal Mediation Analysis for Intensive Longitudinal Data",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Robust Estimation of Moderated Causal Excursion Odds Ratio in Micro-Randomized Trials",
+        "actual_year": 2025,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2509.20555",
+        "paper_label": "Robust Estimation of Moderated Causal Excursion Odds Ratio in Micro-Randomized Trials",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Doubly Robust Estimation with Stabilized Weights for Binary Proximal Outcomes in Micro-Randomized Trials",
+        "actual_year": 2025,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2510.08359",
+        "paper_label": "Doubly Robust Estimation with Stabilized Weights for Binary Proximal Outcomes in Micro-Randomized Trials",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2511.02944",
+        "paper_label": "Power Constrained Nonstationary Bandits with Habituation and Recovery Dynamics",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2512.08828",
+        "paper_label": "Prediction Intervals for Individual Treatment Effects in a Multiple Decision Point Framework using Conformal Inference",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2602.21383",
+        "paper_label": "Evaluating time-varying treatment effects in hybrid SMART-MRT designs",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2604.23006",
+        "paper_label": "Estimation of Time-Varying Treatment Effects in a Joint Model for Longitudinal and Recurrent Event Outcomes",
+        "paper_year": 2026
+      }
+    ],
+    "mission_03_bandits_healthcare": [
+      {
+        "status": "valid",
+        "actual_title": "IntelligentPooling: practical Thompson sampling for mHealth",
+        "actual_year": 2021,
+        "title_similarity": 1.0,
+        "paper_id": "10.1007/s10994-021-05995-8",
+        "paper_label": "IntelligentPooling: Practical Thompson Sampling for mHealth",
+        "paper_year": 2021
+      },
+      {
+        "status": "valid",
+        "actual_title": "A Contextual-Bandit-Based Approach for Informed Decision-Making in Clinical Trials",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.3390/life12081277",
+        "paper_label": "A Contextual-Bandit-Based Approach for Informed Decision-Making in Clinical Trials",
+        "paper_year": 2022
+      },
+      {
+        "status": "valid",
+        "actual_title": "Brief Digital Interventions for Psychological Distress",
+        "actual_year": null,
+        "title_similarity": 0.6,
+        "paper_id": "10.1001/jamanetworkopen.2025.40502",
+        "paper_label": "Brief Digital Interventions for Psychological Distress: An AI-Enhanced Response-Adaptive RCT",
+        "paper_year": 2025
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.40)"
+        ],
+        "actual_title": "Protocol for a bandit-based response adaptive trial to evaluate the effectiveness of brief self-guided digital interventions for reducing psychological distress in university students: the Vibe Up study",
+        "actual_year": 2023,
+        "paper_id": "10.1136/bmjopen-2022-066249",
+        "paper_label": "Protocol for the Vibe Up bandit-based adaptive trial for psychological distress",
+        "paper_year": 2023
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2401.15188",
+        "paper_label": "CAREForMe: Contextual MAB Recommendation Framework for Mental Health",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Using Adaptive Bandit Experiments to Increase and Investigate Engagement in Mental Health",
+        "actual_year": null,
+        "title_similarity": 0.833,
+        "paper_id": "10.1609/aaai.v38i21.30328",
+        "paper_label": "Using Adaptive Bandit Experiments to Increase Engagement in Mental Health",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Offline Contextual Multi-armed Bandits for Mobile Health Interventions: A Case Study on Emotion Regulation",
+        "actual_year": 2020,
+        "title_similarity": 0.562,
+        "paper_id": "10.1145/3383313.3412244",
+        "paper_label": "Offline Contextual MAB for mHealth: A Case Study on Emotion Regulation",
+        "paper_year": 2020
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2606.06800",
+        "paper_label": "Exploring RL for Fluid Transitions Between Clinical Mental Healthcare and Everyday Wellness",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Personalized Glucose Management With AI: Pilot Study Using a Multiarmed Bandit Approach",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/70826",
+        "paper_label": "Personalized Glucose Management With AI: Pilot Study Using a Multiarmed Bandit Approach",
+        "paper_year": 2026
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.22)"
+        ],
+        "actual_title": "New Approach to Equitable Intervention Planning to Improve Engagement and Outcomes in a Digital Health Program: Simulation Study",
+        "actual_year": null,
+        "paper_id": "10.2196/52688",
+        "paper_label": "Equitable Intervention Planning with RMAB for Type 2 Diabetes Digital Health",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Practical considerations when designing an online learning algorithm for an app-based mHealth intervention",
+        "actual_year": 2026,
+        "title_similarity": 0.533,
+        "paper_id": "10.1016/j.cct.2026.108354",
+        "paper_label": "Practical considerations for online learning algorithm in app-based mHealth (LOWSALT4LIFE 2)",
+        "paper_year": 2026
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.47)"
+        ],
+        "actual_title": "The impact of using reinforcement learning to personalize communication on medication adherence: findings from the REINFORCE trial",
+        "actual_year": null,
+        "paper_id": "10.1038/s41746-024-01028-5",
+        "paper_label": "REINFORCE trial: RL to personalize communication on medication adherence",
+        "paper_year": 2024
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.45)"
+        ],
+        "actual_title": "Addressing people\u2019s current and future states in a reinforcement learning algorithm for persuading to quit smoking and to be physically active",
+        "actual_year": null,
+        "paper_id": "10.1371/journal.pone.0277295",
+        "paper_label": "RL for persuading to quit smoking and be physically active",
+        "paper_year": 2022
+      },
+      {
+        "status": "valid",
+        "actual_title": "A Bayesian\u2010bandit adaptive design for N\u2010of\u20101 clinical trials",
+        "actual_year": 2021,
+        "title_similarity": 1.0,
+        "paper_id": "10.1002/sim.8873",
+        "paper_label": "A Bayesian-bandit adaptive design for N-of-1 clinical trials",
+        "paper_year": 2021
+      },
+      {
+        "status": "valid",
+        "actual_title": "Multi-disciplinary fairness considerations in machine learning for clinical trials",
+        "actual_year": 2022,
+        "title_similarity": 0.7,
+        "paper_id": "10.1145/3531146.3533154",
+        "paper_label": "Multi-disciplinary fairness considerations in ML for clinical trials",
+        "paper_year": 2022
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2501.03865",
+        "paper_label": "Truthful mechanisms for linear bandit games with private contexts",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2011.07989",
+        "paper_label": "A New Bandit Setting Balancing State Evolution and Corrupted Context",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Optimal dose selection in phase I/II dose finding trial with contextual bandits: a case study and practical recommendations",
+        "actual_year": 2026,
+        "title_similarity": 0.5,
+        "paper_id": "10.1080/10543406.2025.2469877",
+        "paper_label": "Optimal dose selection in phase I/II trials with contextual bandits",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2105.07965",
+        "paper_label": "Learn to Intervene: Adaptive Learning for Restless Bandits in Preventive Healthcare",
+        "paper_year": 2021
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2408.07629",
+        "paper_label": "Optimizing HIV Patient Engagement with RL in Resource-Limited Settings",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Spoiled for Choice? Personalized Recommendation for Healthcare Decisions: A Multiarmed Bandit Approach",
+        "actual_year": 2023,
+        "title_similarity": 0.909,
+        "paper_id": "10.1287/isre.2022.1191",
+        "paper_label": "Spoiled for choice? Personalized recommendation for healthcare: A multiarmed bandit approach",
+        "paper_year": 2023
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2507.22344",
+        "paper_label": "Risk-inclusive Contextual Bandits for Early Phase Clinical Trials",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2605.24261",
+        "paper_label": "Optimizing Digital Therapeutic Interventions under Endogenous Adherence",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Planning to Fairly Allocate: Probabilistic Fairness in the Restless Bandit Setting",
+        "actual_year": 2023,
+        "title_similarity": 0.667,
+        "paper_id": "10.1145/3580305.3599467",
+        "paper_label": "Planning to fairly allocate: Probabilistic fairness in restless bandits",
+        "paper_year": 2023
+      }
+    ],
+    "mission_04_thompson_sampling": [
+      {
+        "status": "valid",
+        "actual_title": "A Bayesian\u2010bandit adaptive design for N\u2010of\u20101 clinical trials",
+        "actual_year": 2021,
+        "title_similarity": 0.625,
+        "paper_id": "10.1002/sim.8873",
+        "paper_label": "Bayesian-Bandit Design for N-of-1 Trials",
+        "paper_year": 2021
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.20)"
+        ],
+        "actual_title": "Response\u2010adaptive trial designs with accelerated Thompson sampling",
+        "actual_year": 2021,
+        "paper_id": "10.1002/pst.2098",
+        "paper_label": "Accelerated TS for Response-Adaptive Trials",
+        "paper_year": 2021
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.29)"
+        ],
+        "actual_title": "Adaptive designs for best treatment identification with top\u2010two Thompson sampling and acceleration",
+        "actual_year": 2023,
+        "paper_id": "10.1002/pst.2331",
+        "paper_label": "Top-Two TS for Best Treatment ID",
+        "paper_year": 2023
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.06)"
+        ],
+        "actual_title": "Adaptive randomization methods for sequential multiple assignment randomized trials (smarts) via thompson sampling",
+        "actual_year": 2024,
+        "paper_id": "10.1093/biomtc/ujae152",
+        "paper_label": "TS for SMART Designs",
+        "paper_year": 2024
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.19)"
+        ],
+        "actual_title": "On the finite-sample and asymptotic error control of a randomization-probability test for response-adaptive clinical trials",
+        "actual_year": 2025,
+        "paper_id": "10.1093/biomtc/ujaf069",
+        "paper_label": "Finite-Sample Error for RAR",
+        "paper_year": 2025
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.10)"
+        ],
+        "actual_title": "Application of multi-armed bandits to dose-finding clinical designs",
+        "actual_year": 2023,
+        "paper_id": "10.1016/j.artmed.2023.102713",
+        "paper_label": "MABs for Dose-Finding",
+        "paper_year": 2023
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.22)"
+        ],
+        "actual_title": "Optimal dose selection in phase I/II dose finding trial with contextual bandits: a case study and practical recommendations",
+        "actual_year": 2026,
+        "paper_id": "10.1080/10543406.2025.2469877",
+        "paper_label": "Contextual Bandits for Dose Selection",
+        "paper_year": 2026
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.42)"
+        ],
+        "actual_title": "Practical considerations when designing an online learning algorithm for an app-based mHealth intervention",
+        "actual_year": 2026,
+        "paper_id": "10.1016/j.cct.2026.108354",
+        "paper_label": "Practical Online Learning for mHealth",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Replicable Bandits for Digital Health Interventions",
+        "actual_year": 2025,
+        "title_similarity": 0.833,
+        "paper_id": "10.1214/25-sts1017",
+        "paper_label": "Replicable Bandits for Digital Health",
+        "paper_year": 2025
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.46)",
+          "first author mismatch: expected 'svihrova', got '\u0161vihrov\u00e1'"
+        ],
+        "actual_title": "Designing digital health interventions with causal inference and multi-armed bandits: a review",
+        "actual_year": null,
+        "paper_id": "10.3389/fdgth.2025.1435917",
+        "paper_label": "Causal Inference and Bandits for Digital Health",
+        "paper_year": 2025
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.07)"
+        ],
+        "actual_title": "Adaptive bandit algorithms increase efficiency of mobile tuberculosis screening programs",
+        "actual_year": null,
+        "paper_id": "10.1038/s41598-025-31829-x",
+        "paper_label": "TS for TB Screening in Peru",
+        "paper_year": 2025
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.30)"
+        ],
+        "actual_title": "Bayesian Response\u2010Adaptive Randomization for Cluster Randomized Controlled Trials",
+        "actual_year": 2026,
+        "paper_id": "10.1002/sim.70386",
+        "paper_label": "Bayesian RAR for Cluster RCTs",
+        "paper_year": 2026
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.25)"
+        ],
+        "actual_title": "Thompson Sampling for Non-Stationary Bandit Problems",
+        "actual_year": null,
+        "paper_id": "10.3390/e27010051",
+        "paper_label": "TS for Non-Stationary Bandits",
+        "paper_year": 2025
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.07)"
+        ],
+        "actual_title": "Using Bandit Algorithms to Maximize SARS-CoV-2 Case-Finding: Evaluation and Feasibility Study",
+        "actual_year": null,
+        "paper_id": "10.2196/39754",
+        "paper_label": "Bandits for COVID-19 Case-Finding",
+        "paper_year": 2023
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.08)"
+        ],
+        "actual_title": "Integrating testing volume into bandit algorithms for infectious disease surveillance",
+        "actual_year": 2025,
+        "paper_id": "10.1093/jrsssa/qnae090",
+        "paper_label": "Bandits with Volume Constraints",
+        "paper_year": 2025
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.12)"
+        ],
+        "actual_title": "Efficient Gaussian process-based motor hotspot hunting with concurrent optimization of TMS coil location and orientation",
+        "actual_year": null,
+        "paper_id": "10.1371/journal.pcbi.1013994",
+        "paper_label": "Bayesian Optimization for TMS",
+        "paper_year": 2026
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.27)"
+        ],
+        "actual_title": "Evaluating COVID-19 vaccine allocation policies using Bayesian m-top exploration",
+        "actual_year": null,
+        "paper_id": "10.1038/s41598-026-40787-x",
+        "paper_label": "Bayesian m-Top for Vaccine Policy",
+        "paper_year": 2026
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.40)"
+        ],
+        "actual_title": "Approximation to the optimal allocation for response adaptive designs",
+        "actual_year": 2025,
+        "paper_id": "10.1177/09622802241293750",
+        "paper_label": "Optimal Allocation in Adaptive Designs",
+        "paper_year": 2025
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.25)"
+        ],
+        "actual_title": "Bayesian strategy selection identifies optimal solutions to complex problems using an example from GP prescribing",
+        "actual_year": null,
+        "paper_id": "10.1038/s41746-019-0205-y",
+        "paper_label": "Bayesian Strategy for GP Prescribing",
+        "paper_year": 2020
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.11)"
+        ],
+        "actual_title": "Multi-armed bandits backfill Bayesian optimal interval design",
+        "actual_year": null,
+        "paper_id": "10.1080/10543406.2025.2602463",
+        "paper_label": "MAB Backfill BOIN",
+        "paper_year": 2025
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.00)",
+          "year mismatch: expected 2024, got 2022",
+          "first author mismatch: expected 'huch', got 'han'"
+        ],
+        "actual_title": "Modeling the Ventral and Dorsal Cortical Visual Pathways Using Artificial Neural Networks",
+        "actual_year": 2022,
+        "paper_id": "10.1162/neco_a_01456",
+        "paper_label": "Mixed-Effects Bandit for mHealth",
+        "paper_year": 2024
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.33)"
+        ],
+        "actual_title": "Alternative models and randomization techniques for Bayesian response-adaptive randomization with binary outcomes",
+        "actual_year": 2021,
+        "paper_id": "10.1177/17407745211010139",
+        "paper_label": "Bayesian RAR with Binary Outcomes",
+        "paper_year": 2021
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.30)"
+        ],
+        "actual_title": "A Contextual-Bandit-Based Approach for Informed Decision-Making in Clinical Trials",
+        "actual_year": null,
+        "paper_id": "10.3390/life12081277",
+        "paper_label": "Contextual-Bandit for Clinical Trials",
+        "paper_year": 2022
+      }
+    ],
+    "mission_05_offline_rl_health": [
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2107.11003",
+        "paper_label": "Model Selection for Offline Reinforcement Learning: Practical Considerations for Healthcare Settings",
+        "paper_year": 2021
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2107.04491",
+        "paper_label": "Offline Reinforcement Learning with Uncertainty for Treatment Strategies in Sepsis",
+        "paper_year": 2021
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2110.15332",
+        "paper_label": "Proximal Reinforcement Learning: Efficient Off-Policy Evaluation in Partially Observed Markov Decision Processes",
+        "paper_year": 2021
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2106.00099",
+        "paper_label": "Multi-Objective SPIBB: Seldonian Offline Policy Improvement with Safety Constraints in Finite MDPs",
+        "paper_year": 2021
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2203.09365",
+        "paper_label": "Semi-Markov Offline Reinforcement Learning for Healthcare",
+        "paper_year": 2022
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2210.02552",
+        "paper_label": "Towards Safe Mechanical Ventilation Treatment Using Deep Offline Reinforcement Learning",
+        "paper_year": 2022
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2204.03376",
+        "paper_label": "Offline Reinforcement Learning for Safer Blood Glucose Control in People with Type 1 Diabetes",
+        "paper_year": 2022
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2302.07549",
+        "paper_label": "Deep Offline Reinforcement Learning for Real-world Treatment Optimization Applications",
+        "paper_year": 2023
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2306.01157",
+        "paper_label": "Delphic Offline Reinforcement Learning under Nonidentifiable Hidden Confounding",
+        "paper_year": 2023
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2303.10180",
+        "paper_label": "Towards Real-World Applications of Personalized Anesthesia Using Policy Constraint Q Learning for Propofol Infusion Control",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Reinforcement Learning in Dynamic Treatment Regimes Needs Critical Reexamination",
+        "actual_year": 2024,
+        "title_similarity": 1.0,
+        "paper_id": "arxiv:2405.18556",
+        "paper_label": "Reinforcement Learning in Dynamic Treatment Regimes Needs Critical Reexamination",
+        "paper_year": 2024
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2407.19380",
+        "paper_label": "Empowering Clinicians with Medical Decision Transformers: A Framework for Sepsis Treatment",
+        "paper_year": 2024
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2505.16242",
+        "paper_label": "Offline Guarded Safe Reinforcement Learning for Medical Treatment Optimization Strategies",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2509.09772",
+        "paper_label": "Hybrid Adaptive Conformal Offline Reinforcement Learning for Fair Population Health Management",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2602.08655",
+        "paper_label": "From Robotics to Sepsis Treatment: Offline RL via Geometric Pessimism",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2603.11372",
+        "paper_label": "Ensuring Safety in Automated Mechanical Ventilation through Offline Reinforcement Learning and Digital Twin Verification",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2606.19481",
+        "paper_label": "Insulin4RL: Real-Time Insulin Management in the Intensive Care Unit for Offline Reinforcement Learning",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2112.03914",
+        "paper_label": "Synthetic Acute Hypotension and Sepsis Datasets Based on MIMIC-III and Published as Part of the Health Gym Project",
+        "paper_year": 2021
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2211.16583",
+        "paper_label": "Offline Policy Evaluation and Optimization under Confounding",
+        "paper_year": 2022
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2206.14198",
+        "paper_label": "Predicting the Need for Blood Transfusion in Intensive Care Units with Reinforcement Learning",
+        "paper_year": 2022
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2601.00831",
+        "paper_label": "Horizon Reduction as Information Loss in Offline Reinforcement Learning",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2402.11123",
+        "paper_label": "Optimizing Warfarin Dosing Using Contextual Bandit: An Offline Policy Learning and Evaluation Method",
+        "paper_year": 2024
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2501.15972",
+        "paper_label": "Flexible Blood Glucose Control: Offline Reinforcement Learning from Human Feedback",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2605.19208",
+        "paper_label": "Precision Physical Activity Prescription via Reinforcement Learning for Functional Actions",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2511.06111",
+        "paper_label": "Guardian-regularized Safe Offline Reinforcement Learning for Smart Weaning of Mechanical Circulatory Devices",
+        "paper_year": 2025
+      }
+    ],
+    "mission_06_wearable_sensors": [
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2412.09758",
+        "paper_label": "Toward Foundation Model for Multivariate Wearable Sensing of Physiological Signals (NormWear)",
+        "paper_year": 2024
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2605.15465",
+        "paper_label": "Toward World Modeling of Physiological Signals with Chaos-Theoretic Balancing and Latent Dynamics (NormWear-2)",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2410.13638",
+        "paper_label": "Scaling Wearable Foundation Models (LSM)",
+        "paper_year": 2024
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2607.06954",
+        "paper_label": "Physical activities enable scalable foundation modelling for broad-spectrum health prediction (StepFM)",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2607.06617",
+        "paper_label": "Inertia-1: An Open Exploration of Wearable Motion Foundation Models",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2404.17667",
+        "paper_label": "SiamQuality: A ConvNet-Based Foundation Model for Imperfect Physiological Signals",
+        "paper_year": 2024
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2606.07365",
+        "paper_label": "A robust PPG foundation model using multimodal physiological supervision",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2303.17331",
+        "paper_label": "Multiple Imputation Approaches for Epoch-level Accelerometer data in Trials",
+        "paper_year": 2023
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:34090494",
+        "paper_label": "A framework for handling missing accelerometer outcome data in trials",
+        "paper_year": 2021
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2209.15415",
+        "paper_label": "DynImp: Dynamic Imputation for Wearable Sensing Data Through Sensory and Temporal Relatedness",
+        "paper_year": 2022
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2605.18837",
+        "paper_label": "VCR: Learning Valid Contextual Representation for Incomplete Wearable Signals",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2509.12510",
+        "paper_label": "Self-Supervised and Topological Signal-Quality Assessment for Any PPG Device",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2511.00943",
+        "paper_label": "Lightweight ResNet-Based Deep Learning for Photoplethysmography Signal Quality Assessment",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2508.10805",
+        "paper_label": "Reduction of motion artifacts from photoplethysmography signals using learned convolutional sparse coding",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2607.07996",
+        "paper_label": "SpO2 Predictor-Guided Stage-Wise Time-Frequency Reconstruction of Low-Quality Dual-Wavelength PPG",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2505.22306",
+        "paper_label": "Versatile Cardiovascular Signal Generation with a Unified Diffusion Transformer (UniCardio)",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2605.31007",
+        "paper_label": "DEM: A Distilled Explanation Model for Interpretable Anomaly Detection in Physiological Sensor Networks",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2605.15235",
+        "paper_label": "MuteBench: Modality Unavailability Tolerance Evaluation for Incomplete Multimodal Fusion",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2605.00913",
+        "paper_label": "Leveraging Imperfect Medical Data: A Manifold-Consistent Spatio-Temporal Network for Sensor-based HAR (MCSTN)",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2501.10917",
+        "paper_label": "Decomposing and Fusing Intra- and Inter-Sensor Spatio-Temporal Signal for Multi-Sensor WHAR (DecomposeWHAR)",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2606.27886",
+        "paper_label": "A Comparison of Fusion Techniques for Multi-Modal HAR on the HARMES Dataset",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2509.16491",
+        "paper_label": "FairTune: A Bias-Aware Fine-Tuning Framework Towards Fair Heart Rate Prediction from PPG",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2502.09626",
+        "paper_label": "Evidence for Phenotype-Driven Disparities in Freezing of Gait Detection and Approaches to Bias Mitigation",
+        "paper_year": 2025
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2606.15478",
+        "paper_label": "A Bayesian Functional Accelerated Failure-Time Model with Varying Effects Correcting for Measurement Error",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2605.15719",
+        "paper_label": "Lightweight Cross-Device Sleep Tracking on the WeBe Wearable Platform",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2606.25116",
+        "paper_label": "BCoughBench: Benchmarking Respiratory Acoustic Foundation Models Under Body-Coupled Wearable Sensor Conditions",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2501.06940",
+        "paper_label": "Collaborative HAR with Passive Inter-Body Electrostatic Field",
+        "paper_year": 2025
+      }
+    ],
+    "mission_07_step_count": [
+      {
+        "status": "valid",
+        "actual_title": "Validation of Inertial Sensor-Based Step Detection Algorithms for Edge Device Deployment",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.3390/s26030876",
+        "paper_label": "Validation of Inertial Sensor-Based Step Detection Algorithms for Edge Device Deployment",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "A Transparent Method for Step Detection Using an Acceleration Threshold",
+        "actual_year": 2021,
+        "title_similarity": 1.0,
+        "paper_id": "10.1123/jmpb.2021-0011",
+        "paper_label": "A Transparent Method for Step Detection using an Acceleration Threshold",
+        "paper_year": 2021
+      },
+      {
+        "status": "valid",
+        "actual_title": "Open-Source, Step-Counting Algorithm for Smartphone Data Collected in Clinical and Nonclinical Settings: Algorithm Development and Validation Study",
+        "actual_year": null,
+        "title_similarity": 0.8,
+        "paper_id": "10.2196/47646",
+        "paper_label": "Open-Source, Step-Counting Algorithm for Smartphone Data Collected in Clinical and Nonclinical Settings",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Real-World Gait Detection Using a Wrist-Worn Inertial Sensor: Validation Study",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/50035",
+        "paper_label": "Real-World Gait Detection Using a Wrist-Worn Inertial Sensor: Validation Study",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "DeM-FCN: an ultra-lightweight and purely convolutional framework for edge-native human activity recognition in wearable fitness tracking",
+        "actual_year": null,
+        "title_similarity": 0.75,
+        "paper_id": "10.3389/fspor.2026.1858408",
+        "paper_label": "DeM-FCN: An Ultra-Lightweight and Purely Convolutional Framework for Edge-Native Human Activity Recognition",
+        "paper_year": 2026
+      },
+      {
+        "status": "error",
+        "reason": "HTTP Error 429: Unknown Error",
+        "paper_id": "arxiv:2604.09451",
+        "paper_label": "An Open-Source, Open Data Approach to Activity Classification from Triaxial Accelerometry in an Ambulatory Setting",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Continuous assessment of daily-living gait using self-supervised learning of wrist-worn accelerometer data",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.1038/s41746-026-02528-2",
+        "paper_label": "Continuous Assessment of Daily-Living Gait Using Self-Supervised Learning of Wrist-Worn Accelerometer Data",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "A wearable IMU-based framework for daily physical activity recognition and energy expenditure level classification in university students",
+        "actual_year": null,
+        "title_similarity": 0.824,
+        "paper_id": "10.3389/fpubh.2026.1829967",
+        "paper_label": "A Wearable IMU-Based Framework for Daily Physical Activity Recognition and Energy Expenditure Level Classification",
+        "paper_year": 2026
+      },
+      {
+        "status": "not_found",
+        "reason": "DOI not in CrossRef",
+        "paper_id": "10.3390/s2605xxxx",
+        "paper_label": "Application of Machine Learning Approach to Classify Human Activity Level Based on Lifelog Data",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "DaRA Dataset: Combining Wearable Sensors, Location Tracking, and Process Knowledge for Enhanced Human Activity and Human Context Recognition in Warehousing",
+        "actual_year": null,
+        "title_similarity": 0.889,
+        "paper_id": "10.3390/s26020739",
+        "paper_label": "DaRA Dataset: Combining Wearable Sensors, Location Tracking, and Process Knowledge for Human Activity Recognition in Warehousing",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Why your smartwatch may be misleading your doctor: a cross-sectional study on the impact of mobility aids on wearable accuracy in older adults",
+        "actual_year": null,
+        "title_similarity": 0.682,
+        "paper_id": "10.7717/peerj.20690",
+        "paper_label": "Why Your Smartwatch May Be Misleading Your Doctor: Mobility Aid Impact on Wearable Accuracy in Older Adults",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Comparison of consumer-grade wearable devices with a research-grade instrument for measuring physical activity in a free-living setting",
+        "actual_year": null,
+        "title_similarity": 0.765,
+        "paper_id": "10.1371/journal.pone.0342543",
+        "paper_label": "Comparison of Consumer-Grade Wearable Devices with a Research-Grade Instrument for Measuring PA in Free-Living",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Accurate measurement of simulated slow and altered walking activity: Apple Watch best in class wearable devices",
+        "actual_year": null,
+        "title_similarity": 0.875,
+        "paper_id": "10.1371/journal.pone.0333504",
+        "paper_label": "Accurate Measurement of Simulated Slow and Altered Walking Activity: Apple Watch Best in Class",
+        "paper_year": 2025
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.40)"
+        ],
+        "actual_title": "Accuracy of the Apple Watch Series 4 and Fitbit Versa for Assessing Energy Expenditure and Heart Rate of Wheelchair Users During Treadmill Wheelchair Propulsion: Cross-sectional Study",
+        "actual_year": null,
+        "paper_id": "10.2196/52312",
+        "paper_label": "Accuracy of Apple Watch and Fitbit for Assessing EE and HR of Wheelchair Users",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Low-Cost Consumer-Based Trackers to Measure Physical Activity and Sleep Duration Among Adults in Free-Living Conditions: Validation Study",
+        "actual_year": null,
+        "title_similarity": 0.611,
+        "paper_id": "10.2196/16674",
+        "paper_label": "Low-Cost Consumer-Based Trackers to Measure PA and Sleep in Free-Living: Validation Study",
+        "paper_year": 2020
+      },
+      {
+        "status": "valid",
+        "actual_title": "Step Count Accuracy of the Life Plus Connected Watch at Different Localizations and Speeds in Healthy Adults, Patients With Cardiovascular Disease, and Patients With Peripheral Artery Disease: Step Count Validation Study in Laboratory Settings",
+        "actual_year": null,
+        "title_similarity": 0.5,
+        "paper_id": "10.2196/58964",
+        "paper_label": "Step Count Accuracy of Life Plus Connected Watch at Different Locations and Speeds in Healthy, CVD, and PAD Patients",
+        "paper_year": 2025
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.48)"
+        ],
+        "actual_title": "Step-Counting Accuracy of a Commercial Smartwatch in Mild-to-Moderate PD Patients and Effect of Spatiotemporal Gait Parameters, Laterality of Symptoms, Pharmacological State, and Clinical Variables",
+        "actual_year": null,
+        "paper_id": "10.3390/s23010214",
+        "paper_label": "Step-Counting Accuracy of a Commercial Smartwatch in Mild-to-Moderate PD Patients",
+        "paper_year": 2022
+      },
+      {
+        "status": "valid",
+        "actual_title": "Accuracy of the Huawei GT2 Smartwatch for Measuring Physical Activity and Sleep Among Adults During Daily Life: Instrument Validation Study",
+        "actual_year": null,
+        "title_similarity": 0.571,
+        "paper_id": "10.2196/59521",
+        "paper_label": "Accuracy of Huawei GT2 Smartwatch for Measuring PA and Sleep During Daily Life",
+        "paper_year": 2024
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "first author mismatch: expected 'dos', got 'dos santos batista'"
+        ],
+        "actual_title": "From movement to METs: A validation of ActTrust\u00ae for energy expenditure estimation and physical activity classification in young adults",
+        "actual_year": null,
+        "paper_id": "10.1371/journal.pone.0348631",
+        "paper_label": "From Movement to METs: Validation of ActTrust for EE Estimation and PA Classification",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "OpenMetabolics: Estimating energy expenditure using a smartphone worn in a pocket",
+        "actual_year": null,
+        "title_similarity": 0.727,
+        "paper_id": "10.1038/s44172-026-00604-9",
+        "paper_label": "OpenMetabolics: Estimating EE Using a Smartphone Worn in a Pocket",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Estimation of walking energy expenditure using a single sacrum-mounted IMU based on biomechanically-informed machine learning",
+        "actual_year": null,
+        "title_similarity": 0.647,
+        "paper_id": "10.1038/s41598-025-28393-9",
+        "paper_label": "Estimation of Walking EE Using a Single Sacrum-Mounted IMU Based on Biomechanically-Informed ML",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Reducing bias and enhancing equity in AI-enabled precision nutrition: addressing measurement error across wearables, multiomics, and dietary data",
+        "actual_year": null,
+        "title_similarity": 0.611,
+        "paper_id": "10.3389/fdgth.2026.1805704",
+        "paper_label": "Reducing Bias and Enhancing Equity in AI-Enabled Precision Nutrition: Wearable Measurement Error",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Digital health interventions for promoting adults lifestyle behaviors: who is being left behind? An evidence synthesis of social inequality",
+        "actual_year": null,
+        "title_similarity": 0.789,
+        "paper_id": "10.1186/s12966-026-01874-4",
+        "paper_label": "Digital Health Interventions for Lifestyle Behaviors: Who Is Being Left Behind? Social Inequality Evidence Synthesis",
+        "paper_year": 2026
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.42)"
+        ],
+        "actual_title": "Generation of a Free-Living Ground-Truth Validation Dataset for Wearable Measures of Physical Activity, Sedentary Behavior, Sleep, and Heart Rate in Adults (OxWEARS): Protocol for a Cross-Sectional Study",
+        "actual_year": null,
+        "paper_id": "10.2196/78779",
+        "paper_label": "OxWEARS: Free-Living Ground-Truth Validation Dataset for Wearable Measures of PA, Sleep, and HR",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Analytical and clinical validation of step counting method in people living with amyotrophic lateral sclerosis",
+        "actual_year": null,
+        "title_similarity": 0.933,
+        "paper_id": "10.1038/s41598-025-24664-7",
+        "paper_label": "Analytical and Clinical Validation of Step Counting in People Living with Amyotrophic Lateral Sclerosis",
+        "paper_year": 2025
+      }
+    ],
+    "mission_08_jitai_broader": [
+      {
+        "status": "valid",
+        "actual_title": "Technology\u2010mediated just\u2010in\u2010time adaptive interventions (JITAIs) to reduce harmful substance use: a systematic review",
+        "actual_year": 2022,
+        "title_similarity": 1.0,
+        "paper_id": "10.1111/add.15687",
+        "paper_label": "Technology-mediated just-in-time adaptive interventions (JITAIs) to reduce harmful substance use: a systematic review",
+        "paper_year": 2022
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "first author mismatch: expected 'hebert', got 'h\u00e9bert'"
+        ],
+        "actual_title": "A Mobile Just-in-Time Adaptive Intervention for Smoking Cessation: Pilot Randomized Controlled Trial",
+        "actual_year": null,
+        "paper_id": "10.2196/16907",
+        "paper_label": "A Mobile Just-in-Time Adaptive Intervention for Smoking Cessation: Pilot Randomized Controlled Trial",
+        "paper_year": 2020
+      },
+      {
+        "status": "valid",
+        "actual_title": "A Just-In-Time Adaptive intervention (JITAI) for smoking cessation: Feasibility and acceptability findings",
+        "actual_year": 2023,
+        "title_similarity": 1.0,
+        "paper_id": "10.1016/j.addbeh.2022.107467",
+        "paper_label": "A Just-In-Time Adaptive intervention (JITAI) for smoking cessation: Feasibility and acceptability findings",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Proximal Effects of a Just-in-Time Adaptive Intervention for Smoking Cessation With Wearable Sensors: Microrandomized Trial",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/55379",
+        "paper_label": "Proximal Effects of a Just-in-Time Adaptive Intervention for Smoking Cessation With Wearable Sensors: Microrandomized Trial",
+        "paper_year": 2025
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "first author mismatch: expected 'hebert', got 'h\u00e9bert'"
+        ],
+        "actual_title": "Just-in-Time Adaptive Intervention for Smoking Cessation in Low-Income Adults",
+        "actual_year": null,
+        "paper_id": "10.1001/jamanetworkopen.2025.26691",
+        "paper_label": "Just-in-Time Adaptive Intervention for Smoking Cessation in Low-Income Adults: A Randomized Clinical Trial",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Optimising supervised machine learning algorithms predicting cigarette cravings and lapses for a smoking cessation just-in-time adaptive intervention (JITAI)",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.1371/journal.pone.0349028",
+        "paper_label": "Optimising supervised machine learning algorithms predicting cigarette cravings and lapses for a smoking cessation just-in-time adaptive intervention (JITAI)",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Exploring perspectives on digital smoking cessation just-in-time adaptive interventions: A focus group study with adult smokers and smoking cessation professionals",
+        "actual_year": null,
+        "title_similarity": 0.722,
+        "paper_id": "10.1371/journal.pdig.0000705",
+        "paper_label": "Exploring perspectives on digital smoking cessation just-in-time adaptive interventions: A focus group study",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Randomised controlled trial of a just-in-time adaptive intervention (JITAI) smoking cessation smartphone app: the Quit Sense feasibility trial protocol",
+        "actual_year": 2021,
+        "title_similarity": 1.0,
+        "paper_id": "10.1136/bmjopen-2020-048204",
+        "paper_label": "Randomised controlled trial of a just-in-time adaptive intervention (JITAI) smoking cessation smartphone app: the Quit Sense feasibility trial protocol",
+        "paper_year": 2021
+      },
+      {
+        "status": "valid",
+        "actual_title": "A smoking cessation smartphone app that delivers real-time \u2018context aware\u2019 behavioural support: the Quit Sense feasibility RCT",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.3310/KQYT5412",
+        "paper_label": "A smoking cessation smartphone app that delivers real-time 'context aware' behavioural support: the Quit Sense feasibility RCT",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Smoking cessation supported by a smartphone app: A qualitative process evaluation of the Quit Sense feasibility RCT",
+        "actual_year": 2025,
+        "title_similarity": 1.0,
+        "paper_id": "10.1111/bjhp.70010",
+        "paper_label": "Smoking cessation supported by a smartphone app: A qualitative process evaluation of the Quit Sense feasibility RCT",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Presenting and Evaluating a Smartwatch-Based Intervention for Smoking Relapse (StopWatch): Feasibility and Acceptability Study",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/56999",
+        "paper_label": "Presenting and Evaluating a Smartwatch-Based Intervention for Smoking Relapse (StopWatch): Feasibility and Acceptability Study",
+        "paper_year": 2024
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "first author mismatch: expected 'hebert', got 'h\u00e9bert'"
+        ],
+        "actual_title": "Predicting the first smoking lapse during a quit attempt: A machine learning approach",
+        "actual_year": 2021,
+        "paper_id": "10.1016/j.drugalcdep.2020.108340",
+        "paper_label": "Predicting the first smoking lapse during a quit attempt: A machine learning approach",
+        "paper_year": 2021
+      },
+      {
+        "status": "valid",
+        "actual_title": "Just-in-Time Adaptive Mechanisms of Popular Mobile Apps for Individuals With Depression: Systematic App Search and Literature Review",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/29412",
+        "paper_label": "Just-in-Time Adaptive Mechanisms of Popular Mobile Apps for Individuals With Depression: Systematic App Search and Literature Review",
+        "paper_year": 2021
+      },
+      {
+        "status": "valid",
+        "actual_title": "Just-in-Time Adaptive Interventions: Where Are We Now and What Is Next?",
+        "actual_year": 2026,
+        "title_similarity": 1.0,
+        "paper_id": "10.1146/annurev-psych-121024-044244",
+        "paper_label": "Just-in-Time Adaptive Interventions: Where Are We Now and What Is Next?",
+        "paper_year": 2026
+      },
+      {
+        "status": "valid",
+        "actual_title": "Just-in-the-Moment Adaptive Interventions (JITAI): A Meta-Analytical Review",
+        "actual_year": 2020,
+        "title_similarity": 1.0,
+        "paper_id": "10.1080/10410236.2019.1652388",
+        "paper_label": "Just-in-the-Moment Adaptive Interventions (JITAI): A Meta-Analytical Review",
+        "paper_year": 2020
+      },
+      {
+        "status": "valid",
+        "actual_title": "Just-in-Time Adaptive Intervention for Stabilizing Sleep Hours of Japanese Workers: Microrandomized Trial",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/49669",
+        "paper_label": "Just-in-Time Adaptive Intervention for Stabilizing Sleep Hours of Japanese Workers: Microrandomized Trial",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Toward Tailoring Just-in-Time Adaptive Intervention Systems for Workplace Stress Reduction: Exploratory Analysis of Intervention Implementation",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/48974",
+        "paper_label": "Toward Tailoring Just-in-Time Adaptive Intervention Systems for Workplace Stress Reduction: Exploratory Analysis of Intervention Implementation",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Applying the Just-In-Time Adaptive Intervention Framework to the Development of Gambling Interventions",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.1007/s10899-023-10250-x",
+        "paper_label": "Applying the Just-In-Time Adaptive Intervention Framework to the Development of Gambling Interventions",
+        "paper_year": 2024
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "first author mismatch: expected 'jyj', got 'koh'"
+        ],
+        "actual_title": "Just-In-Time Adaptive Interventions for Weight Management Among Adults With Excess Body Weight: Scoping Review",
+        "actual_year": null,
+        "paper_id": "10.2196/76625",
+        "paper_label": "Just-In-Time Adaptive Interventions for Weight Management Among Adults With Excess Body Weight: Scoping Review",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Physical activity and diet just-in-time adaptive intervention to reduce blood pressure: a randomized controlled trial",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.1038/s41746-025-01844-3",
+        "paper_label": "Physical activity and diet just-in-time adaptive intervention to reduce blood pressure: a randomized controlled trial",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "A Trauma-Informed, Geospatially Aware, Just-in-Time Adaptive mHealth Intervention to Support Effective Coping Skills Among People Living With HIV in New Orleans: Development and Protocol for a Pilot Randomized Controlled Trial",
+        "actual_year": null,
+        "title_similarity": 0.567,
+        "paper_id": "10.2196/47151",
+        "paper_label": "A Trauma-Informed, Geospatially Aware, Just-in-Time Adaptive mHealth Intervention for People Living With HIV: Development and Protocol for a Pilot RCT",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "A longitudinal observational study with ecological momentary assessment and deep learning to predict non-prescribed opioid use, treatment retention, and medication nonadherence among persons receiving medication treatment for opioid use disorder",
+        "actual_year": 2025,
+        "title_similarity": 0.556,
+        "paper_id": "10.1016/j.josat.2025.209685",
+        "paper_label": "EMA and deep learning to predict non-prescribed opioid use, treatment retention, and medication nonadherence among persons receiving MOUD",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Text Messages to Promote Physical Activity in Patients With Cardiovascular Disease: A Micro-Randomized Trial of a Just-In-Time Adaptive Intervention",
+        "actual_year": 2024,
+        "title_similarity": 0.65,
+        "paper_id": "10.1161/CIRCOUTCOMES.123.010731",
+        "paper_label": "Text Messages to Promote Physical Activity in Patients With CVD: A Micro-Randomized Trial of a JITAI",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Design and Evaluation of a Just-in-Time Adaptive Intervention (JITAI) to Reduce Sedentary Behavior at Work: Experimental Study",
+        "actual_year": null,
+        "title_similarity": 0.824,
+        "paper_id": "10.2196/34309",
+        "paper_label": "Design and Evaluation of a JITAI to Reduce Sedentary Behavior at Work: Experimental Study",
+        "paper_year": 2022
+      },
+      {
+        "status": "valid",
+        "actual_title": "Integrating Intensive Longitudinal Data (ILD) to Inform the Development of Dynamic Theories of Behavior Change and Intervention Design: a Case Study of Scientific and Practical Considerations",
+        "actual_year": 2023,
+        "title_similarity": 0.542,
+        "paper_id": "10.1007/s11121-023-01495-4",
+        "paper_label": "Integrating Intensive Longitudinal Data to Inform Dynamic Theories of Behavior Change and JITAI Design",
+        "paper_year": 2023
+      }
+    ],
+    "mission_09_behavioral_frameworks": [
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42099076",
+        "paper_id": "pmid-42099076",
+        "paper_label": "Behavior Change Techniques in Digital Health Interventions for Promoting Adolescent Health Behaviors: Systematic Umbrella Review",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41386678",
+        "paper_id": "pmid-41386678",
+        "paper_label": "Progressing implementation of behavior change frameworks for digital health interventions: challenges and ways forward",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41605507",
+        "paper_id": "pmid-41605507",
+        "paper_label": "Understanding Behavioral Influences on Eating Disorders and App Engagement Using COM-B and TDF",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42124921",
+        "paper_id": "pmid-42124921",
+        "paper_label": "Applying COM-B to Understand Adherence to Tele-Exercise Prehabilitation among Older Lung Cancer Patients",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41891930",
+        "paper_id": "pmid-41891930",
+        "paper_label": "Critical role of digitalization within the drug intervention ecosystem among TVET students: A systematic review",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41962010",
+        "paper_id": "pmid-41962010",
+        "paper_label": "Facilitators and Barriers to Digital Self-Management in Older Adults With Depression: COM-B and TDF Study",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41943732",
+        "paper_id": "pmid-41943732",
+        "paper_label": "Just-In-Time Adaptive Interventions for Weight Management: Scoping Review",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41447266",
+        "paper_id": "pmid-41447266",
+        "paper_label": "Co-designing a JITAI mHealth intervention to improve parental support for child physical activity",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42433650",
+        "paper_id": "pmid-42433650",
+        "paper_label": "Forecasting stress transitions using EMA data and machine learning for JITAI",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42365042",
+        "paper_id": "pmid-42365042",
+        "paper_label": "SCT and TPB-based serial mediation model of social media and eating behaviors among sports science students",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42419902",
+        "paper_id": "pmid-42419902",
+        "paper_label": "Research trends in digital sexual media literacy interventions for adolescents: a scoping review",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42194436",
+        "paper_id": "pmid-42194436",
+        "paper_label": "Factors associated with intention to adopt digital health technologies for PA among people with disabilities: TAM-TPB framework",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42335295",
+        "paper_id": "pmid-42335295",
+        "paper_label": "Digital Health Intervention to Promote Lifelong Specialized Care in Adults With Congenital Heart Disease: Theory-Driven Co-Design",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41883521",
+        "paper_id": "pmid-41883521",
+        "paper_label": "Intention to continue using corporate wellness mHealth apps in Thailand: HBM approach",
+        "paper_year": 2025
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42438764",
+        "paper_id": "pmid-42438764",
+        "paper_label": "INSPIRE: Cultural and linguistic tailoring for a digital health intervention for chronic pain",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42204502",
+        "paper_id": "pmid-42204502",
+        "paper_label": "Co-designing culturally appropriate mHealth PA intervention for midlife women in Saudi Arabia",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42387528",
+        "paper_id": "pmid-42387528",
+        "paper_label": "Fidelity in adapting a digital intervention for depression in Vietnam",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42427360",
+        "paper_id": "pmid-42427360",
+        "paper_label": "Effectiveness and Theoretical Foundations of mHealth Apps for PA, Diet, and Weight Loss: Systematic Review Protocol",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42419501",
+        "paper_id": "pmid-42419501",
+        "paper_label": "Comparison of behavior change theories in digital health interventions: A systematic review",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41339944",
+        "paper_id": "pmid-41339944",
+        "paper_label": "Using BCW to develop an integrated intervention for diabetes and hypertension co-management in China: a case report",
+        "paper_year": 2025
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-40951047",
+        "paper_id": "pmid-40951047",
+        "paper_label": "Factors influencing engagement in digital substance use prevention: COM-B and TDF qualitative study",
+        "paper_year": 2025
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41955893",
+        "paper_id": "pmid-41955893",
+        "paper_label": "Diet and MS: Behaviour change techniques in the digital health application levidex",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41880227",
+        "paper_id": "pmid-41880227",
+        "paper_label": "Clinical Usability of Exercise Prescription Apps: Systematic Review and Multidimensional Evaluation",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41770281",
+        "paper_id": "pmid-41770281",
+        "paper_label": "Barriers and enablers to integrating PA in breast cancer care: TDF and COM-B study",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41945919",
+        "paper_id": "pmid-41945919",
+        "paper_label": "Barriers and enablers to diabetes technologies use in type 1 diabetes: A scoping review using TDF",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-40961490",
+        "paper_id": "pmid-40961490",
+        "paper_label": "Evaluating and Optimizing JITAIs in a Digital Mental Health Intervention (Wysa) for Chronic Pain",
+        "paper_year": 2025
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-42150167",
+        "paper_id": "pmid-42150167",
+        "paper_label": "Multimodal Personalized Mobile Health JITAI for Occupational Stress Management: Pilot Study",
+        "paper_year": 2026
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41666365",
+        "paper_id": "pmid-41666365",
+        "paper_label": "HBM and mHealth for chronic disease self-management: a systematic review",
+        "paper_year": 2025
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-41083662",
+        "paper_id": "pmid-41083662",
+        "paper_label": "Extended COM-B model for digital health: incorporating technology affordances",
+        "paper_year": 2025
+      },
+      {
+        "status": "skipped",
+        "reason": "unrecognized ID format: pmid-40704912",
+        "paper_id": "pmid-40704912",
+        "paper_label": "COM-B and TDF for understanding medication adherence in chronic illness: digital vs. non-digital comparison",
+        "paper_year": 2025
+      }
+    ],
+    "mission_10_platforms": [
+      {
+        "status": "valid",
+        "actual_title": "Reliability and Validity of Commercially Available Wearable Devices for Measuring Steps, Energy Expenditure, and Heart Rate: Systematic Review",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/18694",
+        "paper_label": "Reliability and validity of commercially available wearable devices for measuring steps, energy expenditure, and heart rate: systematic review",
+        "paper_year": 2020
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "first author mismatch: expected 'iii', got 'white'"
+        ],
+        "actual_title": "Comparison of raw accelerometry data from ActiGraph, Apple Watch, Garmin, and Fitbit using a mechanical shaker table",
+        "actual_year": null,
+        "paper_id": "10.1371/journal.pone.0286898",
+        "paper_label": "Comparison of raw accelerometry data from ActiGraph, Apple Watch, Garmin, and Fitbit using a mechanical shaker table",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Heart Rate Measurement Accuracy of Fitbit Charge 4 and Samsung Galaxy Watch Active2: Device Evaluation Study",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/33635",
+        "paper_label": "Heart rate measurement accuracy of Fitbit Charge 4 and Samsung Galaxy Watch Active2: device evaluation study",
+        "paper_year": 2022
+      },
+      {
+        "status": "valid",
+        "actual_title": "Heart rate detection by Fitbit ChargeHR<sup>\u2122</sup>: A validation study versus portable polysomnography",
+        "actual_year": 2021,
+        "title_similarity": 0.846,
+        "paper_id": "10.1111/jsr.13346",
+        "paper_label": "Heart rate detection by Fitbit ChargeHR: A validation study versus portable polysomnography",
+        "paper_year": 2021
+      },
+      {
+        "status": "valid",
+        "actual_title": "Performance of a commercial multi-sensor wearable (Fitbit Charge HR) in measuring physical activity and sleep in healthy children",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.1371/journal.pone.0237719",
+        "paper_label": "Performance of a commercial multi-sensor wearable (Fitbit Charge HR) in measuring physical activity and sleep in healthy children",
+        "paper_year": 2020
+      },
+      {
+        "status": "valid",
+        "actual_title": "Fitbit's accuracy to measure short bouts of stepping and sedentary behaviour: validation, sensitivity and specificity study",
+        "actual_year": 2024,
+        "title_similarity": 1.0,
+        "paper_id": "10.1177/20552076241262710",
+        "paper_label": "Fitbit's accuracy to measure short bouts of stepping and sedentary behaviour: validation, sensitivity and specificity study",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Understanding activity and physiology at scale: The Apple Heart &amp; Movement Study",
+        "actual_year": null,
+        "title_similarity": 0.917,
+        "paper_id": "10.1038/s41746-024-01187-5",
+        "paper_label": "Understanding activity and physiology at scale: the Apple Heart & Movement Study",
+        "paper_year": 2024
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.10)",
+          "first author mismatch: expected 'mahalingaiah', got 'leung'"
+        ],
+        "actual_title": "Umbilical cord prolapse: rate of fetal acidosis: a reply",
+        "actual_year": 2022,
+        "paper_id": "10.1016/j.ajog.2021.12.002",
+        "paper_label": "Design and methods of the Apple Women's Health Study: a digital longitudinal cohort study",
+        "paper_year": 2022
+      },
+      {
+        "status": "valid",
+        "actual_title": "Validity and reliability of the Apple Health app on iPhone for measuring gait parameters in children, adults, and seniors",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.1038/s41598-023-32550-3",
+        "paper_label": "Validity and reliability of the Apple Health app on iPhone for measuring gait parameters in children, adults, and seniors",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Feasibility, adherence and usability of an observational digital health study built using Apple\u2019s ResearchKit among adults aged 18\u201384 years",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.3389/fdgth.2025.1520971",
+        "paper_label": "Feasibility, adherence and usability of an observational digital health study built using Apple's ResearchKit among adults aged 18-84 years",
+        "paper_year": 2025
+      },
+      {
+        "status": "valid",
+        "actual_title": "Validation of Garmin and Polar Devices for Continuous Heart Rate Monitoring During Common Training Movements in Tactical Populations",
+        "actual_year": 2023,
+        "title_similarity": 1.0,
+        "paper_id": "10.1080/1091367X.2022.2161820",
+        "paper_label": "Validation of Garmin and Polar devices for continuous heart rate monitoring during common training movements in tactical populations",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Continuous Monitoring of Heart Rate Variability in Free-Living Conditions Using Wearable Sensors: Exploratory Observational Study",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/53977",
+        "paper_label": "Continuous monitoring of heart rate variability in free-living conditions using wearable sensors: exploratory observational study",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Limiting racial disparities and bias for wearable devices in health science research",
+        "actual_year": 2020,
+        "title_similarity": 1.0,
+        "paper_id": "10.1093/sleep/zsaa159",
+        "paper_label": "Limiting racial disparities and bias for wearable devices in health science research",
+        "paper_year": 2020
+      },
+      {
+        "status": "valid",
+        "actual_title": "Demographic Imbalances Resulting From the Bring-Your-Own-Device Study Design",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/29510",
+        "paper_label": "Demographic imbalances resulting from the bring-your-own-device study design",
+        "paper_year": 2022
+      },
+      {
+        "status": "valid",
+        "actual_title": "Patterns of Ownership and Usage of Wearable Devices in the United States, 2020-2022: Survey Study",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.2196/56504",
+        "paper_label": "Patterns of ownership and usage of wearable devices in the United States, 2020-2022: survey study",
+        "paper_year": 2024
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "first author mismatch: expected 'mmh', got 'shandhi'"
+        ],
+        "actual_title": "Assessment of ownership of smart devices and the acceptability of digital health data sharing",
+        "actual_year": null,
+        "paper_id": "10.1038/s41746-024-01030-x",
+        "paper_label": "Assessment of ownership of smart devices and the acceptability of digital health data sharing",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "Wearable devices in healthcare: Privacy and information security issues",
+        "actual_year": 2020,
+        "title_similarity": 1.0,
+        "paper_id": "10.1177/1833358319851684",
+        "paper_label": "Wearable devices in healthcare: Privacy and information security issues",
+        "paper_year": 2020
+      },
+      {
+        "status": "valid",
+        "actual_title": "Does deidentification of data from wearable devices give us a false sense of security? A systematic review",
+        "actual_year": 2023,
+        "title_similarity": 1.0,
+        "paper_id": "10.1016/S2589-7500(22)00234-5",
+        "paper_label": "Does deidentification of data from wearable devices give us a false sense of security? A systematic review",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Ethical considerations for the use of consumer wearables in health research",
+        "actual_year": 2023,
+        "title_similarity": 1.0,
+        "paper_id": "10.1177/20552076231153740",
+        "paper_label": "Ethical considerations for the use of consumer wearables in health research",
+        "paper_year": 2023
+      },
+      {
+        "status": "valid",
+        "actual_title": "Data Interoperability for Ambulatory Monitoring of Cardiovascular Disease: A Scientific Statement From the American Heart Association",
+        "actual_year": 2024,
+        "title_similarity": 1.0,
+        "paper_id": "10.1161/HCG.0000000000000095",
+        "paper_label": "Data interoperability for ambulatory monitoring of cardiovascular disease: a scientific statement from the American Heart Association",
+        "paper_year": 2024
+      },
+      {
+        "status": "valid",
+        "actual_title": "A scalable, secure, and interoperable platform for deep data-driven health management",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.1038/s41467-021-26040-1",
+        "paper_label": "A scalable, secure, and interoperable platform for deep data-driven health management",
+        "paper_year": 2021
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "title mismatch (Jaccard=0.04)",
+          "first author mismatch: expected 'muzny', got 'gill'"
+        ],
+        "actual_title": "Technology-facilitated care coordination in rural areas: What is needed?",
+        "actual_year": 2020,
+        "paper_id": "10.1016/j.ijmedinf.2020.104102",
+        "paper_label": "Wearable sensors with possibilities for data exchange: Analyzing status and needs of different actors in mobile health monitoring systems",
+        "paper_year": 2020
+      },
+      {
+        "status": "valid",
+        "actual_title": "Challenges and recommendations for wearable devices in digital health: Data quality, interoperability, health equity, fairness",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.1371/journal.pdig.0000104",
+        "paper_label": "Challenges and recommendations for wearable devices in digital health: Data quality, interoperability, health equity, fairness",
+        "paper_year": 2022
+      },
+      {
+        "status": "mismatch",
+        "issues": [
+          "first author mismatch: expected 'bottcher', got 'b\u00f6ttcher'"
+        ],
+        "actual_title": "Data quality evaluation in wearable monitoring",
+        "actual_year": null,
+        "paper_id": "10.1038/s41598-022-25949-x",
+        "paper_label": "Data quality evaluation in wearable monitoring",
+        "paper_year": 2022
+      },
+      {
+        "status": "valid",
+        "actual_title": "On General Data Protection Regulation Vulnerabilities and Privacy Issues, for Wearable Devices and Fitness Tracking Applications",
+        "actual_year": null,
+        "title_similarity": 1.0,
+        "paper_id": "10.3390/cryptography5040029",
+        "paper_label": "On general data protection regulation vulnerabilities and privacy issues, for wearable devices and fitness tracking applications",
+        "paper_year": 2021
+      }
+    ]
+  },
+  "summary": {
+    "total": 247,
+    "valid": 111,
+    "mismatch": 38,
+    "not_found": 1,
+    "error": 67,
+    "skipped": 30,
+    "rate_limited": 0
+  }
+}

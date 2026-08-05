@@ -1,0 +1,34 @@
+{
+  "batch_id": 2,
+  "evaluator": "subagent-02",
+  "promotions": [
+    {
+      "id": "ref:scj:b",
+      "label": "RL for JITAI personalization",
+      "reason": "Directly applicable methodology: RL algorithms specifically designed for personalization of digital JITAIs. Core to the project's aim of config-driven RL for JITAI decision-making."
+    },
+    {
+      "id": "ref:scj:c",
+      "label": "JITAIs for PA: systematic review",
+      "reason": "Core domain data and theoretical foundation: systematic review of JITAIs designed to promote physical activity, directly mapping to the project's physical activity intervention focus."
+    },
+    {
+      "id": "ref:scj:d",
+      "label": "Context inference for JITAIs",
+      "reason": "Implementation-relevant: examines impact of context inference error on RL for JITAIs. Directly relevant to the project's 36-state factored MDP with context variables (step_bin, sleep, day_of_week, burden)."
+    },
+    {
+      "id": "ref:scj:g",
+      "label": "JITAIs: key components (2018)",
+      "reason": "Theoretical foundation: Nahum-Shani et al.'s seminal paper defining the key components and conceptual framework for JITAIs in mobile health. Foundational reference for the entire project domain."
+    }
+  ],
+  "demotions": [],
+  "summary": {
+    "total_evaluated": 52,
+    "promoted": 4,
+    "demoted": 0,
+    "kept_curated": 0,
+    "kept_regular": 48
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "batch_id": 7,
+  "evaluator": "subagent-07",
+  "promotions": [
+    {
+      "id": "ref:scan:035",
+      "label": "Micro-randomized Trials with Categorical Treatments: Causal Effect Estimation an",
+      "reason": "Directly applicable MRT methodology extending WCLS to multi-categorical (3+) treatments. The project's 4-action MDP (idle, movement_suggestion, goal_reminder, journal) requires exactly this type of multi-categorical treatment analysis. Illustrated on HeartSteps, the same trial this project reproduces."
+    },
+    {
+      "id": "ref:scan:036",
+      "label": "Semiparametric Off-Policy Inference for Optimal Policy Values under Possible Non",
+      "reason": "Provides off-policy evaluation methodology (NSAVE) for MDPs with double-robustness guarantees. Directly applicable when transitioning from MRT data to RL-based policies, a key step in the project's evaluation pipeline."
+    },
+    {
+      "id": "ref:scan:037",
+      "label": "Dynamic Causal Mediation Analysis for Intensive Longitudinal Data",
+      "reason": "Proposes natural direct/indirect excursion effects for MRT mediation analysis. Applied to HeartSteps data. Bridges causal inference with understanding why interventions work, directly relevant to evaluating the project's JITAI mechanisms."
+    },
+    {
+      "id": "ref:scan:038",
+      "label": "Robust Estimation of Moderated Causal Excursion Odds Ratio in Micro-Randomized T",
+      "reason": "Doubly robust estimators for moderated causal excursion odds ratio in MRTs with binary outcomes. Core MRT causal methodology applicable to evaluating the project's treatment effect moderation analyses."
+    },
+    {
+      "id": "ref:scan:039",
+      "label": "Doubly Robust Estimation with Stabilized Weights for Binary Proximal Outcomes in",
+      "reason": "DR-EMEE estimator achieving 2x efficiency gain over IPW for binary MRT outcomes. Validated on HeartSteps, PAMAP2, and mHealth datasets. Directly applicable to engagement metric analysis in the project's physical activity interventions."
+    },
+    {
+      "id": "ref:scan:040",
+      "label": "Power Constrained Nonstationary Bandits with Habituation and Recovery Dynamics",
+      "reason": "ROGUE-TS with probability clipping balances personalization and statistical power in MRTs. Validated on physical activity MRT data. Directly relevant to the project's need for power-constrained exploration in JITAI bandit algorithms."
+    },
+    {
+      "id": "ref:scan:041",
+      "label": "Prediction Intervals for Individual Treatment Effects in a Multiple Decision Poi",
+      "reason": "Conformal inference for time-varying individual treatment effects in MRTs with uncertainty quantification. Provides individual-level inference beyond average effects, relevant for personalizing the project's 4-action policies to individual users."
+    },
+    {
+      "id": "ref:scan:044",
+      "label": "IntelligentPooling: Practical Thompson Sampling for mHealth",
+      "reason": "Core Murphy lab Thompson sampling contextual bandit designed for mHealth challenges (small samples, non-stationarity, delayed rewards). Foundational methodology for the project's bandit-based action selection, deployed in clinical trials."
+    },
+    {
+      "id": "ref:scan:056",
+      "label": "RL for persuading to quit smoking and be physically active",
+      "reason": "RL algorithm modeling current and future user states to personalize physical activity persuasion strategies. Directly involves physical activity domain and models user state dynamics analogous to the project's factored MDP (step_bin, sleep, burden, day_of_week)."
+    },
+    {
+      "id": "ref:scan:070",
+      "label": "TS for SMART Designs",
+      "reason": "First Thompson sampling-based response-adaptive randomization algorithms for multi-stage SMARTs with valid post-study inference. Directly applicable methodological contribution for adaptive trial designs in the project's intervention evaluation framework."
+    },
+    {
+      "id": "ref:scan:073",
+      "label": "Replicable Bandits for Digital Health",
+      "reason": "Replicable Thompson sampling variants guaranteeing error control for post-study treatment effect estimation in digital health. From Murphy lab (Statistical Science). Directly addresses the core challenge of valid inference after bandit-based experimentation in mHealth."
+    },
+    {
+      "id": "ref:scan:074",
+      "label": "Causal Inference and Bandits for Digital Health",
+      "reason": "Comprehensive review of Thompson sampling variants, exploration strategies, and causal inference open problems in digital health. Directly relevant survey covering non-stationarity and heterogeneity challenges the project must address."
+    },
+    {
+      "id": "ref:scan:085",
+      "label": "Mixed-Effects Bandit for mHealth",
+      "reason": "Mixed-effects Thompson sampling accounting for between-user heterogeneity in mobile health. NeurIPS publication. Directly relevant to personalizing the project's 4-action policy across diverse users while maintaining statistical validity."
+    }
+  ],
+  "demotions": [],
+  "summary": {
+    "total_evaluated": 52,
+    "promoted": 13,
+    "demoted": 0,
+    "kept_curated": 0,
+    "kept_regular": 39
+  }
+}

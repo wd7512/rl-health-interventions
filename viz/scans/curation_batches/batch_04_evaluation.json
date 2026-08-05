@@ -1,0 +1,84 @@
+{
+  "batch_id": 4,
+  "evaluator": "subagent-04",
+  "promotions": [
+    {
+      "id": "ref:ukb:h",
+      "label": "ML for sleep and PA in UK Biobank",
+      "reason": "Directly applicable to sensor processing: statistical machine learning of physical activity and sleep from wrist-worn accelerometer data in UK Biobank. Core domain data processing for step/sleep features in the 36-state MDP (step_bin, sleep states)."
+    },
+    {
+      "id": "ref:ukb:j",
+      "label": "Smartphone HAR systematic review",
+      "reason": "Systematic review of smartphone-based human activity recognition methods. Directly relevant to sensor processing pipeline for extracting physical activity features from wearable/phone sensors, which is core to the step_bin MDP state."
+    },
+    {
+      "id": "ref:ukb:w",
+      "label": "HAR comprehensive study",
+      "reason": "Comprehensive study of human activity recognition using accelerometers. Core methodology for processing wearable sensor data to derive physical activity metrics needed for the JITAI MDP."
+    },
+    {
+      "id": "ref:ukb:x",
+      "label": "Role of features in HAR",
+      "reason": "Investigates feature engineering for human activity recognition from wearables. Directly relevant to designing sensor processing features for the step_bin and sleep states in the factored MDP."
+    },
+    {
+      "id": "ref:ukb:y",
+      "label": "ConvLSTM for HAR",
+      "reason": "Deep convolutional and LSTM architecture for multimodal human activity recognition. Relevant deep learning methodology for processing wearable sensor streams to derive activity features for the RL state space."
+    },
+    {
+      "id": "ref:ukb:aa",
+      "label": "Multi-task SSL for HAR",
+      "reason": "Multi-task self-supervised learning for human activity detection from wearables. Directly relevant to the project's next step of developing sensor foundation models (NormWear 768-dim embeddings) using self-supervised learning on wearable data."
+    },
+    {
+      "id": "ref:ukb:ab",
+      "label": "Masked reconstruction for HAR",
+      "reason": "Masked reconstruction based self-supervision for human activity recognition. Relevant SSL methodology applicable to sensor FM pre-training (next step: sensor foundation models)."
+    },
+    {
+      "id": "ref:ukb:ac",
+      "label": "Contrastive learning for HAR",
+      "reason": "Explores contrastive learning for human activity recognition. Directly relevant methodology for sensor FM development, as contrastive learning is a key technique for learning representations from unlabeled wearable time series."
+    },
+    {
+      "id": "ref:ukb:ad",
+      "label": "CPC for HAR (variant)",
+      "reason": "Contrastive predictive coding for human activity recognition. Relevant SSL approach for wearable sensor representation learning, applicable to the sensor FM pipeline for extracting features from accelerometer data."
+    },
+    {
+      "id": "ref:ukb:af",
+      "label": "Contrastive learning for clinical outcomes",
+      "reason": "Evaluates contrastive learning on wearable time series for clinical outcomes. Directly applicable to the project's sensor FM development path, combining SSL methods with clinical wearable data."
+    },
+    {
+      "id": "ref:ukb:ag",
+      "label": "SSL for HAR state",
+      "reason": "Assesses the state of self-supervised HAR using wearables. Provides a comprehensive overview of SSL techniques for wearable sensor data, directly relevant to designing the sensor FM pipeline."
+    },
+    {
+      "id": "ref:ukb:al",
+      "label": "Step detection for UK Biobank",
+      "reason": "ML wrist-worn step detection algorithm. Directly core methodology: step counting from wrist accelerometers is essential for the step_bin state variable in the 36-state MDP and for evaluating physical activity interventions."
+    },
+    {
+      "id": "ref:ukb:am",
+      "label": "SSL for sleep and mortality",
+      "reason": "Self-supervised learning of accelerometer data for sleep assessment. Directly relevant: sleep is a key state variable in the factored MDP (sleep feature), and SSL methods for extracting it from wearables align with the sensor FM roadmap."
+    },
+    {
+      "id": "ref:ukb:ap",
+      "label": "SelfHAR",
+      "reason": "Improves human activity recognition through self-training with unlabeled data. Relevant semi-supervised methodology for sensor processing, applicable when labeled activity data is limited — a practical concern for the project's sensor pipeline."
+    }
+  ],
+  "demotions": [],
+  "summary": {
+    "total_evaluated": 52,
+    "promoted": 14,
+    "demoted": 0,
+    "kept_curated": 0,
+    "kept_regular": 38
+  }
+}

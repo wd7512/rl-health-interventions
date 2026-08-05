@@ -1,0 +1,104 @@
+{
+  "batch_id": 8,
+  "evaluator": "subagent-08",
+  "promotions": [
+    {
+      "id": "ref:scan:111",
+      "label": "Toward Foundation Model for Multivariate Wearable Sensing of Physiological Signa",
+      "reason": "Directly applicable to the project's next-step Sensor Foundation Model goal. NormWear provides 768-dim embeddings from PPG/accelerometer and is explicitly referenced as the target approach for the project's planned sensor FM work. The channel-aware attention with CLS token on multimodal wearable data is directly implementable."
+    },
+    {
+      "id": "ref:scan:112",
+      "label": "Toward World Modeling of Physiological Signals with Chaos-Theoretic Balancing an",
+      "reason": "Direct successor to NormWear demonstrating forecasting and intervention-conditioned modeling for physiological time series. The chaos-theoretic balancing and latent state transition adaptation are directly relevant to modeling how JITAI interventions affect physiological signals over time, supporting the project's patient simulation and RL environment."
+    },
+    {
+      "id": "ref:scan:113",
+      "label": "Scaling Wearable Foundation Models (LSM)",
+      "reason": "Key reference for wearable foundation model scaling with 40M hours of data from 165K people. Establishes scaling laws for imputation, interpolation, and extrapolation. Directly informs the project's approach to building or selecting sensor FMs for wearable data processing."
+    },
+    {
+      "id": "ref:scan:114",
+      "label": "Physical activities enable scalable foundation modelling for broad-spectrum heal",
+      "reason": "StepFM is a foundation model built solely on step counter data — the exact data modality used in the project's step_bin state variable. Demonstrates that step data alone enables transfer to 20+ health risk tasks, validating the project's focus on step-count-based state representation while offering privacy-preserving benefits."
+    },
+    {
+      "id": "ref:scan:115",
+      "label": "Inertia-1: An Open Exploration of Wearable Motion Foundation Models",
+      "reason": "Comprehensive design recipes for accelerometer-based motion foundation models using >18.2M hours of data. Directly applicable to building the project's planned sensor FM pipeline for processing accelerometer data into features for the JITAI RL agent."
+    },
+    {
+      "id": "ref:scan:116",
+      "label": "SiamQuality: A ConvNet-Based Foundation Model for Imperfect Physiological Signal",
+      "reason": "Addresses signal quality in foundation model training using Siamese self-supervised learning on 36M PPG pairs. CNN backbone outperforms transformers on imperfect physiological data — directly relevant to the project's need for robust sensor processing in real-world wearable deployments with noisy data."
+    },
+    {
+      "id": "ref:scan:117",
+      "label": "A robust PPG foundation model using multimodal physiological supervision",
+      "reason": "Multimodal supervision (ECG/respiratory) for robust PPG representation learning. Improves 14/15 downstream tasks with 3x fewer subjects. Directly applicable methodology for the project's sensor FM work, particularly for building robust representations from limited labeled data."
+    },
+    {
+      "id": "ref:scan:118",
+      "label": "Multiple Imputation Approaches for Epoch-level Accelerometer data in Trials",
+      "reason": "Directly addresses missing accelerometer data at epoch-level granularity (5-second) in clinical trials. Missing data handling is essential for the project's real-world wearable deployment — the step_bin state variable requires complete accelerometer time series. Validated on the PACE-UP physical activity trial."
+    },
+    {
+      "id": "ref:scan:119",
+      "label": "A framework for handling missing accelerometer outcome data in trials",
+      "reason": "Provides a practical framework using wear time to define epoch-level missingness and wear-time-informed multiple imputation for accelerometer outcomes. Directly relevant to processing the project's wearable data streams to compute reliable step_bin and activity state features in the presence of non-wear periods."
+    },
+    {
+      "id": "ref:scan:120",
+      "label": "DynImp: Dynamic Imputation for Wearable Sensing Data Through Sensory and Tempora",
+      "reason": "Handles extreme missingness (>50% missing rates) in wearable data using nearest-neighbor feature-axis imputation and LSTM-based denoising autoencoder. Implementation-relevant for the project's sensor processing pipeline, where real-world wearable data will have variable missingness."
+    },
+    {
+      "id": "ref:scan:121",
+      "label": "VCR: Learning Valid Contextual Representation for Incomplete Wearable Signals",
+      "reason": "Self-supervised framework for missing modality handling in wearable data using orthogonal tokenizer and missing-aware Mixture-of-Experts. Directly applicable to the project's sensor FM work for learning robust representations from incomplete wearable data without hallucination."
+    },
+    {
+      "id": "ref:scan:122",
+      "label": "Self-Supervised and Topological Signal-Quality Assessment for Any PPG Device",
+      "reason": "First fully unsupervised PPG signal quality assessment combining contrastive 1D-ResNet with topological data analysis, working across heterogeneous devices without re-tuning. Directly applicable to the project's sensor processing pipeline for quality-filtering PPG signals."
+    },
+    {
+      "id": "ref:scan:123",
+      "label": "Lightweight ResNet-Based Deep Learning for Photoplethysmography Signal Quality A",
+      "reason": "Efficient PPG quality assessment (>99% parameter reduction, 96.52% AUC) suitable for on-device wearable deployment. Implementation-relevant for the project's wearable sensor processing, particularly for edge/on-device computation in a JITAI setting."
+    },
+    {
+      "id": "ref:scan:124",
+      "label": "Reduction of motion artifacts from photoplethysmography signals using learned co",
+      "reason": "Interpretable motion artifact removal from PPG using algorithm unfolding with signal decomposition and deep learning (SNR improved from -7.07 to 11.23 dB). Directly applicable to cleaning wearable sensor data in the project's pipeline, as motion artifacts are a primary source of noise in ambulatory PPG."
+    },
+    {
+      "id": "ref:scan:129",
+      "label": "Leveraging Imperfect Medical Data: A Manifold-Consistent Spatio-Temporal Network",
+      "reason": "Robust human activity recognition under imperfect sensing handling missing measurements, sensor failures, and noise. Validated on PAMAP2, Opportunity, and WISDM — standard HAR datasets for physical activity. Directly relevant to the project's need for robust step and activity recognition from real-world wearable data with sensor faults."
+    },
+    {
+      "id": "ref:scan:134",
+      "label": "A Bayesian Functional Accelerated Failure-Time Model with Varying Effects Correc",
+      "reason": "Statistical framework for measurement error correction in wearable accelerometer data accounting for demographic heterogeneity (race/region). Directly applicable to improving the quality of step count and activity measurements used to compute the step_bin state variable in the project's 36-state MDP."
+    },
+    {
+      "id": "ref:scan:135",
+      "label": "Lightweight Cross-Device Sleep Tracking on the WeBe Wearable Platform",
+      "reason": "Cross-device calibrated sleep tracking from raw accelerometer data. Sleep is one of the four core state dimensions (step_bin, sleep, day_of_week, burden) in the project's 36-state factored MDP. This paper provides methodology for measuring sleep from wearables, directly informing how the sleep state variable is estimated."
+    },
+    {
+      "id": "ref:scan:138",
+      "label": "Validation of Inertial Sensor-Based Step Detection Algorithms for Edge Device De",
+      "reason": "Directly relevant to core domain data processing: validates and compares five step detection algorithms from IMU data with focus on edge device deployment. Step detection is the fundamental operation for computing the step_bin state variable in the project's 36-state factored MDP, and edge deployment is critical for real-world JITAI implementation."
+    }
+  ],
+  "demotions": [],
+  "summary": {
+    "total_evaluated": 52,
+    "promoted": 18,
+    "demoted": 0,
+    "kept_curated": 0,
+    "kept_regular": 34
+  }
+}
