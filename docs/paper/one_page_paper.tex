@@ -4,7 +4,8 @@
 %   LLM-Bootstrapped Framework"
 %
 %  One consistent format: 11pt everywhere, no size changes.
-%  Body fits on page 1; references start on page 2.
+%  One-page deliverable: the report body fits on page 1; the reference list
+%  follows on page 2 (deliberate scope, matching the compilation note below).
 %  Compile: tectonic one_page_paper.tex
 % =====================================================================
 \documentclass[11pt,a4paper]{article}
@@ -70,9 +71,9 @@ data, bootstrapping needs
 no logged data --- though it still requires hand-authored personas, states, and
 rewards in config. Personas were hand-curated by domain practitioners, loosely
 grounded in the behaviour-change literature: not arbitrary, but not validated
-against real patient data either. \citet{park2024thousandpeople} report 85\% accuracy on
-General Social Survey replication for their agents; we make no such
-population-replication claim for ours. Six sweeps of 22{,}320 prompts each (133{,}920 prompts, 10 samples
+against real patient data either. \citet{park2024thousandpeople} report agents reproducing held-out
+General Social Survey responses at 85\% of participants' own two-week response-replication
+consistency; we make no such population-replication claim for ours. Six sweeps of 22{,}320 prompts each (133{,}920 prompts, 10 samples
 per outcome) produced 31 JSON tables: \$24.52 (DeepSeek) + \$25.45 (GLM 5.2).
 Personas produced distinct sampled transition distributions, and the config's
 Bayesian mechanism models burden as lowering future activity probability
