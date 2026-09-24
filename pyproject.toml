@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Simulation framework for testing RL-driven health interventions on wearable device data."
 readme = "README.md"
 authors = [
-    { name = "William Dennis", email = "wwdennis.home@gmail.com" }
+    { name = "William Dennis", email = "wwdennis.research@gmail.com" }
 ]
 requires-python = ">=3.11"
 dependencies = [
